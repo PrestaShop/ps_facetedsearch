@@ -285,7 +285,7 @@ class BlockLayered extends Module
 		);
 
 		Db::getInstance()->execute(
-			'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group 
+			'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group (̀id_attribute_group`, `indexable`) 
 			VALUES ('.(int)$params['id_attribute_group'].', '.(int)Tools::getValue('layered_indexable').')'
 		);
 
@@ -298,7 +298,8 @@ class BlockLayered extends Module
 				$seo_url = Tools::getValue('name_'.(int)$language['id_lang']);
 
 			Db::getInstance()->execute(
-				'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
+				'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value 
+				(̀id_attribute_group̀, ̀id_lang̀, ̀url_name`, `meta_title`) 
 				VALUES (
 					'.(int)$params['id_attribute_group'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
@@ -390,6 +391,7 @@ class BlockLayered extends Module
 
 			Db::getInstance()->execute(
 				'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_lang_value
+				(̀id_attributè, ̀id_lang̀, ̀url_namè, ̀meta_titlè)
 				VALUES (
 					'.(int)$params['id_attribute'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
@@ -466,6 +468,7 @@ class BlockLayered extends Module
 
 		Db::getInstance()->execute(
 			'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature 
+			(`id_feature`, `indexable`) 
 			VALUES ('.(int)$params['id_feature'].', '.(int)Tools::getValue('layered_indexable').')'
 		);
 
@@ -477,7 +480,8 @@ class BlockLayered extends Module
 				$seo_url = Tools::getValue('name_'.(int)$language['id_lang']);
 
 			Db::getInstance()->execute(
-				'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_lang_value
+				'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_lang_value 
+				(`id_feature`, `id_lang`, `url_name`, `meta_title`) 
 				VALUES (
 					'.(int)$params['id_feature'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
@@ -565,7 +569,8 @@ class BlockLayered extends Module
 				$seo_url = Tools::getValue('name_'.(int)$language['id_lang']);
 
 			Db::getInstance()->execute(
-				'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
+				'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_value_lang_value 
+				(`id_feature_value`, `id_lang`, `url_name`, `meta_title`) 
 				VALUES (
 					'.(int)$params['id_feature_value'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
