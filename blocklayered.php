@@ -285,7 +285,7 @@ class BlockLayered extends Module
 		);
 
 		Db::getInstance()->execute(
-			'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group (̀id_attribute_group`, `indexable`) 
+			'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group (`id_attribute_group`, `indexable`) 
 			VALUES ('.(int)$params['id_attribute_group'].', '.(int)Tools::getValue('layered_indexable').')'
 		);
 
@@ -299,7 +299,7 @@ class BlockLayered extends Module
 
 			Db::getInstance()->execute(
 				'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value 
-				(̀id_attribute_group̀, ̀id_lang̀, ̀url_name`, `meta_title`) 
+				(`id_attribute_group`, `id_lang`, `url_name`, `meta_title`) 
 				VALUES (
 					'.(int)$params['id_attribute_group'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
@@ -391,7 +391,7 @@ class BlockLayered extends Module
 
 			Db::getInstance()->execute(
 				'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_lang_value
-				(̀id_attributè, ̀id_lang̀, ̀url_namè, ̀meta_titlè)
+				(`id_attribute`, `id_lang`, `url_name`, `meta_title`)
 				VALUES (
 					'.(int)$params['id_attribute'].', '.(int)$language['id_lang'].',
 					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
