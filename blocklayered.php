@@ -30,8 +30,7 @@ if (!defined('_PS_VERSION_'))
 class BlockLayered extends Module
 {
 	private $products;
-	private $nbr_products;
-	
+	private $nbr_products;	
 	private $page = 1;
 
 	public function __construct()
@@ -632,6 +631,10 @@ class BlockLayered extends Module
 
 	public function hookProductListAssign($params)
 	{
+		if ((isset($this->context->controller->display_column_left) && !$this->context->controller->display_column_left)
+			&& (isset($this->context->controller->display_column_right) && !$this->context->controller->display_column_right))
+			return false;
+
 		global $smarty;
 		if (!Configuration::getGlobalValue('PS_LAYERED_INDEXED'))
 			return;
@@ -685,6 +688,10 @@ class BlockLayered extends Module
 
 	public function hookHeader($params)
 	{
+		if ((isset($this->context->controller->display_column_left) && !$this->context->controller->display_column_left)
+			&& (isset($this->context->controller->display_column_right) && !$this->context->controller->display_column_right))
+			return false;
+
 		global $smarty, $cookie;
 		
 		// No filters => module disable
@@ -809,6 +816,10 @@ class BlockLayered extends Module
 
 	public function hookFooter($params)
 	{
+		if ((isset($this->context->controller->display_column_left) && !$this->context->controller->display_column_left)
+			&& (isset($this->context->controller->display_column_right) && !$this->context->controller->display_column_right))
+			return false;
+
 		// No filters => module disable
 		if ($filter_block = $this->getFilterBlock($this->getSelectedFilters()))
 			if ($filter_block['nbr_filterBlocks'] == 0)
