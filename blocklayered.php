@@ -3075,18 +3075,24 @@ class BlockLayered extends Module
 		else
 			$product_list = $smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
 		
+		$vars = array(
+			'filtersBlock' => utf8_encode($this->generateFiltersBlock($selected_filters)),
+			'productList' => utf8_encode($product_list),
+			'pagination' => $smarty->fetch(_PS_THEME_DIR_.'pagination.tpl'),
+			'categoryCount' => $category_count,
+			'meta_title' => $meta_title.' - '.Configuration::get('PS_SHOP_NAME'),
+			'heading' => $meta_title,
+			'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
+			'meta_description' => $meta_description,
+			'current_friendly_url' => '#'.$filter_block['current_friendly_url'],
+			'filters' => $filter_block['filters']
+		);
+
+		if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
+			$vars = array_merge($vars, array('pagination_bottom' => $smarty->assign('paginationId', 'bottom')
+				->fetch(_PS_THEME_DIR_.'pagination.tpl')));
 		/* We are sending an array in jSon to the .js controller, it will update both the filters and the products zones */
-		return Tools::jsonEncode(array(
-		'filtersBlock' => utf8_encode($this->generateFiltersBlock($selected_filters)),
-		'productList' => utf8_encode($product_list),
-		'pagination' => $smarty->fetch(_PS_THEME_DIR_.'pagination.tpl'),
-		'categoryCount' => $category_count,
-		'meta_title' => $meta_title.' - '.Configuration::get('PS_SHOP_NAME'),
-		'heading' => $meta_title,
-		'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
-		'meta_description' => $meta_description,
-		'current_friendly_url' => '#'.$filter_block['current_friendly_url'],
-		'filters' => $filter_block['filters']));
+		return Tools::jsonEncode($vars);
 	}
 	
 	public function getProducts($selected_filters, &$products, &$nb_products, &$p, &$n, &$pages_nb, &$start, &$stop, &$range)
