@@ -2326,6 +2326,7 @@ class BlockLayered extends Module
 			switch ($filter['type'])
 			{
 				case 'price':
+				if ($this->showPriceFilter()) {
 					$price_array = array(
 						'type_lite' => 'price',
 						'type' => 'price',
@@ -2385,7 +2386,8 @@ class BlockLayered extends Module
 						}
 						$filter_blocks[] = $price_array;
 					}
-					break;
+				}
+				break;
 
 				case 'weight':
 					$weight_array = array(
@@ -3408,5 +3410,13 @@ class BlockLayered extends Module
 			if (!$anchor = Configuration::get('PS_ATTRIBUTE_ANCHOR_SEPARATOR'))
 				$anchor = '-';
 		return $anchor;
+	}
+
+	protected function showPriceFilter()
+	{
+		return (bool)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
+			SELECT `show_prices`
+			FROM `'._DB_PREFIX_.'group`
+			WHERE `id_group` = '.(int)Group::getCurrent()->id);
 	}
 }
