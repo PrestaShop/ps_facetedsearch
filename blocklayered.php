@@ -3084,8 +3084,10 @@ class BlockLayered extends Module
 			'heading' => $meta_title,
 			'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
 			'meta_description' => $meta_description,
-			'current_friendly_url' => '#'.$filter_block['current_friendly_url'],
-			'filters' => $filter_block['filters']
+			'current_friendly_url' => ((int)$n == (int)$nb_products) ? '#/show-all': '#'.$filter_block['current_friendly_url'],
+			'filters' => $filter_block['filters'],
+			'nbRenderedProducts' => (int)$nb_products,
+			'nbAskedProducts' => (int)$n
 		);
 
 		if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
