@@ -189,7 +189,7 @@
 				</tr>
 				<tr>
 					<td class="label">
-						{l s='Allow indexing robots Google, Yahoo!, Bing, etc.) to use the Availability filter' mod='blocklayered'}
+						{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Availability filter' mod='blocklayered'}
 					</td>
 					<td>
 						<input type="radio" name="ps_layered_filter_index_availability" id="ps_layered_filter_index_availability_on" value="1"{if $index_qty} checked="checked"{/if}>
