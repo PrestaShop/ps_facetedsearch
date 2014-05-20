@@ -1367,7 +1367,7 @@ class BlockLayered extends Module
 			if (!Tools::getValue('layered_tpl_name'))
 				$message = $this->displayError($this->l('Filter template name required (cannot be empty)'));
 			elseif (!Tools::getValue('categoryBox'))
-				$message = $this->displayError($this->l('You must select at least a category'));
+				$message = $this->displayError($this->l('You must select at least one category.'));
 			else
 			{
 				if (Tools::getValue('id_layered_filter'))
