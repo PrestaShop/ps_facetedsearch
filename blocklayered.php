@@ -3061,6 +3061,7 @@ class BlockLayered extends Module
 				'static_token' => Tools::getToken(false),
 				'page_name' => 'category',
 				'nArray' => $nArray,
+				'compareProducts' => CompareProduct::getCompareProducts((int)$this->context->cookie->id_compare)
 			)
 		);
 		
