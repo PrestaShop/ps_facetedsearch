@@ -3423,9 +3423,6 @@ class BlockLayered extends Module
 
 	protected function showPriceFilter()
 	{
-		return (bool)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-			SELECT `show_prices`
-			FROM `'._DB_PREFIX_.'group`
-			WHERE `id_group` = '.(int)Group::getCurrent()->id);
+		return Group::getCurrent()->show_prices;
 	}
 }
