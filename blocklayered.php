@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '1.10.9';
+		$this->version = '1.11';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -46,7 +46,6 @@ class BlockLayered extends Module
 
 		$this->displayName = $this->l('Layered navigation block');
 		$this->description = $this->l('Displays a block with layered navigation filters.');
-		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 		
 		if ((int)Tools::getValue('p'))
 			$this->page = (int)Tools::getValue('p');
