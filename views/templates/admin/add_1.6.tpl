@@ -367,6 +367,6 @@
 <script type="text/javascript">
 	var translations = new Array();
 	{if isset($filters)}var filters = '{$filters}';{/if}
-	translations['no_selected_categories'] = '{l s='You must select at least a category'|addslashes mod='blocklayered'}';
-	translations['no_selected_filters'] = '{l s='You must select at least a filter'|addslashes mod='blocklayered'}';
+	translations['no_selected_categories'] = '{l s='You must select at least one category'|addslashes mod='blocklayered'}';
+	translations['no_selected_filters'] = '{l s='You must select at least one filter'|addslashes mod='blocklayered'}';
 </script>

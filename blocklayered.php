@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '1.10.9';
+		$this->version = '1.11';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -46,7 +46,6 @@ class BlockLayered extends Module
 
 		$this->displayName = $this->l('Layered navigation block');
 		$this->description = $this->l('Displays a block with layered navigation filters.');
-		$this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 		
 		if ((int)Tools::getValue('p'))
 			$this->page = (int)Tools::getValue('p');
@@ -1367,7 +1366,7 @@ class BlockLayered extends Module
 			if (!Tools::getValue('layered_tpl_name'))
 				$message = $this->displayError($this->l('Filter template name required (cannot be empty)'));
 			elseif (!Tools::getValue('categoryBox'))
-				$message = $this->displayError($this->l('You must select at least a category'));
+				$message = $this->displayError($this->l('You must select at least one category.'));
 			else
 			{
 				if (Tools::getValue('id_layered_filter'))
@@ -3061,6 +3060,7 @@ class BlockLayered extends Module
 				'static_token' => Tools::getToken(false),
 				'page_name' => 'category',
 				'nArray' => $nArray,
+				'compareProducts' => CompareProduct::getCompareProducts((int)$this->context->cookie->id_compare)
 			)
 		);
 		
@@ -3422,9 +3422,6 @@ class BlockLayered extends Module
 
 	protected function showPriceFilter()
 	{
-		return (bool)Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-			SELECT `show_prices`
-			FROM `'._DB_PREFIX_.'group`
-			WHERE `id_group` = '.(int)Group::getCurrent()->id);
+		return Group::getCurrent()->show_prices;
 	}
 }
