@@ -3081,7 +3081,7 @@ class BlockLayered extends Module
 			'pagination' => $smarty->fetch(_PS_THEME_DIR_.'pagination.tpl'),
 			'categoryCount' => $category_count,
 			'meta_title' => $meta_title.' - '.Configuration::get('PS_SHOP_NAME'),
-			'heading' => $category->name,
+			'heading' => $meta_title,
 			'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
 			'meta_description' => $meta_description,
 			'current_friendly_url' => ((int)$n == (int)$nb_products) ? '#/show-all': '#'.$filter_block['current_friendly_url'],
