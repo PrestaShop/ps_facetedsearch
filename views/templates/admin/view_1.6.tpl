@@ -80,7 +80,7 @@
 						{if empty($limit_warning)}
 						<div class="btn-group-action">
 							<div class="btn-group pull-right">
-								<a href="{$current_url}&edit_filters_template=1&id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
+								<a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
 									<i class="icon-pencil"></i> {l s='Edit' mod='blocklayered'}
 								</a> 
 								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -88,7 +88,7 @@
 								</button>
 								<ul class="dropdown-menu">
 									<li>
-										<a href="{$current_url}&deleteFilterTemplate=1&id_layered_filter={(int)$template['id_layered_filter']}"
+										<a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
 						onclick="return confirm('{l s='Do you really want to delete this filter template' mod='blocklayered'}');">
 											<i class="icon-trash"></i> {l s='Delete' mod='blocklayered'}
 										</a>
@@ -109,7 +109,7 @@
 	{/if}
 	{if empty($limit_warning)}
 	<div class="panel-footer">
-		<a class="btn btn-default pull-right" href="{$current_url}&add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' mod='blocklayered'}</a>
+		<a class="btn btn-default pull-right" href="{$current_url}&amp;add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' mod='blocklayered'}</a>
 	</div>
 	{/if}
 </div>
@@ -117,7 +117,7 @@
 	<h3><i class="icon-cogs"></i> {l s='Configuration' mod='blocklayered'}</h3>
 	<form action="{$current_url}" method="post" class="form-horizontal">
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Hide filter values when no product is matching' mod='blocklayered'}</label>
+			<label class="col-lg-3 control-label">{l s='Hide filter values with no product is matching' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
 					<input type="radio" name="ps_layered_hide_0_values" id="ps_layered_hide_0_values_on" value="1"{if $hide_values} checked="checked"{/if}>
@@ -187,7 +187,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Condition filter' mod='blocklayered'}</label>
+			<label class="col-lg-3 control-label">{l s='Allow indexing robots (google, yahoo, bing, ...) to use condition filter' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
 					<input type="radio" name="ps_layered_filter_index_condition" id="ps_layered_filter_index_condition_on" value="1"{if $index_cdt} checked="checked"{/if}>
@@ -203,7 +203,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Availability filter' mod='blocklayered'}</label>
+			<label class="col-lg-3 control-label">{l s='Allow indexing robots (google, yahoo, bing, ...) to use availability filter' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
 					<input type="radio" name="ps_layered_filter_index_availability" id="ps_layered_filter_index_availability_on" value="1"{if $index_qty} checked="checked"{/if}>
@@ -219,7 +219,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Manufacturer filter' mod='blocklayered'}</label>
+			<label class="col-lg-3 control-label">{l s='Allow indexing robots (google, yahoo, bing, ...) to use manufacturer filter' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
 					<input type="radio" name="ps_layered_filter_index_manufacturer" id="ps_layered_filter_index_manufacturer_on" value="1"{if $index_mnf} checked="checked"{/if}>
@@ -235,7 +235,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Category filter' mod='blocklayered'}</label>
+			<label class="col-lg-3 control-label">{l s='Allow indexing robots (google, yahoo, bing, ...) to use category filter' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
 					<input type="radio" name="ps_layered_filter_index_category" id="ps_layered_filter_index_category_on" value="1"{if $index_cat} checked="checked"{/if}>
@@ -263,15 +263,15 @@
 	var base_folder = '{$base_folder}';
 	var translations = new Array();
 
-	translations['in_progress'] = '{l s='(in progress)' js=1 mod='blocklayered'}';
-	translations['url_indexation_finished'] = '{l s='URL indexing finished' js=1 mod='blocklayered'}';
-	translations['attribute_indexation_finished'] = '{l s='Attribute indexing finished' js=1 mod='blocklayered'}';
-	translations['url_indexation_failed'] = '{l s='URL indexing failed' js=1 mod='blocklayered'}';
-	translations['attribute_indexation_failed'] = '{l s='Attribute indexing failed' js=1 mod='blocklayered'}';
-	translations['price_indexation_finished'] = '{l s='Price indexing finished' js=1 mod='blocklayered'}';
-	translations['price_indexation_failed'] = '{l s='Price indexing failed' js=1 mod='blocklayered'}';
-	translations['price_indexation_in_progress'] = '{l s='(in progress, %s products price to index)' js=1 mod='blocklayered'}';
-	translations['loading'] = '{l s='Loading...' js=1 mod='blocklayered'}';
-	translations['delete_all_filters_templates'] = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 mod='blocklayered'}';
-	translations['no_selected_categories'] = '{l s='You must select at least one category' js=1 mod='blocklayered'}';
+	translations['in_progress']                   = '{l s='(in progress)' js=1 mod='blocklayered'}';
+	translations['url_indexation_finished']       = '{l s='URL indexation finished' js=1 mod='blocklayered'}';
+	translations['attribute_indexation_finished'] = '{l s='Attribute indexation finished' js=1 mod='blocklayered'}';
+	translations['url_indexation_failed']         = '{l s='URL indexation failed' js=1 mod='blocklayered'}';
+	translations['attribute_indexation_failed']   = '{l s='Attribute indexation failed' js=1 mod='blocklayered'}';
+	translations['price_indexation_finished']     = '{l s='Price indexation finished' js=1 mod='blocklayered'}';
+	translations['price_indexation_failed']       = '{l s='Price indexation failed' js=1 mod='blocklayered'}';
+	translations['price_indexation_in_progress']  = '{l s='(in progress, %s products price to index)' js=1 mod='blocklayered'}';
+	translations['loading']                       = '{l s='Loading...' js=1 mod='blocklayered'}';
+	translations['delete_all_filters_templates']  = '{l s='You selected -All categories-, all existing filter templates will be deleted, OK?' js=1 mod='blocklayered'}';
+	translations['no_selected_categories']        = '{l s='You must select at least a category' js=1 mod='blocklayered'}';
 </script>
