@@ -78,9 +78,9 @@
 					<td>{Tools::displayDate($template['date_add'],null , true)}</td>
 					<td class="text-right">
 						{if empty($limit_warning)}
-						<a href="{$current_url}&edit_filters_template=1&id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default"><img src="{$uri}img/edit.gif" alt="{l s='Edit' mod='blocklayered'}" />{l s='Edit' mod='blocklayered'}</a> 
+						<a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default"><img src="{$uri}img/edit.gif" alt="{l s='Edit' mod='blocklayered'}" />{l s='Edit' mod='blocklayered'}</a> 
 						{/if}
-						<a href="{$current_url}&deleteFilterTemplate=1&id_layered_filter={(int)$template['id_layered_filter']}"
+						<a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
 						onclick="return confirm('{l s='Do you really want to delete this filter template?' mod='blocklayered'}');"><img src="{$uri}img/cross.png" alt="{l s='Delete' mod='blocklayered'}" />{l s='Delete' mod='blocklayered'}</a>
 					</td>
 				</tr>
