@@ -3002,7 +3002,7 @@ class BlockLayered extends Module
 		global $smarty, $cookie;
 
 		$selected_filters = $this->getSelectedFilters();
-		$filter_block = $this->getFilterBlock($this->getSelectedFilters());
+		$filter_block = $this->getFilterBlock($selected_filters);
 		$this->getProducts($selected_filters, $products, $nb_products, $p, $n, $pages_nb, $start, $stop, $range);
 		
 		// Add pagination variable
