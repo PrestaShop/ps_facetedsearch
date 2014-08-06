@@ -3046,7 +3046,7 @@ class BlockLayered extends Module
 			array(
 				'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
 				'nb_products' => $nb_products,
-				'category' => new Category(Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')), (int)$cookie->id_lang),
+				'category' => $category,
 				'pages_nb' => (int)$pages_nb,
 				'p' => (int)$p,
 				'n' => (int)$n,
