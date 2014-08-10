@@ -2859,7 +2859,8 @@ class BlockLayered extends Module
 			$smarty->assign($filter_block);
 			$smarty->assign(array(
 				'hide_0_values' => Configuration::get('PS_LAYERED_HIDE_0_VALUES'),
-				'blocklayeredSliderName' => $translate
+				'blocklayeredSliderName' => $translate,
+				'col_img_dir' => _PS_COL_IMG_DIR_
 			));
 			return $this->display(__FILE__, 'blocklayered.tpl');
 		}
