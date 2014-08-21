@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '2.0.0';
+		$this->version = '2.0.1';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -2859,7 +2859,8 @@ class BlockLayered extends Module
 			$smarty->assign($filter_block);
 			$smarty->assign(array(
 				'hide_0_values' => Configuration::get('PS_LAYERED_HIDE_0_VALUES'),
-				'blocklayeredSliderName' => $translate
+				'blocklayeredSliderName' => $translate,
+				'col_img_dir' => _PS_COL_IMG_DIR_
 			));
 			return $this->display(__FILE__, 'blocklayered.tpl');
 		}
