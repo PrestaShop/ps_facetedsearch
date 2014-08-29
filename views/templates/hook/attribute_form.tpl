@@ -45,8 +45,7 @@
 		{foreach $languages as $language}
 			<div class="lang_{$language.id_lang}" style="display:{if $language.id_lang == $default_form_language}block{else}none{/if}; float: left;">
 				<input type="text" name="meta_title_{$language.id_lang}" id="meta_title_{$language.id_lang}" value="{if isset($values[$language['id_lang']]) && isset($values[$language['id_lang']]['meta_title'])}{$values[$language['id_lang']]['meta_title']|escape:'htmlall':'UTF-8'}{/if}" size="70" maxlength="70" />
-				<p class="preference_description">{l s='When the Layered Navigation Block module is enabled, you can get more detailed page titles by choosing the word that best represent this attribute. By default, PrestaShop uses the attribute\'s name, but you can change that setting using this field.
-.' mod='blocklayered'}</p>
+				<p class="preference_description">{l s='When the Layered Navigation Block module is enabled, you can get more detailed page titles by choosing the word that best represent this attribute. By default, PrestaShop uses the attribute\'s name, but you can change that setting using this field.' mod='blocklayered'}</p>
 			</div>
 		{/foreach}
 	</div>
