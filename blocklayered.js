@@ -275,11 +275,11 @@ function paginationButton(nbProductsIn, nbProductOut) {
 		current_friendly_url = '#';
 
 	$('div.pagination a').not(':hidden').each(function () {
-		if ($(this).attr('href').search('&p=') == -1) {
+		if ($(this).attr('href').search(/(\?|&)p=/) == -1) {
 			var page = 1;
 		}
 		else {
-			var page = $(this).attr('href').replace(/^.*&p=(\d+).*$/, '$1');
+			var page = parseInt($(this).attr('href').replace(/^.*(\?|&)p=(\d+).*$/, '$2'));;
 		}
 		var location = window.location.href.replace(/#.*$/, '');
 		$(this).attr('href', location+current_friendly_url.replace(/\/page-(\d+)/, '')+'/page-'+page);
@@ -602,9 +602,6 @@ function reloadContent(params_plus)
 					current_friendly_url += '/'+blocklayeredSliderName[sliderType]+'-'+$('#layered_'+sliderType+'_range_min').val()+'-'+$('#layered_'+sliderType+'_range_max').val();
 				}
 			});
-
-			if (current_friendly_url == '#')
-				current_friendly_url = '#/';
 
 			window.location.href = current_friendly_url;
 
