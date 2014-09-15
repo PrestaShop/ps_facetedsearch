@@ -1715,6 +1715,8 @@ class BlockLayered extends Module
 			{
 				foreach ($url_attributes as $url_attribute)
 				{
+					/* Pagination uses - as separator, can be different from $this->getAnchor()*/
+					$url_attribute = str_replace('-', $this->getAnchor(), $url_attribute);
 					$url_parameters = explode($this->getAnchor(), $url_attribute);
 					$attribute_name  = array_shift($url_parameters);
 					if ($attribute_name == 'page')
@@ -3077,7 +3079,7 @@ class BlockLayered extends Module
 			$product_list = $this->display(__FILE__, 'blocklayered-no-products.tpl');
 		else
 			$product_list = $smarty->fetch(_PS_THEME_DIR_.'product-list.tpl');
-		
+
 		$vars = array(
 			'filtersBlock' => utf8_encode($this->generateFiltersBlock($selected_filters)),
 			'productList' => utf8_encode($product_list),
