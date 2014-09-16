@@ -1716,7 +1716,8 @@ class BlockLayered extends Module
 				foreach ($url_attributes as $url_attribute)
 				{
 					/* Pagination uses - as separator, can be different from $this->getAnchor()*/
-					$url_attribute = str_replace('-', $this->getAnchor(), $url_attribute);
+					if (strpos($url_attribute, 'page-') === 0)
+						$url_attribute = str_replace('-', $this->getAnchor(), $url_attribute);
 					$url_parameters = explode($this->getAnchor(), $url_attribute);
 					$attribute_name  = array_shift($url_parameters);
 					if ($attribute_name == 'page')
