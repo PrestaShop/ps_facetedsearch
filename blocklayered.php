@@ -88,6 +88,7 @@ class BlockLayered extends Module
 			Configuration::updateValue('PS_LAYERED_FILTER_INDEX_MNF', 0);
 			Configuration::updateValue('PS_LAYERED_FILTER_INDEX_CAT', 0);
 			Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
+			Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
 			
 			$this->rebuildLayeredStructure();
 			$this->buildLayeredCategories();
@@ -132,6 +133,7 @@ class BlockLayered extends Module
 		Configuration::deleteByName('PS_LAYERED_FILTER_INDEX_CDT');
 		Configuration::deleteByName('PS_LAYERED_FILTER_INDEX_MNF');
 		Configuration::deleteByName('PS_LAYERED_FILTER_INDEX_CAT');
+		Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
 
 		Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_price_index');
 		Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_friendly_url');
@@ -1487,6 +1489,7 @@ class BlockLayered extends Module
 			Configuration::updateValue('PS_LAYERED_FILTER_INDEX_CDT', (int)Tools::getValue('ps_layered_filter_index_condition'));
 			Configuration::updateValue('PS_LAYERED_FILTER_INDEX_MNF', (int)Tools::getValue('ps_layered_filter_index_manufacturer'));
 			Configuration::updateValue('PS_LAYERED_FILTER_INDEX_CAT', (int)Tools::getValue('ps_layered_filter_index_category'));
+			Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int)Tools::getValue('ps_layered_filter_price_rounding'));
 
 			if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
 				$message = '<div class="alert alert-success">'.$this->l('Settings saved successfully').'</div>';
@@ -1660,12 +1663,13 @@ class BlockLayered extends Module
 				'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
 				'full_tree' => Configuration::get('PS_LAYERED_FULL_TREE'),
 				'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
-				'price_use_tax' => Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
+				'price_use_tax' => (bool)Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
 				'index_cdt' => Configuration::get('PS_LAYERED_FILTER_INDEX_CDT'),
 				'index_qty' => Configuration::get('PS_LAYERED_FILTER_INDEX_QTY'),
 				'index_mnf' => Configuration::get('PS_LAYERED_FILTER_INDEX_MNF'),
 				'index_cat' => Configuration::get('PS_LAYERED_FILTER_INDEX_CAT'),
-				'limit_warning' => $this->displayLimitPostWarning(21+count($attribute_groups)*3+count($features)*3)
+				'limit_warning' => $this->displayLimitPostWarning(21+count($attribute_groups)*3+count($features)*3),
+				'price_use_rounding' => (bool)Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING')
 			));
 			
 			if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
@@ -1970,7 +1974,9 @@ class BlockLayered extends Module
 		while ($product = DB::getInstance()->nextRow($all_products_out))
 			if (isset($price_filter) && $price_filter)
 			{
-				$price = (int)Product::getPriceStatic($product['id_product'], Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')); // Cast to int because we don't care about cents
+				$price = Product::getPriceStatic($product['id_product'], Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')); 
+				if (Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'))
+					$price = (int)$price;
 				if ($price < $price_filter['min'] || $price > $price_filter['max'])
 					continue;
 				$product_id_list[] = (int)$product['id_product'];

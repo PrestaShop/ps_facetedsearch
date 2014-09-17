@@ -187,6 +187,22 @@
 			</div>
 		</div>
 		<div class="form-group">
+			<label class="col-lg-3 control-label">{l s='Use rounding to filter price' mod='blocklayered'}</label>
+			<div class="col-lg-9">
+				<span class="switch prestashop-switch fixed-width-lg">
+					<input type="radio" name="ps_layered_filter_price_rounding" id="ps_layered_filter_price_rounding_on" value="1"{if $price_use_rounding} checked="checked"{/if}/>
+					<label for="ps_layered_filter_price_rounding_on" class="radioCheck">
+						<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
+					</label>
+					<input type="radio" name="ps_layered_filter_price_rounding" id="ps_layered_filter_price_rounding_off" value="0"{if !$price_use_rounding} checked="checked"{/if}/>
+					<label for="ps_layered_filter_price_rounding_off" class="radioCheck">
+						<i class="color_danger"></i> {l s='No' mod='blocklayered'}
+					</label>
+					<a class="slide-button btn"></a>
+				</span>
+			</div>
+		</div>
+		<div class="form-group">
 			<label class="col-lg-3 control-label">{l s='Allow indexing robots (Google, Yahoo!, Bing, etc.) to use the Condition filter' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
