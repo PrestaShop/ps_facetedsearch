@@ -89,7 +89,7 @@
 								<ul class="dropdown-menu">
 									<li>
 										<a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
-						onclick="return confirm('{l s='Do you really want to delete this filter template' mod='blocklayered'}');">
+						onclick="return confirm('{l s='Do you really want to delete this filter template?' mod='blocklayered'}');">
 											<i class="icon-trash"></i> {l s='Delete' mod='blocklayered'}
 										</a>
 									</li>
