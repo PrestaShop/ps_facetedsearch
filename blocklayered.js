@@ -392,7 +392,7 @@ function reloadContent(params_plus)
 	}
 	
 	var slideUp = true;
-	if (params_plus == undefined)
+	if (params_plus == undefined || !(typeof params_plus == 'string'))
 	{
 		params_plus = '';
 		slideUp = false;
@@ -498,9 +498,7 @@ function reloadContent(params_plus)
 				{
 					current_friendly_url += '/'+sliderType+'-'+$('#layered_'+sliderType+'_range_min').val()+'-'+$('#layered_'+sliderType+'_range_max').val();
 				}
-			});
-			if (current_friendly_url == '#')
-				current_friendly_url = '#/';
+
 			window.location = current_friendly_url;
 			lockLocationChecking = true;
 			
