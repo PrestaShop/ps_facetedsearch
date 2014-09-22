@@ -498,7 +498,7 @@ function reloadContent(params_plus)
 				{
 					current_friendly_url += '/'+sliderType+'-'+$('#layered_'+sliderType+'_range_min').val()+'-'+$('#layered_'+sliderType+'_range_max').val();
 				}
-
+			});
 			window.location = current_friendly_url;
 			lockLocationChecking = true;
 			
