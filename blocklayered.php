@@ -2001,7 +2001,7 @@ class BlockLayered extends Module
 				m.name manufacturer_name,
 				MAX(product_attribute_shop.id_product_attribute) id_product_attribute,
 				DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB(NOW(), INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
+				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity, product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity
 			FROM `'._DB_PREFIX_.'category_product` cp
 			LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 			LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
