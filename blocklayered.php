@@ -1999,16 +1999,17 @@ class BlockLayered extends Module
 				MAX(image_shop.`id_image`) id_image,
 				il.legend,
 				m.name manufacturer_name,
-				MAX(product_attribute_shop.id_product_attribute) id_product_attribute,
+				'.(Combination::isFeatureActive() ? 'MAX(product_attribute_shop.id_product_attribute) id_product_attribute,' : '').'
 				DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB(NOW(), INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity, MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity
+				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity' : '').'
 			FROM `'._DB_PREFIX_.'category_product` cp
 			LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 			LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-			'.Shop::addSqlAssociation('product', 'p').'
-			LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product`)
+			'.Shop::addSqlAssociation('product', 'p').
+			(Combination::isFeatureActive() ?
+			'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product`)
 			'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
-			'.Product::sqlStock('p', 'product_attribute_shop', false, Context::getContext()->shop).'
+			'.Product::sqlStock('p', 'product_attribute_shop', false, Context::getContext()->shop) : 'LEFT JOIN ps_stock_available stock ON (stock.`id_product` = p.`id_product`)').'
 			LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
 			LEFT JOIN `'._DB_PREFIX_.'image` i  ON (i.`id_product` = p.`id_product`)'.
 			Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
