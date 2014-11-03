@@ -1613,7 +1613,7 @@ class BlockLayered extends Module
 				WHERE id_layered_filter = '.(int)Tools::getValue('id_layered_filter')
 			);
 
-			$filters = unserialize($template['filters']);
+			$filters = Tools::unSerialize($template['filters']);
 
 			if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
 			{
