@@ -202,8 +202,8 @@ class BlockLayered extends Module
 		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_group_lang_value` (
 		`id_attribute_group` INT NOT NULL,
 		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(20),
-		`meta_title` VARCHAR(20),
+		`url_name` VARCHAR(128),
+		`meta_title` VARCHAR(128),
 		PRIMARY KEY (`id_attribute_group`, `id_lang`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
@@ -213,8 +213,8 @@ class BlockLayered extends Module
 		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_lang_value` (
 		`id_attribute` INT NOT NULL,
 		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(20),
-		`meta_title` VARCHAR(20),
+		`url_name` VARCHAR(128),
+		`meta_title` VARCHAR(128),
 		PRIMARY KEY (`id_attribute`, `id_lang`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
@@ -237,8 +237,8 @@ class BlockLayered extends Module
 		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_lang_value` (
 		`id_feature` INT NOT NULL,
 		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(20) NOT NULL,
-		`meta_title` VARCHAR(20),
+		`url_name` VARCHAR(128) NOT NULL,
+		`meta_title` VARCHAR(128),
 		PRIMARY KEY (`id_feature`, `id_lang`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
@@ -248,8 +248,8 @@ class BlockLayered extends Module
 		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_value_lang_value` (
 		`id_feature_value` INT NOT NULL,
 		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(20),
-		`meta_title` VARCHAR(20),
+		`url_name` VARCHAR(128),
+		`meta_title` VARCHAR(128),
 		PRIMARY KEY (`id_feature_value`, `id_lang`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 	}
