@@ -1229,7 +1229,7 @@ class BlockLayered extends Module
 				$max_tax_rate = Db::getInstance()->getValue('
 					SELECT max(t.rate) max_rate
 					FROM `'._DB_PREFIX_.'product_shop` p
-					LEFT JOIN `'._DB_PREFIX_.'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = '.(int)$shop_list.')
+					LEFT JOIN `'._DB_PREFIX_.'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = '.(int)$id_shop.')
 					LEFT JOIN `'._DB_PREFIX_.'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
 					LEFT JOIN `'._DB_PREFIX_.'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
 					WHERE id_product = '.(int)$id_product.'
