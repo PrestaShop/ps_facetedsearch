@@ -2753,11 +2753,13 @@ class BlockLayered extends Module
 			$blacklist[] = 'category';
 
 		$global_nofollow = false;
-
+		$categorie_link = Context::getContext()->link->getCategoryLink($parent, null, null);
+		
 		foreach ($filter_blocks as &$type_filter)
 		{
 			$filter_name = (!empty($type_filter['url_name']) ? $type_filter['url_name'] : $type_filter['name']);
-
+			$filter_link_rewrite = Tools::link_rewrite($filter_name);
+			
 			if (count($type_filter) > 0 && !isset($type_filter['slider']))
 			{
 				foreach ($type_filter['values'] as $key => $values)
@@ -2767,29 +2769,29 @@ class BlockLayered extends Module
 						$global_nofollow = true;
 
 					$option_checked_clone_array = $option_checked_array;
-
+					
 					// If not filters checked, add parameter
 					$value_name = !empty($values['url_name']) ? $values['url_name'] : $values['name'];
 
-					if (!in_array(Tools::link_rewrite($value_name), $param_group_selected_array[Tools::link_rewrite($filter_name)]))
+					if (!in_array(Tools::link_rewrite($value_name), $param_group_selected_array[$filter_link_rewrite]))
 					{
 						// Update parameter filter checked before
-						if (array_key_exists(Tools::link_rewrite($filter_name), $option_checked_array))
+						if (array_key_exists($filter_link_rewrite, $option_checked_array))
 						{
-							$option_checked_clone_array[Tools::link_rewrite($filter_name)] = $option_checked_clone_array[Tools::link_rewrite($filter_name)].$this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
+							$option_checked_clone_array[$filter_link_rewrite] = $option_checked_clone_array[$filter_link_rewrite].$this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
 
 							if (in_array($type_filter['type'], $blacklist))
 								$nofollow = true;
 						}
 						else
-							$option_checked_clone_array[Tools::link_rewrite($filter_name)] = $this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
+							$option_checked_clone_array[$filter_link_rewrite] = $this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
 					}
 					else
 					{
 						// Remove selected parameters
-						$option_checked_clone_array[Tools::link_rewrite($filter_name)] = str_replace($this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name)), '', $option_checked_clone_array[Tools::link_rewrite($filter_name)]);
-						if (empty($option_checked_clone_array[Tools::link_rewrite($filter_name)]))
-							unset($option_checked_clone_array[Tools::link_rewrite($filter_name)]);
+						$option_checked_clone_array[$filter_link_rewrite] = str_replace($this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name)), '', $option_checked_clone_array[$filter_link_rewrite]);
+						if (empty($option_checked_clone_array[$filter_link_rewrite]))
+							unset($option_checked_clone_array[$filter_link_rewrite]);
 					}
 					$parameters = '';
 					ksort($option_checked_clone_array); // Order parameters
@@ -2809,7 +2811,7 @@ class BlockLayered extends Module
 						if (strpos($parameters, '/'.$value) !== false)
 							$nofollow = true;
 
-					$type_filter['values'][$key]['link'] = Context::getContext()->link->getCategoryLink($parent, null, null).'#'.ltrim($parameters, '/');
+					$type_filter['values'][$key]['link'] = $categorie_link.'#'.ltrim($parameters, '/');
 					$type_filter['values'][$key]['rel'] = ($nofollow) ? 'nofollow' : '';
 				}
 			}
