@@ -1889,7 +1889,7 @@ class BlockLayered extends Module
 						break;
 
 					$query_filters_where .= ' AND sa.quantity '.(!$selected_filters['quantity'][0] ? '<=' : '>').' 0 ';
-					$query_filters_from .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa ON (sa.id_product = p.id_product AND sa.id_shop = '.(int)Context::getContext()->shop->id.') ';
+					$query_filters_from .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa ON (sa.id_product = p.id_product '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
 				break;
 
 				case 'manufacturer':
@@ -2101,7 +2101,7 @@ class BlockLayered extends Module
 					AND c.active = 1) ';
 
 					$sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
-						ON (sa.id_product = p.id_product AND sa.id_shop = '.(int)$this->context->shop->id.') ';
+						ON (sa.id_product = p.id_product '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
 					$sql_query['where'] = 'WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog") ';
 
 					$sql_query['group'] = ' GROUP BY p.id_product ';
