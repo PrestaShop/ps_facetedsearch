@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '2.0.5';
+		$this->version = '2.0.6';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -1723,7 +1723,7 @@ class BlockLayered extends Module
 					if ($attribute_name == 'page')
 						$this->page = (int)$url_parameters[0];
 					else if (in_array($attribute_name, array('price', 'weight')))
-						$selected_filters[$attribute_name] = array($url_parameters[0], $url_parameters[1]);
+						$selected_filters[$attribute_name] = array(Tools::purifyHTML($url_parameters[0]), Tools::purifyHTML($url_parameters[1]));
 					else
 					{
 						foreach ($url_parameters as $url_parameter)
@@ -1738,7 +1738,7 @@ class BlockLayered extends Module
 									{
 										if (!isset($selected_filters[$key_params][$key_param]))
 											$selected_filters[$key_params][$key_param] = array();
-										$selected_filters[$key_params][$key_param] = $param;
+										$selected_filters[$key_params][$key_param] = Tools::purifyHTML($param);
 									}
 								}
 						}
@@ -1756,8 +1756,8 @@ class BlockLayered extends Module
 				preg_match('/^(.*)_([0-9]+|new|used|refurbished|slider)$/', substr($key, 8, strlen($key) - 8), $res);
 				if (isset($res[1]))
 				{
-					$tmp_tab = explode('_', $value);
-					$value = $tmp_tab[0];
+					$tmp_tab = explode('_', Tools::purifyHTML($value));
+					$value = Tools::purifyHTML($tmp_tab[0]);
 					$id_key = false;
 					if (isset($tmp_tab[1]))
 						$id_key = $tmp_tab[1];
