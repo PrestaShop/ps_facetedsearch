@@ -60,23 +60,8 @@ class BlockLayered extends Module
 		&& $this->registerHook('afterSaveProduct') && $this->registerHook('productListAssign') && $this->registerHook('postProcessAttributeGroup')
 		&& $this->registerHook('postProcessFeature') && $this->registerHook('featureValueForm') && $this->registerHook('postProcessFeatureValue')
 		&& $this->registerHook('afterDeleteFeatureValue') && $this->registerHook('afterSaveFeatureValue') && $this->registerHook('attributeForm')
-		&& $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute'))
+		&& $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute') && $this->registerHook('leftColumn'))
 		{
-			if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
-			{
-				// Hook the module either on the left or right column
-				$theme = new Theme(Context::getContext()->shop->id_theme);
-				if ((!$theme->default_left_column || !$this->registerHook('leftColumn'))
-					&& (!$theme->default_right_column || !$this->registerHook('rightColumn')))
-				{
-					// If there are no colums implemented by the template, throw an error and uninstall the module
-					$this->_errors[] = $this->l('This module need to be hooked in a column and your theme does not implement one');
-					parent::uninstall();
-					return false;
-				}
-			}
-			else
-				$this->registerHook('leftColumn');
 
 			Configuration::updateValue('PS_LAYERED_HIDE_0_VALUES', 1);
 			Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
