@@ -1803,9 +1803,7 @@ class BlockLayered extends Module
 				ON p.id_product = cp.id_product
 				INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
 				c.nleft >= '.(int)$parent->nleft.' AND c.nright <= '.(int)$parent->nright.'
-				AND c.active = 1)
-				RIGHT JOIN '._DB_PREFIX_.'layered_category lc ON (lc.id_category = '.(int)$id_parent.' AND
-				lc.id_shop = '.(int) Context::getContext()->shop->id.')';
+				AND c.active = 1)';
 			else
 				$query_filters_from .= ' INNER JOIN '._DB_PREFIX_.'category_product cp
 				ON p.id_product = cp.id_product
@@ -1981,32 +1979,38 @@ class BlockLayered extends Module
 				'.($alias_where == 'p' ? '' : 'product_shop.*,' ).'
 				'.$alias_where.'.id_category_default,
 				pl.*,
-				MAX(image_shop.`id_image`) id_image,
-				il.legend,
 				m.name manufacturer_name,
-				'.(Combination::isFeatureActive() ? 'MAX(product_attribute_shop.id_product_attribute) id_product_attribute,' : '').'
 				DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB(NOW(), INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity' : '').'
+				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
 			FROM `'._DB_PREFIX_.'category_product` cp
 			LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 			LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-			'.Shop::addSqlAssociation('product', 'p').
-			(Combination::isFeatureActive() ?
-			'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product`)
-			'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
-			'.Product::sqlStock('p', 'product_attribute_shop', false, Context::getContext()->shop) : 'LEFT JOIN ps_stock_available stock ON (stock.`id_product` = p.`id_product`)').'
+			'.Shop::addSqlAssociation('product', 'p').'
 			LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
-			LEFT JOIN `'._DB_PREFIX_.'image` i  ON (i.`id_product` = p.`id_product`)'.
-			Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
-			LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$cookie->id_lang.')
 			LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
+			'.Product::sqlStock('p', 0).'
 			WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
 			AND '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.' AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
 			AND c.active = 1
-			AND p.id_product IN ('.implode(',', $product_id_list).')
-			GROUP BY product_shop.id_product
+			AND cp.id_product IN ('.implode(',', $product_id_list).')
 			ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).
 			' LIMIT '.(((int)$this->page - 1) * $n.','.$n));
+
+			foreach($this->products as $key => $product_result) {
+				$row = Product::getCoverLegend($product_result['id_product'], $cookie->id_lang);
+
+				if (Combination::isFeatureActive()) {
+					$sql  = 'SELECT MAX(product_attribute_shop.id_product_attribute) id_product_attribute, MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity
+									FROM `'._DB_PREFIX_.'product_attribute` pa
+							'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
+							WHERE pa.`id_product`='.(int)$product_result['id_product'];
+					$row1 = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
+
+					$this->products[$key] = array_merge($product_result, $row, $row1);
+				} else {
+					$this->products[$key] = array_merge($product_result, $row);
+				}
+			}
 		}
 
 		if (Tools::getProductsOrder('by', Tools::getValue('orderby'), true) == 'p.price')
@@ -2074,7 +2078,7 @@ class BlockLayered extends Module
 				case 'condition':
 				case 'quantity':
 
-					$sql_query['select'] = 'SELECT p.`id_product`, product_shop.`condition`, p.`id_manufacturer`, sa.`quantity`, p.`weight` ';
+					$sql_query['select'] = 'SELECT p.`id_product`, product_shop.`condition`, p.`id_manufacturer`, sa.`quantity`, p.`weight`, sa.`out_of_stock` ';
 
 					$sql_query['from'] = '
 					FROM '._DB_PREFIX_.'product p ';
@@ -2086,7 +2090,7 @@ class BlockLayered extends Module
 					AND c.active = 1) ';
 
 					$sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
-						ON (sa.id_product = p.id_product '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
+						ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
 					$sql_query['where'] = 'WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog") ';
 
 					$sql_query['group'] = ' GROUP BY p.id_product ';
@@ -2473,7 +2477,7 @@ class BlockLayered extends Module
 						foreach ($products as $product)
 						{
 							//If oosp move all not available quantity to available quantity
-							if ((int)$product['quantity'] > 0 || Product::isAvailableWhenOutOfStock(StockAvailable::outOfStock($product['id_product'])))
+							if ((int)$product['quantity'] > 0 || Product::isAvailableWhenOutOfStock($product['out_of_stock']))
 								$quantity_array[1]['nbr']++;
 							else
 								$quantity_array[0]['nbr']++;
