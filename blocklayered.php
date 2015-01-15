@@ -53,7 +53,7 @@ class BlockLayered extends Module
 
 	public function install()
 	{
-		if (parent::install() && $this->registerHook('header')
+		if (parent::install() && $this->registerHook('header') && $this->registerHook('leftColumn')
 		&& $this->registerHook('categoryAddition') && $this->registerHook('categoryUpdate') && $this->registerHook('attributeGroupForm')
 		&& $this->registerHook('afterSaveAttributeGroup') && $this->registerHook('afterDeleteAttributeGroup') && $this->registerHook('featureForm')
 		&& $this->registerHook('afterDeleteFeature') && $this->registerHook('afterSaveFeature') && $this->registerHook('categoryDeletion')
@@ -2739,12 +2739,12 @@ class BlockLayered extends Module
 
 		$global_nofollow = false;
 		$categorie_link = Context::getContext()->link->getCategoryLink($parent, null, null);
-		
+
 		foreach ($filter_blocks as &$type_filter)
 		{
 			$filter_name = (!empty($type_filter['url_name']) ? $type_filter['url_name'] : $type_filter['name']);
 			$filter_link_rewrite = Tools::link_rewrite($filter_name);
-			
+
 			if (count($type_filter) > 0 && !isset($type_filter['slider']))
 			{
 				foreach ($type_filter['values'] as $key => $values)
@@ -2754,7 +2754,7 @@ class BlockLayered extends Module
 						$global_nofollow = true;
 
 					$option_checked_clone_array = $option_checked_array;
-					
+
 					// If not filters checked, add parameter
 					$value_name = !empty($values['url_name']) ? $values['url_name'] : $values['name'];
 
