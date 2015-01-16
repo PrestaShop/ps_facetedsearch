@@ -2286,7 +2286,7 @@ class BlockLayered extends Module
 			{
 				$method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
 				if (method_exists('BlockLayered', $method_name) &&
-				(!in_array($filter['type'], array('price', 'weight')) && $filter['type'] != $filter_tmp['type'] || $filter['type'] == $filter_tmp['type']))
+					($filter['type'] == $filter_tmp['type'] || ($filter['type'] != $filter_tmp['type'] && $filter['type'] != 'price' && $filter['type'] != 'weight')))
 				{
 					if ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'])
 						$sub_query_filter = self::$method_name(array(), true);
@@ -2314,7 +2314,7 @@ class BlockLayered extends Module
 			{
 				$method_name = 'filterProductsBy'.ucfirst($filter_tmp['type']);
 				if (method_exists('BlockLayered', $method_name) &&
-				(!in_array($filter['type'], array('price', 'weight')) && $filter['type'] != $filter_tmp['type'] || $filter['type'] == $filter_tmp['type']))
+					($filter['type'] == $filter_tmp['type'] || ($filter['type'] != $filter_tmp['type'] && $filter['type'] != 'price' && $filter['type'] != 'weight')))
 					if ($filter['type'] == $filter_tmp['type'])
 						$products = self::$method_name(array(), $products);
 					else
@@ -2682,14 +2682,16 @@ class BlockLayered extends Module
 			$attr_key = $type_filter['type'].'_'.$type_filter['id_key'];
 
 			$param_group_selected = '';
+			$lower_filter = strtolower($type_filter['type']);
+			$filter_name_rewritten = Tools::link_rewrite($filter_name);
 
-			if (in_array(strtolower($type_filter['type']), array('price', 'weight'))
+			if (($lower_filter == 'price' || $lower_filter == 'weight')
 				&& (float)$type_filter['values'][0] > (float)$type_filter['min']
 				&& (float)$type_filter['values'][1] > (float)$type_filter['max'])
 			{
 				$param_group_selected .= $this->getAnchor().str_replace($this->getAnchor(), '_', $type_filter['values'][0])
 					.$this->getAnchor().str_replace($this->getAnchor(), '_', $type_filter['values'][1]);
-				$param_group_selected_array[Tools::link_rewrite($filter_name)][] = Tools::link_rewrite($filter_name);
+				$param_group_selected_array[$filter_name_rewritten][] = $filter_name_rewritten;
 
 				if (!isset($title_values[$filter_meta]))
 					$title_values[$filter_meta] = array();
@@ -2707,7 +2709,7 @@ class BlockLayered extends Module
 						$value_name = !empty($value['url_name']) ? $value['url_name'] : $value['name'];
 						$value_meta = !empty($value['meta_title']) ? $value['meta_title'] : $value['name'];
 						$param_group_selected .= $this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
-						$param_group_selected_array[Tools::link_rewrite($filter_name)][] = Tools::link_rewrite($value_name);
+						$param_group_selected_array[$filter_name_rewritten][] = Tools::link_rewrite($value_name);
 
 						if (!isset($title_values[$filter_meta]))
 							$title_values[$filter_meta] = array();
@@ -2717,18 +2719,18 @@ class BlockLayered extends Module
 						$meta_values[$attr_key]['values'][] = $value_meta;
 					}
 					else
-						$param_group_selected_array[Tools::link_rewrite($filter_name)][] = array();
+						$param_group_selected_array[$filter_name_rewritten][] = array();
 				}
 			}
 
 			if (!empty($param_group_selected))
 			{
-				$param_selected .= '/'.str_replace($this->getAnchor(), '_', Tools::link_rewrite($filter_name)).$param_group_selected;
-				$option_checked_array[Tools::link_rewrite($filter_name)] = $param_group_selected;
+				$param_selected .= '/'.str_replace($this->getAnchor(), '_', $filter_name_rewritten).$param_group_selected;
+				$option_checked_array[$filter_name_rewritten] = $param_group_selected;
 			}
 			// select only attribute and group attribute to display an unique product combination link
 			if (!empty($param_group_selected) && $type_filter['type'] == 'id_attribute_group')
-				$param_product_url .= '/'.str_replace($this->getAnchor(), '_', Tools::link_rewrite($filter_name)).$param_group_selected;
+				$param_product_url .= '/'.str_replace($this->getAnchor(), '_', $filter_name_rewritten).$param_group_selected;
 
 		}
 
@@ -3276,67 +3278,64 @@ class BlockLayered extends Module
 
 			$filter_data['shop_list'] = $shop_list;
 
-			foreach ($shop_list as $id_shop)
+			foreach ($c as $id_category => $category)
 			{
-				foreach ($c as $id_category => $category)
-				{
-					if (!in_array($id_category, $filter_data['categories']))
-						$filter_data['categories'][] = $id_category;
+				if (!in_array($id_category, $filter_data['categories']))
+					$filter_data['categories'][] = $id_category;
 
-					if (!isset($n_categories[(int)$id_category]))
-						$n_categories[(int)$id_category] = 1;
-					if (!isset($done_categories[(int)$id_category]['cat']))
-					{
-						$filter_data['layered_selection_subcategories'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['cat'] = true;
-						$to_insert = true;
-					}
-					if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
-						foreach ($a as $k_attribute => $attribute)
-							if (!isset($done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]]))
-							{
-								$filter_data['layered_selection_ag_'.(int)$attribute_groups_by_id[(int)$k_attribute]] = array('filter_type' => 0, 'filter_show_limit' => 0);
-								$done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]] = true;
-								$to_insert = true;
-							}
-					if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
-						foreach ($f as $k_feature => $feature)
-							if (!isset($done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]]))
-							{
-								$filter_data['layered_selection_feat_'.(int)$features_by_id[(int)$k_feature]] = array('filter_type' => 0, 'filter_show_limit' => 0);
-								$done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]] = true;
-								$to_insert = true;
-							}
-					if (!isset($done_categories[(int)$id_category]['q']))
-					{
-						$filter_data['layered_selection_stock'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['q'] = true;
-						$to_insert = true;
-					}
-					if (!isset($done_categories[(int)$id_category]['m']))
-					{
-						$filter_data['layered_selection_manufacturer'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['m'] = true;
-						$to_insert = true;
-					}
-					if (!isset($done_categories[(int)$id_category]['c']))
-					{
-						$filter_data['layered_selection_condition'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['c'] = true;
-						$to_insert = true;
-					}
-					if (!isset($done_categories[(int)$id_category]['w']))
-					{
-						$filter_data['layered_selection_weight_slider'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['w'] = true;
-						$to_insert = true;
-					}
-					if (!isset($done_categories[(int)$id_category]['p']))
-					{
-						$filter_data['layered_selection_price_slider'] = array('filter_type' => 0, 'filter_show_limit' => 0);
-						$done_categories[(int)$id_category]['p'] = true;
-						$to_insert = true;
-					}
+				if (!isset($n_categories[(int)$id_category]))
+					$n_categories[(int)$id_category] = 1;
+				if (!isset($done_categories[(int)$id_category]['cat']))
+				{
+					$filter_data['layered_selection_subcategories'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['cat'] = true;
+					$to_insert = true;
+				}
+				if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
+					foreach ($a as $k_attribute => $attribute)
+						if (!isset($done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]]))
+						{
+							$filter_data['layered_selection_ag_'.(int)$attribute_groups_by_id[(int)$k_attribute]] = array('filter_type' => 0, 'filter_show_limit' => 0);
+							$done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]] = true;
+							$to_insert = true;
+						}
+				if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
+					foreach ($f as $k_feature => $feature)
+						if (!isset($done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]]))
+						{
+							$filter_data['layered_selection_feat_'.(int)$features_by_id[(int)$k_feature]] = array('filter_type' => 0, 'filter_show_limit' => 0);
+							$done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]] = true;
+							$to_insert = true;
+						}
+				if (!isset($done_categories[(int)$id_category]['q']))
+				{
+					$filter_data['layered_selection_stock'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['q'] = true;
+					$to_insert = true;
+				}
+				if (!isset($done_categories[(int)$id_category]['m']))
+				{
+					$filter_data['layered_selection_manufacturer'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['m'] = true;
+					$to_insert = true;
+				}
+				if (!isset($done_categories[(int)$id_category]['c']))
+				{
+					$filter_data['layered_selection_condition'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['c'] = true;
+					$to_insert = true;
+				}
+				if (!isset($done_categories[(int)$id_category]['w']))
+				{
+					$filter_data['layered_selection_weight_slider'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['w'] = true;
+					$to_insert = true;
+				}
+				if (!isset($done_categories[(int)$id_category]['p']))
+				{
+					$filter_data['layered_selection_price_slider'] = array('filter_type' => 0, 'filter_show_limit' => 0);
+					$done_categories[(int)$id_category]['p'] = true;
+					$to_insert = true;
 				}
 			}
 		}
