@@ -1935,14 +1935,7 @@ class BlockLayered extends Module
 
 		$query_filters_from .= Shop::addSqlAssociation('product', 'p');
 
-		$all_products_out = self::query('
-		SELECT p.`id_product` id_product
-		FROM `'._DB_PREFIX_.'product` p
-		'.$price_filter_query_out.'
-		'.$query_filters_from.'
-		WHERE 1 '.$query_filters_where.' GROUP BY id_product');
-
-		$all_products_in = self::query('
+		$all_products_in = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
 		SELECT p.`id_product` id_product
 		FROM `'._DB_PREFIX_.'product` p
 		'.$price_filter_query_in.'
@@ -1951,19 +1944,30 @@ class BlockLayered extends Module
 
 		$product_id_list = array();
 
-		while ($product = DB::getInstance()->nextRow($all_products_in))
+		foreach($all_products_in as $product) {
 			$product_id_list[] = (int)$product['id_product'];
+		}
 
-		while ($product = DB::getInstance()->nextRow($all_products_out))
-			if (isset($price_filter) && $price_filter)
-			{
+		if (isset($price_filter) && $price_filter) {
+			$all_products_out = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+			SELECT p.`id_product` id_product
+			FROM `'._DB_PREFIX_.'product` p
+			'.$price_filter_query_out.'
+			'.$query_filters_from.'
+			WHERE 1 '.$query_filters_where.' GROUP BY id_product');
+
+			foreach($all_products_out as $product) {
 				$price = Product::getPriceStatic($product['id_product'], Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'));
-				if (Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'))
+				if (Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING')) {
 					$price = (int)$price;
-				if ($price < $price_filter['min'] || $price > $price_filter['max'])
+				}
+				if ($price < $price_filter['min'] || $price > $price_filter['max']) {
 					continue;
+				}
 				$product_id_list[] = (int)$product['id_product'];
 			}
+			$product_id_list = array_unique($product_id_list);
+		}
 		$this->nbr_products = count($product_id_list);
 
 		if ($this->nbr_products == 0)
