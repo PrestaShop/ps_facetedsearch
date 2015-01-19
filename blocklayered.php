@@ -2900,14 +2900,21 @@ class BlockLayered extends Module
 
 	private static function filterProductsByPrice($filter_value, $product_collection)
 	{
+		static $ps_layered_filter_price_usetax = null;
+
 		if (empty($filter_value))
 			return $product_collection;
+
+		if ($ps_layered_filter_price_usetax === null) {
+			$ps_layered_filter_price_usetax = Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX');
+		}
+
 		foreach ($product_collection as $key => $product)
 		{
 			if (isset($filter_value) && $filter_value && isset($product['price_min']) && isset($product['id_product'])
 			&& ((int)$filter_value[0] > $product['price_min'] || (int)$filter_value[1] < $product['price_max']))
 			{
-				$price = Product::getPriceStatic($product['id_product'], Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'));
+				$price = Product::getPriceStatic($product['id_product'], $ps_layered_filter_price_usetax);
 				if ($price < $filter_value[0] || $price > $filter_value[1])
 					continue;
 				unset($product_collection[$key]);
