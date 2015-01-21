@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '2.0.4';
+		$this->version = '2.0.7';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -1054,7 +1054,7 @@ class BlockLayered extends Module
 
 					if ($id_layered_friendly_url == false)
 					{
-						Db::getInstance()->AutoExecute(_DB_PREFIX_.'layered_friendly_url', array('url_key' => $url_key, 'data' => serialize($selected_filters), 'id_lang' => $id_lang), 'INSERT');
+						Db::getInstance()->AutoExecute(_DB_PREFIX_.'layered_friendly_url', array('url_key' => $url_key, 'data' => serialize($selected_filters), 'id_lang' => (int)$id_lang), 'INSERT');
 						$id_layered_friendly_url = Db::getInstance()->Insert_ID();
 					}
 				}
@@ -1712,7 +1712,7 @@ class BlockLayered extends Module
 					if ($attribute_name == 'page')
 						$this->page = (int)$url_parameters[0];
 					else if (in_array($attribute_name, array('price', 'weight')))
-						$selected_filters[$attribute_name] = array($url_parameters[0], $url_parameters[1]);
+						$selected_filters[$attribute_name] = array($this->filterVar($url_parameters[0]), $this->filterVar($url_parameters[1]));
 					else
 					{
 						foreach ($url_parameters as $url_parameter)
@@ -1727,7 +1727,7 @@ class BlockLayered extends Module
 									{
 										if (!isset($selected_filters[$key_params][$key_param]))
 											$selected_filters[$key_params][$key_param] = array();
-										$selected_filters[$key_params][$key_param] = $param;
+										$selected_filters[$key_params][$key_param] = $this->filterVar($param);
 									}
 								}
 						}
@@ -1745,8 +1745,8 @@ class BlockLayered extends Module
 				preg_match('/^(.*)_([0-9]+|new|used|refurbished|slider)$/', substr($key, 8, strlen($key) - 8), $res);
 				if (isset($res[1]))
 				{
-					$tmp_tab = explode('_', $value);
-					$value = $tmp_tab[0];
+					$tmp_tab = explode('_', $this->filterVar($value));
+					$value = $this->filterVar($tmp_tab[0]);
 					$id_key = false;
 					if (isset($tmp_tab[1]))
 						$id_key = $tmp_tab[1];
@@ -1886,7 +1886,7 @@ class BlockLayered extends Module
 						break;
 					$query_filters_where .= ' AND '.$alias_where.'.condition IN (';
 					foreach ($selected_filters['condition'] as $cond)
-						$query_filters_where .= '\''.$cond.'\',';
+						$query_filters_where .= '\''.pSQL($cond).'\',';
 					$query_filters_where = rtrim($query_filters_where, ',').')';
 				break;
 
@@ -2262,7 +2262,7 @@ class BlockLayered extends Module
 					AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")';
 					$sql_query['group'] = ') count_products
 					FROM '._DB_PREFIX_.'category c
-					LEFT JOIN '._DB_PREFIX_.'category_lang cl ON (cl.id_category = c.id_category AND cl.`id_shop` = '.(int)Context::getContext()->shop->id.' and cl.id_lang = '.$id_lang.') ';
+					LEFT JOIN '._DB_PREFIX_.'category_lang cl ON (cl.id_category = c.id_category AND cl.`id_shop` = '.(int)Context::getContext()->shop->id.' and cl.id_lang = '.(int)$id_lang.') ';
 
 					if (Group::isFeatureActive())
 						$sql_query['group'] .= 'RIGHT JOIN '._DB_PREFIX_.'category_group cg ON (cg.id_category = c.id_category AND cg.`id_group` IN ('.implode(', ', $this->user_groups).')) ';
@@ -2643,7 +2643,7 @@ class BlockLayered extends Module
 		LEFT JOIN `'._DB_PREFIX_.'layered_indexable_attribute_group` liag
 		ON liag.id_attribute_group = agl.id_attribute_group
 		WHERE indexable IS NULL OR indexable = 0
-		AND id_lang = '.$id_lang) as $attribute)
+		AND id_lang = '.(int)$id_lang) as $attribute)
 			$non_indexable[] = Tools::link_rewrite($attribute['public_name']);
 
 		// Get all non indexable features
@@ -2653,7 +2653,7 @@ class BlockLayered extends Module
 		LEFT JOIN  `'._DB_PREFIX_.'layered_indexable_feature` lif
 		ON lif.id_feature = fl.id_feature
 		WHERE indexable IS NULL OR indexable = 0
-		AND id_lang = '.$id_lang) as $attribute)
+		AND id_lang = '.(int)$id_lang) as $attribute)
 			$non_indexable[] = Tools::link_rewrite($attribute['name']);
 
 		//generate SEO link
@@ -2739,7 +2739,6 @@ class BlockLayered extends Module
 
 		$global_nofollow = false;
 		$categorie_link = Context::getContext()->link->getCategoryLink($parent, null, null);
-
 		foreach ($filter_blocks as &$type_filter)
 		{
 			$filter_name = (!empty($type_filter['url_name']) ? $type_filter['url_name'] : $type_filter['name']);
@@ -3423,5 +3422,13 @@ class BlockLayered extends Module
 	protected function showPriceFilter()
 	{
 		return Group::getCurrent()->show_prices;
+	}
+
+	protected function filterVar($value)
+	{
+		if (version_compare(_PS_VERSION_, '1.6.0.7', '>=') === true)
+			return Tools::purifyHTML($value);
+		else
+			return filter_var($value, FILTER_SANITIZE_STRING);
 	}
 }
