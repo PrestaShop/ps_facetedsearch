@@ -2043,6 +2043,15 @@ class BlockLayered extends Module
 
 		$parent = new Category((int)$id_parent, $id_lang);
 
+		/* Create the table which contains all the id_product in a cat or a tree */
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
+													SELECT DISTINCT id_product FROM '._DB_PREFIX_.'category_product cp
+													INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
+													'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
+													AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
+													AND c.active = 1)');
+
 		/* Get the filters for the current category */
 		$filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
 			SELECT * FROM '._DB_PREFIX_.'layered_category
@@ -2076,23 +2085,14 @@ class BlockLayered extends Module
 				case 'weight':
 				case 'condition':
 				case 'quantity':
-
 					$sql_query['select'] = 'SELECT p.`id_product`, product_shop.`condition`, p.`id_manufacturer`, sa.`quantity`, p.`weight`, sa.`out_of_stock` ';
 
 					$sql_query['from'] = '
-					FROM '._DB_PREFIX_.'product p ';
-					$sql_query['join'] = '
-					INNER JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
-					INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-					'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-					AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-					AND c.active = 1) ';
+					FROM '._DB_PREFIX_.'cat_restriction JOIN '._DB_PREFIX_.'product p USING (id_product)';
 
 					$sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
 						ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
-					$sql_query['where'] = 'WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog") ';
-
-					$sql_query['group'] = ' GROUP BY p.id_product ';
+					$sql_query['where'] = 'WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")';
 					break;
 
 				case 'manufacturer':
