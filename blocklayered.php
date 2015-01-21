@@ -1909,7 +1909,8 @@ class BlockLayered extends Module
 			}
 		}
 
-		$id_currency = (int)Context::getContext()->currency->id;
+		$context = Context::getContext();
+		$id_currency = (int)$context->currency->id;
 
 		$price_filter_query_in = ''; // All products with price range between price filters limits
 		$price_filter_query_out = ''; // All products with a price filters limit on it price range
@@ -1983,14 +1984,23 @@ class BlockLayered extends Module
 				'.($alias_where == 'p' ? '' : 'product_shop.*,' ).'
 				'.$alias_where.'.id_category_default,
 				pl.*,
+				image_shop.`id_image` id_image,
+				il.legend,
 				m.name manufacturer_name,
+				'.(Combination::isFeatureActive() ? 'product_attribute_shop.id_product_attribute id_product_attribute,' : '').'
 				DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB("'.date('Y-m-d').' 00:00:00", INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
+				stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity' : '').'
 			FROM `'._DB_PREFIX_.'category_product` cp
 			LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 			LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-			'.Shop::addSqlAssociation('product', 'p').'
+			'.Shop::addSqlAssociation('product', 'p').
+			(Combination::isFeatureActive() ?
+			' LEFT JOIN `'._DB_PREFIX_.'product_attribute_shop` product_attribute_shop
+				ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int)$context->shop->id.')':'').'
 			LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
+			LEFT JOIN `'._DB_PREFIX_.'image_shop` image_shop
+				ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop='.(int)$context->shop->id.')
+			LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$cookie->id_lang.')
 			LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
 			'.Product::sqlStock('p', 0).'
 			WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
@@ -2000,22 +2010,6 @@ class BlockLayered extends Module
 			GROUP BY cp.id_product
 			ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).
 			' LIMIT '.(((int)$this->page - 1) * $n.','.$n));
-
-			foreach($this->products as $key => $product_result) {
-				$row = Product::getCoverLegend($product_result['id_product'], $cookie->id_lang);
-
-				if (Combination::isFeatureActive()) {
-					$sql  = 'SELECT MAX(product_attribute_shop.id_product_attribute) id_product_attribute, MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity
-									FROM `'._DB_PREFIX_.'product_attribute` pa
-							'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
-							WHERE pa.`id_product`='.(int)$product_result['id_product'];
-					$row1 = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql);
-
-					$this->products[$key] = array_merge($product_result, $row, $row1);
-				} else {
-					$this->products[$key] = array_merge($product_result, $row);
-				}
-			}
 		}
 
 		if (Tools::getProductsOrder('by', Tools::getValue('orderby'), true) == 'p.price')
