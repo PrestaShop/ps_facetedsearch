@@ -2145,7 +2145,7 @@ class BlockLayered extends Module
 					break;
 				case 'id_attribute_group':// attribute group
 					$sql_query['select'] = '
-					SELECT COUNT(DISTINCT p.id_product) nbr, lpa.id_attribute_group,
+					SELECT COUNT(DISTINCT lpa.id_product) nbr, lpa.id_attribute_group,
 					a.color, al.name attribute_name, agl.public_name attribute_group_name , lpa.id_attribute, ag.is_color_group,
 					liagl.url_name name_url_name, liagl.meta_title name_meta_title, lial.url_name value_url_name, lial.meta_title value_meta_title';
 					$sql_query['from'] = '
