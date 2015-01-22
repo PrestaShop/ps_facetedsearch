@@ -2061,11 +2061,15 @@ class BlockLayered extends Module
 		/* Create the table which contains all the id_product in a cat or a tree */
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction');
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
-													SELECT DISTINCT id_product FROM '._DB_PREFIX_.'category_product cp
+													SELECT DISTINCT cp.id_product FROM '._DB_PREFIX_.'category_product cp
 													INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
 													'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
 													AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-													AND c.active = 1)');
+													AND c.active = 1)
+													INNER JOIN ps_product_shop product_shop ON (product_shop.id_product = cp.id_product
+													AND product_shop.id_shop = 1)
+													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product)');
 
 		/* Get the filters for the current category */
 		$filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -2107,21 +2111,17 @@ class BlockLayered extends Module
 
 					$sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
 						ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
-					$sql_query['where'] = 'WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")';
+					$sql_query['where'] = 'WHERE 1';
+					$sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
 					break;
 
 				case 'manufacturer':
-					$sql_query['select'] = 'SELECT m.name, COUNT(DISTINCT p.id_product) nbr, m.id_manufacturer ';
+					$sql_query['select'] = 'SELECT COUNT(DISTINCT p.id_product) nbr, m.id_manufacturer ';
 					$sql_query['from'] = '
-					FROM `'._DB_PREFIX_.'category_product` cp
-					INNER JOIN  `'._DB_PREFIX_.'category` c ON (c.id_category = cp.id_category)
+					FROM '._DB_PREFIX_.'cat_restriction cp
 					INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product = cp.id_product)
 					INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer) ';
-					$sql_query['where'] = 'WHERE
-					'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-					AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-					AND c.active = 1
-					AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")';
+					$sql_query['where'] = 'WHERE 1';
 					$sql_query['group'] = ' GROUP BY p.id_manufacturer ORDER BY m.name';
 
 					if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES'))
@@ -2129,16 +2129,10 @@ class BlockLayered extends Module
 						$sql_query['second_query'] = '
 							SELECT m.name, 0 nbr, m.id_manufacturer
 
-							FROM `'._DB_PREFIX_.'category_product` cp'.
-							Shop::addSqlAssociation('product', 'cp').'
-							INNER JOIN  `'._DB_PREFIX_.'category` c ON (c.id_category = cp.id_category)
+							FROM '._DB_PREFIX_.'cat_restriction cp JOIN
 							INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product = cp.id_product)
 							INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-
-							WHERE '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-							AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-							AND c.active = 1
-							AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
+							WHERE 1
 							GROUP BY p.id_manufacturer ORDER BY m.name';
 					}
 
@@ -2157,6 +2151,8 @@ class BlockLayered extends Module
 					AND al.id_lang = '.(int)$id_lang.'
 					INNER JOIN '._DB_PREFIX_.'product as p
 					ON p.id_product = lpa.id_product
+					INNER JOIN '._DB_PREFIX_.'cat_restriction cp
+					ON p.id_product = cp.id_product
 					INNER JOIN '._DB_PREFIX_.'attribute_group ag
 					ON ag.id_attribute_group = lpa.id_attribute_group
 					INNER JOIN '._DB_PREFIX_.'attribute_group_lang agl
@@ -2169,15 +2165,6 @@ class BlockLayered extends Module
 
 					$sql_query['where'] = 'WHERE a.id_attribute_group = '.(int)$filter['id_value'];
 					$sql_query['where'] .= ' AND lpa.`id_shop` = '.(int)Context::getContext()->shop->id;
-					$sql_query['where'] .= ' AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-					AND p.id_product IN (
-						SELECT id_product
-						FROM '._DB_PREFIX_.'category_product cp
-						INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-						'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-						AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-						AND c.active = 1)
-					) ';
 					$sql_query['group'] = '
 					GROUP BY lpa.id_attribute
 					ORDER BY ag.`position` ASC, a.`position` ASC';
@@ -2205,8 +2192,7 @@ class BlockLayered extends Module
 								ON (liagl.id_attribute_group = lpa.id_attribute_group AND liagl.id_lang = '.(int)$id_lang.')
 							LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_lang_value lial
 								ON (lial.id_attribute = lpa.id_attribute AND lial.id_lang = '.(int)$id_lang.')
-							WHERE '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-							AND a.id_attribute_group = '.(int)$filter['id_value'].'
+							WHERE a.id_attribute_group = '.(int)$filter['id_value'].'
 							AND lpa.`id_shop` = '.(int)Context::getContext()->shop->id.'
 							GROUP BY lpa.id_attribute
 							ORDER BY id_attribute_group, id_attribute';
@@ -2220,6 +2206,8 @@ class BlockLayered extends Module
 					$sql_query['from'] = '
 					FROM '._DB_PREFIX_.'feature_product fp
 					INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product = fp.id_product)
+					INNER JOIN '._DB_PREFIX_.'cat_restriction cp
+					ON p.id_product = cp.id_product
 					LEFT JOIN '._DB_PREFIX_.'feature_lang fl ON (fl.id_feature = fp.id_feature AND fl.id_lang = '.$id_lang.')
 					INNER JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value AND (fv.custom IS NULL OR fv.custom = 0))
 					LEFT JOIN '._DB_PREFIX_.'feature_value_lang fvl ON (fvl.id_feature_value = fp.id_feature_value AND fvl.id_lang = '.$id_lang.')
@@ -2227,15 +2215,7 @@ class BlockLayered extends Module
 					ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.$id_lang.')
 					LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
 					ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.$id_lang.') ';
-					$sql_query['where'] = 'WHERE '.$alias.'.`active` = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-					AND fp.id_feature = '.(int)$filter['id_value'].'
-					AND p.id_product IN (
-					SELECT id_product
-					FROM '._DB_PREFIX_.'category_product cp
-					INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-					'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-					AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-					AND c.active = 1)) ';
+					$sql_query['where'] = 'fp.id_feature = '.(int)$filter['id_value'];
 					$sql_query['group'] = 'GROUP BY fv.id_feature_value ';
 
 					if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES'))
@@ -2255,8 +2235,7 @@ class BlockLayered extends Module
 								ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.(int)$id_lang.')
 							LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
 								ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.(int)$id_lang.')
-							WHERE '.$alias.'.`active` = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-							AND fp.id_feature = '.(int)$filter['id_value'].'
+							WHERE fp.id_feature = '.(int)$filter['id_value'].'
 							GROUP BY fv.id_feature_value';
 					}
 
@@ -2290,6 +2269,8 @@ class BlockLayered extends Module
 					'.($depth ? 'AND c.level_depth <= '.($parent->level_depth+(int)$depth) : '').'
 					AND c.active = 1
 					GROUP BY c.id_category ORDER BY c.nleft, c.position';
+
+					$sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
 			}
 			foreach ($filters as $filter_tmp)
 			{
@@ -2316,7 +2297,6 @@ class BlockLayered extends Module
 			$products = false;
 			if (!empty($sql_query['from']))
 			{
-				$sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
 				$products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql_query['select']."\n".$sql_query['from']."\n".$sql_query['join']."\n".$sql_query['where']."\n".$sql_query['group']);
 			}
 
