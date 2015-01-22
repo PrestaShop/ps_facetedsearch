@@ -37,7 +37,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '2.0.4';
+		$this->version = '2.0.8';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -252,7 +252,7 @@ class BlockLayered extends Module
 		`id_product` int(10) unsigned NOT NULL,
 		`id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
 		`id_shop` int(10) unsigned NOT NULL DEFAULT "1",
-		KEY `id_attribute` (`id_attribute`)
+		PRIMARY KEY `id_attribute` (`id_attribute`, `id_product`)
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 	}
 
