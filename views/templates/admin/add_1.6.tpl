@@ -13,7 +13,7 @@
 		<div class="form-group">
 			<label class="control-label col-lg-3">{l s='Categories used for this template:' mod='blocklayered'}</label>
 			<div class="col-lg-9">
-				{if trim($categories_tree) == ''}
+				{if trim($categories_tree) != ''}
 					{$categories_tree}
 				{else}
 					<div class="alert alert-warning">
