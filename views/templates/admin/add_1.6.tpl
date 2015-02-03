@@ -17,7 +17,7 @@
 					{$categories_tree}
 				{else}
 					<div class="alert alert-warning">
-						{l s='Categories selection is disabled because you have no categories or your are in a "all shops" context.' mod='blocklayered'}
+						{l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' mod='blocklayered'}
 					</div>
 				{/if}
 			</div>
