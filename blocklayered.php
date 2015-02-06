@@ -2080,26 +2080,49 @@ class BlockLayered extends Module
 
 		/* Create the table which contains all the id_product in a cat or a tree */
 		$sql_query = array('join' => '', 'where' => '');
+		$last_type = null;
+		$selected_filters_cleaned = array();
 		foreach ($filters as $filter_tmp)
 		{
 			$method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
-			if (method_exists('BlockLayered', $method_name))
+			if ($last_type != null && $last_type != $filter_tmp['type'])
 			{
-				if (!is_null($filter_tmp['id_value'])) {
-					$selected_filters_cleaned = $this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']);
-				} else {
-					$selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
-				}
-				if (!empty($selected_filters_cleaned)) {
-					$sub_query_filter = self::$method_name($selected_filters_cleaned);
-				} else {
-					$sub_query_filter = array();
-				}
-				foreach ($sub_query_filter as $key => $value) {
-					$sql_query[$key] .= $value;
+				if (method_exists('BlockLayered', $method_name))
+				{
+					if (!empty($selected_filters_cleaned))
+						$sub_query_filter = self::$method_name($selected_filters_cleaned);
+					else
+						$sub_query_filter = array();
+
+					foreach ($sub_query_filter as $key => $value)
+						$sql_query[$key] .= $value;
+
+					$selected_filters_cleaned = array();
 				}
 			}
+
+
+			if (!is_null($filter_tmp['id_value']))
+				$selected_filters_cleaned = array_merge($selected_filters_cleaned,
+														$this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']));
+			else
+				if (isset($selected_filters[$filter_tmp['type']]))
+					$selected_filters_cleaned = array_merge($selected_filters_cleaned,
+															@$selected_filters[$filter_tmp['type']]);
+			$last_type = $filter_tmp['type'];
 		}
+
+		if (method_exists('BlockLayered', $method_name))
+		{
+			if (!empty($selected_filters_cleaned))
+				$sub_query_filter = self::$method_name($selected_filters_cleaned);
+			else
+				$sub_query_filter = array();
+
+			foreach ($sub_query_filter as $key => $value)
+				$sql_query[$key] .= $value;
+		}
+
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction');
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
 													SELECT DISTINCT cp.id_product, p.id_manufacturer FROM '._DB_PREFIX_.'category_product cp
