@@ -2112,7 +2112,8 @@ class BlockLayered extends Module
 													INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
 													'.$sql_query['join'].'
 													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog") '.$sql_query['where']);
-		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product), ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product),
+													ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE');
 
 		// Remove all empty selected filters
 		foreach ($selected_filters as $key => $value)
@@ -2967,11 +2968,17 @@ class BlockLayered extends Module
 	}
 	private static function getId_attribute_groupFilterSubQuery($filter_value, $ignore_join = false)
 	{
+		static $has_join = false;
 		if (empty($filter_value))
 			return array();
-		$query_filters_join = '
-		JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.id_product = p.id_product)
-		JOIN `'._DB_PREFIX_.'product_attribute_combination` pac ON (pa.`id_product_attribute` = pac.`id_product_attribute`)';
+		if ($ignore_join || $has_join) {
+			$query_filters_join = '';
+		} else {
+			$query_filters_join = '
+			JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.id_product = p.id_product)
+			JOIN `'._DB_PREFIX_.'product_attribute_combination` pac ON (pa.`id_product_attribute` = pac.`id_product_attribute`)';
+			$has_join = true;
+		}
 
 		$query_filters = ' AND (';
 		foreach ($filter_value as $filter_val)
