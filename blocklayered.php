@@ -2262,7 +2262,7 @@ class BlockLayered extends Module
 					ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.$id_lang.')
 					LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
 					ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.$id_lang.') ';
-					$sql_query['where'] = 'fp.id_feature = '.(int)$filter['id_value'];
+					$sql_query['where'] = 'WHERE fp.id_feature = '.(int)$filter['id_value'];
 					$sql_query['group'] = 'GROUP BY fv.id_feature_value ';
 
 					if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES'))
