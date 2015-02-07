@@ -2085,9 +2085,9 @@ class BlockLayered extends Module
 		$filter_subquery = false;
 		foreach ($filters as $filter_tmp)
 		{
-			$method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
 			if ($last_type != null && $last_type != $filter_tmp['type'])
 			{
+				$method_name = 'get'.ucfirst($last_type).'FilterSubQuery';
 				if (method_exists('BlockLayered', $method_name))
 				{
 					if (!empty($selected_filters_cleaned))
@@ -2113,6 +2113,7 @@ class BlockLayered extends Module
 			$last_type = $filter_tmp['type'];
 		}
 
+		$method_name = 'get'.ucfirst($last_type).'FilterSubQuery';
 		if (method_exists('BlockLayered', $method_name))
 		{
 			if (!empty($selected_filters_cleaned))
