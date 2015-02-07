@@ -2079,90 +2079,23 @@ class BlockLayered extends Module
 		);
 
 		/* Create the table which contains all the id_product in a cat or a tree */
-		$sql_query = array('join' => '', 'where' => '');
-		$last_type = null;
-		$selected_filters_cleaned = array();
-		$filter_subquery = false;
-		foreach ($filters as $filter_tmp)
-		{
-			if ($last_type != null && $last_type != $filter_tmp['type'])
-			{
-				$method_name = 'get'.ucfirst($last_type).'FilterSubQuery';
-				if (method_exists('BlockLayered', $method_name))
-				{
-					if (!empty($selected_filters_cleaned))
-						$sub_query_filter = self::$method_name($selected_filters_cleaned);
-					else
-						$sub_query_filter = array();
-
-					foreach ($sub_query_filter as $key => $value)
-						$sql_query[$key] .= $value;
-
-					$selected_filters_cleaned = array();
-				}
-			}
-
-
-			if (!is_null($filter_tmp['id_value']))
-				$selected_filters_cleaned = array_merge($selected_filters_cleaned,
-														$this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']));
-			else
-				if (isset($selected_filters[$filter_tmp['type']]))
-					$selected_filters_cleaned = array_merge($selected_filters_cleaned,
-															@$selected_filters[$filter_tmp['type']]);
-			$last_type = $filter_tmp['type'];
-		}
-
-		$method_name = 'get'.ucfirst($last_type).'FilterSubQuery';
-		if (method_exists('BlockLayered', $method_name))
-		{
-			if (!empty($selected_filters_cleaned))
-				$sub_query_filter = self::$method_name($selected_filters_cleaned);
-			else
-				$sub_query_filter = array();
-
-			foreach ($sub_query_filter as $key => $value)
-				$sql_query[$key] .= $value;
-		}
-
-		if (!empty($sql_query['join']) || !empty($sql_query['where']))
-			$filter_subquery = true;
 
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction');
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
-													SELECT DISTINCT cp.id_product, p.id_manufacturer FROM '._DB_PREFIX_.'category_product cp
+													SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition FROM '._DB_PREFIX_.'category_product cp
 													INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
 													'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
 													AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
 													AND c.active = 1)
 													INNER JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
-													AND product_shop.id_shop = 1)
+													AND product_shop.id_shop = '.(int)$context->shop->id.')
 													INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
 													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")');
+
+
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product),
-													ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE');
-
-		if ($filter_subquery)
-		{
-			Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction_with_filter');
-			Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction_with_filter ENGINE=MEMORY
-														SELECT DISTINCT cp.id_product, p.id_manufacturer FROM '._DB_PREFIX_.'category_product cp
-														INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-														'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-														AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-														AND c.active = 1)
-														INNER JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
-														AND product_shop.id_shop = 1)
-														INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
-														'.$sql_query['join'].'
-														WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog") '.$sql_query['where']);
-			Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction_with_filter ADD PRIMARY KEY (id_product),
-														ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE');
-			$table_name_with_filter = _DB_PREFIX_.'cat_restriction_with_filter';
-		}
-		else
-			$table_name_with_filter = _DB_PREFIX_.'cat_restriction';
-
+													ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE,
+													ADD KEY `condition` (`condition`,`id_product`) USING BTREE');
 
 		// Remove all empty selected filters
 		foreach ($selected_filters as $key => $value)
@@ -2204,7 +2137,7 @@ class BlockLayered extends Module
 				case 'condition':
 					$sql_query['select'] = 'SELECT p.`id_product`, product_shop.`condition` ';
 					$sql_query['from'] = '
-					FROM '.$table_name_with_filter.' p';
+					FROM '._DB_PREFIX_.'cat_restriction'.' p';
 					$sql_query['where'] = 'WHERE 1';
 					$sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
 					break;
@@ -2212,7 +2145,7 @@ class BlockLayered extends Module
 					$sql_query['select'] = 'SELECT p.`id_product`, sa.`quantity`, sa.`out_of_stock` ';
 
 					$sql_query['from'] = '
-					FROM '.$table_name_with_filter.' p';
+					FROM '._DB_PREFIX_.'cat_restriction'.' p';
 
 					$sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
 						ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
@@ -2222,7 +2155,7 @@ class BlockLayered extends Module
 				case 'manufacturer':
 					$sql_query['select'] = 'SELECT COUNT(DISTINCT p.id_product) nbr, m.id_manufacturer, m.name ';
 					$sql_query['from'] = '
-					FROM '.$table_name_with_filter.' p
+					FROM '._DB_PREFIX_.'cat_restriction'.' p
 					INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer) ';
 					$sql_query['where'] = 'WHERE 1';
 					$sql_query['group'] = ' GROUP BY p.id_manufacturer ORDER BY m.name';
@@ -2232,7 +2165,7 @@ class BlockLayered extends Module
 						$sql_query['second_query'] = '
 							SELECT m.name, 0 nbr, m.id_manufacturer
 
-							FROM '.$table_name_with_filter.' p JOIN
+							FROM '._DB_PREFIX_.'cat_restriction'.' p JOIN
 							INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
 							WHERE 1
 							GROUP BY p.id_manufacturer ORDER BY m.name';
@@ -2251,7 +2184,7 @@ class BlockLayered extends Module
 					INNER JOIN '._DB_PREFIX_.'attribute_lang al
 					ON al.id_attribute = a.id_attribute
 					AND al.id_lang = '.(int)$id_lang.'
-					INNER JOIN '.$table_name_with_filter.' p
+					INNER JOIN '._DB_PREFIX_.'cat_restriction'.' p
 					ON p.id_product = lpa.id_product
 					INNER JOIN '._DB_PREFIX_.'attribute_group ag
 					ON ag.id_attribute_group = lpa.id_attribute_group
@@ -2305,7 +2238,7 @@ class BlockLayered extends Module
 					lifl.url_name name_url_name, lifl.meta_title name_meta_title, lifvl.url_name value_url_name, lifvl.meta_title value_meta_title ';
 					$sql_query['from'] = '
 					FROM '._DB_PREFIX_.'feature_product fp
-					INNER JOIN '.$table_name_with_filter.' p
+					INNER JOIN '._DB_PREFIX_.'cat_restriction'.' p
 					ON p.id_product = fp.id_product
 					LEFT JOIN '._DB_PREFIX_.'feature_lang fl ON (fl.id_feature = fp.id_feature AND fl.id_lang = '.$id_lang.')
 					INNER JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value AND (fv.custom IS NULL OR fv.custom = 0))
@@ -2372,10 +2305,25 @@ class BlockLayered extends Module
 					$sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
 			}
 
-			if (!empty($selected_filters['price']) && $filter['type'] != 'price' && $filter['type'] != 'weight') {
-				$sql_query['select'] .= ', psi.price_min, psi.price_max ';
-				$sql_query['join'] .= 'INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi
-										ON (psi.id_product = p.id_product AND psi.id_currency = '.(int)$context->currency->id.' AND psi.id_shop='.(int)$context->shop->id.')';
+			foreach ($filters as $filter_tmp)
+			{
+				$method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
+				if (method_exists('BlockLayered', $method_name) &&
+				($filter['type'] != 'price' && $filter['type'] != 'weight' && $filter['type'] != $filter_tmp['type'] || $filter['type'] == $filter_tmp['type']))
+				{
+					if ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'])
+						$sub_query_filter = self::$method_name(array(), true);
+					else
+					{
+						if (!is_null($filter_tmp['id_value']))
+							$selected_filters_cleaned = $this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']);
+						else
+							$selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
+						$sub_query_filter = self::$method_name($selected_filters_cleaned, $filter['type'] == $filter_tmp['type']);
+					}
+					foreach ($sub_query_filter as $key => $value)
+						$sql_query[$key] .= $value;
+				}
 			}
 
 			$products = false;
@@ -3010,46 +2958,41 @@ class BlockLayered extends Module
 	{
 		if (empty($filter_value))
 			return array();
-		$query_filters = ' INNER JOIN '._DB_PREFIX_.'feature_product fp ON (p.id_product=fp.id_product AND ';
+		$query_filters = ' AND EXISTS (SELECT * FROM '._DB_PREFIX_.'feature_product fp WHERE fp.id_product = p.id_product AND ';
 		foreach ($filter_value as $filter_val)
 			$query_filters .= 'fp.`id_feature_value` = '.(int)$filter_val.' OR ';
 		$query_filters = rtrim($query_filters, 'OR ').') ';
 
-		return array('join' => $query_filters);
+		return array('where' => $query_filters);
 	}
 	private static function getId_attribute_groupFilterSubQuery($filter_value, $ignore_join = false)
 	{
-		static $has_join = false;
 		if (empty($filter_value))
 			return array();
-		if ($ignore_join || $has_join) {
-			$query_filters_join = '';
-		} else {
-			$query_filters_join = '
-			JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.id_product = p.id_product)
-			JOIN `'._DB_PREFIX_.'product_attribute_combination` pac ON (pa.`id_product_attribute` = pac.`id_product_attribute`)';
-			$has_join = true;
-		}
+		$query_filters = '
+		AND EXISTS (SELECT *
+		FROM `'._DB_PREFIX_.'product_attribute_combination` pac
+		LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.`id_product_attribute` = pac.`id_product_attribute`)
+		WHERE pa.id_product = p.id_product AND ';
 
-		$query_filters = ' AND (';
 		foreach ($filter_value as $filter_val)
 			$query_filters .= 'pac.`id_attribute` = '.(int)$filter_val.' OR ';
 		$query_filters = rtrim($query_filters, 'OR ').') ';
 
-		return array('where' => $query_filters, 'join' => $query_filters_join);
+		return array('where' => $query_filters);
 	}
 
 	private static function getCategoryFilterSubQuery($filter_value, $ignore_join = false)
 	{
 		if (empty($filter_value))
 			return array();
-		$query_filters_where = ' AND (';
-		foreach ($filter_value as $id_category) {
-			$query_filters_where .= 'c.`id_category` = '.(int)$id_category.' OR ';
-		}
+		$query_filters_join = '';
+		$query_filters_where = ' AND EXISTS (SELECT * FROM '._DB_PREFIX_.'category_product cp WHERE id_product = p.id_product AND ';
+		foreach ($filter_value as $id_category)
+			$query_filters_where .= 'cp.`id_category` = '.(int)$id_category.' OR ';
 		$query_filters_where = rtrim($query_filters_where, 'OR ').') ';
 
-		return array('where' => $query_filters_where);
+		return array('where' => $query_filters_where, 'join' => $query_filters_join);
 	}
 
 	private static function getQuantityFilterSubQuery($filter_value, $ignore_join = false)
@@ -3085,7 +3028,7 @@ class BlockLayered extends Module
 		if (count($filter_value) == 3 || empty($filter_value))
 			return array();
 
-		$query_filters = ' AND product_shop.condition IN (';
+		$query_filters = ' AND p.condition IN (';
 
 		foreach ($filter_value as $cond)
 			$query_filters .= '\''.$cond.'\',';
