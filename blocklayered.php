@@ -3050,6 +3050,14 @@ class BlockLayered extends Module
 		// Clean duplicate values
 		$nArray = array_unique($nArray);
 		asort($nArray);
+		
+		Hook::exec(
+			'actionProductListModifier', 
+			array(	
+				'nb_products' => &$nb_products,
+				'cat_products' => &$products,
+			)
+		);
 
 		if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
 			$this->context->controller->addColorsToProductList($products);
