@@ -364,7 +364,7 @@
 		<div class="panel-footer" id="toolbar-footer">
 			<button class="btn btn-default pull-right" id="submit-filter" name="SubmitFilter" type="submit"><i class="process-icon-save"></i> <span>{l s='Save' mod='blocklayered'}</span></button>
 			<a class="btn btn-default" href="{$current_url}">
-				<i class="process-icon-cancel "></i> <span>Cancel</span>
+				<i class="process-icon-cancel"></i> <span>{l s='Cancel' mod='blocklayered'}</span>
 			</a>
 		</div>
 	</form>
