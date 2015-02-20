@@ -19,7 +19,7 @@
 				{if isset($asso_shops)}
 				<tr>
 					<td class="label">
-						{l s='Choose shop association:' mod='blocklayered'}					
+						{l s='Choose shop association:' mod='blocklayered'}
 					</td>
 					<td>{$asso_shops}</td>
 				</tr>
@@ -36,7 +36,7 @@
 							</header>
 							<section class="filter_list">
 								<ul class="list-unstyled sortable">
-									<li class="filter_list_item" draggable="true">								
+									<li class="filter_list_item" draggable="true">
 										<table>
 											<tbody>
 												<tr>
@@ -290,7 +290,7 @@
 					<td>
 						<button class="btn btn-default pull-right" id="submit-filter" name="SubmitFilter" type="submit"><i class="process-icon-save"></i> <span>{l s='Save' mod='blocklayered'}</span></button>
 						<a class="button" href="{$current_url}">
-							<i class="process-icon-cancel "></i> <span>Cancel</span>
+							<i class="process-icon-cancel"></i> <span>{l s='Cancel' mod='blocklayered'}</span>
 						</a>
 					</td>
 				</tr>
