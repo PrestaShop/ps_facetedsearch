@@ -44,7 +44,12 @@ $(document).ready(function()
 	});
 	
 	// Click on checkbox
-	$('#layered_form input[type=checkbox], #layered_form input[type=radio], #layered_form select').live('change', function()
+	$('#layered_form input[type=checkbox], #layered_form input[type=radio]').live('change', function()
+	{
+		reloadContent();
+	});
+
+	$(document).on('change', '#layered_form .select', function(e) {
 	{
 		reloadContent();
 	});
