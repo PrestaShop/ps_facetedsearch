@@ -34,7 +34,7 @@ param_product_url = '';
 {/if}
 </script>
 <div id="layered_block_left" class="block">
-	<h4 class="title_block">{l s='Catalog' mod='blocklayered'}</h4>
+	<h4 class="title_block">{l s='Product filter' mod='blocklayered'}</h4>
 	<div class="block_content">
 		<form action="#" id="layered_form">
 			<div>
