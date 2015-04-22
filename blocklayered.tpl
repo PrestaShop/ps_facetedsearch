@@ -23,7 +23,6 @@
 *  International Registred Trademark & Property of PrestaShop SA
 *}
 
-<!-- Block layered navigation module -->
 {if $nbr_filterBlocks != 0}
 <script type="text/javascript">
 current_friendly_url = '#{$current_friendly_url}';
@@ -251,4 +250,3 @@ param_product_url = '';
 	</div>
 </div>
 {/if}
-<!-- /Block layered navigation module -->
