@@ -1924,7 +1924,7 @@ class BlockLayered extends Module
 
 		$query_filters_from .= Shop::addSqlAssociation('product', 'p');
 
-		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_filter_restriction');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_filter_restriction', false);
 		if (empty($selected_filters['category']))
 		{
 			/* Create the table which contains all the id_product in a cat or a tree */
@@ -1938,7 +1938,7 @@ class BlockLayered extends Module
 														'.$price_filter_query_in.'
 														'.$query_filters_from.'
 														WHERE 1 '.$query_filters_where.'
-														GROUP BY cp.id_product ORDER BY position, id_product');
+														GROUP BY cp.id_product ORDER BY position, id_product', false);
 		} else {
 			$categories = array_map('intval', $selected_filters['category']);
 
@@ -1948,9 +1948,9 @@ class BlockLayered extends Module
 														'.$price_filter_query_in.'
 														'.$query_filters_from.'
 														WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.'
-														GROUP BY cp.id_product ORDER BY position, id_product');
+														GROUP BY cp.id_product ORDER BY position, id_product', false);
 		}
-		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_filter_restriction ADD PRIMARY KEY (id_product), ADD KEY (position, id_product) USING BTREE');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_filter_restriction ADD PRIMARY KEY (id_product), ADD KEY (position, id_product) USING BTREE', false);
 
 		if (isset($price_filter) && $price_filter) {
 			static $ps_layered_filter_price_usetax = null;
@@ -2080,7 +2080,7 @@ class BlockLayered extends Module
 
 		/* Create the table which contains all the id_product in a cat or a tree */
 
-		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction');
+		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction', false);
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
 													SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category_product cp
 													INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
@@ -2090,13 +2090,13 @@ class BlockLayered extends Module
 													INNER JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
 													AND product_shop.id_shop = '.(int)$context->shop->id.')
 													INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
-													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")');
+													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")', false);
 
 
 		Db::getInstance(_PS_USE_SQL_SLAVE_)->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product),
 													ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE,
 													ADD KEY `condition` (`condition`,`id_product`) USING BTREE,
-													ADD KEY `weight` (`weight`,`id_product`) USING BTREE');
+													ADD KEY `weight` (`weight`,`id_product`) USING BTREE', false);
 
 		// Remove all empty selected filters
 		foreach ($selected_filters as $key => $value)
