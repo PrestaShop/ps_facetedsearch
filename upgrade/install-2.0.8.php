@@ -18,7 +18,7 @@ function upgrade_module_2_0_8($object)
 	$query = 'ALTER TABLE `'._DB_PREFIX_.'layered_indexable_feature_value_lang_value` CHANGE `url_name` `url_name` VARCHAR( 128 ) NULL DEFAULT NULL , CHANGE `meta_title` `meta_title` VARCHAR( 128 ) NULL DEFAULT NULL';
 	$return &= Db::getInstance()->execute($query);
 
-	$query = 'ALTER TABLE `'._DB_PREFIX_.'layered_product_attribute` ADD PRIMARY KEY (`id_attribute`, `id_product`), DROP KEY `id_attribute`, ADD UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`)';
+	$query = 'ALTER TABLE `'._DB_PREFIX_.'layered_product_attribute` ADD PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`), DROP KEY `id_attribute`, ADD UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`,`id_shop`)';
 	$return &= Db::getInstance()->execute($query);
 
 	return $return;
