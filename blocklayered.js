@@ -49,7 +49,7 @@ $(document).ready(function()
 		reloadContent();
 	});
 
-	$(document).on('change', '#layered_form .select', function(e) {
+	$(document).on('change', '#layered_form .select', function(e)
 	{
 		reloadContent();
 	});
