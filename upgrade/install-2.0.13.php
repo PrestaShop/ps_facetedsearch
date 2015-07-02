@@ -3,7 +3,7 @@
 if (!defined('_PS_VERSION_'))
 	exit;
 
-function upgrade_module_2_0_12($object)
+function upgrade_module_2_0_13($object)
 {
 	$query = 'ALTER TABLE `'._DB_PREFIX_.'layered_product_attribute` DROP PRIMARY KEY';
 	$return = Db::getInstance()->execute($query);
