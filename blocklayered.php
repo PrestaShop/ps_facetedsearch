@@ -2005,6 +2005,7 @@ class BlockLayered extends Module
 			$this->products = array();
 		else
 		{
+			$product_per_page = isset($this->context->cookie->nb_item_per_page) ? (int)$this->context->cookie->nb_item_per_page : Configuration::get('PS_PRODUCTS_PER_PAGE'); 
 			$n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
 			$nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
 
@@ -3188,6 +3189,7 @@ class BlockLayered extends Module
 		$nb_products = $this->nbr_products;
 		$range = 2; /* how many pages around page selected */
 
+		$product_per_page = isset($this->context->cookie->nb_item_per_page) ? (int)$this->context->cookie->nb_item_per_page : Configuration::get('PS_PRODUCTS_PER_PAGE');
 		$n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
 
 		if ($n <= 0)
