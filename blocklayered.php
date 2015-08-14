@@ -2201,7 +2201,7 @@ class BlockLayered extends Module
 						$sql_query['second_query'] = '
 							SELECT m.name, 0 nbr, m.id_manufacturer
 
-							FROM '._DB_PREFIX_.'cat_restriction p JOIN
+							FROM '._DB_PREFIX_.'cat_restriction p
 							INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
 							WHERE 1
 							GROUP BY p.id_manufacturer ORDER BY m.name';
