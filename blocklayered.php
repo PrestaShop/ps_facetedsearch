@@ -1055,7 +1055,7 @@ class BlockLayered extends Module
 
 					if ($id_layered_friendly_url == false)
 					{
-						Db::getInstance()->AutoExecute(_DB_PREFIX_.'layered_friendly_url', array('url_key' => $url_key, 'data' => serialize($selected_filters), 'id_lang' => (int)$id_lang), 'INSERT');
+						Db::getInstance()->insert('layered_friendly_url', array('url_key' => $url_key, 'data' => serialize($selected_filters), 'id_lang' => (int)$id_lang));
 						$id_layered_friendly_url = Db::getInstance()->Insert_ID();
 					}
 				}
