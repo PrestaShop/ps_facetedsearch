@@ -2005,8 +2005,15 @@ class BlockLayered extends Module
 			$this->products = array();
 		else
 		{
-			$product_per_page = isset($this->context->cookie->nb_item_per_page) ? (int)$this->context->cookie->nb_item_per_page : Configuration::get('PS_PRODUCTS_PER_PAGE'); 
-			$n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
+			$product_per_page = isset($this->context->cookie->nb_item_per_page) ? (int)$this->context->cookie->nb_item_per_page : Configuration::get('PS_PRODUCTS_PER_PAGE');
+			$default_products_per_page = max(1, (int)Configuration::get('PS_PRODUCTS_PER_PAGE'));
+		        $n = $default_products_per_page;
+		        if (isset($this->context->cookie->nb_item_per_page)) {
+		            $n = (int)$this->context->cookie->nb_item_per_page;
+		        }
+		        if ((int)Tools::getValue('n')) {
+		            $n = (int)Tools::getValue('n');
+		        }
 			$nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
 
 			if (version_compare(_PS_VERSION_, '1.6.1', '>=') === true)
