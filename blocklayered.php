@@ -28,6 +28,10 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once implode(DIRECTORY_SEPARATOR, [
+	__DIR__, 'src', 'BlockLayeredProductSearchProvider.php'
+]);
+
 class BlockLayered extends Module
 {
     private $products;
@@ -62,7 +66,8 @@ class BlockLayered extends Module
         && $this->registerHook('afterSaveProduct') && $this->registerHook('productListAssign') && $this->registerHook('postProcessAttributeGroup')
         && $this->registerHook('postProcessFeature') && $this->registerHook('featureValueForm') && $this->registerHook('postProcessFeatureValue')
         && $this->registerHook('afterDeleteFeatureValue') && $this->registerHook('afterSaveFeatureValue') && $this->registerHook('attributeForm')
-        && $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute') && $this->registerHook('leftColumn')) {
+        && $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute') && $this->registerHook('leftColumn')
+        && $this->registerHook('categoryProductSearchProvider')) {
             Configuration::updateValue('PS_LAYERED_HIDE_0_VALUES', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
@@ -103,6 +108,17 @@ class BlockLayered extends Module
             $this->uninstall();
             return false;
         }
+    }
+
+    public function hookCategoryProductSearchProvider($params)
+    {
+        $query = $params['query'];
+        // do something with query,
+        // e.g. use $query->getIdCategory()
+        // to choose a template for filters.
+        // Query is an instance of:
+        // PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery
+        return new BlockLayeredProductSearchProvider($this);
     }
 
     public function uninstall()
