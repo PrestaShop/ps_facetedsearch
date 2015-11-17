@@ -1844,6 +1844,10 @@ class BlockLayered extends Module
 
     public function getProductByFilters($products_per_page, $page, $id_lang, $selected_filters = array())
     {
+        $order_by     = Tools::getProductsOrder('by', Tools::getValue('orderby'), true);
+        $order_way    = Tools::getProductsOrder('way', Tools::getValue('orderway'));
+        $order_clause = $order_by.' '.$order_way;
+
         $home_category = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
         $id_parent = (int)Tools::getValue('id_category', Tools::getValue('id_category_layered', $home_category));
@@ -2093,7 +2097,7 @@ class BlockLayered extends Module
                     LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-                    ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
+                    ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
             } else {
                 $this->products = Db::getInstance()->executeS('
@@ -2122,13 +2126,13 @@ class BlockLayered extends Module
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     GROUP BY product_shop.id_product
-                    ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
+                    ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
             }
         }
 
-        if (Tools::getProductsOrder('by', Tools::getValue('orderby'), true) == 'p.price') {
-            Tools::orderbyPrice($this->products, Tools::getProductsOrder('way', Tools::getValue('orderway')));
+        if ($order_by == 'p.price') {
+            Tools::orderbyPrice($this->products, $order_way);
         }
 
         return $this->products;
