@@ -20,7 +20,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     ) {
         $result = new ProductSearchResult;
 
-        $products = $this->module->getProductByFilters();
+        $products = $this->module->getProductByFilters(
+            $query->getResultsPerPage()
+        );
 
         $result->setProducts($products);
 
