@@ -1,9 +1,10 @@
 <?php
 
-if (!defined('_PS_VERSION_'))
-	exit;
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 function upgrade_module_1_9($object)
 {
-	return $object->registerHook('displayBackOfficeHeader');
+    return $object->registerHook('displayBackOfficeHeader');
 }

@@ -24,8 +24,8 @@
 *  International Registred Trademark & Property of PrestaShop SA
 */
 
-include(dirname(__FILE__).'/../../config/config.inc.php');
-include(dirname(__FILE__).'/../../init.php');
+include dirname(__FILE__).'/../../config/config.inc.php';
+include dirname(__FILE__).'/../../init.php';
 
 Context::getContext()->controller->php_self = 'category';
 $blockLayered = Module::getInstanceByName('blocklayered');
