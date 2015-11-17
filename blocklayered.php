@@ -1844,7 +1844,6 @@ class BlockLayered extends Module
 
     public function getProductByFilters($products_per_page, $id_lang, $selected_filters = array())
     {
-        global $cookie;
         $home_category = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
         $id_parent = (int)Tools::getValue('id_category', Tools::getValue('id_category_layered', $home_category));
