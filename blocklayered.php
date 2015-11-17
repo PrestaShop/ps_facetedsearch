@@ -1842,7 +1842,7 @@ class BlockLayered extends Module
         return $selected_filters;
     }
 
-    public function getProductByFilters($products_per_page, $selected_filters = array())
+    public function getProductByFilters($products_per_page, $id_lang, $selected_filters = array())
     {
         global $cookie;
         $home_category = Configuration::get('PS_HOME_CATEGORY');
@@ -2028,22 +2028,22 @@ class BlockLayered extends Module
 
             if (empty($selected_filters['category'])) {
                 $all_products_out = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-                SELECT p.`id_product` id_product
-                FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
-                INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-                    '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-                    AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-                    AND c.active = 1)
-                '.$price_filter_query_out.'
-                '.$query_filters_from.'
-                WHERE 1 '.$query_filters_where.' GROUP BY cp.id_product');
+                    SELECT p.`id_product` id_product
+                    FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
+                    INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
+                        '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
+                        AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
+                        AND c.active = 1)
+                    '.$price_filter_query_out.'
+                    '.$query_filters_from.'
+                    WHERE 1 '.$query_filters_where.' GROUP BY cp.id_product');
             } else {
                 $all_products_out = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-                SELECT p.`id_product` id_product
-                FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
-                '.$price_filter_query_out.'
-                '.$query_filters_from.'
-                WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.' GROUP BY cp.id_product');
+                    SELECT p.`id_product` id_product
+                    FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
+                    '.$price_filter_query_out.'
+                    '.$query_filters_from.'
+                    WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.' GROUP BY cp.id_product');
             }
 
             /* for this case, price could be out of range, so we need to compute the real price */
@@ -2070,61 +2070,61 @@ class BlockLayered extends Module
 
             if (version_compare(_PS_VERSION_, '1.6.1', '>=') === true) {
                 $this->products = Db::getInstance()->executeS('
-                SELECT
-                    p.*,
-                    '.($alias_where == 'p' ? '' : 'product_shop.*,').'
-                    '.$alias_where.'.id_category_default,
-                    pl.*,
-                    image_shop.`id_image` id_image,
-                    il.legend,
-                    m.name manufacturer_name,
-                    '.(Combination::isFeatureActive() ? 'product_attribute_shop.id_product_attribute id_product_attribute,' : '').'
-                    DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB("'.date('Y-m-d').' 00:00:00", INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-                    stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity' : '').'
-                FROM '._DB_PREFIX_.'cat_filter_restriction cp
-                LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-                '.Shop::addSqlAssociation('product', 'p').
-                (Combination::isFeatureActive() ?
-                ' LEFT JOIN `'._DB_PREFIX_.'product_attribute_shop` product_attribute_shop
-                    ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int)$context->shop->id.')':'').'
-                LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
-                LEFT JOIN `'._DB_PREFIX_.'image_shop` image_shop
-                    ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop='.(int)$context->shop->id.')
-                LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$cookie->id_lang.')
-                LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-                '.Product::sqlStock('p', 0).'
-                WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-                ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
-                ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
+                    SELECT
+                        p.*,
+                        '.($alias_where == 'p' ? '' : 'product_shop.*,').'
+                        '.$alias_where.'.id_category_default,
+                        pl.*,
+                        image_shop.`id_image` id_image,
+                        il.legend,
+                        m.name manufacturer_name,
+                        '.(Combination::isFeatureActive() ? 'product_attribute_shop.id_product_attribute id_product_attribute,' : '').'
+                        DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB("'.date('Y-m-d').' 00:00:00", INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
+                        stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', product_attribute_shop.minimal_quantity AS product_attribute_minimal_quantity' : '').'
+                    FROM '._DB_PREFIX_.'cat_filter_restriction cp
+                    LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
+                    '.Shop::addSqlAssociation('product', 'p').
+                    (Combination::isFeatureActive() ?
+                    ' LEFT JOIN `'._DB_PREFIX_.'product_attribute_shop` product_attribute_shop
+                        ON (p.`id_product` = product_attribute_shop.`id_product` AND product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int)$context->shop->id.')':'').'
+                    LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$id_lang.')
+                    LEFT JOIN `'._DB_PREFIX_.'image_shop` image_shop
+                        ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop='.(int)$context->shop->id.')
+                    LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
+                    LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
+                    '.Product::sqlStock('p', 0).'
+                    WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
+                    ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
+                    ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
             } else {
                 $this->products = Db::getInstance()->executeS('
-                SELECT
-                    p.*,
-                    '.($alias_where == 'p' ? '' : 'product_shop.*,').'
-                    '.$alias_where.'.id_category_default,
-                    pl.*,
-                    MAX(image_shop.`id_image`) id_image,
-                    il.legend,
-                    m.name manufacturer_name,
-                    '.(Combination::isFeatureActive() ? 'MAX(product_attribute_shop.id_product_attribute) id_product_attribute,' : '').'
-                    DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB("'.date('Y-m-d').' 00:00:00", INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
-                    stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity' : '').'
-                FROM '._DB_PREFIX_.'cat_filter_restriction cp
-                LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
-                '.Shop::addSqlAssociation('product', 'p').
-                (Combination::isFeatureActive() ?
-                'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product`)
-                '.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int)$context->shop->id):'').'
-                LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$cookie->id_lang.')
-                LEFT JOIN `'._DB_PREFIX_.'image` i  ON (i.`id_product` = p.`id_product`)'.
-                Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
-                LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$cookie->id_lang.')
-                LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-                '.Product::sqlStock('p', 0).'
-                WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-                GROUP BY product_shop.id_product
-                ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
-                ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
+                    SELECT
+                        p.*,
+                        '.($alias_where == 'p' ? '' : 'product_shop.*,').'
+                        '.$alias_where.'.id_category_default,
+                        pl.*,
+                        MAX(image_shop.`id_image`) id_image,
+                        il.legend,
+                        m.name manufacturer_name,
+                        '.(Combination::isFeatureActive() ? 'MAX(product_attribute_shop.id_product_attribute) id_product_attribute,' : '').'
+                        DATEDIFF('.$alias_where.'.`date_add`, DATE_SUB("'.date('Y-m-d').' 00:00:00", INTERVAL '.(int)$nb_day_new_product.' DAY)) > 0 AS new,
+                        stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity'.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity' : '').'
+                    FROM '._DB_PREFIX_.'cat_filter_restriction cp
+                    LEFT JOIN `'._DB_PREFIX_.'product` p ON p.`id_product` = cp.`id_product`
+                    '.Shop::addSqlAssociation('product', 'p').
+                    (Combination::isFeatureActive() ?
+                    'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (p.`id_product` = pa.`id_product`)
+                    '.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1 AND product_attribute_shop.id_shop='.(int)$context->shop->id):'').'
+                    LEFT JOIN '._DB_PREFIX_.'product_lang pl ON (pl.id_product = p.id_product'.Shop::addSqlRestrictionOnLang('pl').' AND pl.id_lang = '.(int)$id_lang.')
+                    LEFT JOIN `'._DB_PREFIX_.'image` i  ON (i.`id_product` = p.`id_product`)'.
+                    Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
+                    LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
+                    LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
+                    '.Product::sqlStock('p', 0).'
+                    WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
+                    GROUP BY product_shop.id_product
+                    ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
+                    ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
             }
         }
 
