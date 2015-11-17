@@ -22,6 +22,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 
         $products = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
+            $query->getPage(),
             $context->getIdLang()
         );
 

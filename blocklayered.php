@@ -1842,7 +1842,7 @@ class BlockLayered extends Module
         return $selected_filters;
     }
 
-    public function getProductByFilters($products_per_page, $id_lang, $selected_filters = array())
+    public function getProductByFilters($products_per_page, $page, $id_lang, $selected_filters = array())
     {
         $home_category = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
@@ -2094,7 +2094,7 @@ class BlockLayered extends Module
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
-                    ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
+                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
             } else {
                 $this->products = Db::getInstance()->executeS('
                     SELECT
@@ -2123,7 +2123,7 @@ class BlockLayered extends Module
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     GROUP BY product_shop.id_product
                     ORDER BY '.Tools::getProductsOrder('by', Tools::getValue('orderby'), true).' '.Tools::getProductsOrder('way', Tools::getValue('orderway')).' , cp.id_product'.
-                    ' LIMIT '.(((int)$this->page - 1) * $products_per_page.','.$products_per_page));
+                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
             }
         }
 
