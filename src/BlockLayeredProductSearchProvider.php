@@ -4,6 +4,8 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchProviderInte
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -16,7 +18,27 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 
     public function getFacetsFromFilterBlock(array $filterBlock)
     {
-        return '???';
+        $facets = [];
+        foreach ($filterBlock['filters'] as $facetArray) {
+            switch ($facetArray['type']) {
+                case 'category':
+                    $facet = new Facet;
+                    $facet->setType('category');
+                    foreach ($facetArray['values'] as $id_category => $filterArray) {
+                        $filter = new Filter;
+                        $filter
+                            ->setType('category')
+                            ->setProperty('id_category', (int)$id_category)
+                            ->setLabel($filterArray['name'])
+                            ->setMagnitude($filterArray['nbr'])
+                        ;
+                        $facet->addFilter($filter);
+                        $facets[] = $facet;
+                    }
+                break;
+            }
+        }
+        return $facets;
     }
 
     public function runQuery(
