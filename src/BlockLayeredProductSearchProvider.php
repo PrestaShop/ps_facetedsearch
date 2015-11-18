@@ -21,7 +21,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $facets = [];
         foreach ($filterBlock['filters'] as $facetArray) {
             $facet = new Facet;
-            $facet->setLabel($facetArray['name']);
+            $facet
+                ->setLabel($facetArray['name'])
+                ->setMultipleSelectionAllowed(true)
+            ;
             switch ($facetArray['type']) {
                 case 'category':
                 case 'availability':
