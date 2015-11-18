@@ -20,31 +20,25 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     {
         $facets = [];
         foreach ($filterBlock['filters'] as $facetArray) {
+
+            $facet = new Facet;
+            $facet->setLabel($filterArray['name']);
+
             switch ($facetArray['type']) {
                 case 'category':
-                    $facet = new Facet;
-                    $facet
-                        ->setType('category')
-                        ->setLabel($facetArray['name'])
-                    ;
+                    $facet->setType('category');
                     foreach ($facetArray['values'] as $id_category => $filterArray) {
                         $filter = new Filter;
                         $filter
                             ->setType('category')
-                            ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue((int)$id_category)
                         ;
                         $facet->addFilter($filter);
-                        $facets[] = $facet;
                     }
                     break;
                 case 'availability':
-                    $facet = new Facet;
-                    $facet
-                        ->setType('availability')
-                        ->setLabel($facetArray['name'])
-                    ;
+                    $facet->setType('availability')
                     foreach ($facetArray['values'] as $available => $filterArray) {
                         $filter = new Filter;
                         $filter
@@ -54,10 +48,11 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                             ->setValue((int)$available)
                         ;
                         $facet->addFilter($filter);
-                        $facets[] = $facet;
                     }
                     break;
             }
+
+            $facets[] = $facet;
         }
         return $facets;
     }
