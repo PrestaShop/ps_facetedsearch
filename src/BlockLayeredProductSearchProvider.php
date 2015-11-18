@@ -31,14 +31,32 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                         $filter = new Filter;
                         $filter
                             ->setType('category')
-                            ->setProperty('id_category', (int)$id_category)
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
+                            ->setValue((int)$id_category)
                         ;
                         $facet->addFilter($filter);
                         $facets[] = $facet;
                     }
-                break;
+                    break;
+                case 'availability':
+                    $facet = new Facet;
+                    $facet
+                        ->setType('availability')
+                        ->setLabel($facetArray['name'])
+                    ;
+                    foreach ($facetArray['values'] as $available => $filterArray) {
+                        $filter = new Filter;
+                        $filter
+                            ->setType('availability')
+                            ->setLabel($filterArray['name'])
+                            ->setMagnitude($filterArray['nbr'])
+                            ->setValue((int)$available)
+                        ;
+                        $facet->addFilter($filter);
+                        $facets[] = $facet;
+                    }
+                    break;
             }
         }
         return $facets;
