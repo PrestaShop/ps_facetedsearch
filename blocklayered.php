@@ -2071,12 +2071,12 @@ class BlockLayered extends Module
         $this->nbr_products = Db::getInstance()->getValue('SELECT COUNT(*) FROM '._DB_PREFIX_.'cat_filter_restriction');
 
         if ($this->nbr_products == 0) {
-            $this->products = array();
+            $products = array();
         } else {
             $nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
 
             if (version_compare(_PS_VERSION_, '1.6.1', '>=') === true) {
-                $this->products = Db::getInstance()->executeS('
+                $products = Db::getInstance()->executeS('
                     SELECT
                         p.*,
                         '.($alias_where == 'p' ? '' : 'product_shop.*,').'
@@ -2104,7 +2104,7 @@ class BlockLayered extends Module
                     ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
             } else {
-                $this->products = Db::getInstance()->executeS('
+                $products = Db::getInstance()->executeS('
                     SELECT
                         p.*,
                         '.($alias_where == 'p' ? '' : 'product_shop.*,').'
@@ -2136,10 +2136,10 @@ class BlockLayered extends Module
         }
 
         if ($order_by == 'p.price') {
-            Tools::orderbyPrice($this->products, $order_way);
+            Tools::orderbyPrice($products, $order_way);
         }
 
-        return $this->products;
+        return $products;
     }
 
     private static function query($sql_query)
