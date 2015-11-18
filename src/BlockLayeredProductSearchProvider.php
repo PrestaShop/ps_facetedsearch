@@ -72,6 +72,14 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         return $facets;
     }
 
+    public function addFacetsToQuery(
+        ProductSearchContext $context,
+        $encodedFacets,
+        ProductSearchQuery $query
+    ) {
+        // TODO
+    }
+
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
