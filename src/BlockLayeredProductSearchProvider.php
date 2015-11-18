@@ -26,6 +26,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                 case 'category':
                 case 'availability':
                 case 'condition':
+                case 'manufacturer':
                     $facet->setType($facetArray['type']);
                     foreach ($facetArray['values'] as $id => $filterArray) {
                         $filter = new Filter;
