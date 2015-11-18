@@ -774,19 +774,6 @@ class BlockLayered extends Module
             $smarty->assign('meta_keywords', rtrim($category_title.', '.$keywords.', '.$category_metas['meta_keywords'], ', '));
         }
 
-
-        $this->context->controller->addJS(($this->_path).'blocklayered.js');
-        $this->context->controller->addJS(_PS_JS_DIR_.'jquery/jquery-ui-1.8.10.custom.min.js');
-        $this->context->controller->addJQueryUI('ui.slider');
-        $this->context->controller->addCSS(_PS_CSS_DIR_.'jquery-ui-1.8.10.custom.css');
-
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            $this->context->controller->addCSS(($this->_path).'blocklayered.css', 'all');
-        } else {
-            $this->context->controller->addCSS(($this->_path).'blocklayered-15.css', 'all');
-        }
-        $this->context->controller->addJQueryPlugin('scrollTo');
-
         $filters = $this->getSelectedFilters();
 
         // Get non indexable attributes
