@@ -23,7 +23,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             switch ($facetArray['type']) {
                 case 'category':
                     $facet = new Facet;
-                    $facet->setType('category');
+                    $facet
+                        ->setType('category')
+                        ->setLabel($facetArray['name'])
+                    ;
                     foreach ($facetArray['values'] as $id_category => $filterArray) {
                         $filter = new Filter;
                         $filter
