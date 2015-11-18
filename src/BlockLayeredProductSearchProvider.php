@@ -54,10 +54,6 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
 
-        $filterBlock = $this->module->getFilterBlock();
-        $facets      = $this->getFacetsFromFilterBlock($filterBlock);
-        // do something with facets...
-
         $products = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
@@ -67,6 +63,13 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         );
 
         $result->setProducts($products);
+
+        $filterBlock = $this->module->getFilterBlock();
+        $facets      = $this->getFacetsFromFilterBlock($filterBlock);
+
+        $nextQuery   = clone $query;
+        $nextQuery->setFacets($facets);
+        $result->setNextQuery($nextQuery);
 
         return $result;
     }
