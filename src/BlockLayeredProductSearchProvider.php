@@ -20,9 +20,14 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     ) {
         $result = new ProductSearchResult;
 
+        $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
+        $order_way    = $query->getSortOrder()->toLegacyOrderWay();
+
         $products = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
+            $order_by,
+            $order_way,
             $context->getIdLang()
         );
 

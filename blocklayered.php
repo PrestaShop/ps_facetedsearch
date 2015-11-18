@@ -1842,10 +1842,14 @@ class BlockLayered extends Module
         return $selected_filters;
     }
 
-    public function getProductByFilters($products_per_page, $page, $id_lang, $selected_filters = array())
-    {
-        $order_by     = Tools::getProductsOrder('by', Tools::getValue('orderby'), true);
-        $order_way    = Tools::getProductsOrder('way', Tools::getValue('orderway'));
+    public function getProductByFilters(
+        $products_per_page,
+        $page,
+        $order_by,
+        $order_way,
+        $id_lang,
+        $selected_filters = array()
+    ) {
         $order_clause = $order_by.' '.$order_way;
 
         $home_category = Configuration::get('PS_HOME_CATEGORY');
