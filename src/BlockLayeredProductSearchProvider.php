@@ -14,6 +14,11 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->module = $module;
     }
 
+    public function getFacetsFromFilterBlock(array $filterBlock)
+    {
+        return '???';
+    }
+
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
@@ -22,6 +27,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
+
+        $filterBlock = $this->module->getFilterBlock();
+        $facets      = $this->getFacetsFromFilterBlock($filterBlock);
+        // do something with facets...
 
         $products = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
