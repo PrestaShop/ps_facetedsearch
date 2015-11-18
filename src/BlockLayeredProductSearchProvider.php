@@ -27,20 +27,44 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             ;
             switch ($facetArray['type']) {
                 case 'category':
-                case 'availability':
+                case 'quantity':
                 case 'condition':
                 case 'manufacturer':
-                    $facet->setType($facetArray['type']);
+                case 'id_attribute_group':
+                case 'id_feature':
+                    $type = $facetArray['type'];
+                    if ($facetArray['type'] == 'quantity') {
+                        $type = 'availability';
+                    } elseif ($facetArray['type'] == 'id_attribute_group') {
+                        $type = 'attribute_group';
+                    } elseif ($facetArray['type'] == 'id_feature') {
+                        $type = 'feature';
+                    }
+                    $facet->setType($type);
                     foreach ($facetArray['values'] as $id => $filterArray) {
                         $filter = new Filter;
                         $filter
-                            ->setType($facetArray['type'])
+                            ->setType($type)
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id)
                         ;
                         $facet->addFilter($filter);
                     }
+                    break;
+                case 'weight':
+                case 'price':
+                    $facet->setType($facetArray['type']);
+                    $facet->setProperty('min', $facetArray['min']);
+                    $facet->setProperty('max', $facetArray['max']);
+                    $filter = new Filter;
+                    $filter
+                        ->setType($facetArray['type'])
+                        ->setValue([
+                            'from' => $facetArray['values'][0],
+                            'to' => $facetArray['values'][1],
+                        ])
+                    ;
                     break;
             }
             $facets[] = $facet;
