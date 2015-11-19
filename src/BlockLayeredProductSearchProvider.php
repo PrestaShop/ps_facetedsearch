@@ -28,7 +28,6 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $encodedFacets,
         ProductSearchQuery $query
     ) {
-        // TODO
         $urlSerializer = new URLFragmentSerializer;
         $facetAndFiltersLabels = $urlSerializer->unserialize($encodedFacets);
 
@@ -53,6 +52,25 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         }
 
         $query->setFacets($queryTemplate);
+    }
+
+    private function copyFiltersActiveState(
+        array $sourceFacets,
+        array $targetFacets
+    ) {
+        foreach ($targetFacets as $targetFacet) {
+            foreach ($sourceFacets as $sourceFacet) {
+                if ($sourceFacet->getLabel() === $targetFacet->getLabel()) {
+                    foreach ($targetFacet->getFilters() as $targetFilter) {
+                        foreach ($sourceFacet->getFilters() as $sourceFilter) {
+                            if ($sourceFilter->getLabel() === $targetFilter->getLabel()) {
+                                $targetFilter->setActive($sourceFilter->isActive());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public function runQuery(
@@ -92,6 +110,11 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $filterBlock = $this->module->getFilterBlock();
         $facets      = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
             $filterBlock['filters']
+        );
+
+        $this->copyFiltersActiveState(
+            $query->getFacets(),
+            $facets
         );
 
         $nextQuery   = clone $query;
