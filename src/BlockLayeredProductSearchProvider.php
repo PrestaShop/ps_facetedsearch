@@ -117,19 +117,18 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $facets
         );
 
-        $nextQuery   = clone $query;
-        $nextQuery->setFacets($facets);
-        $result->setNextQuery($nextQuery);
-
         foreach ($facets as $facet) {
             foreach ($facet->getFilters() as $filter) {
                 $active = $filter->isActive();
-
                 $filter->setActive(!$active);
                 $filter->setNextEncodedFacets($facetsSerializer->serialize($facets));
                 $filter->setActive($active);
             }
         }
+
+        $nextQuery   = clone $query;
+        $nextQuery->setFacets($facets);
+        $result->setNextQuery($nextQuery);
 
         $result->setEncodedFacets($facetsSerializer->serialize($nextQuery->getFacets()));
 
