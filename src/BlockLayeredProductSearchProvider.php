@@ -6,6 +6,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\URLFragmentSerializer;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -78,6 +79,28 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ProductSearchQuery $query
     ) {
         // TODO
+        $urlSerializer = new URLFragmentSerializer;
+        $facetAndFiltersLabels = $urlSerializer->unserialize($encodedFacets);
+
+        $filterBlock    = $this->module->getFilterBlock();
+        $queryTemplate  = $this->getFacetsFromFilterBlock($filterBlock);
+
+        // DIRTY, to be refactored later
+        foreach ($facetAndFiltersLabels as $facetLabel => $filterLabels) {
+            foreach ($queryTemplate as $facet) {
+                if ($facet->getLabel() === $facetLabel) {
+                    foreach ($filterLabels as $filterLabel) {
+                        foreach ($facet->getFilters() as $filter) {
+                            if ($filter->getLabel() === $filterLabel) {
+                                $filter->setActive(true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $query->setFacets($queryTemplate);
     }
 
     public function runQuery(
@@ -105,6 +128,8 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $nextQuery   = clone $query;
         $nextQuery->setFacets($facets);
         $result->setNextQuery($nextQuery);
+
+        $result->setEncodedFacets('something to do');
 
         return $result;
     }
