@@ -8,6 +8,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetsURLSerializer;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -139,7 +140,8 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $nextQuery->setFacets($facets);
         $result->setNextQuery($nextQuery);
 
-        $result->setEncodedFacets('something to do');
+        $facetsSerializer = new FacetsURLSerializer;
+        $result->setEncodedFacets($facetsSerializer->serialize($nextQuery->getFacets()));
 
         return $result;
     }
