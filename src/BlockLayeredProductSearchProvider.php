@@ -60,6 +60,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult;
+        $facetsSerializer = new FacetsURLSerializer;
 
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
@@ -97,7 +98,16 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $nextQuery->setFacets($facets);
         $result->setNextQuery($nextQuery);
 
-        $facetsSerializer = new FacetsURLSerializer;
+        foreach ($facets as $facet) {
+            foreach ($facet->getFilters() as $filter) {
+                $active = $filter->isActive();
+
+                $filter->setActive(!$active);
+                $filter->setNextEncodedFacets($facetsSerializer->serialize($facets));
+                $filter->setActive($active);
+            }
+        }
+
         $result->setEncodedFacets($facetsSerializer->serialize($nextQuery->getFacets()));
 
         return $result;
