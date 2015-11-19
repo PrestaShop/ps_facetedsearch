@@ -2126,7 +2126,10 @@ class BlockLayered extends Module
             Tools::orderbyPrice($products, $order_way);
         }
 
-        return $products;
+        return [
+            'products' => $products,
+            'count'    => $this->nbr_products
+        ];
     }
 
     private static function query($sql_query)

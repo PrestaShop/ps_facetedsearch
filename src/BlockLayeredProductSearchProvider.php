@@ -7,6 +7,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\URLFragmentSerializer;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -112,7 +113,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
 
-        $products = $this->module->getProductByFilters(
+        $productsAndCount = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
             $order_by,
@@ -120,7 +121,16 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $context->getIdLang()
         );
 
-        $result->setProducts($products);
+        $result->setProducts($productsAndCount['products']);
+
+        $pagination = new PaginationResult;
+        $pagination
+            ->setTotalResultsCount($productsAndCount['count'])
+            ->setResultsCount(count($productsAndCount['products']))
+            ->setPagesCount(ceil($productsAndCount['count'] / $query->getResultsPerPage()))
+            ->setPage($query->getPage())
+        ;
+        $result->setPaginationResult($pagination);
 
         $filterBlock = $this->module->getFilterBlock();
         $facets      = $this->getFacetsFromFilterBlock($filterBlock);
