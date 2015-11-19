@@ -19,10 +19,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->module = $module;
     }
 
-    public function getFacetsFromFilterBlock(array $filterBlock)
+    public function getFacetsFromBlockLayeredFilters(array $blockLayeredFilters)
     {
         $facets = [];
-        foreach ($filterBlock['filters'] as $facetArray) {
+        foreach ($blockLayeredFilters as $facetArray) {
             $facet = new Facet;
             $facet
                 ->setLabel($facetArray['name'])
@@ -40,8 +40,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                         $type = 'availability';
                     } elseif ($facetArray['type'] == 'id_attribute_group') {
                         $type = 'attribute_group';
+                        $facet->setProperty('id_attribute_group', $facetArray['id_key']);
                     } elseif ($facetArray['type'] == 'id_feature') {
                         $type = 'feature';
+                        $facet->setProperty('id_feature', $facetArray['id_key']);
                     }
                     $facet->setType($type);
                     foreach ($facetArray['values'] as $id => $filterArray) {
@@ -75,6 +77,59 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         return $facets;
     }
 
+    public function getBlockLayeredFiltersFromFacets(array $facets)
+    {
+        $blockLayeredFilters = [];
+
+        foreach ($facets as $facet) {
+            switch ($facet->getType()) {
+                case 'category':
+                case 'availability':
+                case 'condition':
+                case 'manufacturer':
+                case 'attribute_group':
+                case 'feature':
+                    $type = $facet->getType();
+                    if ($type === 'availability') {
+                        $type = 'quantity';
+                    } elseif ($type === 'attribute_group') {
+                        $type = 'id_attribute_group';
+                    } elseif ($type === 'feature') {
+                        $type = 'id_feature';
+                    }
+                    $blockLayeredFilters[$type] = [];
+                    foreach ($facet->getFilters() as $filter) {
+                        if (!$filter->isActive()) {
+                            continue;
+                        }
+                        $key    = count($blockLayeredFilters[$type]);
+                        $value  = $filter->getValue();
+                        if ($type === 'id_attribute_group') {
+                            $key = $value;
+                            $value = $facet->getProperty('id_attribute_group').'_'.$filter->getValue();
+                        }
+                        if ($type === 'id_feature') {
+                            $key = $value;
+                            $value = $facet->getProperty('id_feature').'_'.$filter->getValue();
+                        }
+                        $blockLayeredFilters[$type][$key] = $value;
+                    }
+                    break;
+                case 'weight':
+                case 'price':
+                    $filters = $facet->getFilters();
+                    if (!empty($filters)) {
+                        $blockLayeredFilters[$facet->getType()] = [
+                            $filters[0]->getValue()['from'],
+                            $filters[0]->getValue()['to']
+                        ];
+                    }
+                    break;
+            }
+        }
+        return $blockLayeredFilters;
+    }
+
     public function addFacetsToQuery(
         ProductSearchContext $context,
         $encodedFacets,
@@ -85,7 +140,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $facetAndFiltersLabels = $urlSerializer->unserialize($encodedFacets);
 
         $filterBlock    = $this->module->getFilterBlock();
-        $queryTemplate  = $this->getFacetsFromFilterBlock($filterBlock);
+        $queryTemplate  = $this->getFacetsFromBlockLayeredFilters(
+            $filterBlock['filters']
+        );
 
         // DIRTY, to be refactored later
         foreach ($facetAndFiltersLabels as $facetLabel => $filterLabels) {
@@ -114,12 +171,17 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
 
+        $blockLayeredFilters = $this->getBlockLayeredFiltersFromFacets(
+            $query->getFacets()
+        );
+
         $productsAndCount = $this->module->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
             $order_by,
             $order_way,
-            $context->getIdLang()
+            $context->getIdLang(),
+            $blockLayeredFilters
         );
 
         $result->setProducts($productsAndCount['products']);
@@ -134,7 +196,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $result->setPaginationResult($pagination);
 
         $filterBlock = $this->module->getFilterBlock();
-        $facets      = $this->getFacetsFromFilterBlock($filterBlock);
+        $facets      = $this->getFacetsFromBlockLayeredFilters(
+            $filterBlock['filters']
+        );
 
         $nextQuery   = clone $query;
         $nextQuery->setFacets($facets);
