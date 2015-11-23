@@ -107,7 +107,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ;
         $result->setPaginationResult($pagination);
 
-        $filterBlock = $this->module->getFilterBlock();
+        $filterBlock = $this->module->getFilterBlock($blockLayeredFilters);
         $facets      = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
             $filterBlock['filters']
         );
