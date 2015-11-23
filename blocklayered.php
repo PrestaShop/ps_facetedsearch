@@ -2140,7 +2140,6 @@ class BlockLayered extends Module
     public function getFilterBlock($selected_filters = array())
     {
         global $cookie;
-        static $cache = null;
 
         $context = Context::getContext();
 
@@ -2148,10 +2147,6 @@ class BlockLayered extends Module
         $currency = $context->currency;
         $id_shop = (int) $context->shop->id;
         $alias = 'product_shop';
-
-        if (is_array($cache)) {
-            return $cache;
-        }
 
         $home_category = Configuration::get('PS_HOME_CATEGORY');
         $id_parent = (int)Tools::getValue('id_category', Tools::getValue('id_category_layered', $home_category));
@@ -2942,7 +2937,7 @@ class BlockLayered extends Module
             $n_filters += count($filters);
         }
 
-        $cache = array(
+        $result = array(
             'layered_show_qties' => (int)Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'id_category_layered' => (int)$id_parent,
             'selected_filters' => $selected_filters,
@@ -2956,7 +2951,7 @@ class BlockLayered extends Module
             'no_follow' => (!empty($param_selected) || $global_nofollow)
         );
 
-        return $cache;
+        return $result;
     }
 
     public function cleanFilterByIdValue($attributes, $id_value)
