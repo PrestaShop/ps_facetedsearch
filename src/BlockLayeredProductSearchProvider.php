@@ -16,11 +16,13 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 {
     private $module;
     private $filtersConverter;
+    private $facetsSerializer;
 
     public function __construct(BlockLayered $module)
     {
         $this->module = $module;
         $this->filtersConverter = new BlockLayeredFiltersConverter;
+        $this->facetsSerializer = new FacetsURLSerializer;
     }
 
     public function addFacetsToQuery(
@@ -78,7 +80,6 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult;
-        $facetsSerializer = new FacetsURLSerializer;
 
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
@@ -117,27 +118,77 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $facets
         );
 
-        $hideZeroValues = Configuration::get('PS_LAYERED_HIDE_0_VALUES');
+        $this->addEncodedFacetsToFilters($facets);
 
-        foreach ($facets as $facet) {
-            foreach ($facet->getFilters() as $filter) {
-                $active = $filter->isActive();
-                $filter->setActive(!$active);
-                $filter->setNextEncodedFacets($facetsSerializer->serialize($facets));
-                $filter->setActive($active);
-
-                if ($hideZeroValues && $filter->getMagnitude() === 0) {
-                    $filter->setDisplayed(false);
-                }
-            }
-        }
+        $this->hideZeroValues($facets);
 
         $nextQuery   = clone $query;
         $nextQuery->setFacets($facets);
         $result->setNextQuery($nextQuery);
 
-        $result->setEncodedFacets($facetsSerializer->serialize($nextQuery->getFacets()));
+        $result->setEncodedFacets($this->facetsSerializer->serialize($nextQuery->getFacets()));
 
         return $result;
+    }
+
+    /**
+     * This method generates a URL stub for each filter inside the given facets
+     * and assigns this stub to the filters.
+     * The URL stub is called 'nextEncodedFacets' because it is used
+     * to generate the URL of the search once a filter is activated.
+     */
+    private function addEncodedFacetsToFilters(array $facets)
+    {
+        foreach ($facets as $facet) {
+
+            // If only one filter can be selected, we keep track of
+            // the current active filter to disable it before generating the url stub
+            // and not select two filters in a facet that can have only one active filter.
+            $currentActiveFilter = null;
+            if (!$facet->isMultipleSelectionAllowed()) {
+                foreach ($facet->getFilters() as $filter) {
+                    if ($filter->isActive()) {
+                        $currentActiveFilter = $filter;
+                    }
+                }
+            }
+
+            foreach ($facet->getFilters() as $filter) {
+                $active = $filter->isActive();
+                $filter->setActive(!$active);
+
+                if ($currentActiveFilter) {
+                    $currentActiveFilter->setActive(false);
+                }
+
+                // We've toggled the filter, so the call to serialize
+                // returns the "URL" for the search when user has toggled
+                // the filter.
+                $filter->setNextEncodedFacets(
+                    $this->facetsSerializer->serialize($facets)
+                );
+
+                // But we don't want to change the current query,
+                // so we toggle the filter back to its original state.
+                $filter->setActive($active);
+
+                if ($currentActiveFilter) {
+                    $currentActiveFilter->setActive(true);
+                }
+            }
+        }
+    }
+
+    private function hideZeroValues(array $facets)
+    {
+        $hideZeroValues = Configuration::get('PS_LAYERED_HIDE_0_VALUES');
+
+        foreach ($facets as $facet) {
+            foreach ($facet->getFilters() as $filter) {
+                if ($hideZeroValues && $filter->getMagnitude() === 0) {
+                    $filter->setDisplayed(false);
+                }
+            }
+        }
     }
 }
