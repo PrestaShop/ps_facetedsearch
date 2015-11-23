@@ -117,12 +117,18 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $facets
         );
 
+        $hideZeroValues = Configuration::get('PS_LAYERED_HIDE_0_VALUES');
+
         foreach ($facets as $facet) {
             foreach ($facet->getFilters() as $filter) {
                 $active = $filter->isActive();
                 $filter->setActive(!$active);
                 $filter->setNextEncodedFacets($facetsSerializer->serialize($facets));
                 $filter->setActive($active);
+
+                if ($hideZeroValues && $filter->getMagnitude() === 0) {
+                    $filter->setDisplayed(false);
+                }
             }
         }
 
