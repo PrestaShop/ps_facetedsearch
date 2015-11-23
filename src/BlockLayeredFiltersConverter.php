@@ -45,17 +45,36 @@ class BlockLayeredFiltersConverter
                     break;
                 case 'weight':
                 case 'price':
-                    $facet->setType($facetArray['type']);
-                    $facet->setProperty('min', $facetArray['min']);
-                    $facet->setProperty('max', $facetArray['max']);
-                    $filter = new Filter;
-                    $filter
+                    $facet
                         ->setType($facetArray['type'])
-                        ->setValue([
-                            'from' => $facetArray['values'][0],
-                            'to' => $facetArray['values'][1],
-                        ])
+                        ->setProperty('min', $facetArray['min'])
+                        ->setProperty('max', $facetArray['max'])
+                        ->setMultipleSelectionAllowed(false)
                     ;
+
+                    foreach ($facetArray['list_of_values'] as $value) {
+                        $filter = new Filter;
+                        $filter
+                            ->setType($facetArray['type'])
+                            ->setValue([
+                                'from' => $value[0],
+                                'to'   => $value[1],
+                            ])
+                        ;
+
+                        if ($facetArray['type'] === 'price') {
+                            $filter->setLabel(
+                                sprintf(
+                                    '%1$s - %2$s',
+                                    Tools::displayPrice($value[0]),
+                                    Tools::displayPrice($value[1])
+                                )
+                            );
+                        }
+
+                        $facet->addFilter($filter);
+                    }
+
                     break;
             }
             $facets[] = $facet;
@@ -110,12 +129,15 @@ class BlockLayeredFiltersConverter
                     break;
                 case 'weight':
                 case 'price':
-                    $filters = $facet->getFilters();
-                    if (!empty($filters)) {
+                    foreach ($facet->getFilters() as $filter) {
+                        if (!$filter->isActive()) {
+                            continue;
+                        }
                         $blockLayeredFilters[$facet->getType()] = [
-                            $filters[0]->getValue()['from'],
-                            $filters[0]->getValue()['to']
+                            $filter->getValue()['from'],
+                            $filter->getValue()['to']
                         ];
+                        break;
                     }
                     break;
             }
