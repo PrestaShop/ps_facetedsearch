@@ -2466,20 +2466,18 @@ class BlockLayered extends Module
                     }
 
                     if ($price_array['max'] != $price_array['min'] && $price_array['min'] != null) {
-                        if ($filter['filter_type'] == 2) {
-                            $price_array['list_of_values'] = array();
-                            $nbr_of_value = $filter['filter_show_limit'];
-                            if ($nbr_of_value < 2) {
-                                $nbr_of_value = 4;
-                            }
-                            $delta = ($price_array['max'] - $price_array['min']) / $nbr_of_value;
-                            $current_step = $price_array['min'];
-                            for ($i = 0; $i < $nbr_of_value; $i++) {
-                                $price_array['list_of_values'][] = array(
-                                    (int)($price_array['min'] + $i * $delta),
-                                    (int)($price_array['min'] + ($i + 1) * $delta)
-                                );
-                            }
+                        $price_array['list_of_values'] = array();
+                        $nbr_of_value = $filter['filter_show_limit'];
+                        if ($nbr_of_value < 2) {
+                            $nbr_of_value = 4;
+                        }
+                        $delta = ($price_array['max'] - $price_array['min']) / $nbr_of_value;
+                        $current_step = $price_array['min'];
+                        for ($i = 0; $i < $nbr_of_value; $i++) {
+                            $price_array['list_of_values'][] = array(
+                                (int)($price_array['min'] + $i * $delta),
+                                (int)($price_array['min'] + ($i + 1) * $delta)
+                            );
                         }
                         if (isset($selected_filters['price']) && isset($selected_filters['price'][0])
                         && isset($selected_filters['price'][1])) {
