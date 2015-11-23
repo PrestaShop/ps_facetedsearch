@@ -1514,7 +1514,9 @@ class BlockLayered extends Module
                         $values_to_insert['id_layered_filter'] = (int)Tools::getValue('id_layered_filter');
                     }
 
-                    Db::getInstance()->autoExecute(_DB_PREFIX_.'layered_filter', $values_to_insert, 'INSERT');
+                    $id_layered_filter = isset($values_to_insert['id_layered_filter']) ? (int)$values_to_insert['id_layered_filter'] : 'NULL';
+                    $sql = 'INSERT INTO '._DB_PREFIX_.'layered_filter (name, filters, n_categories, date_add, id_layered_filter) VALUES ("'.pSQL($values_to_insert['name']).'", "'.$values_to_insert['filters'].'",'.(int)$values_to_insert['n_categories'].',"'.pSQL($values_to_insert['date_add']).'",'.$id_layered_filter.')';
+                    Db::getInstance()->execute($sql);
                     $id_layered_filter = (int)Db::getInstance()->Insert_ID();
 
                     if (isset($assos)) {
