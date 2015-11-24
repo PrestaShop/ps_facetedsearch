@@ -44,6 +44,7 @@ class BlockLayeredFiltersConverter
                     }
                     break;
                 case 'weight':
+                    // ddd($facetArray);
                 case 'price':
                     $facet
                         ->setType($facetArray['type'])
@@ -52,10 +53,15 @@ class BlockLayeredFiltersConverter
                         ->setMultipleSelectionAllowed(false)
                     ;
 
+                    if (!isset($facetArray['list_of_values'])) {
+                        break; // FIXME
+                    }
+
                     foreach ($facetArray['list_of_values'] as $value) {
                         $filter = new Filter;
                         $filter
                             ->setType($facetArray['type'])
+                            ->setMagnitude($value['nbr'])
                             ->setValue([
                                 'from' => $value[0],
                                 'to'   => $value[1],

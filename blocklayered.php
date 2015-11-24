@@ -32,6 +32,10 @@ require_once implode(DIRECTORY_SEPARATOR, [
 	__DIR__, 'src', 'BlockLayeredProductSearchProvider.php'
 ]);
 
+require_once implode(DIRECTORY_SEPARATOR, [
+	__DIR__, 'src', 'BlockLayeredRangeAggregator.php'
+]);
+
 class BlockLayered extends Module
 {
     private $products;
@@ -2449,41 +2453,25 @@ class BlockLayered extends Module
                         'filter_type' => $filter['filter_type']
                     );
                     if (isset($products) && $products) {
-                        foreach ($products as $product) {
-                            if (is_null($price_array['min'])) {
-                                $price_array['min'] = $product['price_min'];
-                                $price_array['values'][0] = $product['price_min'];
-                            } elseif ($price_array['min'] > $product['price_min']) {
-                                $price_array['min'] = $product['price_min'];
-                                $price_array['values'][0] = $product['price_min'];
-                            }
+                        $rangeAggregator = new BlockLayeredRangeAggregator;
+                        $aggregatedRanges =  $rangeAggregator->aggregateRanges(
+                            $products,
+                            'price_min',
+                            'price_max'
+                        );
+                        $price_array['min'] = $aggregatedRanges['min'];
+                        $price_array['max'] = $aggregatedRanges['max'];
 
-                            if ($price_array['max'] < $product['price_max']) {
-                                $price_array['max'] = $product['price_max'];
-                                $price_array['values'][1] = $product['price_max'];
-                            }
-                        }
-                    }
+                        $price_array['list_of_values'] = array_map(function (array $range) {
+                            return [
+                                0 => $range['min'],
+                                1 => $range['max'],
+                                'nbr' => $range['count']
+                            ];
+                        }, $aggregatedRanges['ranges']);
 
-                    if ($price_array['max'] != $price_array['min'] && $price_array['min'] != null) {
-                        $price_array['list_of_values'] = array();
-                        $nbr_of_value = $filter['filter_show_limit'];
-                        if ($nbr_of_value < 2) {
-                            $nbr_of_value = 4;
-                        }
-                        $delta = ($price_array['max'] - $price_array['min']) / $nbr_of_value;
-                        $current_step = $price_array['min'];
-                        for ($i = 0; $i < $nbr_of_value; $i++) {
-                            $price_array['list_of_values'][] = array(
-                                (int)($price_array['min'] + $i * $delta),
-                                (int)($price_array['min'] + ($i + 1) * $delta)
-                            );
-                        }
-                        if (isset($selected_filters['price']) && isset($selected_filters['price'][0])
-                        && isset($selected_filters['price'][1])) {
-                            $price_array['values'][0] = $selected_filters['price'][0];
-                            $price_array['values'][1] = $selected_filters['price'][1];
-                        }
+                        $price_array['values'] = [$price_array['min'], $price_array['max']];
+
                         $filter_blocks[] = $price_array;
                     }
                 }
