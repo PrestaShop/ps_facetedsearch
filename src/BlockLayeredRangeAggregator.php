@@ -100,4 +100,60 @@ class BlockLayeredRangeAggregator
             'ranges' => $ranges
         ];
     }
+
+    public function getRangesFromList(array $list, $valueColumnIndex)
+    {
+        $min = null;
+        $max = null;
+
+        $byValue = [];
+        foreach ($list as $item) {
+            $n = $item[$valueColumnIndex];
+            if ($min === null || $n < $min) {
+                $min = $n;
+            }
+            if ($max === null || $n > $max) {
+                $max = $n;
+            }
+
+            $key = "n$n";
+            if (!array_key_exists($key, $byValue)) {
+                $byValue[$key] = [
+                    'count' => 0,
+                    'value' => $n
+                ];
+            }
+            ++$byValue[$key]['count'];
+        }
+
+        $ranges     = [];
+        $lastValue  = null;
+        $lastCount  = 0;
+
+        usort($byValue, function (array $a, array $b) {
+            return $a['value'] > $b['value'] ? 1 : - 1;
+        });
+
+        foreach ($byValue as $countAndValue) {
+            $value = $countAndValue['value'];
+            $count = $countAndValue['count'];
+            if ($lastValue !== null) {
+                $ranges[] = [
+                    'min'   => $lastValue,
+                    'max'   => $value,
+                    'count' => $count + $lastCount
+                ];
+            } else {
+                $lastCount = $count;
+            }
+            $lastValue = $value;
+            $lastCount = $count;
+        }
+
+        return [
+            'min'    => $min,
+            'max'    => $max,
+            'ranges' => $ranges
+        ];
+    }
 }

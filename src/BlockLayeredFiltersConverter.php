@@ -44,7 +44,6 @@ class BlockLayeredFiltersConverter
                     }
                     break;
                 case 'weight':
-                    // ddd($facetArray);
                 case 'price':
                     $facet
                         ->setType($facetArray['type'])
@@ -52,10 +51,6 @@ class BlockLayeredFiltersConverter
                         ->setProperty('max', $facetArray['max'])
                         ->setMultipleSelectionAllowed(false)
                     ;
-
-                    if (!isset($facetArray['list_of_values'])) {
-                        break; // FIXME
-                    }
 
                     foreach ($facetArray['list_of_values'] as $value) {
                         $filter = new Filter;
@@ -74,6 +69,17 @@ class BlockLayeredFiltersConverter
                                     '%1$s - %2$s',
                                     Tools::displayPrice($value[0]),
                                     Tools::displayPrice($value[1])
+                                )
+                            );
+                        } else if ($facetArray['type'] === 'weight') {
+                            $unit = Configuration::get('PS_WEIGHT_UNIT');
+                            $filter->setLabel(
+                                sprintf(
+                                    '%1$s%2$s - %3$s%4$s',
+                                    Tools::displayNumber($value[0]),
+                                    $unit,
+                                    Tools::displayNumber($value[1]),
+                                    $unit
                                 )
                             );
                         }

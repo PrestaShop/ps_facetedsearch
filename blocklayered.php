@@ -2446,7 +2446,6 @@ class BlockLayered extends Module
                         'slider' => true,
                         'max' => '0',
                         'min' => null,
-                        'values' => array('1' => 0),
                         'unit' => $currency->sign,
                         'format' => $currency->format,
                         'filter_show_limit' => $filter['filter_show_limit'],
@@ -2486,34 +2485,29 @@ class BlockLayered extends Module
                         'slider' => true,
                         'max' => '0',
                         'min' => null,
-                        'values' => array('1' => 0),
                         'unit' => Configuration::get('PS_WEIGHT_UNIT'),
                         'format' => 5, // Ex: xxxxx kg
                         'filter_show_limit' => $filter['filter_show_limit'],
                         'filter_type' => $filter['filter_type']
                     );
                     if (isset($products) && $products) {
-                        foreach ($products as $product) {
-                            if (is_null($weight_array['min'])) {
-                                $weight_array['min'] = $product['weight'];
-                                $weight_array['values'][0] = $product['weight'];
-                            } elseif ($weight_array['min'] > $product['weight']) {
-                                $weight_array['min'] = $product['weight'];
-                                $weight_array['values'][0] = $product['weight'];
-                            }
+                        $rangeAggregator  = new BlockLayeredRangeAggregator;
+                        $aggregatedRanges = $rangeAggregator->getRangesFromList(
+                            $products,
+                            'weight'
+                        );
+                        $weight_array['min'] = $aggregatedRanges['min'];
+                        $weight_array['max'] = $aggregatedRanges['max'];
+                        $weight_array['list_of_values'] = array_map(function (array $range) {
+                            return [
+                                0 => $range['min'],
+                                1 => $range['max'],
+                                'nbr' => $range['count']
+                            ];
+                        }, $aggregatedRanges['ranges']);
 
-                            if ($weight_array['max'] < $product['weight']) {
-                                $weight_array['max'] = $product['weight'];
-                                $weight_array['values'][1] = $product['weight'];
-                            }
-                        }
-                    }
-                    if ($weight_array['max'] != $weight_array['min'] && $weight_array['min'] != null) {
-                        if (isset($selected_filters['weight']) && isset($selected_filters['weight'][0])
-                        && isset($selected_filters['weight'][1])) {
-                            $weight_array['values'][0] = $selected_filters['weight'][0];
-                            $weight_array['values'][1] = $selected_filters['weight'][1];
-                        }
+                        $weight_array['values'] = [$weight_array['min'], $weight_array['max']];
+
                         $filter_blocks[] = $weight_array;
                     }
                     break;
