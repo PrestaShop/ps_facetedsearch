@@ -9,6 +9,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\SortOrder;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
@@ -61,6 +62,27 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         }
     }
 
+    private function getAvailableSortOrders()
+    {
+        return [
+            (new SortOrder('product', 'position', 'asc'))->setLabel(
+                $this->module->l('Relevance')
+            ),
+            (new SortOrder('product', 'name', 'asc'))->setLabel(
+                $this->module->l('Name, A to Z')
+            ),
+            (new SortOrder('product', 'name', 'desc'))->setLabel(
+                $this->module->l('Name, Z to A')
+            ),
+            (new SortOrder('product', 'price', 'asc'))->setLabel(
+                $this->module->l('Price, low to high')
+            ),
+            (new SortOrder('product', 'price', 'desc'))->setLabel(
+                $this->module->l('Price, high to low')
+            )
+        ];
+    }
+
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
@@ -84,6 +106,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         );
 
         $result->setProducts($productsAndCount['products']);
+        $result->setAvailableSortOrders($this->getAvailableSortOrders());
 
         $pagination = new PaginationResult;
         $pagination
