@@ -50,6 +50,7 @@ class BlockLayeredFiltersConverter
                         ->setProperty('min', $facetArray['min'])
                         ->setProperty('max', $facetArray['max'])
                         ->setMultipleSelectionAllowed(false)
+                        ->setProperty('range', true)
                     ;
 
                     foreach ($facetArray['list_of_values'] as $value) {
@@ -57,6 +58,7 @@ class BlockLayeredFiltersConverter
                         $filter
                             ->setType($facetArray['type'])
                             ->setMagnitude($value['nbr'])
+                            ->setProperty('symbol', $facetArray['unit'])
                             ->setValue([
                                 'from' => $value[0],
                                 'to'   => $value[1],

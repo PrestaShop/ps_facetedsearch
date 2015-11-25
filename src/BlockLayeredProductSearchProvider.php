@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFiltersConverter.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFacetsURLSerializer.php';
 
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchContext;
@@ -8,9 +9,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetsURLSerializer;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -22,7 +21,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     {
         $this->module = $module;
         $this->filtersConverter = new BlockLayeredFiltersConverter;
-        $this->facetsSerializer = new FacetsURLSerializer;
+        $this->facetsSerializer = new BlockLayeredFacetsURLSerializer;
     }
 
     public function addFacetsToQuery(
@@ -30,30 +29,17 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $encodedFacets,
         ProductSearchQuery $query
     ) {
-        $urlSerializer = new URLFragmentSerializer;
-        $facetAndFiltersLabels = $urlSerializer->unserialize($encodedFacets);
-
         $filterBlock    = $this->module->getFilterBlock();
         $queryTemplate  = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
             $filterBlock['filters']
         );
 
-        // DIRTY, to be refactored later
-        foreach ($facetAndFiltersLabels as $facetLabel => $filterLabels) {
-            foreach ($queryTemplate as $facet) {
-                if ($facet->getLabel() === $facetLabel) {
-                    foreach ($filterLabels as $filterLabel) {
-                        foreach ($facet->getFilters() as $filter) {
-                            if ($filter->getLabel() === $filterLabel) {
-                                $filter->setActive(true);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        $facets = $this->facetsSerializer->setFiltersFromEncodedFacets(
+            $queryTemplate,
+            $encodedFacets
+        );
 
-        $query->setFacets($queryTemplate);
+        $query->setFacets($facets);
     }
 
     private function copyFiltersActiveState(
