@@ -63,7 +63,7 @@ class BlockLayeredFacetsURLSerializer
                             $filter->setActive(true);
                             $facet->addFilter($filter);
                         }
-                    } else {
+                      } else {
                         foreach ($filters as $filterLabel) {
                             foreach ($facet->getFilters() as $filter) {
                                 if ($filter->getLabel() === $filterLabel) {

@@ -61,4 +61,25 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
         ], $actual);
 
     }
+
+    public function test_ranges_are_merged()
+    {
+        $ranges     = [
+            ['min' => 16,    'max' => 18,    'count' => 1],
+            ['min' => 20,    'max' => 30,    'count' => 3],
+            ['min' => 40,    'max' => 62,    'count' => 5],
+            ['min' => 80,    'max' => 100,   'count' => 7],
+            ['min' => 120,   'max' => 130,   'count' => 9],
+            ['min' => 130,   'max' => 140,   'count' => 11]
+        ];
+
+        $aggregator = new BlockLayeredRangeAggregator;
+
+        $actual = $aggregator->mergeRanges($ranges, 3);
+        $this->assertEquals([
+            ['min' => 16,    'max' => 30,    'count' => 4],
+            ['min' => 40,    'max' => 100,   'count' => 12],
+            ['min' => 120,   'max' => 140,   'count' => 20]
+        ], $actual);
+    }
 }

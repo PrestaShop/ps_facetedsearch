@@ -2461,13 +2461,18 @@ class BlockLayered extends Module
                         $price_array['min'] = $aggregatedRanges['min'];
                         $price_array['max'] = $aggregatedRanges['max'];
 
+                        $mergedRanges = $rangeAggregator->mergeRanges(
+                            $aggregatedRanges['ranges'],
+                            10
+                        );
+
                         $price_array['list_of_values'] = array_map(function (array $range) {
                             return [
                                 0 => $range['min'],
                                 1 => $range['max'],
                                 'nbr' => $range['count']
                             ];
-                        }, $aggregatedRanges['ranges']);
+                        }, $mergedRanges);
 
                         $price_array['values'] = [$price_array['min'], $price_array['max']];
 
@@ -2498,13 +2503,19 @@ class BlockLayered extends Module
                         );
                         $weight_array['min'] = $aggregatedRanges['min'];
                         $weight_array['max'] = $aggregatedRanges['max'];
+
+                        $mergedRanges = $rangeAggregator->mergeRanges(
+                            $aggregatedRanges['ranges'],
+                            10
+                        );
+
                         $weight_array['list_of_values'] = array_map(function (array $range) {
                             return [
                                 0 => $range['min'],
                                 1 => $range['max'],
                                 'nbr' => $range['count']
                             ];
-                        }, $aggregatedRanges['ranges']);
+                        }, $mergedRanges);
 
                         $weight_array['values'] = [$weight_array['min'], $weight_array['max']];
 

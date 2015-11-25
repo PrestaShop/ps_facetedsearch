@@ -156,4 +156,24 @@ class BlockLayeredRangeAggregator
             'ranges' => $ranges
         ];
     }
+
+    public function mergeRanges(array $ranges, $outputLength)
+    {
+        if ($outputLength >= count($ranges)) {
+            return $ranges;
+        }
+
+        $parts = array_chunk($ranges, floor(count($ranges) / $outputLength));
+        return array_map(function (array $ranges) {
+            $min = $ranges[0]['min'];
+            $max = $ranges[count($ranges) - 1]['max'];
+            return [
+                'min'   => $min,
+                'max'   => $max,
+                'count' => array_reduce($ranges, function ($count, array $range) {
+                    return $count + $range['count'];
+                }, 0)
+            ];
+        }, $parts);
+    }
 }
