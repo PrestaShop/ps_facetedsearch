@@ -65,7 +65,7 @@ class BlockLayered extends Module
         && $this->registerHook('postProcessFeature') && $this->registerHook('featureValueForm') && $this->registerHook('postProcessFeatureValue')
         && $this->registerHook('afterDeleteFeatureValue') && $this->registerHook('afterSaveFeatureValue') && $this->registerHook('attributeForm')
         && $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute') && $this->registerHook('leftColumn')
-        && $this->registerHook('categoryProductSearchProvider')) {
+        && $this->registerHook('productSearchProvider')) {
             Configuration::updateValue('PS_LAYERED_HIDE_0_VALUES', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
@@ -102,7 +102,7 @@ class BlockLayered extends Module
         }
     }
 
-    public function hookCategoryProductSearchProvider($params)
+    public function hookProductSearchProvider($params)
     {
         $query = $params['query'];
         // do something with query,
@@ -110,7 +110,11 @@ class BlockLayered extends Module
         // to choose a template for filters.
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery
-        return new BlockLayeredProductSearchProvider($this);
+        if ($query->getIdCategory()) {
+            return new BlockLayeredProductSearchProvider($this);
+        } else {
+            return null;
+        }
     }
 
     public function uninstall()
@@ -1561,8 +1565,11 @@ class BlockLayered extends Module
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql_query);
     }
 
-    public function getFilterBlock($selected_filters = array())
-    {
+    public function getFilterBlock(
+        $selected_filters = array(),
+        $compute_filters_magnitude = true,
+        $compute_range_filters = true
+    ) {
         global $cookie;
 
         $context = Context::getContext();
@@ -1869,7 +1876,7 @@ class BlockLayered extends Module
                         'filter_show_limit' => $filter['filter_show_limit'],
                         'filter_type' => $filter['filter_type']
                     );
-                    if (isset($products) && $products) {
+                    if ($compute_range_filters && isset($products) && $products) {
                         $rangeAggregator = new BlockLayeredRangeAggregator;
                         $aggregatedRanges =  $rangeAggregator->aggregateRanges(
                             $products,
@@ -1913,7 +1920,7 @@ class BlockLayered extends Module
                         'filter_show_limit' => $filter['filter_show_limit'],
                         'filter_type' => $filter['filter_type']
                     );
-                    if (isset($products) && $products) {
+                    if ($compute_range_filters && isset($products) && $products) {
                         $rangeAggregator  = new BlockLayeredRangeAggregator;
                         $aggregatedRanges = $rangeAggregator->getRangesFromList(
                             $products,
