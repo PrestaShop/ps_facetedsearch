@@ -719,7 +719,7 @@ class BlockLayered extends Module
 
     public function hookLeftColumn($params)
     {
-        return $this->generateFiltersBlock($this->getSelectedFilters());
+        return $this->display(__FILE__, 'blocklayered.tpl');
     }
 
     public function hookRightColumn($params)
@@ -2961,30 +2961,6 @@ class BlockLayered extends Module
         return $selected_filters;
     }
 
-    public function generateFiltersBlock($selected_filters)
-    {
-        global $smarty;
-        if ($filter_block = $this->getFilterBlock($selected_filters)) {
-            if ($filter_block['nbr_filterBlocks'] == 0) {
-                return false;
-            }
-
-            $translate = array();
-            $translate['price'] = $this->l('price');
-            $translate['weight'] = $this->l('weight');
-
-            $smarty->assign($filter_block);
-            $smarty->assign(array(
-                'hide_0_values' => Configuration::get('PS_LAYERED_HIDE_0_VALUES'),
-                'blocklayeredSliderName' => $translate,
-                'col_img_dir' => _PS_COL_IMG_DIR_
-            ));
-            return $this->display(__FILE__, 'blocklayered.tpl');
-        } else {
-            return false;
-        }
-    }
-
     private static function getPriceFilterSubQuery($filter_value, $ignore_join = false)
     {
         $id_currency = (int)Context::getContext()->currency->id;
@@ -3225,7 +3201,6 @@ class BlockLayered extends Module
         }
 
         $vars = array(
-            'filtersBlock' => utf8_encode($this->generateFiltersBlock($selected_filters)),
             'productList' => utf8_encode($product_list),
             'pagination' => $smarty->fetch(_PS_THEME_DIR_.'pagination.tpl'),
             'categoryCount' => $category_count,
