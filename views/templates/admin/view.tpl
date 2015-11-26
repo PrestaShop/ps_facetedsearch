@@ -31,24 +31,18 @@
 			<a class="ajaxcall-recurcive btn btn-default" href="{$price_indexer_url}">{l s='Index all missing prices' mod='blocklayered'}</a>
 			<a class="ajaxcall-recurcive btn btn-default" href="{$full_price_indexer_url}">{l s='Rebuild entire price index' mod='blocklayered'}</a>
 			<a class="ajaxcall btn btn-default" id="attribute-indexer" rel="attribute" href="{$attribute_indexer_url}">{l s='Build attribute index' mod='blocklayered'}</a>
-			<a class="ajaxcall btn btn-default" id="url-indexer" rel="price" href="{$url_indexer_url}">{l s='Build URL index' mod='blocklayered'}</a>
 		</p>
 	</div>
 	<div class="row">
 		<div class="alert alert-info">
 			{l s='You can set a cron job that will rebuild price index using the following URL:' mod='blocklayered'}
-			<br />
+			<br>
 			<strong>{$price_indexer_url}</strong>
-			<br/>
-			<br />
+			<br>
+			<br>
 			{l s='You can set a cron job that will rebuild attribute index using the following URL:' mod='blocklayered'}
-			<br />
+			<br>
 			<strong>{$attribute_indexer_url}</strong>
-			<br/>
-			<br />
-			{l s='You can set a cron job that will rebuild URL index using the following URL:' mod='blocklayered'}
-			<br />
-			<strong>{$url_indexer_url}</strong>			
 		</div>
 	</div>
 	<div class="row">
@@ -82,7 +76,7 @@
 							<div class="btn-group pull-right">
 								<a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
 									<i class="icon-pencil"></i> {l s='Edit' mod='blocklayered'}
-								</a> 
+								</a>
 								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 									<span class="caret"></span>&nbsp;
 								</button>
