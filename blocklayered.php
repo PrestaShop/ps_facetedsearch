@@ -2697,17 +2697,6 @@ class BlockLayered extends Module
         }
     }
 
-    protected function getAnchor()
-    {
-        static $anchor = null;
-        if ($anchor === null) {
-            if (!$anchor = Configuration::get('PS_ATTRIBUTE_ANCHOR_SEPARATOR')) {
-                $anchor = '-';
-            }
-        }
-        return $anchor;
-    }
-
     protected function showPriceFilter()
     {
         return Group::getCurrent()->show_prices;
