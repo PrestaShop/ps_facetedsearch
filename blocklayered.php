@@ -38,9 +38,7 @@ require_once implode(DIRECTORY_SEPARATOR, [
 
 class BlockLayered extends Module
 {
-    private $products;
     private $nbr_products;
-    private $page = 1;
 
     public function __construct()
     {
@@ -305,8 +303,6 @@ class BlockLayered extends Module
 
     public function hookPostProcessAttributeGroup($params)
     {
-        $errors = array();
-
         foreach (Language::getLanguages(false) as $language) {
             $id_lang = $language['id_lang'];
 
@@ -396,8 +392,6 @@ class BlockLayered extends Module
 
     public function hookPostProcessAttribute($params)
     {
-        $errors = array();
-
         foreach (Language::getLanguages(false) as $language) {
             $id_lang = $language['id_lang'];
 
@@ -488,8 +482,6 @@ class BlockLayered extends Module
 
     public function hookPostProcessFeature($params)
     {
-        $errors = array();
-
         foreach (Language::getLanguages(false) as $language) {
             $id_lang = $language['id_lang'];
 
@@ -580,8 +572,6 @@ class BlockLayered extends Module
 
     public function hookPostProcessFeatureValue($params)
     {
-        $errors = array();
-
         foreach (Language::getLanguages(false) as $language) {
             $id_lang = $language['id_lang'];
 
@@ -956,47 +946,6 @@ class BlockLayered extends Module
 				VALUES '.implode(',', $values).'
 				ON DUPLICATE KEY UPDATE id_product = id_product # avoid duplicate keys');
         }
-    }
-
-    public function translateWord($string, $id_lang)
-    {
-        static $_MODULES = array();
-        global $_MODULE;
-
-        $file = _PS_MODULE_DIR_.$this->name.'/translations/'.Language::getIsoById($id_lang).'.php';
-
-        if (!array_key_exists($id_lang, $_MODULES)) {
-            if (file_exists($file1 = _PS_MODULE_DIR_.$this->name.'/translations/'.Language::getIsoById($id_lang).'.php')) {
-                include($file1);
-                $_MODULES[$id_lang] = $_MODULE;
-            } elseif (file_exists($file2 = _PS_MODULE_DIR_.$this->name.'/'.Language::getIsoById($id_lang).'.php')) {
-                include($file2);
-                $_MODULES[$id_lang] = $_MODULE;
-            } else {
-                return $string;
-            }
-        }
-
-        $string = str_replace('\'', '\\\'', $string);
-
-        // set array key to lowercase for 1.3 compatibility
-        $_MODULES[$id_lang] = array_change_key_case($_MODULES[$id_lang]);
-        $current_key = '<{'.strtolower($this->name).'}'.strtolower(_THEME_NAME_).'>'.strtolower($this->name).'_'.md5($string);
-        $default_key = '<{'.strtolower($this->name).'}prestashop>'.strtolower($this->name).'_'.md5($string);
-
-        if (isset($_MODULES[$id_lang][$current_key])) {
-            $ret = stripslashes($_MODULES[$id_lang][$current_key]);
-        } elseif (isset($_MODULES[$id_lang][Tools::strtolower($current_key)])) {
-            $ret = stripslashes($_MODULES[$id_lang][Tools::strtolower($current_key)]);
-        } elseif (isset($_MODULES[$id_lang][$default_key])) {
-            $ret = stripslashes($_MODULES[$id_lang][$default_key]);
-        } elseif (isset($_MODULES[$id_lang][Tools::strtolower($default_key)])) {
-            $ret = stripslashes($_MODULES[$id_lang][Tools::strtolower($default_key)]);
-        } else {
-            $ret = stripslashes($string);
-        }
-
-        return str_replace('"', '&quot;', $ret);
     }
 
     public function getContent()
