@@ -2375,50 +2375,6 @@ class BlockLayered extends Module
         return array('where' => $query_filters);
     }
 
-    public function getProducts($selected_filters, &$products, &$nb_products, &$p, &$n, &$pages_nb, &$start, &$stop, &$range)
-    {
-        global $cookie;
-
-        $products = $this->getProductByFilters($selected_filters);
-        $products = Product::getProductsProperties((int)$cookie->id_lang, $products);
-        $nb_products = $this->nbr_products;
-        $range = 2; /* how many pages around page selected */
-
-        $product_per_page = isset($this->context->cookie->nb_item_per_page) ? (int)$this->context->cookie->nb_item_per_page : Configuration::get('PS_PRODUCTS_PER_PAGE');
-        $n = (int)Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'));
-
-        if ($n <= 0) {
-            $n = 1;
-        }
-
-        $p = $this->page;
-
-        if ($p < 0) {
-            $p = 0;
-        }
-
-        if ($p > ($nb_products / $n)) {
-            $p = ceil($nb_products / $n);
-        }
-        $pages_nb = ceil($nb_products / (int)($n));
-
-        $start = (int)($p - $range);
-        if ($start < 1) {
-            $start = 1;
-        }
-
-        $stop = (int)($p + $range);
-        if ($stop > $pages_nb) {
-            $stop = (int)($pages_nb);
-        }
-
-        foreach ($products as &$product) {
-            if ($product['id_product_attribute'] && isset($product['product_attribute_minimal_quantity'])) {
-                $product['minimal_quantity'] = $product['product_attribute_minimal_quantity'];
-            }
-        }
-    }
-
     public function rebuildLayeredStructure()
     {
         @set_time_limit(0);
