@@ -130,6 +130,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->addEncodedFacetsToFilters($facets);
 
         $this->hideZeroValues($facets);
+        $this->hideUselessFacets($facets);
 
         $nextQuery   = clone $query;
         $nextQuery->setFacets($facets);
@@ -198,6 +199,19 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                     $filter->setDisplayed(false);
                 }
             }
+        }
+    }
+
+    private function hideUselessFacets(array $facets)
+    {
+        foreach ($facets as $facet) {
+            $usefulFiltersCount = 0;
+            foreach ($facet->getFilters() as $filter) {
+                if ($filter->isDisplayed()) {
+                    ++$usefulFiltersCount;
+                }
+            }
+            $facet->setDisplayed($usefulFiltersCount > 1);
         }
     }
 }
