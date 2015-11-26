@@ -1,53 +1,29 @@
-.table-filter-templates, .table-configurations {
+.bootstrap .filter_list .filter_list_item {
+	display: table;
 	width: 100%;
+	padding: 5px 0;
+	margin-bottom: 4px;
+	background-color: white;
+	-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 0 3px, rgba(0, 0, 0, 0.1) 0 -2px 0 inset;
+	box-shadow: rgba(0, 0, 0, 0.3) 0 0 3px, rgba(0, 0, 0, 0.1) 0 -2px 0 inset;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	-ms-border-radius: 3px;
+	-o-border-radius: 3px;
+	border-radius: 3px;
 }
 
-.table-configurations td {
-	padding: 10px;
+.bootstrap .filter_panel {
+	min-height: 20px;
+	padding: 7px 7px 0px 7px;
+	margin-bottom: 20px;
+	background-color: #ebebeb;
+	border: 1px solid #d9d9d9;
+	border-radius: 3px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
-.table-configurations .label {
-	text-align: right;
-	font-weight: bold;
-	width: 30%;
-	vertical-align: top;
-}
-
-.help-block {
-	font-weight: normal;
-	font-style: italic;
-	font-size: 11px;
-}
-
-.text-right {
-	text-align: right;
-}
-
-.text-left {
-	text-align: left;
-}
-
-.filter_panel header {
-	margin-bottom: 10px;
-	font-weight: bold;
-}
-
-.filter_list {
-	background-color: #fff;
-	padding-top: 1px;
-	padding-bottom: 1px;
-}
-
-.filter_list_item {
-	background-color: #E9E9E9;
-	margin: 5px;
-}
-
-.filter_list_item td {
-	white-space: nowrap;
-}
-
-.filter_list_item .filter-title {
-	font-weight: bold;
-	width: 100%;
+.bootstrap .filter_panel header {
+	margin-bottom: 7px;
 }

@@ -379,11 +379,7 @@ class BlockLayered extends Module
             'is_indexable' =>(bool)$is_indexable
         ));
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            return $this->display(__FILE__, 'attribute_group_form_1.6.tpl');
-        } else {
-            return $this->display(__FILE__, 'attribute_group_form.tpl');
-        }
+        return $this->display(__FILE__, 'attribute_group_form.tpl');
     }
 
     //ATTRIBUTES
@@ -465,11 +461,7 @@ class BlockLayered extends Module
             'values' => $values
         ));
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            return $this->display(__FILE__, 'attribute_form_1.6.tpl');
-        } else {
-            return $this->display(__FILE__, 'attribute_form.tpl');
-        }
+        return $this->display(__FILE__, 'attribute_form.tpl');
     }
 
     //FEATURES
@@ -570,11 +562,7 @@ class BlockLayered extends Module
             'is_indexable' =>(bool)$is_indexable
         ));
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            return $this->display(__FILE__, 'feature_form_1.6.tpl');
-        } else {
-            return $this->display(__FILE__, 'feature_form.tpl');
-        }
+        return $this->display(__FILE__, 'feature_form.tpl');
     }
 
     //FEATURES VALUE
@@ -657,11 +645,8 @@ class BlockLayered extends Module
             'values' => $values
         ));
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            return $this->display(__FILE__, 'feature_value_form_1.6.tpl');
-        } else {
-            return $this->display(__FILE__, 'feature_value_form.tpl');
-        }
+
+        return $this->display(__FILE__, 'feature_value_form.tpl');
     }
 
     public function hookProductListAssign($params)
@@ -1628,11 +1613,7 @@ class BlockLayered extends Module
             }
         }
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            $this->context->controller->addCSS($this->_path.'css/blocklayered_admin_1.6.css');
-        } else {
-            $this->context->controller->addCSS($this->_path.'css/blocklayered_admin.css');
-        }
+        $this->context->controller->addCSS($this->_path.'css/blocklayered_admin.css');
 
         if (Tools::getValue('add_new_filters_template')) {
             $this->context->smarty->assign(array(
@@ -1652,11 +1633,7 @@ class BlockLayered extends Module
                     $root_category, array(), 'categoryBox'));
             }
 
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                return $this->display(__FILE__, 'views/templates/admin/add_1.6.tpl');
-            } else {
-                return $this->display(__FILE__, 'views/templates/admin/add.tpl');
-            }
+            return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         } elseif (Tools::getValue('edit_filters_template')) {
             $template = Db::getInstance()->getRow('
 				SELECT *
@@ -1689,11 +1666,7 @@ class BlockLayered extends Module
                 'total_filters' => 6+count($attribute_groups)+count($features)
             ));
 
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                return $this->display(__FILE__, 'views/templates/admin/add_1.6.tpl');
-            } else {
-                return $this->display(__FILE__, 'views/templates/admin/add.tpl');
-            }
+            return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         } else {
             $this->context->smarty->assign(array(
                 'message' => $message,
@@ -1721,11 +1694,7 @@ class BlockLayered extends Module
                 'price_use_rounding' => (bool)Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING')
             ));
 
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                return $this->display(__FILE__, 'views/templates/admin/view_1.6.tpl');
-            } else {
-                return $this->display(__FILE__, 'views/templates/admin/view.tpl');
-            }
+            return $this->display(__FILE__, 'views/templates/admin/view.tpl');
         }
     }
 
