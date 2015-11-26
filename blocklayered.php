@@ -86,7 +86,6 @@ class BlockLayered extends Module
             }
 
             self::installPriceIndexTable();
-            $this->installFriendlyUrlTable();
             $this->installIndexableAttributeTable();
             $this->installProductAttributeTable();
 
