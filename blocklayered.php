@@ -2712,13 +2712,4 @@ class BlockLayered extends Module
     {
         return Group::getCurrent()->show_prices;
     }
-
-    protected function filterVar($value)
-    {
-        if (version_compare(_PS_VERSION_, '1.6.0.7', '>=') === true) {
-            return Tools::purifyHTML($value);
-        } else {
-            return filter_var($value, FILTER_SANITIZE_STRING);
-        }
-    }
 }
