@@ -123,7 +123,9 @@ class BlockLayeredFiltersConverter
                     } elseif ($type === 'feature') {
                         $type = 'id_feature';
                     }
-                    $blockLayeredFilters[$type] = [];
+                    if (!isset($blockLayeredFilters[$type])) {
+                        $blockLayeredFilters[$type] = [];
+                    }
                     foreach ($facet->getFilters() as $filter) {
                         if (!$filter->isActive()) {
                             continue;
@@ -156,6 +158,7 @@ class BlockLayeredFiltersConverter
                     break;
             }
         }
+
         return $blockLayeredFilters;
     }
 }
