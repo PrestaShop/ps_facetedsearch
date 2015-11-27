@@ -1,3 +1,3 @@
-{if isset($ps_search_filters)}
-    {$ps_search_filters nofilter}
+{if isset($ps_search_facets)}
+    {$ps_search_facets nofilter}
 {/if}
