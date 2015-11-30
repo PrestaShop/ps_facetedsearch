@@ -1845,7 +1845,14 @@ class BlockLayered extends Module
 
             $products = false;
             if (!empty($sql_query['from'])) {
-                $products = Db::getInstance()->executeS($sql_query['select']."\n".$sql_query['from']."\n".$sql_query['join']."\n".$sql_query['where']."\n".$sql_query['group']);
+                $assembled_sql_query = implode("\n", [
+                    $sql_query['select'],
+                    $sql_query['from'],
+                    $sql_query['join'],
+                    $sql_query['where'],
+                    $sql_query['group']
+                ]);
+                $products = Db::getInstance()->executeS($assembled_sql_query);
             }
 
             // price & weight have slidebar, so it's ok to not complete recompute the product list
