@@ -1823,12 +1823,24 @@ class BlockLayered extends Module
                     $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
             }
 
+            /**
+             * Loop over the filters again to add their restricting clauses to the sql
+             * query being built.
+             */
+
             foreach ($filters as $filter_tmp) {
                 $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
-                if (method_exists('BlockLayered', $method_name) &&
-                ($filter['type'] != 'price' && $filter['type'] != 'weight' && $filter['type'] != $filter_tmp['type'] || $filter['type'] == $filter_tmp['type'])) {
+                if (
+                    method_exists('BlockLayered', $method_name) &&
+                    (
+                        ($filter['type'] != 'price' && $filter['type'] != 'weight' && $filter['type'] != $filter_tmp['type']) ||
+                        $filter['type'] == $filter_tmp['type']
+                    )
+                ) {
                     if ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value']) {
-                        $sub_query_filter = self::$method_name(array(), true);
+                        // do not apply the same filter twice, i.e. when the primary filter
+                        // and the sub filter have the same type and same id_value
+                        $sub_query_filter = [];
                     } else {
                         if (!is_null($filter_tmp['id_value'])) {
                             $selected_filters_cleaned = $this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']);
