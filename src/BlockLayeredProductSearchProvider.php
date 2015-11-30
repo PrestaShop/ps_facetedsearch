@@ -236,11 +236,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 
     private function hideZeroValues(array $facets)
     {
-        $hideZeroValues = Configuration::get('PS_LAYERED_HIDE_0_VALUES');
-
         foreach ($facets as $facet) {
             foreach ($facet->getFilters() as $filter) {
-                if ($hideZeroValues && $filter->getMagnitude() === 0) {
+                if ($filter->getMagnitude() === 0) {
                     $filter->setDisplayed(false);
                 }
             }

@@ -111,22 +111,6 @@
 	<h3><i class="icon-cogs"></i> {l s='Configuration' mod='blocklayered'}</h3>
 	<form action="{$current_url}" method="post" class="form-horizontal">
 		<div class="form-group">
-			<label class="col-lg-3 control-label">{l s='Hide filter values when no product is matching' mod='blocklayered'}</label>
-			<div class="col-lg-9">
-				<span class="switch prestashop-switch fixed-width-lg">
-					<input type="radio" name="ps_layered_hide_0_values" id="ps_layered_hide_0_values_on" value="1"{if $hide_values} checked="checked"{/if}>
-					<label for="ps_layered_hide_0_values_on" class="radioCheck">
-						<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
-					</label>
-					<input type="radio" name="ps_layered_hide_0_values" id="ps_layered_hide_0_values_off" value="0"{if !$hide_values} checked="checked"{/if}>
-					<label for="ps_layered_hide_0_values_off" class="radioCheck">
-						<i class="color_danger"></i> {l s='No' mod='blocklayered'}
-					</label>
-					<a class="slide-button btn"></a>
-				</span>
-			</div>
-		</div>
-		<div class="form-group">
 			<label class="col-lg-3 control-label">{l s='Show the number of matching products' mod='blocklayered'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">

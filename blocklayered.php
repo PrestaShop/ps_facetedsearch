@@ -66,7 +66,6 @@ class BlockLayered extends Module
         && $this->registerHook('afterDeleteFeatureValue') && $this->registerHook('afterSaveFeatureValue') && $this->registerHook('attributeForm')
         && $this->registerHook('postProcessAttribute') && $this->registerHook('afterDeleteAttribute') && $this->registerHook('afterSaveAttribute') && $this->registerHook('leftColumn')
         && $this->registerHook('productSearchProvider')) {
-            Configuration::updateValue('PS_LAYERED_HIDE_0_VALUES', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
@@ -120,7 +119,6 @@ class BlockLayered extends Module
     public function uninstall()
     {
         /* Delete all configurations */
-        Configuration::deleteByName('PS_LAYERED_HIDE_0_VALUES');
         Configuration::deleteByName('PS_LAYERED_SHOW_QTIES');
         Configuration::deleteByName('PS_LAYERED_FULL_TREE');
         Configuration::deleteByName('PS_LAYERED_INDEXED');
@@ -1074,7 +1072,6 @@ class BlockLayered extends Module
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
-            Configuration::updateValue('PS_LAYERED_HIDE_0_VALUES', (int)Tools::getValue('ps_layered_hide_0_values'));
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int)Tools::getValue('ps_layered_show_qties'));
             Configuration::updateValue('PS_LAYERED_FULL_TREE', (int)Tools::getValue('ps_layered_full_tree'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int)Tools::getValue('ps_layered_filter_price_usetax'));
@@ -1227,7 +1224,6 @@ class BlockLayered extends Module
                 'full_price_indexer_url' => $module_url.'blocklayered-price-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10).'&full=1',
                 'attribute_indexer_url' => $module_url.'blocklayered-attribute-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10),
                 'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM '._DB_PREFIX_.'layered_filter ORDER BY date_add DESC'),
-                'hide_values' => Configuration::get('PS_LAYERED_HIDE_0_VALUES'),
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'full_tree' => Configuration::get('PS_LAYERED_FULL_TREE'),
                 'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
@@ -1676,17 +1672,6 @@ class BlockLayered extends Module
 					INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer) ';
                     $sql_query['where'] = 'WHERE 1';
                     $sql_query['group'] = ' GROUP BY p.id_manufacturer ORDER BY m.name';
-
-                    if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES')) {
-                        $sql_query['second_query'] = '
-							SELECT m.name, 0 nbr, m.id_manufacturer
-
-							FROM '._DB_PREFIX_.'cat_restriction p
-							INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-							WHERE 1
-							GROUP BY p.id_manufacturer ORDER BY m.name';
-                    }
-
                     break;
                 case 'id_attribute_group':// attribute group
                     $sql_query['select'] = '
@@ -1717,34 +1702,6 @@ class BlockLayered extends Module
                     $sql_query['group'] = '
 					GROUP BY lpa.id_attribute
 					ORDER BY ag.`position` ASC, a.`position` ASC';
-
-                    if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES')) {
-                        $sql_query['second_query'] = '
-							SELECT 0 nbr, lpa.id_attribute_group,
-								a.color, al.name attribute_name, agl.public_name attribute_group_name , lpa.id_attribute, ag.is_color_group,
-								liagl.url_name name_url_name, liagl.meta_title name_meta_title, lial.url_name value_url_name, lial.meta_title value_meta_title
-							FROM '._DB_PREFIX_.'layered_product_attribute lpa'.
-                            Shop::addSqlAssociation('product', 'lpa').'
-							INNER JOIN '._DB_PREFIX_.'attribute a
-								ON a.id_attribute = lpa.id_attribute
-							INNER JOIN '._DB_PREFIX_.'attribute_lang al
-								ON al.id_attribute = a.id_attribute AND al.id_lang = '.(int)$id_lang.'
-							INNER JOIN '._DB_PREFIX_.'product as p
-								ON p.id_product = lpa.id_product
-							INNER JOIN '._DB_PREFIX_.'attribute_group ag
-								ON ag.id_attribute_group = lpa.id_attribute_group
-							INNER JOIN '._DB_PREFIX_.'attribute_group_lang agl
-								ON agl.id_attribute_group = lpa.id_attribute_group
-							AND agl.id_lang = '.(int)$id_lang.'
-							LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value liagl
-								ON (liagl.id_attribute_group = lpa.id_attribute_group AND liagl.id_lang = '.(int)$id_lang.')
-							LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_lang_value lial
-								ON (lial.id_attribute = lpa.id_attribute AND lial.id_lang = '.(int)$id_lang.')
-							WHERE lpa.id_attribute_group = '.(int)$filter['id_value'].'
-							AND lpa.`id_shop` = '.(int)$context->shop->id.'
-							GROUP BY lpa.id_attribute
-							ORDER BY id_attribute_group, id_attribute';
-                    }
                     break;
 
                 case 'id_feature':
@@ -1764,27 +1721,6 @@ class BlockLayered extends Module
 					ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.$id_lang.') ';
                     $sql_query['where'] = 'WHERE fp.id_feature = '.(int)$filter['id_value'];
                     $sql_query['group'] = 'GROUP BY fv.id_feature_value ';
-
-                    if (!Configuration::get('PS_LAYERED_HIDE_0_VALUES')) {
-                        $sql_query['second_query'] = '
-							SELECT fl.name feature_name, fp.id_feature, fv.id_feature_value, fvl.value,
-							0 nbr,
-							lifl.url_name name_url_name, lifl.meta_title name_meta_title, lifvl.url_name value_url_name, lifvl.meta_title value_meta_title
-
-							FROM '._DB_PREFIX_.'feature_product fp'.
-                            Shop::addSqlAssociation('product', 'fp').'
-							INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product = fp.id_product)
-							LEFT JOIN '._DB_PREFIX_.'feature_lang fl ON (fl.id_feature = fp.id_feature AND fl.id_lang = '.(int)$id_lang.')
-							INNER JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value AND (fv.custom IS NULL OR fv.custom = 0))
-							LEFT JOIN '._DB_PREFIX_.'feature_value_lang fvl ON (fvl.id_feature_value = fp.id_feature_value AND fvl.id_lang = '.(int)$id_lang.')
-							LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_lang_value lifl
-								ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.(int)$id_lang.')
-							LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
-								ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.(int)$id_lang.')
-							WHERE fp.id_feature = '.(int)$filter['id_value'].'
-							GROUP BY fv.id_feature_value';
-                    }
-
                     break;
 
                 case 'category':
@@ -2234,7 +2170,7 @@ class BlockLayered extends Module
                                 $tmp_array[$category['id_category']]['checked'] = true;
                             }
                         }
-                        if ($categories_with_products_count || !Configuration::get('PS_LAYERED_HIDE_0_VALUES')) {
+                        if ($categories_with_products_count) {
                             $filter_blocks[] = array(
                                 'type_lite' => 'category',
                                 'type' => 'category',
