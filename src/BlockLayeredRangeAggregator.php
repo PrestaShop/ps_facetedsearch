@@ -160,20 +160,36 @@ class BlockLayeredRangeAggregator
     public function mergeRanges(array $ranges, $outputLength)
     {
         if ($outputLength >= count($ranges)) {
-            return $ranges;
+            $raw_ranges = $ranges;
+        } else {
+            $parts = array_chunk($ranges, floor(count($ranges) / $outputLength));
+
+            $raw_ranges = array_map(function (array $ranges) {
+                $min = $ranges[0]['min'];
+                $max = $ranges[count($ranges) - 1]['max'];
+                return [
+                    'min'   => $min,
+                    'max'   => $max,
+                    'count' => array_reduce($ranges, function ($count, array $range) {
+                        return $count + $range['count'];
+                    }, 0)
+                ];
+            }, $parts);
         }
 
-        $parts = array_chunk($ranges, floor(count($ranges) / $outputLength));
-        return array_map(function (array $ranges) {
-            $min = $ranges[0]['min'];
-            $max = $ranges[count($ranges) - 1]['max'];
-            return [
-                'min'   => $min,
-                'max'   => $max,
-                'count' => array_reduce($ranges, function ($count, array $range) {
-                    return $count + $range['count'];
-                }, 0)
-            ];
-        }, $parts);
+        $min = null;
+        return array_map(function (array $range) use (&$min) {
+            $scale = pow(10, floor(log($range['max'] - $range['min'], 10)));
+            if (null !== $min) {
+                $range['min'] = $min;
+            } else {
+                $range['min'] = $scale * floor($range['min'] / $scale);
+            }
+
+            $range['max'] = $scale * ceil($range['max'] / $scale);
+
+            $min = $range['max'];
+            return $range;
+        }, $raw_ranges);
     }
 }

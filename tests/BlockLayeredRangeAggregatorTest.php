@@ -77,9 +77,27 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
 
         $actual = $aggregator->mergeRanges($ranges, 3);
         $this->assertEquals([
-            ['min' => 16,    'max' => 30,    'count' => 4],
-            ['min' => 40,    'max' => 100,   'count' => 12],
-            ['min' => 120,   'max' => 140,   'count' => 20]
+            ['min' => 10,    'max' => 30,    'count' => 4],
+            ['min' => 30,    'max' => 100,   'count' => 12],
+            ['min' => 100,   'max' => 140,   'count' => 20]
+        ], $actual);
+    }
+
+    public function test_ranges_are_merged_and_max_boudary_is_rounded()
+    {
+        $ranges     = [
+            ['min' => 10,    'max' => 30,    'count' => 4],
+            ['min' => 30,    'max' => 97,   'count' => 12],
+            ['min' => 100,   'max' => 140,   'count' => 20]
+        ];
+
+        $aggregator = new BlockLayeredRangeAggregator;
+
+        $actual = $aggregator->mergeRanges($ranges, 3);
+        $this->assertEquals([
+            ['min' => 10,    'max' => 30,    'count' => 4],
+            ['min' => 30,    'max' => 100,   'count' => 12],
+            ['min' => 100,   'max' => 140,   'count' => 20]
         ], $actual);
     }
 }
