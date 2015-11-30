@@ -71,7 +71,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                         $tTo   = $targetFilter->getValue()['to'];
                         $sFrom = $sourceFilter->getValue()['from'];
                         $sTo   = $sourceFilter->getValue()['to'];
-                        if ($tFrom >= $sFrom && $tTo <= $tTo) {
+                        if ($tFrom <= $sFrom && $sTo <= $tTo) {
                             $targetFilter->setActive(true);
                             break;
                         }
