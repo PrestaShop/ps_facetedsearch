@@ -1843,7 +1843,10 @@ class BlockLayered extends Module
                         $sub_query_filter = [];
                     } else {
                         if (!is_null($filter_tmp['id_value'])) {
-                            $selected_filters_cleaned = $this->cleanFilterByIdValue(@$selected_filters[$filter_tmp['type']], $filter_tmp['id_value']);
+                            $selected_filters_cleaned = $this->cleanFilterByIdValue(
+                                @$selected_filters[$filter_tmp['type']],
+                                $filter_tmp['id_value']
+                            );
                         } else {
                             $selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
                         }
