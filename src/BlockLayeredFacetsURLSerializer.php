@@ -43,6 +43,7 @@ class BlockLayeredFacetsURLSerializer
             foreach ($facets as $facet) {
                 if ($facet->getLabel() === $facetLabel) {
                     if (true === $facet->getProperty('range')) {
+                        $symbol = $filters[0];
                         $from   = $filters[1];
                         $to     = $filters[2];
                         $found  = false;
@@ -59,7 +60,7 @@ class BlockLayeredFacetsURLSerializer
                             $filter->setValue([
                                 'from' => $from,
                                 'to'   => $to
-                            ]);
+                            ])->setProperty('symbol', $symbol);
                             $filter->setActive(true);
                             $facet->addFilter($filter);
                         }

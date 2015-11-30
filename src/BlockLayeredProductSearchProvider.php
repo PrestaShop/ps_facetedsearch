@@ -66,15 +66,20 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $copyByRangeValue = function (Facet $source, Facet $target) {
             foreach ($source->getFilters() as $sourceFilter) {
                 if ($sourceFilter->isActive()) {
+                    $foundRange = false;
                     foreach ($target->getFilters() as $targetFilter) {
                         $tFrom = $targetFilter->getValue()['from'];
                         $tTo   = $targetFilter->getValue()['to'];
                         $sFrom = $sourceFilter->getValue()['from'];
                         $sTo   = $sourceFilter->getValue()['to'];
                         if ($tFrom <= $sFrom && $sTo <= $tTo) {
+                            $foundRange = true;
                             $targetFilter->setActive(true);
                             break;
                         }
+                    }
+                    if (!$foundRange) {
+                        $target->addFilter(clone $sourceFilter);
                     }
                     break;
                 }
@@ -172,6 +177,8 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $facets
         );
 
+        $this->labelRangeFilters($facets);
+
         $this->addEncodedFacetsToFilters($facets);
 
         $this->hideZeroValues($facets);
@@ -184,6 +191,36 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $result->setEncodedFacets($this->facetsSerializer->serialize($nextQuery->getFacets()));
 
         return $result;
+    }
+
+    private function labelRangeFilters(array $facets)
+    {
+        foreach ($facets as $facet) {
+            if ($facet->getType() === 'weight') {
+                $unit = Configuration::get('PS_WEIGHT_UNIT');
+                foreach ($facet->getFilters() as $filter) {
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s%2$s - %3$s%4$s',
+                            Tools::displayNumber($filter->getValue()['from']),
+                            $unit,
+                            Tools::displayNumber($filter->getValue()['to']),
+                            $unit
+                        )
+                    );
+                }
+            } else if ($facet->getType() === 'price') {
+                foreach ($facet->getFilters() as $filter) {
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s - %2$s',
+                            Tools::displayPrice($filter->getValue()['from']),
+                            Tools::displayPrice($filter->getValue()['to'])
+                        )
+                    );
+                }
+            }
+        }
     }
 
     /**
