@@ -30,7 +30,13 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $encodedFacets,
         ProductSearchQuery $query
     ) {
-        $filterBlock    = $this->module->getFilterBlock();
+        // do not compute range filters, all info we need is encoded in $encodedFacets
+        $compute_range_filters = false;
+        $filterBlock    = $this->module->getFilterBlock(
+            [],
+            $compute_range_filters
+        );
+
         $queryTemplate  = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
             $filterBlock['filters']
         );
@@ -47,16 +53,55 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         array $sourceFacets,
         array $targetFacets
     ) {
+        $copyByLabel = function (Facet $source, Facet $target) {
+            foreach ($target->getFilters() as $targetFilter) {
+                foreach ($source->getFilters() as $sourceFilter) {
+                    if ($sourceFilter->getLabel() === $targetFilter->getLabel()) {
+                        $targetFilter->setActive($sourceFilter->isActive());
+                    }
+                }
+            }
+        };
+
+        $copyByRangeValue = function (Facet $source, Facet $target) {
+            foreach ($source->getFilters() as $sourceFilter) {
+                if ($sourceFilter->isActive()) {
+                    foreach ($target->getFilters() as $targetFilter) {
+                        $tFrom = $targetFilter->getValue()['from'];
+                        $tTo   = $targetFilter->getValue()['to'];
+                        $sFrom = $sourceFilter->getValue()['from'];
+                        $sTo   = $sourceFilter->getValue()['to'];
+                        if ($tFrom >= $sFrom && $tTo <= $tTo) {
+                            $targetFilter->setActive(true);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        };
+
+        $copy = function (
+            Facet $source,
+            Facet $target
+        ) use (
+            $copyByLabel,
+            $copyByRangeValue
+        ) {
+            if ($target->getProperty('range')) {
+                $strategy = $copyByRangeValue;
+            } else {
+                $strategy = $copyByLabel;
+            }
+
+            $strategy($source, $target);
+        };
+
         foreach ($targetFacets as $targetFacet) {
             foreach ($sourceFacets as $sourceFacet) {
                 if ($sourceFacet->getLabel() === $targetFacet->getLabel()) {
-                    foreach ($targetFacet->getFilters() as $targetFilter) {
-                        foreach ($sourceFacet->getFilters() as $sourceFilter) {
-                            if ($sourceFilter->getLabel() === $targetFilter->getLabel()) {
-                                $targetFilter->setActive($sourceFilter->isActive());
-                            }
-                        }
-                    }
+                    $copy($sourceFacet, $targetFacet);
+                    break;
                 }
             }
         }
@@ -205,13 +250,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     private function hideUselessFacets(array $facets)
     {
         foreach ($facets as $facet) {
-            $usefulFiltersCount = 0;
-            foreach ($facet->getFilters() as $filter) {
-                if ($filter->isDisplayed()) {
-                    ++$usefulFiltersCount;
-                }
-            }
-            $facet->setDisplayed($usefulFiltersCount > 1);
+            $facet->setDisplayed(
+                count($facet->getFilters()) > 1
+            );
         }
     }
 }

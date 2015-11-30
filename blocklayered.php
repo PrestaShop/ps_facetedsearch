@@ -1567,7 +1567,6 @@ class BlockLayered extends Module
 
     public function getFilterBlock(
         $selected_filters = array(),
-        $compute_filters_magnitude = true,
         $compute_range_filters = true
     ) {
         global $cookie;
@@ -1830,14 +1829,11 @@ class BlockLayered extends Module
 
             foreach ($filters as $filter_tmp) {
                 $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
-                if (
-                    method_exists('BlockLayered', $method_name) &&
-                    (
-                        ($filter['type'] != 'price' && $filter['type'] != 'weight' && $filter['type'] != $filter_tmp['type']) ||
-                        $filter['type'] == $filter_tmp['type']
-                    )
-                ) {
-                    if ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value']) {
+                if (method_exists('BlockLayered', $method_name)) {
+
+                    $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category'));
+
+                    if ($no_subquery_necessary) {
                         // Do not apply the same filter twice, i.e. when the primary filter
                         // and the sub filter have the same type and same id_value.
                         $sub_query_filter = [];
@@ -1949,7 +1945,8 @@ class BlockLayered extends Module
                         'unit' => $currency->sign,
                         'format' => $currency->format,
                         'filter_show_limit' => $filter['filter_show_limit'],
-                        'filter_type' => $filter['filter_type']
+                        'filter_type' => $filter['filter_type'],
+                        'list_of_values' => []
                     );
                     if ($compute_range_filters && isset($products) && $products) {
                         $rangeAggregator = new BlockLayeredRangeAggregator;
@@ -1975,9 +1972,8 @@ class BlockLayered extends Module
                         }, $mergedRanges);
 
                         $price_array['values'] = [$price_array['min'], $price_array['max']];
-
-                        $filter_blocks[] = $price_array;
                     }
+                    $filter_blocks[] = $price_array;
                 }
                 break;
 
@@ -1993,7 +1989,8 @@ class BlockLayered extends Module
                         'unit' => Configuration::get('PS_WEIGHT_UNIT'),
                         'format' => 5, // Ex: xxxxx kg
                         'filter_show_limit' => $filter['filter_show_limit'],
-                        'filter_type' => $filter['filter_type']
+                        'filter_type' => $filter['filter_type'],
+                        'list_of_values' => []
                     );
                     if ($compute_range_filters && isset($products) && $products) {
                         $rangeAggregator  = new BlockLayeredRangeAggregator;
@@ -2017,10 +2014,23 @@ class BlockLayered extends Module
                             ];
                         }, $mergedRanges);
 
-                        $weight_array['values'] = [$weight_array['min'], $weight_array['max']];
+                        if (empty($weight_array['list_of_values']) && isset($selected_filters['weight'])) {
+                            // in case we don't have a list of values,
+                            // add the original one.
+                            // This may happen when e.g. all products
+                            // weigh 0.
+                            $weight_array['list_of_values'] = [
+                                [
+                                    0 => $selected_filters['weight'][0],
+                                    1 => $selected_filters['weight'][1],
+                                    'nbr' => count($products)
+                                ]
+                            ];
+                        }
 
-                        $filter_blocks[] = $weight_array;
+                        $weight_array['values'] = [$weight_array['min'], $weight_array['max']];
                     }
+                    $filter_blocks[] = $weight_array;
                     break;
 
                 case 'condition':
@@ -2262,7 +2272,9 @@ class BlockLayered extends Module
     {
         $id_currency = (int)Context::getContext()->currency->id;
 
-        if (isset($filter_value) && $filter_value) {
+        if ($ignore_join && $filter_value) {
+            return array('where' => ' AND psi.price_min >= '.(int)$filter_value[0].' AND psi.price_max <= '.(int)$filter_value[1]);
+        } else if ($filter_value) {
             $price_filter_query = '
 			INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product AND psi.id_currency = '.(int)$id_currency.'
 			AND psi.price_min <= '.(int)$filter_value[1].' AND psi.price_max >= '.(int)$filter_value[0].' AND psi.id_shop='.(int)Context::getContext()->shop->id.') ';
