@@ -1629,7 +1629,7 @@ class BlockLayered extends Module
 
         $filter_blocks = array();
         foreach ($filters as $filter) {
-            $sql_query = array('select' => '', 'from' => '', 'join' => '', 'where' => '', 'group' => '', 'second_query' => '');
+            $sql_query = array('select' => '', 'from' => '', 'join' => '', 'where' => '', 'group' => '');
             switch ($filter['type']) {
                 case 'price':
                     $sql_query['select'] = 'SELECT p.`id_product`, psi.price_min, psi.price_max ';
@@ -1648,14 +1648,14 @@ class BlockLayered extends Module
                     $sql_query['where'] = 'WHERE 1';
                     break;
                 case 'condition':
-                    $sql_query['select'] = 'SELECT p.`id_product`, product_shop.`condition` ';
+                    $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, product_shop.`condition` ';
                     $sql_query['from'] = '
 					FROM '._DB_PREFIX_.'cat_restriction p';
                     $sql_query['where'] = 'WHERE 1';
                     $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
                     break;
                 case 'quantity':
-                    $sql_query['select'] = 'SELECT p.`id_product`, sa.`quantity`, sa.`out_of_stock` ';
+                    $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, sa.`quantity`, sa.`out_of_stock` ';
 
                     $sql_query['from'] = '
 					FROM '._DB_PREFIX_.'cat_restriction p';
@@ -1767,7 +1767,7 @@ class BlockLayered extends Module
                 $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
                 if (method_exists('BlockLayered', $method_name)) {
 
-                    $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category'));
+                    $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category' || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
 
                     if ($no_subquery_necessary) {
                         // Do not apply the same filter twice, i.e. when the primary filter
@@ -1858,13 +1858,6 @@ class BlockLayered extends Module
             // price & weight have slidebar, so it's ok to not complete recompute the product list
             if (!empty($selected_filters['price']) && $filter['type'] != 'price' && $filter['type'] != 'weight') {
                 $products = self::filterProductsByPrice(@$selected_filters['price'], $products);
-            }
-
-            if (!empty($sql_query['second_query'])) {
-                $res = Db::getInstance()->executeS($sql_query['second_query']);
-                if ($res) {
-                    $products = array_merge($products, $res);
-                }
             }
 
             switch ($filter['type']) {
