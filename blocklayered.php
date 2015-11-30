@@ -1838,10 +1838,53 @@ class BlockLayered extends Module
                     )
                 ) {
                     if ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value']) {
-                        // do not apply the same filter twice, i.e. when the primary filter
-                        // and the sub filter have the same type and same id_value
+                        // Do not apply the same filter twice, i.e. when the primary filter
+                        // and the sub filter have the same type and same id_value.
                         $sub_query_filter = [];
                     } else {
+                        // The next part is hard to follow, but here's what I think this
+                        // bit of code does:
+                        //
+                        // It checks whether some filters in the current facet
+                        // (our current iterator, $filter_tmp), which
+                        // is part of the "template" for this category, were selected by the
+                        // user.
+                        //
+                        // If so, it formats the current facet
+                        // in yet another strange way that is appropriate
+                        // for calling get***FilterSubQuery.
+                        //
+                        // For instance, if inside $selected_filters I have:
+                        //
+                        // [id_attribute_group] => Array
+                        //   (
+                        //      [8] => 3_8
+                        //      [11] => 3_11
+                        //   )
+                        //
+                        // And $filter_tmp is:
+                        // Array
+                        // (
+                        //   [type] => id_attribute_group
+                        //   [id_value] => 3
+                        //   [filter_show_limit] => 0
+                        //   [filter_type] => 0
+                        //  )
+                        //
+                        // Then $selected_filters_cleaned will be:
+                        // Array
+                        // (
+                        //   [0] => 8
+                        //   [1] => 11
+                        // )
+                        //
+                        // The strategy employed is different whether we're dealing with
+                        // a facet with an "id_value" (this is the most complex case involving
+                        // the usual underscore-encoded values deserialization witchcraft)
+                        // such as "id_attribute_group" or with a facet without id_value.
+                        // In the latter case we're in luck because we can just use the
+                        // facet in $selected_filters directly.
+
                         if (!is_null($filter_tmp['id_value'])) {
                             $selected_filters_cleaned = $this->cleanFilterByIdValue(
                                 @$selected_filters[$filter_tmp['type']],
@@ -1850,8 +1893,18 @@ class BlockLayered extends Module
                         } else {
                             $selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
                         }
-                        $sub_query_filter = self::$method_name($selected_filters_cleaned, $filter['type'] == $filter_tmp['type']);
+                        $ignore_join = ($filter['type'] == $filter_tmp['type']);
+                        // Prepare the new bits of SQL query.
+                        // $ignore_join is set to true when the sub-facet
+                        // is of the same "type" as the main facet. This way
+                        // the method ($method_name) knows that the tables it needs are already
+                        // there and don't need to be joined again.
+                        $sub_query_filter = self::$method_name(
+                            $selected_filters_cleaned,
+                            $ignore_join
+                        );
                     }
+                    // Now we "merge" the query from the subfilter with the main query
                     foreach ($sub_query_filter as $key => $value) {
                         $sql_query[$key] .= $value;
                     }
