@@ -217,8 +217,8 @@
 								<div class="col-lg-3 pull-right">
 									<label class="control-label col-lg-6">{l s='Filter style:' mod='blocklayered'}</label>
 									<div class="col-lg-6">
-										<input type="hidden" name="layered_selection_weight_slider_filter_type" value="2">
-										<p class="form-control-static">{l s='List of values' mod='blocklayered'}</p>
+										<input type="hidden" name="layered_selection_weight_slider_filter_type" value="1">
+										<p class="form-control-static">{l s='List of ranges' mod='blocklayered'}</p>
 									</div>
 								</div>
 							</li>
@@ -251,8 +251,8 @@
 								<div class="col-lg-3 pull-right">
 									<label class="control-label col-lg-6">{l s='Filter style:' mod='blocklayered'}</label>
 									<div class="col-lg-6">
-										<input type="hidden" name="layered_selection_price_slider_filter_type" value="2">
-										<p class="form-control-static">{l s='List of values' mod='blocklayered'}</p>
+										<input type="hidden" name="layered_selection_price_slider_filter_type" value="1">
+										<p class="form-control-static">{l s='List of ranges' mod='blocklayered'}</p>
 									</div>
 								</div>
 							</li>
