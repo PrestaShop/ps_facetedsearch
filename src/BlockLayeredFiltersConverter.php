@@ -69,6 +69,22 @@ class BlockLayeredFiltersConverter
 
                     break;
             }
+
+            switch ((int)$facetArray['filter_type']) {
+                case 0: // checkbox
+                    $facet->setMultipleSelectionAllowed(true);
+                    $facet->setWidgetType('checkboxes');
+                    break;
+                case 1: // radio
+                    $facet->setMultipleSelectionAllowed(false);
+                    $facet->setWidgetType('radio-buttons');
+                    break;
+                case 2: // drop down
+                    $facet->setMultipleSelectionAllowed(false);
+                    $facet->setWidgetType('dropdown');
+                    break;
+            }
+
             $facets[] = $facet;
         }
         return $facets;
