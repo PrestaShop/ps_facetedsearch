@@ -79,7 +79,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
                         }
                     }
                     if (!$foundRange) {
-                        $target->addFilter(clone $sourceFilter);
+                        $filter = clone $sourceFilter;
+                        $filter->setDisplayed(false);
+                        $target->addFilter($filter);
                     }
                     break;
                 }
@@ -285,8 +287,14 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
     private function hideUselessFacets(array $facets)
     {
         foreach ($facets as $facet) {
+            $usefulFiltersCount = 0;
+            foreach ($facet->getFilters() as $filter) {
+                if ($filter->getMagnitude() > 0) {
+                    ++$usefulFiltersCount;
+                }
+            }
             $facet->setDisplayed(
-                count($facet->getFilters()) > 1
+                $usefulFiltersCount > 1
             );
         }
     }
