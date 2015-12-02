@@ -8,6 +8,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetsMenu;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\SortOrder;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
@@ -25,9 +26,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->facetsSerializer = new BlockLayeredFacetsURLSerializer;
     }
 
-    public function addFacetsToQuery(
-        ProductSearchContext $context,
-        $encodedFacets,
+    public function getFacetsMenuFromEncodedFacets(
         ProductSearchQuery $query
     ) {
         // do not compute range filters, all info we need is encoded in $encodedFacets
@@ -43,10 +42,10 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
 
         $facets = $this->facetsSerializer->setFiltersFromEncodedFacets(
             $queryTemplate,
-            $encodedFacets
+            $query->getEncodedFacets()
         );
 
-        $query->setFacets($facets);
+        return (new FacetsMenu)->setFacets($facets);
     }
 
     private function copyFiltersActiveState(
@@ -140,12 +139,13 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult;
+        $menu   = $this->getFacetsMenuFromEncodedFacets($query);
 
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
 
         $blockLayeredFilters = $this->filtersConverter->getBlockLayeredFiltersFromFacets(
-            $query->getFacets()
+            $menu->getFacets()
         );
 
         $productsAndCount = $this->module->getProductByFilters(
@@ -175,7 +175,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         );
 
         $this->copyFiltersActiveState(
-            $query->getFacets(),
+            $menu->getFacets(),
             $facets
         );
 
@@ -186,12 +186,9 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->hideZeroValues($facets);
         $this->hideUselessFacets($facets);
 
-        $nextQuery   = clone $query;
-        $nextQuery->setFacets($facets);
-        $result->setNextQuery($nextQuery);
-
-        $result->setEncodedFacets($this->facetsSerializer->serialize($nextQuery->getFacets()));
-
+        $nextMenu = (new FacetsMenu)->setFacets($facets);
+        $result->setFacetsMenu($nextMenu);
+        $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
         return $result;
     }
 
