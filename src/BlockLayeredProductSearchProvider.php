@@ -164,8 +164,6 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $pagination
             ->setTotalResultsCount($productsAndCount['count'])
             ->setResultsCount(count($productsAndCount['products']))
-            ->setPagesCount(ceil($productsAndCount['count'] / $query->getResultsPerPage()))
-            ->setPage($query->getPage())
         ;
         $result->setPaginationResult($pagination);
 
