@@ -1,3 +1,3 @@
-{if isset($ps_search_facets)}
-    {$ps_search_facets nofilter}
+{if isset($rendered_facets)}
+    {$rendered_facets nofilter}
 {/if}
