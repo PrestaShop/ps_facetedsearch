@@ -11,7 +11,6 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetCollection;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\SortOrder;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\Pagination;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -157,15 +156,11 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $blockLayeredFilters
         );
 
-        $result->setProducts($productsAndCount['products']);
-        $result->setAvailableSortOrders($this->getAvailableSortOrders());
-
-        $pagination = new Pagination;
-        $pagination
-            ->setTotalResultsCount($productsAndCount['count'])
-            ->setResultsCount(count($productsAndCount['products']))
+        $result
+            ->setProducts($productsAndCount['products'])
+            ->setTotalProductsCount($productsAndCount['count'])
+            ->setAvailableSortOrders($this->getAvailableSortOrders())
         ;
-        $result->setPagination($pagination);
 
         $filterBlock = $this->module->getFilterBlock($blockLayeredFilters);
         $facets      = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
