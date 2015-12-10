@@ -8,7 +8,7 @@ use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetsMenu;
+use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetCollection;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\SortOrder;
 use PrestaShop\PrestaShop\Core\Business\Product\Search\PaginationResult;
@@ -26,7 +26,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->facetsSerializer = new BlockLayeredFacetsURLSerializer;
     }
 
-    public function getFacetsMenuFromEncodedFacets(
+    public function getFacetCollectionFromEncodedFacets(
         ProductSearchQuery $query
     ) {
         // do not compute range filters, all info we need is encoded in $encodedFacets
@@ -45,7 +45,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $query->getEncodedFacets()
         );
 
-        return (new FacetsMenu)->setFacets($facets);
+        return (new FacetCollection)->setFacets($facets);
     }
 
     private function copyFiltersActiveState(
@@ -139,7 +139,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult;
-        $menu   = $this->getFacetsMenuFromEncodedFacets($query);
+        $menu   = $this->getFacetCollectionFromEncodedFacets($query);
 
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
@@ -184,8 +184,8 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $this->hideZeroValues($facets);
         $this->hideUselessFacets($facets);
 
-        $nextMenu = (new FacetsMenu)->setFacets($facets);
-        $result->setFacetsMenu($nextMenu);
+        $nextMenu = (new FacetCollection)->setFacets($facets);
+        $result->setFacetCollection($nextMenu);
         $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
         return $result;
     }
