@@ -108,7 +108,7 @@ class BlockLayered extends Module
         // e.g. use $query->getIdCategory()
         // to choose a template for filters.
         // Query is an instance of:
-        // PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery
+        // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
             return new BlockLayeredProductSearchProvider($this);
         } else {

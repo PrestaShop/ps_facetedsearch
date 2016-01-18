@@ -1,7 +1,7 @@
 <?php
 
-use PrestaShop\PrestaShop\Core\Business\Product\Search\URLFragmentSerializer;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
 class BlockLayeredFacetsURLSerializer
 {

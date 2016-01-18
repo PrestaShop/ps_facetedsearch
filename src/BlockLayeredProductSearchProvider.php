@@ -3,14 +3,14 @@
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFiltersConverter.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFacetsURLSerializer.php';
 
-use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchProviderInterface;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchContext;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\ProductSearchResult;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\Facet;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\FacetCollection;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\Filter;
-use PrestaShop\PrestaShop\Core\Business\Product\Search\SortOrder;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
+use PrestaShop\PrestaShop\Core\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
 {
