@@ -40,6 +40,9 @@ class BlockLayeredFiltersConverter
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id)
                         ;
+                        if (isset($filterArray['color']) && $filterArray['color'] != '') {
+                            $filter->setProperty('color', $filterArray['color']);
+                        }
                         $facet->addFilter($filter);
                     }
                     break;
