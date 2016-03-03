@@ -43,6 +43,10 @@ class BlockLayeredFiltersConverter
                         if (isset($filterArray['color']) && $filterArray['color'] != '') {
                             $filter->setProperty('color', $filterArray['color']);
                         }
+                        ;
+                        if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
+                            $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
+                        }
                         $facet->addFilter($filter);
                     }
                     break;
