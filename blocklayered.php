@@ -1406,12 +1406,12 @@ class BlockLayered extends Module
         if (empty($selected_filters['category'])) {
             /* Create the table which contains all the id_product in a cat or a tree */
             Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY
-                                                        SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category_product cp
-                                                        INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
+                                                        SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category c
+                                                        STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
                                                         '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
                                                         AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
                                                         AND c.active = 1)
-                                                        JOIN `'._DB_PREFIX_.'product` p USING (id_product)
+                                                        STRAIGHT_JOIN `'._DB_PREFIX_.'product` p ON (p.id_product=cp.id_product)
                                                         '.$price_filter_query_in.'
                                                         '.$query_filters_from.'
                                                         WHERE 1 '.$query_filters_where.'
@@ -1421,7 +1421,7 @@ class BlockLayered extends Module
 
             Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY
                                                         SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category_product cp
-                                                        JOIN `'._DB_PREFIX_.'product` p USING (id_product)
+                                                        STRAIGHT_JOIN `'._DB_PREFIX_.'product` p ON (p.id_product=cp.id_product)
                                                         '.$price_filter_query_in.'
                                                         '.$query_filters_from.'
                                                         WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.'
@@ -1588,14 +1588,14 @@ class BlockLayered extends Module
 
         Db::getInstance()->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction', false);
         Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
-													SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category_product cp
-													INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
+													SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
+													STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
 													'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
 													AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
 													AND c.active = 1)
-													INNER JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
+													STRAIGHT_JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
 													AND product_shop.id_shop = '.(int)$context->shop->id.')
-													INNER JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
+													STRAIGHT_JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
 													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")', false);
 
 
