@@ -39,6 +39,7 @@ require_once implode(DIRECTORY_SEPARATOR, [
 class BlockLayered extends Module
 {
     private $nbr_products;
+    private $ps_layered_full_tree;
 
     public function __construct()
     {
@@ -53,6 +54,7 @@ class BlockLayered extends Module
 
         $this->displayName = $this->l('Layered navigation block');
         $this->description = $this->l('Displays a block with layered navigation filters.');
+        $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
     }
 
     public function install()
@@ -72,6 +74,8 @@ class BlockLayered extends Module
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
+
+            $this->ps_layered_full_tree = 1;
 
             $this->rebuildLayeredStructure();
             $this->buildLayeredCategories();
@@ -1078,6 +1082,8 @@ class BlockLayered extends Module
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int)Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int)Tools::getValue('ps_layered_filter_price_rounding'));
 
+            $this->ps_layered_full_tree = (int)Tools::getValue('ps_layered_full_tree');
+
             if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
                 $message = '<div class="alert alert-success">'.$this->l('Settings saved successfully').'</div>';
             } else {
@@ -1225,7 +1231,7 @@ class BlockLayered extends Module
                 'attribute_indexer_url' => $module_url.'blocklayered-attribute-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10),
                 'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM '._DB_PREFIX_.'layered_filter ORDER BY date_add DESC'),
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
-                'full_tree' => Configuration::get('PS_LAYERED_FULL_TREE'),
+                'full_tree' => $this->ps_layered_full_tree,
                 'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
                 'price_use_tax' => (bool)Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
                 'limit_warning' => $this->displayLimitPostWarning(21+count($attribute_groups)*3+count($features)*3),
@@ -1408,7 +1414,7 @@ class BlockLayered extends Module
             Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY
                                                         SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category c
                                                         STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
-                                                        '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
+                                                        '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int)$parent->nleft.'
                                                         AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
                                                         AND c.active = 1)
                                                         STRAIGHT_JOIN `'._DB_PREFIX_.'product` p ON (p.id_product=cp.id_product)
@@ -1446,7 +1452,7 @@ class BlockLayered extends Module
                     SELECT p.`id_product` id_product
                     FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
                     INNER JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
-                        '.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
+                        '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int)$parent->nleft.'
                         AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
                         AND c.active = 1)
                     '.$price_filter_query_out.'
@@ -1564,6 +1570,7 @@ class BlockLayered extends Module
     ) {
         global $cookie;
 
+        static $latest_cat_restriction = null;
         $context = Context::getContext();
 
         $id_lang = $context->language->id;
@@ -1586,23 +1593,33 @@ class BlockLayered extends Module
 
         /* Create the table which contains all the id_product in a cat or a tree */
 
-        Db::getInstance()->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction', false);
-        Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
-													SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
-													STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
-													'.(Configuration::get('PS_LAYERED_FULL_TREE') ? 'c.nleft >= '.(int)$parent->nleft.'
-													AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
-													AND c.active = 1)
-													STRAIGHT_JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
-													AND product_shop.id_shop = '.(int)$context->shop->id.')
-													STRAIGHT_JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
-													WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")', false);
+        $current_cat_restriction = 'parent_'.(($this->ps_layered_full_tree)?((int)$parent->nleft.'_'.(int)$parent->nright):((int)$id_parent).'_context_'.(int)$context->shop->id);
+        if ($current_cat_restriction != $latest_cat_restriction) {
+            Db::getInstance()->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_restriction', false);
+            Db::getInstance()->execute(
+                'CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_restriction ENGINE=MEMORY
+                                                        SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
+                                                        STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
+                                                        '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int)$parent->nleft.'
+                                                        AND c.nright <= '.(int)$parent->nright : 'c.id_category = '.(int)$id_parent).'
+                                                        AND c.active = 1)
+                                                        STRAIGHT_JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
+                                                        AND product_shop.id_shop = '.(int)$context->shop->id.')
+                                                        STRAIGHT_JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
+                                                        WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog")',
+                false
+            );
 
 
-        Db::getInstance()->execute('ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product),
-													ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE,
-													ADD KEY `condition` (`condition`,`id_product`) USING BTREE,
-													ADD KEY `weight` (`weight`,`id_product`) USING BTREE', false);
+            Db::getInstance()->execute(
+                'ALTER TABLE '._DB_PREFIX_.'cat_restriction ADD PRIMARY KEY (id_product),
+                                                        ADD KEY `id_manufacturer` (`id_manufacturer`,`id_product`) USING BTREE,
+                                                        ADD KEY `condition` (`condition`,`id_product`) USING BTREE,
+                                                        ADD KEY `weight` (`weight`,`id_product`) USING BTREE',
+                false
+            );
+            $latest_cat_restriction = $current_cat_restriction;
+        }
 
         // Remove all empty selected filters
         foreach ($selected_filters as $key => $value) {
