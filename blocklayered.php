@@ -1473,10 +1473,10 @@ class BlockLayered extends Module
                 }
             }
             if (!empty($product_id_delete_list)) {
-                Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'cat_filter_restriction WHERE id_product IN ('.implode(',', $product_id_delete_list).')');
+                Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'cat_filter_restriction WHERE id_product IN ('.implode(',', $product_id_delete_list).')', false);
             }
         }
-        $this->nbr_products = Db::getInstance()->getValue('SELECT COUNT(*) FROM '._DB_PREFIX_.'cat_filter_restriction');
+        $this->nbr_products = Db::getInstance()->getValue('SELECT COUNT(*) FROM '._DB_PREFIX_.'cat_filter_restriction', false);
 
         if ($this->nbr_products == 0) {
             $products = array();
@@ -1510,7 +1510,7 @@ class BlockLayered extends Module
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     ORDER BY '.$order_clause.' , cp.id_product'.
-                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
+                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             } else {
                 $products = Db::getInstance()->executeS('
                     SELECT
@@ -1539,7 +1539,7 @@ class BlockLayered extends Module
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     GROUP BY product_shop.id_product
                     ORDER BY '.$order_clause.' , cp.id_product'.
-                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page));
+                    ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             }
         }
 
@@ -1846,7 +1846,7 @@ class BlockLayered extends Module
                     $sql_query['where'],
                     $sql_query['group']
                 ]);
-                $products = Db::getInstance()->executeS($assembled_sql_query);
+                $products = Db::getInstance()->executeS($assembled_sql_query, true, false);
             }
 
             // price & weight have slidebar, so it's ok to not complete recompute the product list
