@@ -1515,7 +1515,7 @@ class BlockLayered extends Module
                     LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-                    ORDER BY '.$order_clause.' , cp.id_product'.
+                    ORDER BY '.bqSQL($order_clause).' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             } else {
                 $products = Db::getInstance()->executeS('
@@ -1544,7 +1544,7 @@ class BlockLayered extends Module
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     GROUP BY product_shop.id_product
-                    ORDER BY '.$order_clause.' , cp.id_product'.
+                    ORDER BY '.bqSQL($order_clause).' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             }
         }
