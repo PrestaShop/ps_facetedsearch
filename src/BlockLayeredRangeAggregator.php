@@ -181,7 +181,7 @@ class BlockLayeredRangeAggregator
         return array_map(function (array $range) use (&$min) {
             $scale = pow(10, floor(log($range['max'] - $range['min'], 10)));
 
-            if (0 === $scale) {
+            if (0 == $scale) {
                 $scale = 1;
             }
 
