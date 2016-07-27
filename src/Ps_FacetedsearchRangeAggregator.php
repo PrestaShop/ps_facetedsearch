@@ -1,6 +1,6 @@
 <?php
 
-class BlockLayeredRangeAggregator
+class Ps_FacetedsearchRangeAggregator
 {
     private function makeNode(array $range, $minColumnIndex, $maxColumnIndex)
     {

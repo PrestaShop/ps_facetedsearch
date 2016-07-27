@@ -3,12 +3,12 @@
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
-class BlockLayeredFiltersConverter
+class Ps_FacetedsearchFiltersConverter
 {
-    public function getFacetsFromBlockLayeredFilters(array $blockLayeredFilters)
+    public function getFacetsFromFacetedSearchFilters(array $facetedSearchFilters)
     {
         $facets = [];
-        foreach ($blockLayeredFilters as $facetArray) {
+        foreach ($facetedSearchFilters as $facetArray) {
             $facet = new Facet;
             $facet
                 ->setLabel($facetArray['name'])
@@ -99,14 +99,14 @@ class BlockLayeredFiltersConverter
 
     /**
      * WARNING, this is not the inverse function of
-     * getFacetsFromBlockLayeredFilters
-     * because blocklayered doesn't use the same representation
+     * getFacetsFromFacetedSearchFilters
+     * because facetedsearch doesn't use the same representation
      * of filters in input as in output.
      * It is close to the inverse function for our use though, hence the name.
      */
-    public function getBlockLayeredFiltersFromFacets(array $facets)
+    public function getFacetedSearchFiltersFromFacets(array $facets)
     {
-        $blockLayeredFilters = [];
+        $facetedSearchFilters = [];
 
         foreach ($facets as $facet) {
             switch ($facet->getType()) {
@@ -124,14 +124,14 @@ class BlockLayeredFiltersConverter
                     } elseif ($type === 'feature') {
                         $type = 'id_feature';
                     }
-                    if (!isset($blockLayeredFilters[$type])) {
-                        $blockLayeredFilters[$type] = [];
+                    if (!isset($facetedSearchFilters[$type])) {
+                        $facetedSearchFilters[$type] = [];
                     }
                     foreach ($facet->getFilters() as $filter) {
                         if (!$filter->isActive()) {
                             continue;
                         }
-                        $key    = count($blockLayeredFilters[$type]);
+                        $key    = count($facetedSearchFilters[$type]);
                         $value  = $filter->getValue();
                         if ($type === 'id_attribute_group') {
                             $key = $value;
@@ -141,7 +141,7 @@ class BlockLayeredFiltersConverter
                             $key = $value;
                             $value = $facet->getProperty('id_feature').'_'.$filter->getValue();
                         }
-                        $blockLayeredFilters[$type][$key] = $value;
+                        $facetedSearchFilters[$type][$key] = $value;
                     }
                     break;
                 case 'weight':
@@ -150,7 +150,7 @@ class BlockLayeredFiltersConverter
                         if (!$filter->isActive()) {
                             continue;
                         }
-                        $blockLayeredFilters[$facet->getType()] = [
+                        $facetedSearchFilters[$facet->getType()] = [
                             $filter->getValue()['from'],
                             $filter->getValue()['to']
                         ];
@@ -160,6 +160,6 @@ class BlockLayeredFiltersConverter
             }
         }
 
-        return $blockLayeredFilters;
+        return $facetedSearchFilters;
     }
 }

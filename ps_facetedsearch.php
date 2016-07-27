@@ -29,32 +29,33 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once implode(DIRECTORY_SEPARATOR, [
-	__DIR__, 'src', 'BlockLayeredProductSearchProvider.php'
+	__DIR__, 'src', 'Ps_FacetedsearchProductSearchProvider.php'
 ]);
 
 require_once implode(DIRECTORY_SEPARATOR, [
-	__DIR__, 'src', 'BlockLayeredRangeAggregator.php'
+	__DIR__, 'src', 'Ps_FacetedsearchRangeAggregator.php'
 ]);
 
-class BlockLayered extends Module
+class Ps_Facetedsearch extends Module
 {
     private $nbr_products;
     private $ps_layered_full_tree;
 
     public function __construct()
     {
-        $this->name = 'blocklayered';
+        $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '2.1.3';
+        $this->version = '1.0.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
 
         parent::__construct();
 
-        $this->displayName = $this->l('Layered navigation block');
+        $this->displayName = $this->l('Faceted navigation');
         $this->description = $this->l('Displays a block with layered navigation filters.');
         $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
+        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
     public function install()
@@ -114,7 +115,7 @@ class BlockLayered extends Module
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            return new BlockLayeredProductSearchProvider($this);
+            return new Ps_FacetedsearchProductSearchProvider($this);
         } else {
             return null;
         }
@@ -626,7 +627,7 @@ class BlockLayered extends Module
 
     public function hookLeftColumn($params)
     {
-        return $this->display(__FILE__, 'blocklayered.tpl');
+        return $this->display(__FILE__, 'ps_facetedsearch.tpl');
     }
 
     public function hookRightColumn($params)
@@ -754,14 +755,14 @@ class BlockLayered extends Module
             } while ($cursor < $nb_products && $time_elapsed < $max_executiontime);
         }
         if (($nb_products > 0 && !$full || $cursor < $nb_products && $full) && !$ajax) {
-            $token = substr(Tools::encrypt('blocklayered/index'), 0, 10);
+            $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
             if (Tools::usingSecureMode()) {
                 $domain = Tools::getShopDomainSsl(true);
             } else {
                 $domain = Tools::getShopDomain(true);
             }
 
-            if (!Tools::file_get_contents($domain.__PS_BASE_URI__.'modules/blocklayered/blocklayered-price-indexer.php?token='.$token.'&cursor='.(int)$cursor.'&full='.(int)$full)) {
+            if (!Tools::file_get_contents($domain.__PS_BASE_URI__.'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token='.$token.'&cursor='.(int)$cursor.'&full='.(int)$full)) {
                 self::indexPrices((int)$cursor, (int)$full);
             }
             return $cursor;
@@ -1152,7 +1153,7 @@ class BlockLayered extends Module
         $module_url = Tools::getProtocol(Tools::usingSecureMode()).$_SERVER['HTTP_HOST'].$this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
-            $this->context->controller->addJS($this->_path.'js/blocklayered_admin.js');
+            $this->context->controller->addJS($this->_path.'js/ps_facetedsearchadmin.js');
 
             if (version_compare(_PS_VERSION_, '1.6.0.3', '>=') === true) {
                 $this->context->controller->addjqueryPlugin('sortable');
@@ -1163,11 +1164,11 @@ class BlockLayered extends Module
             }
         }
 
-        $this->context->controller->addCSS($this->_path.'css/blocklayered_admin.css');
+        $this->context->controller->addCSS($this->_path.'css/ps_facetedsearch_admin.css');
 
         if (Tools::getValue('add_new_filters_template')) {
             $this->context->smarty->assign(array(
-                'current_url' => $this->context->link->getAdminLink('AdminModules').'&configure=blocklayered&tab_module=front_office_features&module_name=blocklayered',
+                'current_url' => $this->context->link->getAdminLink('AdminModules').'&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => 0,
                 'template_name' => sprintf($this->l('My template - %s'), date('Y-m-d')),
@@ -1206,7 +1207,7 @@ class BlockLayered extends Module
             unset($filters['shop_list']);
 
             $this->context->smarty->assign(array(
-                'current_url' => $this->context->link->getAdminLink('AdminModules').'&configure=blocklayered&tab_module=front_office_features&module_name=blocklayered',
+                'current_url' => $this->context->link->getAdminLink('AdminModules').'&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => (int)Tools::getValue('id_layered_filter'),
                 'template_name' => $template['name'],
@@ -1224,11 +1225,11 @@ class BlockLayered extends Module
                 'PS_LAYERED_INDEXED' => Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
                 'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
                 'id_lang' => Context::getContext()->cookie->id_lang,
-                'token' => substr(Tools::encrypt('blocklayered/index'), 0, 10),
+                'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
                 'base_folder' => urlencode(_PS_ADMIN_DIR_),
-                'price_indexer_url' => $module_url.'blocklayered-price-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10),
-                'full_price_indexer_url' => $module_url.'blocklayered-price-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10).'&full=1',
-                'attribute_indexer_url' => $module_url.'blocklayered-attribute-indexer.php'.'?token='.substr(Tools::encrypt('blocklayered/index'), 0, 10),
+                'price_indexer_url' => $module_url.'ps_facetedsearch-price-indexer.php'.'?token='.substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+                'full_price_indexer_url' => $module_url.'ps_facetedsearch-price-indexer.php'.'?token='.substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10).'&full=1',
+                'attribute_indexer_url' => $module_url.'ps_facetedsearch-attribute-indexer.php'.'?token='.substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
                 'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM '._DB_PREFIX_.'layered_filter ORDER BY date_add DESC'),
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'full_tree' => $this->ps_layered_full_tree,
@@ -1776,7 +1777,7 @@ class BlockLayered extends Module
 
             foreach ($filters as $filter_tmp) {
                 $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
-                if (method_exists('BlockLayered', $method_name)) {
+                if (method_exists('Ps_Facetedsearch', $method_name)) {
 
                     $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category' || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
 
@@ -1889,7 +1890,7 @@ class BlockLayered extends Module
                         'list_of_values' => []
                     );
                     if ($compute_range_filters && isset($products) && $products) {
-                        $rangeAggregator = new BlockLayeredRangeAggregator;
+                        $rangeAggregator = new Ps_FacetedsearchRangeAggregator;
                         $aggregatedRanges =  $rangeAggregator->aggregateRanges(
                             $products,
                             'price_min',
@@ -1933,7 +1934,7 @@ class BlockLayered extends Module
                         'list_of_values' => []
                     );
                     if ($compute_range_filters && isset($products) && $products) {
-                        $rangeAggregator  = new BlockLayeredRangeAggregator;
+                        $rangeAggregator  = new Ps_FacetedsearchRangeAggregator;
                         $aggregatedRanges = $rangeAggregator->getRangesFromList(
                             $products,
                             'weight'

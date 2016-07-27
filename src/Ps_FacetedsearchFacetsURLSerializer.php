@@ -3,7 +3,7 @@
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
-class BlockLayeredFacetsURLSerializer
+class Ps_FacetedsearchFacetsURLSerializer
 {
     public function serialize(array $facets)
     {

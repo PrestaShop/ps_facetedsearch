@@ -2,10 +2,10 @@
 
 require_once implode(DIRECTORY_SEPARATOR, [
     __DIR__,
-    '..', 'src', 'BlockLayeredRangeAggregator.php'
+    '..', 'src', 'Ps_FacetedsearchRangeAggregator.php'
 ]);
 
-class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
+class Ps_FacetedsearchRangeAggregatorTest extends PHPUnit_Framework_TestCase
 {
     public function test_ranges_are_aggregated_simple()
     {
@@ -19,7 +19,7 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
             ['price_min' => 16, 'price_max' => 20]
         ];
 
-        $aggregator = new BlockLayeredRangeAggregator;
+        $aggregator = new Ps_FacetedsearchRangeAggregator;
 
         $actual = $aggregator->aggregateRanges($ranges, 'price_min', 'price_max');
 
@@ -47,7 +47,7 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
             ['price_min' => 25, 'price_max' => 61]
         ];
 
-        $aggregator = new BlockLayeredRangeAggregator;
+        $aggregator = new Ps_FacetedsearchRangeAggregator;
 
         $actual = $aggregator->aggregateRanges($ranges, 'price_min', 'price_max');
 
@@ -73,7 +73,7 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
             ['min' => 130,   'max' => 140,   'count' => 11]
         ];
 
-        $aggregator = new BlockLayeredRangeAggregator;
+        $aggregator = new Ps_FacetedsearchRangeAggregator;
 
         $actual = $aggregator->mergeRanges($ranges, 3);
         $this->assertEquals([
@@ -91,7 +91,7 @@ class BlockLayeredRangeAggregatorTest extends PHPUnit_Framework_TestCase
             ['min' => 100,   'max' => 140,   'count' => 20]
         ];
 
-        $aggregator = new BlockLayeredRangeAggregator;
+        $aggregator = new Ps_FacetedsearchRangeAggregator;
 
         $actual = $aggregator->mergeRanges($ranges, 3);
         $this->assertEquals([

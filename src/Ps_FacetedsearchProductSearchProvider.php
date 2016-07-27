@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFiltersConverter.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'BlockLayeredFacetsURLSerializer.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'Ps_FacetedsearchFiltersConverter.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'Ps_FacetedsearchFacetsURLSerializer.php';
 
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
@@ -12,17 +12,17 @@ use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
-class BlockLayeredProductSearchProvider implements ProductSearchProviderInterface
+class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInterface
 {
     private $module;
     private $filtersConverter;
     private $facetsSerializer;
 
-    public function __construct(BlockLayered $module)
+    public function __construct(Ps_Facetedsearch $module)
     {
         $this->module = $module;
-        $this->filtersConverter = new BlockLayeredFiltersConverter;
-        $this->facetsSerializer = new BlockLayeredFacetsURLSerializer;
+        $this->filtersConverter = new Ps_FacetedsearchFiltersConverter;
+        $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer;
     }
 
     public function getFacetCollectionFromEncodedFacets(
@@ -35,7 +35,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $compute_range_filters
         );
 
-        $queryTemplate  = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
+        $queryTemplate  = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
             $filterBlock['filters']
         );
 
@@ -143,7 +143,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
         $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way    = $query->getSortOrder()->toLegacyOrderWay();
 
-        $blockLayeredFilters = $this->filtersConverter->getBlockLayeredFiltersFromFacets(
+        $facetedSearchFilters = $this->filtersConverter->getFacetedSearchFiltersFromFacets(
             $menu->getFacets()
         );
 
@@ -153,7 +153,7 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             $order_by,
             $order_way,
             $context->getIdLang(),
-            $blockLayeredFilters
+            $facetedSearchFilters
         );
 
         $result
@@ -162,8 +162,8 @@ class BlockLayeredProductSearchProvider implements ProductSearchProviderInterfac
             ->setAvailableSortOrders($this->getAvailableSortOrders())
         ;
 
-        $filterBlock = $this->module->getFilterBlock($blockLayeredFilters);
-        $facets      = $this->filtersConverter->getFacetsFromBlockLayeredFilters(
+        $filterBlock = $this->module->getFilterBlock($facetedSearchFilters);
+        $facets      = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
             $filterBlock['filters']
         );
 

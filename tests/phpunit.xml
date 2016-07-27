@@ -1,6 +1,6 @@
 <phpunit bootstrap="../../../vendor/autoload.php">
     <testsuites>
-        <testsuite name="BlockLayered">
+        <testsuite name="FacetedSearch">
             <directory>.</directory>
         </testsuite>
     </testsuites>

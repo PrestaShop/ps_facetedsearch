@@ -24,7 +24,7 @@
 *}
 <div class="form-group">
 	<label class="control-label col-lg-3">
-		<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="{l s='Invalid characters: <>;=#{}_' mod='blocklayered'}">{l s='URL' mod='blocklayered'}</span>
+		<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="{l s='Invalid characters: <>;=#{}_' mod='ps_facetedsearch'}">{l s='URL' mod='ps_facetedsearch'}</span>
 	</label>
 	<div class="col-lg-9">
 		<div class="row">
@@ -47,13 +47,13 @@
 			</div>
 			{/foreach}
 			<div class="col-lg-9">
-				<p class="help-block">{l s='When the Layered Navigation Block module is enabled, you can get more detailed URLs by choosing the word that best represent this feature\'s value. By default, PrestaShop uses the value\'s name, but you can change that setting using this field.' mod='blocklayered'}</p>
+				<p class="help-block">{l s='When the Layered Navigation Block module is enabled, you can get more detailed URLs by choosing the word that best represent this feature\'s value. By default, PrestaShop uses the value\'s name, but you can change that setting using this field.' mod='ps_facetedsearch'}</p>
 			</div>
 		</div>
 	</div>
 </div>
 <div class="form-group">
-	<label class="control-label col-lg-3">{l s='Meta title' mod='blocklayered'}</label>
+	<label class="control-label col-lg-3">{l s='Meta title' mod='ps_facetedsearch'}</label>
 	<div class="col-lg-9">
 		<div class="row">
 			{foreach $languages as $language}
@@ -75,7 +75,7 @@
 			</div>
 			{/foreach}
 			<div class="col-lg-9">
-				<p class="help-block">{l s='When the Layered Navigation Block module is enabled, you can get more detailed page titles by choosing the word that best represent this feature\'s value. By default, PrestaShop uses the value\'s name, but you can change that setting using this field.' mod='blocklayered'}</p>
+				<p class="help-block">{l s='When the Layered Navigation Block module is enabled, you can get more detailed page titles by choosing the word that best represent this feature\'s value. By default, PrestaShop uses the value\'s name, but you can change that setting using this field.' mod='ps_facetedsearch'}</p>
 			</div>
 		</div>
 	</div>
