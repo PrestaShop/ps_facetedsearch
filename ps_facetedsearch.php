@@ -1268,6 +1268,9 @@ class Ps_Facetedsearch extends Module
         $id_lang,
         $selected_filters = array()
     ) {
+	if (!Validate::isOrderBy($order_by)) {
+	    $order_by = 'cp.position';
+	}
         $order_clause = $order_by.' '.$order_way;
 
         $home_category = Configuration::get('PS_HOME_CATEGORY');
@@ -1516,7 +1519,7 @@ class Ps_Facetedsearch extends Module
                     LEFT JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
-                    ORDER BY `'.bqSQL($order_clause).'` , cp.id_product'.
+                    ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             } else {
                 $products = Db::getInstance()->executeS('
@@ -1545,7 +1548,7 @@ class Ps_Facetedsearch extends Module
                     '.Product::sqlStock('p', 0).'
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     GROUP BY product_shop.id_product
-                    ORDER BY `'.bqSQL($order_clause).'` , cp.id_product'.
+                    ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int)$page - 1) * $products_per_page.','.$products_per_page), true, false);
             }
         }
