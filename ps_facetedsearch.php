@@ -52,8 +52,8 @@ class Ps_Facetedsearch extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('Faceted navigation');
-        $this->description = $this->l('Displays a block with layered navigation filters.');
+        $this->displayName = $this->trans('Faceted search', array(), 'Modules.FacetedSearch.Admin');
+        $this->description = $this->trans('Displays a block allowing multiple filters.', array(), 'Modules.FacetedSearch.Admin');
         $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
@@ -315,8 +315,7 @@ class Ps_Facetedsearch extends Module
 
             if (Tools::getValue('url_name_'.$id_lang)) {
                 if (Tools::link_rewrite(Tools::getValue('url_name_'.$id_lang)) != strtolower(Tools::getValue('url_name_'.$id_lang))) {
-                    $params['errors'][] = Tools::displayError(sprintf($this->l('"%s" is not a valid url'),
-                        Tools::getValue('url_name_'.$id_lang)));
+                    $params['errors'][] = Tools::displayError($this->trans('"%s" is not a valid url', array(Tools::getValue('url_name_'.$id_lang)), 'Modules.FacetedSearch.Admin'));
                 }
             }
         }
@@ -404,8 +403,7 @@ class Ps_Facetedsearch extends Module
 
             if (Tools::getValue('url_name_'.$id_lang)) {
                 if (Tools::link_rewrite(Tools::getValue('url_name_'.$id_lang)) != strtolower(Tools::getValue('url_name_'.$id_lang))) {
-                    $params['errors'][] = Tools::displayError(sprintf($this->l('"%s" is not a valid url'),
-                        Tools::getValue('url_name_'.$id_lang)));
+                    $params['errors'][] = Tools::displayError($this->trans('"%s" is not a valid url', array(Tools::getValue('url_name_'.$id_lang)), 'Modules.FacetedSearch.Admin'));
                 }
             }
         }
@@ -494,8 +492,7 @@ class Ps_Facetedsearch extends Module
 
             if (Tools::getValue('url_name_'.$id_lang)) {
                 if (Tools::link_rewrite(Tools::getValue('url_name_'.$id_lang)) != strtolower(Tools::getValue('url_name_'.$id_lang))) {
-                    $params['errors'][] = Tools::displayError(sprintf($this->l('"%s" is not a valid url'),
-                        Tools::getValue('url_name_'.$id_lang)));
+                    $params['errors'][] = Tools::displayError($this->trans('"%s" is not a valid url', array(Tools::getValue('url_name_'.$id_lang)), 'Modules.FacetedSearch.Admin'));
                 }
             }
         }
@@ -584,8 +581,7 @@ class Ps_Facetedsearch extends Module
 
             if (Tools::getValue('url_name_'.$id_lang)) {
                 if (Tools::link_rewrite(Tools::getValue('url_name_'.$id_lang)) != strtolower(Tools::getValue('url_name_'.$id_lang))) {
-                    $params['errors'][] = Tools::displayError(sprintf($this->l('"%s" is not a valid url'),
-                        Tools::getValue('url_name_'.$id_lang)));
+                    $params['errors'][] = Tools::displayError($this->trans('"%s" is not a valid url', array(Tools::getValue('url_name_'.$id_lang)), 'Modules.FacetedSearch.Admin'));
                 }
             }
         }
@@ -962,9 +958,9 @@ class Ps_Facetedsearch extends Module
 
         if (Tools::isSubmit('SubmitFilter')) {
             if (!Tools::getValue('layered_tpl_name')) {
-                $message = $this->displayError($this->l('Filter template name required (cannot be empty)'));
+                $message = $this->displayError($this->trans('Filter template name required (cannot be empty)', array(), 'Modules.FacetedSearch.Admin'));
             } elseif (!Tools::getValue('categoryBox')) {
-                $message = $this->displayError($this->l('You must select at least one category.'));
+                $message = $this->displayError($this->trans('You must select at least one category.', array(), 'Modules.FacetedSearch.Admin'));
             } else {
                 if (Tools::getValue('id_layered_filter')) {
                     Db::getInstance()->execute('
@@ -1072,8 +1068,8 @@ class Ps_Facetedsearch extends Module
                     }
 
                     $this->buildLayeredCategories();
-                    $message = $this->displayConfirmation($this->l('Your filter').' "'.Tools::safeOutput(Tools::getValue('layered_tpl_name')).'" '.
-                        ((isset($_POST['id_layered_filter']) && $_POST['id_layered_filter']) ? $this->l('was updated successfully.') : $this->l('was added successfully.')));
+                    $message = $this->displayConfirmation($this->trans('Your filter', array(), 'Modules.FacetedSearch.Admin').' "'.Tools::safeOutput(Tools::getValue('layered_tpl_name')).'" '.
+                        ((isset($_POST['id_layered_filter']) && $_POST['id_layered_filter']) ? $this->trans('was updated successfully.', array(), 'Modules.FacetedSearch.Admin') : $this->trans('was added successfully.', array(), 'Modules.FacetedSearch.Admin')));
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
@@ -1086,9 +1082,9 @@ class Ps_Facetedsearch extends Module
             $this->ps_layered_full_tree = (int)Tools::getValue('ps_layered_full_tree');
 
             if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $message = '<div class="alert alert-success">'.$this->l('Settings saved successfully').'</div>';
+                $message = '<div class="alert alert-success">'.$this->trans('Settings saved successfully', array(), 'Modules.FacetedSearch.Admin').'</div>';
             } else {
-                $message = '<div class="conf">'.$this->l('Settings saved successfully').'</div>';
+                $message = '<div class="conf">'.$this->trans('Settings saved successfully', array(), 'Modules.FacetedSearch.Admin').'</div>';
             }
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
@@ -1103,9 +1099,9 @@ class Ps_Facetedsearch extends Module
 					WHERE id_layered_filter = '.(int)Tools::getValue('id_layered_filter').' LIMIT 1'
                 );
                 $this->buildLayeredCategories();
-                $message = $this->displayConfirmation($this->l('Filter template deleted, categories updated (reverted to default Filter template).'));
+                $message = $this->displayConfirmation($this->trans('Filter template deleted, categories updated (reverted to default Filter template).', array(), 'Modules.FacetedSearch.Admin'));
             } else {
-                $message = $this->displayError($this->l('Filter template not found'));
+                $message = $this->displayError($this->trans('Filter template not found', array(), 'Modules.FacetedSearch.Admin'));
             }
         }
 
@@ -1144,7 +1140,7 @@ class Ps_Facetedsearch extends Module
                 $root_category = Category::getRootCategory();
                 $root_category = array('id_category' => $root_category->id_category, 'name' => $root_category->name);
             } else {
-                $root_category = array('id_category' => '0', 'name' => $this->l('Root'));
+                $root_category = array('id_category' => '0', 'name' => $this->trans('Root', array(), 'Modules.FacetedSearch.Admin'));
             }
 
             $tree_categories_helper = new Helper();
@@ -1171,7 +1167,7 @@ class Ps_Facetedsearch extends Module
                 'current_url' => $this->context->link->getAdminLink('AdminModules').'&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => 0,
-                'template_name' => sprintf($this->l('My template - %s'), date('Y-m-d')),
+                'template_name' => sprintf($this->trans('My template - %s', array(), 'Modules.FacetedSearch.Admin'), date('Y-m-d')),
                 'attribute_groups' => $attribute_groups,
                 'features' => $features,
                 'total_filters' => 6+count($attribute_groups)+count($features)
@@ -1882,7 +1878,7 @@ class Ps_Facetedsearch extends Module
                         'type_lite' => 'price',
                         'type' => 'price',
                         'id_key' => 0,
-                        'name' => $this->l('Price'),
+                        'name' => $this->trans('Price', array(), 'Modules.FacetedSearch.Shop'),
                         'slider' => true,
                         'max' => '0',
                         'min' => null,
@@ -1926,7 +1922,7 @@ class Ps_Facetedsearch extends Module
                         'type_lite' => 'weight',
                         'type' => 'weight',
                         'id_key' => 0,
-                        'name' => $this->l('Weight'),
+                        'name' => $this->trans('Weight', array(), 'Modules.FacetedSearch.Shop'),
                         'slider' => true,
                         'max' => '0',
                         'min' => null,
@@ -1979,9 +1975,9 @@ class Ps_Facetedsearch extends Module
 
                 case 'condition':
                     $condition_array = array(
-                        'new' => array('name' => $this->l('New'),'nbr' => 0),
-                        'used' => array('name' => $this->l('Used'), 'nbr' => 0),
-                        'refurbished' => array('name' => $this->l('Refurbished'),
+                        'new' => array('name' => $this->trans('New', array(), 'Modules.FacetedSearch.Shop'),'nbr' => 0),
+                        'used' => array('name' => $this->trans('Used', array(), 'Modules.FacetedSearch.Shop'), 'nbr' => 0),
+                        'refurbished' => array('name' => $this->trans('Refurbished', array(), 'Modules.FacetedSearch.Shop'),
                         'nbr' => 0)
                     );
                     if (isset($products) && $products) {
@@ -2007,7 +2003,7 @@ class Ps_Facetedsearch extends Module
                         'type_lite' => 'condition',
                         'type' => 'condition',
                         'id_key' => 0,
-                        'name' => $this->l('Condition'),
+                        'name' => $this->trans('Condition', array(), 'Modules.FacetedSearch.Shop'),
                         'values' => $condition_array,
                         'filter_show_limit' => $filter['filter_show_limit'],
                         'filter_type' => $filter['filter_type']
@@ -2016,8 +2012,8 @@ class Ps_Facetedsearch extends Module
 
                 case 'quantity':
                     $quantity_array = array(
-                        0 => array('name' => $this->l('Not available'), 'nbr' => 0),
-                        1 => array('name' => $this->l('In stock'), 'nbr' => 0)
+                        0 => array('name' => $this->trans('Not available', array(), 'Modules.FacetedSearch.Shop'), 'nbr' => 0),
+                        1 => array('name' => $this->trans('In stock', array(), 'Modules.FacetedSearch.Shop'), 'nbr' => 0)
                     );
                     foreach ($quantity_array as $key => $quantity) {
                         if (isset($selected_filters['quantity']) && in_array($key, $selected_filters['quantity'])) {
@@ -2039,7 +2035,7 @@ class Ps_Facetedsearch extends Module
                         'type_lite' => 'quantity',
                         'type' => 'quantity',
                         'id_key' => 0,
-                        'name' => $this->l('Availability'),
+                        'name' => $this->trans('Availability', array(), 'Modules.FacetedSearch.Shop'),
                         'values' => $quantity_array,
                         'filter_show_limit' => $filter['filter_show_limit'],
                         'filter_type' => $filter['filter_type']
@@ -2062,7 +2058,7 @@ class Ps_Facetedsearch extends Module
                             'type_lite' => 'manufacturer',
                             'type' => 'manufacturer',
                             'id_key' => 0,
-                            'name' => $this->l('Manufacturer'),
+                            'name' => $this->trans('Brand', array(), 'Modules.FacetedSearch.Shop'),
                             'values' => $manufaturers_array,
                             'filter_show_limit' => $filter['filter_show_limit'],
                             'filter_type' => $filter['filter_type']
@@ -2182,7 +2178,7 @@ class Ps_Facetedsearch extends Module
                             $filter_blocks[] = array(
                                 'type_lite' => 'category',
                                 'type' => 'category',
-                                'id_key' => 0, 'name' => $this->l('Categories'),
+                                'id_key' => 0, 'name' => $this->trans('Categories', array(), 'Modules.FacetedSearch.Shop'),
                                 'values' => $tmp_array,
                                 'filter_show_limit' => $filter['filter_show_limit'],
                                 'filter_type' => $filter['filter_type']
@@ -2561,7 +2557,7 @@ class Ps_Facetedsearch extends Module
         }
         if ($to_insert) {
             Db::getInstance()->execute('INSERT INTO '._DB_PREFIX_.'layered_filter(name, filters, n_categories, date_add)
-				VALUES (\''.sprintf($this->l('My template %s'), date('Y-m-d')).'\', \''.pSQL(serialize($filter_data)).'\', '.count($filter_data['categories']).', NOW())');
+				VALUES (\''.sprintf($this->trans('My template %s', array(), 'Modules.FacetedSearch.Admin'), date('Y-m-d')).'\', \''.pSQL(serialize($filter_data)).'\', '.count($filter_data['categories']).', NOW())');
 
             $last_id = Db::getInstance()->Insert_ID();
             Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'layered_filter_shop WHERE `id_layered_filter` = '.$last_id);

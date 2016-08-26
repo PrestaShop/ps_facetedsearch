@@ -116,19 +116,19 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     {
         return [
             (new SortOrder('product', 'position', 'asc'))->setLabel(
-                $this->module->l('Relevance')
+                $this->module->trans('Relevance', array(), 'Modules.FacetedSearch.Shop')
             ),
             (new SortOrder('product', 'name', 'asc'))->setLabel(
-                $this->module->l('Name, A to Z')
+                $this->module->trans('Name, A to Z', array(), 'Shop.Theme.Catalog')
             ),
             (new SortOrder('product', 'name', 'desc'))->setLabel(
-                $this->module->l('Name, Z to A')
+                $this->module->trans('Name, Z to A', array(), 'Shop.Theme.Catalog')
             ),
             (new SortOrder('product', 'price', 'asc'))->setLabel(
-                $this->module->l('Price, low to high')
+                $this->module->trans('Price, low to high', array(), 'Shop.Theme.Catalog')
             ),
             (new SortOrder('product', 'price', 'desc'))->setLabel(
-                $this->module->l('Price, high to low')
+                $this->module->trans('Price, high to low', array(), 'Shop.Theme.Catalog')
             )
         ];
     }
