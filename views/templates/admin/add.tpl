@@ -1,42 +1,42 @@
 {if isset($message)}{$message}{/if}
 <div class="panel">
-	<h3><i class="icon-cogs"></i> {l s='New filters template' mod='ps_facetedsearch'}</h3>
+	<h3><i class="icon-cogs"></i> {l s='New filters template' d='Modules.FacetedSearch.Admin'}</h3>
 	<form action="{$current_url}" method="post" class="form-horizontal" onsubmit="return checkForm();">
 		<input type="hidden" name="id_layered_filter" id="id_layered_filter" value="{$id_layered_filter}" />
 		<div class="form-group">
-			<label class="control-label col-lg-3">{l s='Template name:' mod='ps_facetedsearch'}</label>
+			<label class="control-label col-lg-3">{l s='Template name:' d='Modules.FacetedSearch.Admin'}</label>
 			<div class="col-lg-9">
 				<input type="text" id="layered_tpl_name" name="layered_tpl_name" maxlength="64" value="{$template_name}" />
-				<p class="help-block">{l s='Only as a reminder' mod='ps_facetedsearch'}</p>
+				<p class="help-block">{l s='Only as a reminder' d='Modules.FacetedSearch.Admin'}</p>
 			</div>
 		</div>
 		<div class="form-group">
-			<label class="control-label col-lg-3">{l s='Categories used for this template:' mod='ps_facetedsearch'}</label>
+			<label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.FacetedSearch.Admin'}</label>
 			<div class="col-lg-9">
 				{if trim($categories_tree) != ''}
 					{$categories_tree}
 				{else}
 					<div class="alert alert-warning">
-						{l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' mod='ps_facetedsearch'}
+						{l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.FacetedSearch.Admin'}
 					</div>
 				{/if}
 			</div>
 		</div>
 		{if isset($asso_shops)}
 		<div class="form-group">
-			<label class="control-label col-lg-3">{l s='Choose shop association:' mod='ps_facetedsearch'}</label>
+			<label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.FacetedSearch.Admin'}</label>
 			<div class="col-lg-9">{$asso_shops}</div>
 		</div>
 		{/if}
 		<div class="form-group">
 			<label class="control-label col-lg-3">
 				<span class="badge" id="selected_filters">0</span>
-				<span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='You can drag and drop filters to adjust position' mod='ps_facetedsearch'}">{l s='Filters:' mod='ps_facetedsearch'}</span>
+				<span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='You can drag and drop filters to adjust position' d='Modules.FacetedSearch.Admin'}">{l s='Filters:' d='Modules.FacetedSearch.Admin'}</span>
 			</label>
 			<div class="col-lg-9">
 				<section class="filter_panel">
 					<header class="clearfix">
-						<span class="badge pull-right">{l s='Total filters: %s'|sprintf:$total_filters mod='ps_facetedsearch'}</span>
+						<span class="badge pull-right">{l s='Total filters: %s'|sprintf:$total_filters d='Modules.FacetedSearch.Admin'}</span>
 					</header>
 					<section class="filter_list">
 						<ul class="list-unstyled sortable">
@@ -45,20 +45,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_subcategories" id="layered_selection_subcategories" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<h4>{l s='Sub-categories filter' mod='ps_facetedsearch'}</h4>
+									<h4>{l s='Sub-categories filter' d='Modules.FacetedSearch.Admin'}</h4>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_subcategories_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -67,12 +67,12 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_subcategories_filter_type">
-											<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-											<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-											<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 										</select>
 									</div>
 								</div>
@@ -82,20 +82,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_stock" id="layered_selection_stock" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<span class="module_name">{l s='Product stock filter' mod='ps_facetedsearch'}</span>
+									<span class="module_name">{l s='Product stock filter' d='Modules.FacetedSearch.Admin'}</span>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_stock_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -104,12 +104,12 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_stock_filter_type">
-											<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-											<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-											<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 										</select>
 									</div>
 								</div>
@@ -119,20 +119,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_condition" id="layered_selection_condition" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<span class="module_name">{l s='Product condition filter' mod='ps_facetedsearch'}</span>
+									<span class="module_name">{l s='Product condition filter' d='Modules.FacetedSearch.Admin'}</span>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_condition_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -141,12 +141,12 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_condition_filter_type">
-											<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-											<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-											<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 										</select>
 									</div>
 								</div>
@@ -156,20 +156,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_manufacturer" id="layered_selection_manufacturer" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<span class="module_name">{l s='Product manufacturer filter' mod='ps_facetedsearch'}</span>
+									<span class="module_name">{l s='Product brand filter' d='Modules.FacetedSearch.Admin'}</span>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_manufacturer_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -178,12 +178,12 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_manufacturer_filter_type">
-											<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-											<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-											<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+											<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 										</select>
 									</div>
 								</div>
@@ -193,20 +193,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_weight_slider" id="layered_selection_weight_slider" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<span class="module_name">{l s='Product weight filter (slider)' mod='ps_facetedsearch'}</span>
+									<span class="module_name">{l s='Product weight filter (slider)' d='Modules.FacetedSearch.Admin'}</span>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_weight_slider_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -215,10 +215,10 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<input type="hidden" name="layered_selection_weight_slider_filter_type" value="1">
-										<p class="form-control-static">{l s='List of ranges' mod='ps_facetedsearch'}</p>
+										<p class="form-control-static">{l s='List of ranges' d='Modules.FacetedSearch.Admin'}</p>
 									</div>
 								</div>
 							</li>
@@ -227,20 +227,20 @@
 									<label class="switch-light prestashop-switch fixed-width-lg">
 										<input name="layered_selection_price_slider" id="layered_selection_price_slider" type="checkbox" />
 										<span>
-											<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-											<span>{l s='No' mod='ps_facetedsearch'}</span>
+											<span>{l s='Yes' d='Admin.Global'}</span>
+											<span>{l s='No' d='Admin.Global'}</span>
 										</span>
 										<a class="slide-button btn"></a>
 									</label>
 								</div>
 								<div class="col-lg-4">
-									<span class="module_name">{l s='Product price filter (slider)' mod='ps_facetedsearch'}</span>
+									<span class="module_name">{l s='Product price filter (slider)' d='Modules.FacetedSearch.Admin'}</span>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<select name="layered_selection_price_slider_filter_show_limit">
-											<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+											<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 											<option value="4">4</option>
 											<option value="5">5</option>
 											<option value="10">10</option>
@@ -249,10 +249,10 @@
 									</div>
 								</div>
 								<div class="col-lg-3 pull-right">
-									<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+									<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 									<div class="col-lg-6">
 										<input type="hidden" name="layered_selection_price_slider_filter_type" value="1">
-										<p class="form-control-static">{l s='List of ranges' mod='ps_facetedsearch'}</p>
+										<p class="form-control-static">{l s='List of ranges' d='Modules.FacetedSearch.Admin'}</p>
 									</div>
 								</div>
 							</li>
@@ -263,8 +263,8 @@
 										<label class="switch-light prestashop-switch fixed-width-lg">
 											<input name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" id="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" type="checkbox" />
 											<span>
-												<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-												<span>{l s='No' mod='ps_facetedsearch'}</span>
+												<span>{l s='Yes' d='Admin.Global'}</span>
+												<span>{l s='No' d='Admin.Global'}</span>
 											</span>
 											<a class="slide-button btn"></a>
 										</label>
@@ -272,20 +272,20 @@
 									<div class="col-lg-4">
 										<span class="module_name">
 										{if $attribute_group['n'] > 1}
-											{l s='Attribute group: %1$s (%2$d attributes)'|sprintf:$attribute_group['name']:$attribute_group['n'] mod='ps_facetedsearch'}
+											{l s='Attribute group: %1$s (%2$d attributes)'|sprintf:$attribute_group['name']:$attribute_group['n'] d='Modules.FacetedSearch.Admin'}
 										{else}
-											{l s='Attribute group: %1$s (%2$d attribute)'|sprintf:$attribute_group['name']:$attribute_group['n'] mod='ps_facetedsearch'}
+											{l s='Attribute group: %1$s (%2$d attribute)'|sprintf:$attribute_group['name']:$attribute_group['n'] d='Modules.FacetedSearch.Admin'}
 										{/if}
 										{if $attribute_group['is_color_group']}
-											<img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' mod='ps_facetedsearch'}" />
+											<img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.FacetedSearch.Admin'}" />
 										{/if}
 										</span>
 									</div>
 									<div class="col-lg-3 pull-right">
-										<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+										<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 										<div class="col-lg-6">
 											<select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_show_limit">
-												<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+												<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 												<option value="4">4</option>
 												<option value="5">5</option>
 												<option value="10">10</option>
@@ -294,12 +294,12 @@
 										</div>
 									</div>
 									<div class="col-lg-3 pull-right">
-										<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+										<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 										<div class="col-lg-6">
 											<select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_type">
-												<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-												<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-												<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+												<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+												<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+												<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 											</select>
 										</div>
 									</div>
@@ -314,22 +314,22 @@
 										<label class="switch-light prestashop-switch fixed-width-lg">
 											<input name="layered_selection_feat_{(int)$feature['id_feature']}" id="layered_selection_feat_{(int)$feature['id_feature']}" type="checkbox" />
 											<span>
-												<span>{l s='Yes' mod='ps_facetedsearch'}</span>
-												<span>{l s='No' mod='ps_facetedsearch'}</span>
+												<span>{l s='Yes' d='Admin.Global'}</span>
+												<span>{l s='No' d='Admin.Global'}</span>
 											</span>
 											<a class="slide-button btn"></a>
 										</label>
 									</div>
 									<div class="col-lg-4">
 										<span class="module_name">
-									{if $feature['n'] > 1}{l s='Feature: %1$s (%2$d values)'|sprintf:$feature['name']:$feature['n'] mod='ps_facetedsearch'}{else}{l s='Feature: %1$s (%2$d value)'|sprintf:$feature['name']:$feature['n'] mod='ps_facetedsearch'}{/if}
+									{if $feature['n'] > 1}{l s='Feature: %1$s (%2$d values)'|sprintf:$feature['name']:$feature['n'] d='Modules.FacetedSearch.Admin'}{else}{l s='Feature: %1$s (%2$d value)'|sprintf:$feature['name']:$feature['n'] d='Modules.FacetedSearch.Admin'}{/if}
 										</span>
 									</div>
 									<div class="col-lg-3 pull-right">
-										<label class="control-label col-lg-6">{l s='Filter result limit:' mod='ps_facetedsearch'}</label>
+										<label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
 										<div class="col-lg-6">
 											<select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_show_limit">
-												<option value="0">{l s='No limit' mod='ps_facetedsearch'}</option>
+												<option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
 												<option value="4">4</option>
 												<option value="5">5</option>
 												<option value="10">10</option>
@@ -338,12 +338,12 @@
 										</div>
 									</div>
 									<div class="col-lg-3 pull-right">
-										<label class="control-label col-lg-6">{l s='Filter style:' mod='ps_facetedsearch'}</label>
+										<label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
 										<div class="col-lg-6">
 											<select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_type">
-												<option value="0">{l s='Checkbox' mod='ps_facetedsearch'}</option>
-												<option value="1">{l s='Radio button' mod='ps_facetedsearch'}</option>
-												<option value="2">{l s='Drop-down list' mod='ps_facetedsearch'}</option>
+												<option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
+												<option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
+												<option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
 											</select>
 										</div>
 									</div>
@@ -356,9 +356,9 @@
 			</div>
 		</div>
 		<div class="panel-footer" id="toolbar-footer">
-			<button class="btn btn-default pull-right" id="submit-filter" name="SubmitFilter" type="submit"><i class="process-icon-save"></i> <span>{l s='Save' mod='ps_facetedsearch'}</span></button>
+			<button class="btn btn-default pull-right" id="submit-filter" name="SubmitFilter" type="submit"><i class="process-icon-save"></i> <span>{l s='Save' d='Admin.Actions'}</span></button>
 			<a class="btn btn-default" href="{$current_url}">
-				<i class="process-icon-cancel"></i> <span>{l s='Cancel' mod='ps_facetedsearch'}</span>
+				<i class="process-icon-cancel"></i> <span>{l s='Cancel' d='Admin.Actions'}</span>
 			</a>
 		</div>
 	</form>
@@ -367,6 +367,6 @@
 <script type="text/javascript">
 	var translations = new Array();
 	{if isset($filters)}var filters = '{$filters}';{/if}
-	translations['no_selected_categories'] = '{l s='You must select at least one category'|addslashes mod='ps_facetedsearch'}';
-	translations['no_selected_filters'] = '{l s='You must select at least one filter'|addslashes mod='ps_facetedsearch'}';
+	translations['no_selected_categories'] = '{l s='You must select at least one category'|addslashes d='Modules.FacetedSearch.Admin'}';
+	translations['no_selected_filters'] = '{l s='You must select at least one filter'|addslashes d='Modules.FacetedSearch.Admin'}';
 </script>
