@@ -28,6 +28,10 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+    return;
+}
+
 require_once implode(DIRECTORY_SEPARATOR, [
 	__DIR__, 'src', 'Ps_FacetedsearchProductSearchProvider.php'
 ]);
