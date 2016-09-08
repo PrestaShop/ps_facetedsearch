@@ -55,7 +55,7 @@ class Ps_Facetedsearch extends Module
         $this->displayName = $this->trans('Faceted search', array(), 'Modules.FacetedSearch.Admin');
         $this->description = $this->trans('Displays a block allowing multiple filters.', array(), 'Modules.FacetedSearch.Admin');
         $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
-        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7.0.0', 'max' => _PS_VERSION_);
     }
 
     public function install()
