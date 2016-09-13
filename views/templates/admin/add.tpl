@@ -36,7 +36,13 @@
 			<div class="col-lg-9">
 				<section class="filter_panel">
 					<header class="clearfix">
-						<span class="badge pull-right">{l s='Total filters: %s'|sprintf:$total_filters d='Modules.FacetedSearch.Admin'}</span>
+            <span class="badge pull-right">
+              {l
+                s='Total filters: %s'
+                sprintf=[$total_filters]
+                d='Modules.FacetedSearch.Admin'
+              }
+            </span>
 					</header>
 					<section class="filter_list">
 						<ul class="list-unstyled sortable">
@@ -272,9 +278,23 @@
 									<div class="col-lg-4">
 										<span class="module_name">
 										{if $attribute_group['n'] > 1}
-											{l s='Attribute group: %1$s (%2$d attributes)'|sprintf:$attribute_group['name']:$attribute_group['n'] d='Modules.FacetedSearch.Admin'}
+											{l
+                        s='Attribute group: %name% (%count% attributes)'
+                        sprintf=[
+                          '%name%' => $attribute_group['name'],
+                          '%count%' => $attribute_group['n']
+                        ]
+                        d='Modules.FacetedSearch.Admin'
+                      }
 										{else}
-											{l s='Attribute group: %1$s (%2$d attribute)'|sprintf:$attribute_group['name']:$attribute_group['n'] d='Modules.FacetedSearch.Admin'}
+											{l
+                        s='Attribute group: %name% (%count% attribute)'
+                        sprintf=[
+                          '%name%' => $attribute_group['name'],
+                          '%count%' => $attribute_group['n']
+                        ]
+                        d='Modules.FacetedSearch.Admin'
+                      }
 										{/if}
 										{if $attribute_group['is_color_group']}
 											<img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.FacetedSearch.Admin'}" />
@@ -322,7 +342,25 @@
 									</div>
 									<div class="col-lg-4">
 										<span class="module_name">
-									{if $feature['n'] > 1}{l s='Feature: %1$s (%2$d values)'|sprintf:$feature['name']:$feature['n'] d='Modules.FacetedSearch.Admin'}{else}{l s='Feature: %1$s (%2$d value)'|sprintf:$feature['name']:$feature['n'] d='Modules.FacetedSearch.Admin'}{/if}
+									    {if $feature['n'] > 1}
+                        {l
+                          s='Feature: %name% (%count% values)'
+                          sprintf=[
+                            '%name%' => $feature['name'],
+                            '%count%' => $feature['n']
+                          ]
+                          d='Modules.FacetedSearch.Admin'
+                        }
+                      {else}
+                        {l
+                          s='Feature: %name% (%count% value)'
+                          sprintf=[
+                            '%name%' => $feature['name'],
+                            '%count%' => $feature['n']
+                          ]
+                          d='Modules.FacetedSearch.Admin'
+                        }
+                      {/if}
 										</span>
 									</div>
 									<div class="col-lg-3 pull-right">
