@@ -46,7 +46,7 @@
           </header>
           <section class="filter_list">
             <ul class="list-unstyled sortable">
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_subcategories" id="layered_selection_subcategories" type="checkbox" />
@@ -83,7 +83,7 @@
                   </div>
                 </div>
               </li>
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_stock" id="layered_selection_stock" type="checkbox" />
@@ -120,7 +120,7 @@
                   </div>
                 </div>
               </li>
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_condition" id="layered_selection_condition" type="checkbox" />
@@ -157,7 +157,7 @@
                   </div>
                 </div>
               </li>
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_manufacturer" id="layered_selection_manufacturer" type="checkbox" />
@@ -194,7 +194,7 @@
                   </div>
                 </div>
               </li>
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_weight_slider" id="layered_selection_weight_slider" type="checkbox" />
@@ -228,7 +228,7 @@
                   </div>
                 </div>
               </li>
-              <li class="filter_list_item" draggable="true">
+              <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
                     <input name="layered_selection_price_slider" id="layered_selection_price_slider" type="checkbox" />
@@ -264,7 +264,7 @@
               </li>
               {if $attribute_groups|count > 0}
                 {foreach $attribute_groups as $attribute_group}
-                <li class="filter_list_item" draggable="true">
+                <li class="filter_list_item row" draggable="true">
                   <div class="col-lg-2">
                     <label class="switch-light prestashop-switch fixed-width-lg">
                       <input name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" id="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" type="checkbox" />
@@ -329,7 +329,7 @@
 
               {if $features|count > 0}
                 {foreach $features as $feature}
-                <li class="filter_list_item" draggable="true">
+                <li class="filter_list_item row" draggable="true">
                   <div class="col-lg-2">
                     <label class="switch-light prestashop-switch fixed-width-lg">
                       <input name="layered_selection_feat_{(int)$feature['id_feature']}" id="layered_selection_feat_{(int)$feature['id_feature']}" type="checkbox" />
