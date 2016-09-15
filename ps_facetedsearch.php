@@ -1280,9 +1280,14 @@ class Ps_Facetedsearch extends Module
         $id_lang,
         $selected_filters = array()
     ) {
-	if (!Validate::isOrderBy($order_by)) {
-	    $order_by = 'cp.position';
-	}
+        if (!Validate::isOrderBy($order_by)) {
+            $order_by = 'cp.position';
+        }
+
+        if (!Validate::isOrderWay($order_way)) {
+            $order_way = 'ASC';
+        }
+
         $order_clause = $order_by.' '.$order_way;
 
         $home_category = Configuration::get('PS_HOME_CATEGORY');
@@ -1362,6 +1367,7 @@ class Ps_Facetedsearch extends Module
                 break;
 
                 case 'manufacturer':
+                    $selected_filters['manufacturer'] = array_map('intval', $selected_filters['manufacturer']);
                     $query_filters_where .= ' AND p.id_manufacturer IN ('.implode($selected_filters['manufacturer'], ',').')';
                 break;
 
@@ -1732,6 +1738,9 @@ class Ps_Facetedsearch extends Module
                     break;
 
                 case 'id_feature':
+
+                    $id_lang = (int) $id_lang;
+
                     $sql_query['select'] = 'SELECT fl.name feature_name, fp.id_feature, fv.id_feature_value, fvl.value,
 					COUNT(DISTINCT p.id_product) nbr,
 					lifl.url_name name_url_name, lifl.meta_title name_meta_title, lifvl.url_name value_url_name, lifvl.meta_title value_meta_title ';
@@ -2367,7 +2376,7 @@ class Ps_Facetedsearch extends Module
         $query_filters = ' AND p.condition IN (';
 
         foreach ($filter_value as $cond) {
-            $query_filters .= '\''.$cond.'\',';
+            $query_filters .= '\''. Db::getInstance()->escape($cond, false, true) .'\',';
         }
         $query_filters = rtrim($query_filters, ',').') ';
 
