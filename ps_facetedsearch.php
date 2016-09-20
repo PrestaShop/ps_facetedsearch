@@ -2360,7 +2360,7 @@ class Ps_Facetedsearch extends Module
         $query_filters = ' AND p.condition IN (';
 
         foreach ($filter_value as $cond) {
-            $query_filters .= '\''. Db::getInstance()->escape($cond, false, true) .'\',';
+            $query_filters .= '\''. Db::getInstance()->escape($cond) .'\',';
         }
         $query_filters = rtrim($query_filters, ',').') ';
 
