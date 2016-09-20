@@ -405,6 +405,6 @@
 <script type="text/javascript">
   var translations = new Array();
   {if isset($filters)}var filters = '{$filters}';{/if}
-  translations['no_selected_categories'] = '{l s='You must select at least one category'|addslashes d='Modules.FacetedSearch.Admin'}';
-  translations['no_selected_filters'] = '{l s='You must select at least one filter'|addslashes d='Modules.FacetedSearch.Admin'}';
+  translations['no_selected_categories'] = "{l s='You must select at least one category' d='Modules.FacetedSearch.Admin'}";
+  translations['no_selected_filters'] = "{l s='You must select at least one filter' d='Modules.FacetedSearch.Admin'}";
 </script>
