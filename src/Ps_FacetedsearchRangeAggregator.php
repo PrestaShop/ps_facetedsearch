@@ -4,9 +4,16 @@ class Ps_FacetedsearchRangeAggregator
 {
     private function makeNode(array $range, $minColumnIndex, $maxColumnIndex)
     {
+        $min = $range[$minColumnIndex];
+        $max = $range[$maxColumnIndex];
+        if ($min === $max) {
+            $min = $range[$minColumnIndex] > 0 ? $range[$minColumnIndex] - 1 : 0;
+            $max = $max + 1;
+        }
+
         return [
-            'min' => $range[$minColumnIndex],
-            'max' => $range[$maxColumnIndex],
+            'min' => $min,
+            'max' => $max,
             'count' => 1,
             'left'  => null,
             'right' => null
@@ -177,24 +184,6 @@ class Ps_FacetedsearchRangeAggregator
             }, $parts);
         }
 
-        $min = null;
-        return array_map(function (array $range) use (&$min) {
-            $scale = pow(10, floor(log($range['max'] - $range['min'], 10)));
-
-            if (0 == $scale) {
-                $scale = 1;
-            }
-
-            if (null !== $min) {
-                $range['min'] = $min;
-            } else {
-                $range['min'] = $scale * floor($range['min'] / $scale);
-            }
-
-            $range['max'] = $scale * ceil($range['max'] / $scale);
-
-            $min = $range['max'];
-            return $range;
-        }, $raw_ranges);
+        return $raw_ranges;
     }
 }
