@@ -45,7 +45,7 @@ class Ps_Facetedsearch extends Module
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.8';
+        $this->version = '1.0.9';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
