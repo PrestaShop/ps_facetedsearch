@@ -28,6 +28,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+use \PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+
 require_once implode(DIRECTORY_SEPARATOR, array(
     __DIR__, 'src', 'Ps_FacetedsearchProductSearchProvider.php',
 ));
@@ -36,7 +38,7 @@ require_once implode(DIRECTORY_SEPARATOR, array(
     __DIR__, 'src', 'Ps_FacetedsearchRangeAggregator.php',
 ));
 
-class Ps_Facetedsearch extends Module
+class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     private $nbr_products;
     private $ps_layered_full_tree;
@@ -637,14 +639,15 @@ class Ps_Facetedsearch extends Module
         $this->indexAttribute((int) $params['id_product']);
     }
 
-    public function hookLeftColumn($params)
+    public function renderWidget($hookName, array $configuration)
     {
-        return $this->display(__FILE__, 'ps_facetedsearch.tpl');
+        $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
     }
 
-    public function hookRightColumn($params)
+    public function getWidgetVariables($hookName, array $configuration)
     {
-        return $this->hookLeftColumn($params);
+        return array();
     }
 
     public function hookCategoryAddition($params)
