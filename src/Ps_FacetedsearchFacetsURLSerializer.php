@@ -9,7 +9,7 @@ class Ps_FacetedsearchFacetsURLSerializer
     {
         $facetFilters = [];
 
-        $urlSerializer = new URLFragmentSerializer;
+        $urlSerializer = new URLFragmentSerializer();
 
         foreach ($facets as $facet) {
             if ($facet->getProperty('range')) {
@@ -18,7 +18,7 @@ class Ps_FacetedsearchFacetsURLSerializer
                         $facetFilters[$facet->getLabel()] = [
                             $facetFilter->getProperty('symbol'),
                             $facetFilter->getValue()['from'],
-                            $facetFilter->getValue()['to']
+                            $facetFilter->getValue()['to'],
                         ];
                     }
                 }
@@ -36,7 +36,7 @@ class Ps_FacetedsearchFacetsURLSerializer
 
     public function setFiltersFromEncodedFacets(array $facets, $encodedFacets)
     {
-        $urlSerializer = new URLFragmentSerializer;
+        $urlSerializer = new URLFragmentSerializer();
         $facetAndFiltersLabels = $urlSerializer->unserialize($encodedFacets);
 
         foreach ($facetAndFiltersLabels as $facetLabel => $filters) {
@@ -44,9 +44,9 @@ class Ps_FacetedsearchFacetsURLSerializer
                 if ($facet->getLabel() === $facetLabel) {
                     if (true === $facet->getProperty('range')) {
                         $symbol = $filters[0];
-                        $from   = $filters[1];
-                        $to     = $filters[2];
-                        $found  = false;
+                        $from = $filters[1];
+                        $to = $filters[2];
+                        $found = false;
 
                         foreach ($facet->getFilters() as $filter) {
                             if ($from >= $filter->getValue()['from'] && $to <= $filter->getValue()['to']) {
@@ -56,15 +56,15 @@ class Ps_FacetedsearchFacetsURLSerializer
                         }
 
                         if (!$found) {
-                            $filter = new Filter;
+                            $filter = new Filter();
                             $filter->setValue([
                                 'from' => $from,
-                                'to'   => $to
+                                'to' => $to,
                             ])->setProperty('symbol', $symbol);
                             $filter->setActive(true);
                             $facet->addFilter($filter);
                         }
-                      } else {
+                    } else {
                         foreach ($filters as $filterLabel) {
                             foreach ($facet->getFilters() as $filter) {
                                 if ($filter->getLabel() === $filterLabel) {

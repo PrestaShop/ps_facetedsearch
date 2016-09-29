@@ -2,7 +2,7 @@
 
 require_once implode(DIRECTORY_SEPARATOR, [
     __DIR__,
-    '..', 'src', 'Ps_FacetedsearchFacetsURLSerializer.php'
+    '..', 'src', 'Ps_FacetedsearchFacetsURLSerializer.php',
 ]);
 
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
@@ -14,15 +14,15 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
 
     public function setup()
     {
-        $this->serializer = new Ps_FacetedsearchFacetsURLSerializer;
+        $this->serializer = new Ps_FacetedsearchFacetsURLSerializer();
     }
 
     public function test_serialize_one_facet()
     {
-        $facet = (new Facet)
+        $facet = (new Facet())
             ->setLabel('Categories')
-            ->addFilter((new Filter)->setLabel('Tops')->setActive(true))
-            ->addFilter((new Filter)->setLabel('Robes')->setActive(true))
+            ->addFilter((new Filter())->setLabel('Tops')->setActive(true))
+            ->addFilter((new Filter())->setLabel('Robes')->setActive(true))
         ;
 
         $this->assertEquals('Categories-Tops-Robes', $this->serializer->serialize([$facet]));
@@ -30,11 +30,11 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
 
     public function test_serialize_price_facet()
     {
-        $facet = (new Facet)
+        $facet = (new Facet())
             ->setLabel('Price')
             ->setProperty('range', true)
             ->addFilter(
-                (new Filter)
+                (new Filter())
                     ->setLabel('Doesn\'t matter')
                     ->setActive(true)
                     ->setProperty('symbol', '€')
@@ -48,14 +48,14 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
     public function test_setFiltersFromEncodedFacets_simple_facets()
     {
         $template = [
-            (new Facet)
+            (new Facet())
                 ->setLabel('Categories')
-                ->addFilter((new Filter)->setLabel('Tops')->setActive(false))
-                ->addFilter((new Filter)->setLabel('Dresses')->setActive(false)),
-            (new Facet)
+                ->addFilter((new Filter())->setLabel('Tops')->setActive(false))
+                ->addFilter((new Filter())->setLabel('Dresses')->setActive(false)),
+            (new Facet())
                 ->setLabel('Strange Birds')
-                ->addFilter((new Filter)->setLabel('Penguins')->setActive(false))
-                ->addFilter((new Filter)->setLabel('Puffins')->setActive(false))
+                ->addFilter((new Filter())->setLabel('Penguins')->setActive(false))
+                ->addFilter((new Filter())->setLabel('Puffins')->setActive(false)),
         ];
 
         $encodedFacets = 'Categories-Dresses/Strange Birds-Penguins';
@@ -68,7 +68,7 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
             )
         ;
 
-        /**
+        /*
          * We check that the Dresses filter in the first facet
          * and the Pengins filter in the Strange Birds facet were enabled.
          */
@@ -80,7 +80,7 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
     public function test_setFiltersFromEncodedFacets_range_filter_adds_the_filter()
     {
         $template = [
-            (new Facet)->setLabel('Price')->setProperty('range', true)
+            (new Facet())->setLabel('Price')->setProperty('range', true),
         ];
 
         $encodedFacets = 'Price-€-5-3.14';
@@ -97,7 +97,7 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             'from' => 5,
-            'to'   => 3.14
+            'to' => 3.14,
         ], $priceFilter->getValue());
 
         $this->assertTrue($priceFilter->isActive());
@@ -106,12 +106,12 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
     public function test_setFiltersFromEncodedFacets_range_filter_enables_the_filter()
     {
         $template = [
-            (new Facet)->setLabel('Price')->setProperty('range', true)
+            (new Facet())->setLabel('Price')->setProperty('range', true)
                 ->addFilter(
-                    (new Filter)
+                    (new Filter())
                         ->setActive(false)
                         ->setValue(['from' => 2, 'to' => 7])
-                )
+                ),
         ];
 
         $encodedFacets = 'Price-€-5-3.14';
@@ -132,7 +132,7 @@ class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             'from' => 2,
-            'to'   => 7
+            'to' => 7,
         ], $priceFilter->getValue());
 
         $this->assertTrue($priceFilter->isActive());

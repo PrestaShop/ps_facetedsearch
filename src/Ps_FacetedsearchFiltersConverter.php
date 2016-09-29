@@ -9,7 +9,7 @@ class Ps_FacetedsearchFiltersConverter
     {
         $facets = [];
         foreach ($facetedSearchFilters as $facetArray) {
-            $facet = new Facet;
+            $facet = new Facet();
             $facet
                 ->setLabel($facetArray['name'])
                 ->setMultipleSelectionAllowed(true)
@@ -33,7 +33,7 @@ class Ps_FacetedsearchFiltersConverter
                     }
                     $facet->setType($type);
                     foreach ($facetArray['values'] as $id => $filterArray) {
-                        $filter = new Filter;
+                        $filter = new Filter();
                         $filter
                             ->setType($type)
                             ->setLabel($filterArray['name'])
@@ -43,7 +43,7 @@ class Ps_FacetedsearchFiltersConverter
                         if (isset($filterArray['color']) && $filterArray['color'] != '') {
                             $filter->setProperty('color', $filterArray['color']);
                         }
-                        ;
+
                         if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
                             $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
                         }
@@ -61,14 +61,14 @@ class Ps_FacetedsearchFiltersConverter
                     ;
 
                     foreach ($facetArray['list_of_values'] as $value) {
-                        $filter = new Filter;
+                        $filter = new Filter();
                         $filter
                             ->setType($facetArray['type'])
                             ->setMagnitude($value['nbr'])
                             ->setProperty('symbol', $facetArray['unit'])
                             ->setValue([
                                 'from' => $value[0],
-                                'to'   => $value[1],
+                                'to' => $value[1],
                             ])
                         ;
                         $facet->addFilter($filter);
@@ -77,7 +77,7 @@ class Ps_FacetedsearchFiltersConverter
                     break;
             }
 
-            switch ((int)$facetArray['filter_type']) {
+            switch ((int) $facetArray['filter_type']) {
                 case 0: // checkbox
                     $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('checkboxes');
@@ -94,6 +94,7 @@ class Ps_FacetedsearchFiltersConverter
 
             $facets[] = $facet;
         }
+
         return $facets;
     }
 
@@ -131,8 +132,8 @@ class Ps_FacetedsearchFiltersConverter
                         if (!$filter->isActive()) {
                             continue;
                         }
-                        $key    = count($facetedSearchFilters[$type]);
-                        $value  = $filter->getValue();
+                        $key = count($facetedSearchFilters[$type]);
+                        $value = $filter->getValue();
                         if ($type === 'id_attribute_group') {
                             $key = $value;
                             $value = $facet->getProperty('id_attribute_group').'_'.$filter->getValue();
@@ -152,7 +153,7 @@ class Ps_FacetedsearchFiltersConverter
                         }
                         $facetedSearchFilters[$facet->getType()] = [
                             $filter->getValue()['from'],
-                            $filter->getValue()['to']
+                            $filter->getValue()['to'],
                         ];
                         break;
                     }

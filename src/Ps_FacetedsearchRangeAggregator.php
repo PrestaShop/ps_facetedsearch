@@ -15,8 +15,8 @@ class Ps_FacetedsearchRangeAggregator
             'min' => $min,
             'max' => $max,
             'count' => 1,
-            'left'  => null,
-            'right' => null
+            'left' => null,
+            'right' => null,
         ];
     }
 
@@ -28,13 +28,13 @@ class Ps_FacetedsearchRangeAggregator
             } else {
                 $target['right'] = $node;
             }
-        } else if ($node['max'] < $target['min']) {
+        } elseif ($node['max'] < $target['min']) {
             if ($target['left']) {
                 $this->addNode($target['left'], $node);
             } else {
                 $target['left'] = $node;
             }
-        } else if ($node['max'] <= $target['max'] && $node['min'] >= $target['min']) {
+        } elseif ($node['max'] <= $target['max'] && $node['min'] >= $target['min']) {
             ++$target['count'];
         } else {
             $newMin = min($node['min'], $target['min']);
@@ -78,7 +78,7 @@ class Ps_FacetedsearchRangeAggregator
         return $flat;
     }
 
-    private function flatten (array $node)
+    private function flatten(array $node)
     {
         $min = $node['min'];
         $max = $node['max'];
@@ -86,7 +86,7 @@ class Ps_FacetedsearchRangeAggregator
         $ranges = [[
             'min' => $min,
             'max' => $max,
-            'count' => $node['count']
+            'count' => $node['count'],
         ]];
 
         if ($node['left']) {
@@ -104,7 +104,7 @@ class Ps_FacetedsearchRangeAggregator
         return [
             'min' => $min,
             'max' => $max,
-            'ranges' => $ranges
+            'ranges' => $ranges,
         ];
     }
 
@@ -127,18 +127,18 @@ class Ps_FacetedsearchRangeAggregator
             if (!array_key_exists($key, $byValue)) {
                 $byValue[$key] = [
                     'count' => 0,
-                    'value' => $n
+                    'value' => $n,
                 ];
             }
             ++$byValue[$key]['count'];
         }
 
-        $ranges     = [];
-        $lastValue  = null;
-        $lastCount  = 0;
+        $ranges = [];
+        $lastValue = null;
+        $lastCount = 0;
 
         usort($byValue, function (array $a, array $b) {
-            return $a['value'] > $b['value'] ? 1 : - 1;
+            return $a['value'] > $b['value'] ? 1 : -1;
         });
 
         foreach ($byValue as $countAndValue) {
@@ -146,9 +146,9 @@ class Ps_FacetedsearchRangeAggregator
             $count = $countAndValue['count'];
             if ($lastValue !== null) {
                 $ranges[] = [
-                    'min'   => $lastValue,
-                    'max'   => $value,
-                    'count' => $count + $lastCount
+                    'min' => $lastValue,
+                    'max' => $value,
+                    'count' => $count + $lastCount,
                 ];
             } else {
                 $lastCount = $count;
@@ -158,9 +158,9 @@ class Ps_FacetedsearchRangeAggregator
         }
 
         return [
-            'min'    => $min,
-            'max'    => $max,
-            'ranges' => $ranges
+            'min' => $min,
+            'max' => $max,
+            'ranges' => $ranges,
         ];
     }
 
@@ -174,12 +174,13 @@ class Ps_FacetedsearchRangeAggregator
             $raw_ranges = array_map(function (array $ranges) {
                 $min = $ranges[0]['min'];
                 $max = $ranges[count($ranges) - 1]['max'];
+
                 return [
-                    'min'   => $min,
-                    'max'   => $max,
+                    'min' => $min,
+                    'max' => $max,
                     'count' => array_reduce($ranges, function ($count, array $range) {
                         return $count + $range['count'];
-                    }, 0)
+                    }, 0),
                 ];
             }, $parts);
         }
