@@ -60,31 +60,33 @@ class Ps_Facetedsearch extends Module
 
     public function install()
     {
-        if (
-            parent::install()
-            && $this->registerHook('categoryAddition')
-            && $this->registerHook('categoryUpdate')
-            && $this->registerHook('attributeGroupForm')
-            && $this->registerHook('afterSaveAttributeGroup')
-            && $this->registerHook('afterDeleteAttributeGroup')
-            && $this->registerHook('featureForm')
-            && $this->registerHook('afterDeleteFeature')
-            && $this->registerHook('afterSaveFeature')
-            && $this->registerHook('categoryDeletion')
-            && $this->registerHook('afterSaveProduct')
-            && $this->registerHook('postProcessAttributeGroup')
-            && $this->registerHook('postProcessFeature')
-            && $this->registerHook('featureValueForm')
-            && $this->registerHook('postProcessFeatureValue')
-            && $this->registerHook('afterDeleteFeatureValue')
-            && $this->registerHook('afterSaveFeatureValue')
-            && $this->registerHook('attributeForm')
-            && $this->registerHook('postProcessAttribute')
-            && $this->registerHook('afterDeleteAttribute')
-            && $this->registerHook('afterSaveAttribute')
-            && $this->registerHook('productSearchProvider')
-            && $this->registerHook('displayLeftColumn')
-        ) {
+        $installed = parent::install() && $this->registerHook([
+            'categoryAddition',
+            'categoryUpdate',
+            'attributeGroupForm',
+            'afterSaveAttributeGroup',
+            'afterDeleteAttributeGroup',
+            'featureForm',
+            'afterDeleteFeature',
+            'afterSaveFeature',
+            'categoryDeletion',
+            'afterSaveProduct',
+            'postProcessAttributeGroup',
+            'postProcessFeature',
+            'featureValueForm',
+            'postProcessFeatureValue',
+            'afterDeleteFeatureValue',
+            'afterSaveFeatureValue',
+            'attributeForm',
+            'postProcessAttribute',
+            'afterDeleteAttribute',
+            'afterSaveAttribute',
+            'productSearchProvider',
+            'displayLeftColumn',
+
+        ]);
+
+        if ($installed) {
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
