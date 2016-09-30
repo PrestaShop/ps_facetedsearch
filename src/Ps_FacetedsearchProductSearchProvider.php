@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'Ps_FacetedsearchFiltersConverter.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'Ps_FacetedsearchFacetsURLSerializer.php';
+require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFiltersConverter.php';
+require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFacetsURLSerializer.php';
 
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
@@ -21,8 +21,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     public function __construct(Ps_Facetedsearch $module)
     {
         $this->module = $module;
-        $this->filtersConverter = new Ps_FacetedsearchFiltersConverter;
-        $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer;
+        $this->filtersConverter = new Ps_FacetedsearchFiltersConverter();
+        $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer();
     }
 
     public function getFacetCollectionFromEncodedFacets(
@@ -30,12 +30,12 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     ) {
         // do not compute range filters, all info we need is encoded in $encodedFacets
         $compute_range_filters = false;
-        $filterBlock    = $this->module->getFilterBlock(
+        $filterBlock = $this->module->getFilterBlock(
             [],
             $compute_range_filters
         );
 
-        $queryTemplate  = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
+        $queryTemplate = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
             $filterBlock['filters']
         );
 
@@ -44,7 +44,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             $query->getEncodedFacets()
         );
 
-        return (new FacetCollection)->setFacets($facets);
+        return (new FacetCollection())->setFacets($facets);
     }
 
     private function copyFiltersActiveState(
@@ -67,9 +67,9 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                     $foundRange = false;
                     foreach ($target->getFilters() as $targetFilter) {
                         $tFrom = $targetFilter->getValue()['from'];
-                        $tTo   = $targetFilter->getValue()['to'];
+                        $tTo = $targetFilter->getValue()['to'];
                         $sFrom = $sourceFilter->getValue()['from'];
-                        $sTo   = $sourceFilter->getValue()['to'];
+                        $sTo = $sourceFilter->getValue()['to'];
                         if ($tFrom <= $sFrom && $sTo <= $tTo) {
                             $foundRange = true;
                             $targetFilter->setActive(true);
@@ -129,7 +129,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             ),
             (new SortOrder('product', 'price', 'desc'))->setLabel(
                 $this->module->getTranslator()->trans('Price, high to low', array(), 'Shop.Theme.Catalog')
-            )
+            ),
         ];
     }
 
@@ -137,11 +137,11 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         ProductSearchContext $context,
         ProductSearchQuery $query
     ) {
-        $result = new ProductSearchResult;
-        $menu   = $this->getFacetCollectionFromEncodedFacets($query);
+        $result = new ProductSearchResult();
+        $menu = $this->getFacetCollectionFromEncodedFacets($query);
 
-        $order_by     = $query->getSortOrder()->toLegacyOrderBy(true);
-        $order_way    = $query->getSortOrder()->toLegacyOrderWay();
+        $order_by = $query->getSortOrder()->toLegacyOrderBy(true);
+        $order_way = $query->getSortOrder()->toLegacyOrderWay();
 
         $facetedSearchFilters = $this->filtersConverter->getFacetedSearchFiltersFromFacets(
             $menu->getFacets()
@@ -163,7 +163,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         ;
 
         $filterBlock = $this->module->getFilterBlock($facetedSearchFilters);
-        $facets      = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
+        $facets = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
             $filterBlock['filters']
         );
 
@@ -179,9 +179,10 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $this->hideZeroValues($facets);
         $this->hideUselessFacets($facets);
 
-        $nextMenu = (new FacetCollection)->setFacets($facets);
+        $nextMenu = (new FacetCollection())->setFacets($facets);
         $result->setFacetCollection($nextMenu);
         $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
+
         return $result;
     }
 
@@ -201,7 +202,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                         )
                     );
                 }
-            } else if ($facet->getType() === 'price') {
+            } elseif ($facet->getType() === 'price') {
                 foreach ($facet->getFilters() as $filter) {
                     $filter->setLabel(
                         sprintf(
