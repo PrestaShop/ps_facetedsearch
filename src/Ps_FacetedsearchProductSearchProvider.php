@@ -3,6 +3,7 @@
 require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFiltersConverter.php';
 require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFacetsURLSerializer.php';
 
+use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
@@ -225,42 +226,40 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
      */
     private function addEncodedFacetsToFilters(array $facets)
     {
-        foreach ($facets as $facet) {
+        // first get the currently active facetFilter in an array
+        $activeFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
+        $urlSerializer = new URLFragmentSerializer();
 
+        foreach ($facets as $facet) {
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
-            $currentActiveFilter = null;
             if (!$facet->isMultipleSelectionAllowed()) {
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
-                        $currentActiveFilter = $filter;
+                        // we have a currently active filter is the facet, remove it from the facetFilter array
+                        $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters($activeFacetFilters, $filter, $facet);
+                        break;
                     }
                 }
             }
 
             foreach ($facet->getFilters() as $filter) {
-                $active = $filter->isActive();
-                $filter->setActive(!$active);
+                $facetFilters = $activeFacetFilters;
 
-                if ($currentActiveFilter) {
-                    $currentActiveFilter->setActive(false);
+                // toggle the current filter
+                if ($filter->isActive()) {
+                    $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
+                } else {
+                    $facetFilters = $this->facetsSerializer->addFilterToFacetFilters($facetFilters, $filter, $facet);
                 }
 
                 // We've toggled the filter, so the call to serialize
                 // returns the "URL" for the search when user has toggled
                 // the filter.
                 $filter->setNextEncodedFacets(
-                    $this->facetsSerializer->serialize($facets)
+                    $urlSerializer->serialize($facetFilters)
                 );
-
-                // But we don't want to change the current query,
-                // so we toggle the filter back to its original state.
-                $filter->setActive($active);
-
-                if ($currentActiveFilter) {
-                    $currentActiveFilter->setActive(true);
-                }
             }
         }
     }
