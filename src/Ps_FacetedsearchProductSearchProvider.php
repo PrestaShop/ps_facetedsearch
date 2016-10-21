@@ -57,6 +57,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                 foreach ($source->getFilters() as $sourceFilter) {
                     if ($sourceFilter->getLabel() === $targetFilter->getLabel()) {
                         $targetFilter->setActive($sourceFilter->isActive());
+                        break;
                     }
                 }
             }
