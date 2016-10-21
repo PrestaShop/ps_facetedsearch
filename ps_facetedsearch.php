@@ -1595,7 +1595,26 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     ) {
         global $cookie;
 
+        // Remove all empty selected filters
+        foreach ($selected_filters as $key => $value) {
+            switch ($key) {
+                case 'price':
+                case 'weight':
+                    if ($value[0] === '' && $value[1] === '') {
+                        unset($selected_filters[$key]);
+                    }
+                    break;
+                default:
+                    if ($value == '' || $value == array()) {
+                        unset($selected_filters[$key]);
+                    }
+                    break;
+            }
+        }
+
+        static $latest_selected_filters = null;
         static $latest_cat_restriction = null;
+        static $productCache = array();
         $context = Context::getContext();
 
         $id_lang = $context->language->id;
@@ -1603,8 +1622,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $id_shop = (int) $context->shop->id;
         $alias = 'product_shop';
 
-        $home_category = Configuration::get('PS_HOME_CATEGORY');
-        $id_parent = (int) Tools::getValue('id_category', Tools::getValue('id_category_layered', $home_category));
+        $id_parent = (int) Tools::getValue('id_category', Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')));
 
         $parent = new Category((int) $id_parent, $id_lang);
 
@@ -1645,256 +1663,261 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $latest_cat_restriction = $current_cat_restriction;
         }
 
-        // Remove all empty selected filters
-        foreach ($selected_filters as $key => $value) {
-            switch ($key) {
-                case 'price':
-                case 'weight':
-                    if ($value[0] === '' && $value[1] === '') {
-                        unset($selected_filters[$key]);
-                    }
-                    break;
-                default:
-                    if ($value == '') {
-                        unset($selected_filters[$key]);
-                    }
-                    break;
-            }
-        }
-
         $filter_blocks = array();
         foreach ($filters as $filter) {
-            $sql_query = array('select' => '', 'from' => '', 'join' => '', 'where' => '', 'group' => '');
-            switch ($filter['type']) {
-                case 'price':
-                    $sql_query['select'] = 'SELECT p.`id_product`, psi.price_min, psi.price_max ';
-                    // price slider is not filter dependent
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'cat_restriction p';
-                    $sql_query['join'] = 'INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi
-								ON (psi.id_product = p.id_product AND psi.id_currency = '.(int) $context->currency->id.' AND psi.id_shop='.(int) $context->shop->id.')';
-                    $sql_query['where'] = 'WHERE 1';
-                    break;
-                case 'weight':
-                    $sql_query['select'] = 'SELECT p.`id_product`, p.`weight` ';
-                    // price slider is not filter dependent
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'cat_restriction p';
-                    $sql_query['where'] = 'WHERE 1';
-                    break;
-                case 'condition':
-                    $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, product_shop.`condition` ';
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'cat_restriction p';
-                    $sql_query['where'] = 'WHERE 1';
-                    $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
-                    break;
-                case 'quantity':
-                    $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, sa.`quantity`, sa.`out_of_stock` ';
+            $cacheKey = $filter['type'].'-'.$filter['id_value'];
+            if ($current_cat_restriction == $latest_cat_restriction && $latest_selected_filters == $selected_filters && isset($productCache[$cacheKey])) {
+                $products = $productCache[$cacheKey];
+            } else {
+                $sql_query = array('select' => '', 'from' => '', 'join' => '', 'where' => '', 'group' => '');
+                switch ($filter['type']) {
+                    case 'price':
+                        $sql_query['select'] = 'SELECT p.`id_product`, psi.price_min, psi.price_max ';
+                        // price slider is not filter dependent
+                        $sql_query['from']  = '
+                        FROM '._DB_PREFIX_.'cat_restriction p';
+                        $sql_query['join']  = 'INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi
+                                    ON (psi.id_product = p.id_product AND psi.id_currency = '.(int)$context->currency->id.' AND psi.id_shop='.(int)$context->shop->id.')';
+                        $sql_query['where'] = 'WHERE 1';
+                        break;
+                    case 'weight':
+                        $sql_query['select'] = 'SELECT p.`id_product`, p.`weight` ';
+                        // price slider is not filter dependent
+                        $sql_query['from']  = '
+                        FROM '._DB_PREFIX_.'cat_restriction p';
+                        $sql_query['where'] = 'WHERE 1';
+                        break;
+                    case 'condition':
+                        $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, product_shop.`condition` ';
+                        $sql_query['from']   = '
+                        FROM '._DB_PREFIX_.'cat_restriction p';
+                        $sql_query['where']  = 'WHERE 1';
+                        $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
+                        break;
+                    case 'quantity':
+                        $sql_query['select'] = 'SELECT DISTINCT p.`id_product`, sa.`quantity`, sa.`out_of_stock` ';
 
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'cat_restriction p';
+                        $sql_query['from'] = '
+                        FROM '._DB_PREFIX_.'cat_restriction p';
 
-                    $sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
-						ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(null, null,  'sa').') ';
-                    $sql_query['where'] = 'WHERE 1';
-                    break;
+                        $sql_query['join'] .= 'LEFT JOIN `'._DB_PREFIX_.'stock_available` sa
+                            ON (sa.id_product = p.id_product AND sa.id_product_attribute=0 '.StockAvailable::addSqlShopRestriction(
+                                null,
+                                null,
+                                'sa'
+                            ).') ';
+                        $sql_query['where'] = 'WHERE 1';
+                        break;
 
-                case 'manufacturer':
-                    $sql_query['select'] = 'SELECT COUNT(DISTINCT p.id_product) nbr, m.id_manufacturer, m.name ';
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'cat_restriction p
-					INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer) ';
-                    $sql_query['where'] = 'WHERE 1';
-                    $sql_query['group'] = ' GROUP BY p.id_manufacturer ORDER BY m.name';
-                    break;
-                case 'id_attribute_group':// attribute group
-                    $sql_query['select'] = '
-					SELECT COUNT(DISTINCT lpa.id_product) nbr, lpa.id_attribute_group,
-					a.color, al.name attribute_name, agl.public_name attribute_group_name , lpa.id_attribute, ag.is_color_group,
-					liagl.url_name name_url_name, liagl.meta_title name_meta_title, lial.url_name value_url_name, lial.meta_title value_meta_title';
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'layered_product_attribute lpa
-					INNER JOIN '._DB_PREFIX_.'attribute a
-					ON a.id_attribute = lpa.id_attribute
-					INNER JOIN '._DB_PREFIX_.'attribute_lang al
-					ON al.id_attribute = a.id_attribute
-					AND al.id_lang = '.(int) $id_lang.'
-					INNER JOIN '._DB_PREFIX_.'cat_restriction p
-					ON p.id_product = lpa.id_product
-					INNER JOIN '._DB_PREFIX_.'attribute_group ag
-					ON ag.id_attribute_group = lpa.id_attribute_group
-					INNER JOIN '._DB_PREFIX_.'attribute_group_lang agl
-					ON agl.id_attribute_group = lpa.id_attribute_group
-					AND agl.id_lang = '.(int) $id_lang.'
-					LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value liagl
-					ON (liagl.id_attribute_group = lpa.id_attribute_group AND liagl.id_lang = '.(int) $id_lang.')
-					LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_lang_value lial
-					ON (lial.id_attribute = lpa.id_attribute AND lial.id_lang = '.(int) $id_lang.') ';
+                    case 'manufacturer':
+                        $sql_query['select'] = 'SELECT COUNT(DISTINCT p.id_product) nbr, m.id_manufacturer, m.name ';
+                        $sql_query['from']   = '
+                        FROM '._DB_PREFIX_.'cat_restriction p
+                        INNER JOIN '._DB_PREFIX_.'manufacturer m ON (m.id_manufacturer = p.id_manufacturer) ';
+                        $sql_query['where']  = 'WHERE 1';
+                        $sql_query['group']  = ' GROUP BY p.id_manufacturer ORDER BY m.name';
+                        break;
+                    case 'id_attribute_group':// attribute group
+                        $sql_query['select'] = '
+                        SELECT COUNT(DISTINCT lpa.id_product) nbr, lpa.id_attribute_group,
+                        a.color, al.name attribute_name, agl.public_name attribute_group_name , lpa.id_attribute, ag.is_color_group,
+                        liagl.url_name name_url_name, liagl.meta_title name_meta_title, lial.url_name value_url_name, lial.meta_title value_meta_title';
+                        $sql_query['from']   = '
+                        FROM '._DB_PREFIX_.'layered_product_attribute lpa
+                        INNER JOIN '._DB_PREFIX_.'attribute a
+                        ON a.id_attribute = lpa.id_attribute
+                        INNER JOIN '._DB_PREFIX_.'attribute_lang al
+                        ON al.id_attribute = a.id_attribute
+                        AND al.id_lang = '.(int)$id_lang.'
+                        INNER JOIN '._DB_PREFIX_.'cat_restriction p
+                        ON p.id_product = lpa.id_product
+                        INNER JOIN '._DB_PREFIX_.'attribute_group ag
+                        ON ag.id_attribute_group = lpa.id_attribute_group
+                        INNER JOIN '._DB_PREFIX_.'attribute_group_lang agl
+                        ON agl.id_attribute_group = lpa.id_attribute_group
+                        AND agl.id_lang = '.(int)$id_lang.'
+                        LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value liagl
+                        ON (liagl.id_attribute_group = lpa.id_attribute_group AND liagl.id_lang = '.(int)$id_lang.')
+                        LEFT JOIN '._DB_PREFIX_.'layered_indexable_attribute_lang_value lial
+                        ON (lial.id_attribute = lpa.id_attribute AND lial.id_lang = '.(int)$id_lang.') ';
 
-                    $sql_query['where'] = 'WHERE lpa.id_attribute_group = '.(int) $filter['id_value'];
-                    $sql_query['where'] .= ' AND lpa.`id_shop` = '.(int) $context->shop->id;
-                    $sql_query['group'] = '
-					GROUP BY lpa.id_attribute
-					ORDER BY ag.`position` ASC, a.`position` ASC';
-                    break;
+                        $sql_query['where'] = 'WHERE lpa.id_attribute_group = '.(int)$filter['id_value'];
+                        $sql_query['where'] .= ' AND lpa.`id_shop` = '.(int)$context->shop->id;
+                        $sql_query['group'] = '
+                        GROUP BY lpa.id_attribute
+                        ORDER BY ag.`position` ASC, a.`position` ASC';
+                        break;
 
-                case 'id_feature':
+                    case 'id_feature':
 
-                    $id_lang = (int) $id_lang;
+                        $id_lang = (int)$id_lang;
 
-                    $sql_query['select'] = 'SELECT fl.name feature_name, fp.id_feature, fv.id_feature_value, fvl.value,
-					COUNT(DISTINCT p.id_product) nbr,
-					lifl.url_name name_url_name, lifl.meta_title name_meta_title, lifvl.url_name value_url_name, lifvl.meta_title value_meta_title ';
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'feature_product fp
-					INNER JOIN '._DB_PREFIX_.'cat_restriction p
-					ON p.id_product = fp.id_product
-					LEFT JOIN '._DB_PREFIX_.'feature_lang fl ON (fl.id_feature = fp.id_feature AND fl.id_lang = '.$id_lang.')
-					INNER JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value AND (fv.custom IS NULL OR fv.custom = 0))
-					LEFT JOIN '._DB_PREFIX_.'feature_value_lang fvl ON (fvl.id_feature_value = fp.id_feature_value AND fvl.id_lang = '.$id_lang.')
-					LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_lang_value lifl
-					ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.$id_lang.')
-					LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
-					ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.$id_lang.') ';
-                    $sql_query['where'] = 'WHERE fp.id_feature = '.(int) $filter['id_value'];
-                    $sql_query['group'] = 'GROUP BY fv.id_feature_value ';
-                    break;
+                        $sql_query['select'] = 'SELECT fl.name feature_name, fp.id_feature, fv.id_feature_value, fvl.value,
+                        COUNT(DISTINCT p.id_product) nbr,
+                        lifl.url_name name_url_name, lifl.meta_title name_meta_title, lifvl.url_name value_url_name, lifvl.meta_title value_meta_title ';
+                        $sql_query['from']   = '
+                        FROM '._DB_PREFIX_.'feature_product fp
+                        INNER JOIN '._DB_PREFIX_.'cat_restriction p
+                        ON p.id_product = fp.id_product
+                        LEFT JOIN '._DB_PREFIX_.'feature_lang fl ON (fl.id_feature = fp.id_feature AND fl.id_lang = '.$id_lang.')
+                        INNER JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value AND (fv.custom IS NULL OR fv.custom = 0))
+                        LEFT JOIN '._DB_PREFIX_.'feature_value_lang fvl ON (fvl.id_feature_value = fp.id_feature_value AND fvl.id_lang = '.$id_lang.')
+                        LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_lang_value lifl
+                        ON (lifl.id_feature = fp.id_feature AND lifl.id_lang = '.$id_lang.')
+                        LEFT JOIN '._DB_PREFIX_.'layered_indexable_feature_value_lang_value lifvl
+                        ON (lifvl.id_feature_value = fp.id_feature_value AND lifvl.id_lang = '.$id_lang.') ';
+                        $sql_query['where']  = 'WHERE fp.id_feature = '.(int)$filter['id_value'];
+                        $sql_query['group']  = 'GROUP BY fv.id_feature_value ';
+                        break;
 
-                case 'category':
-                    if (Group::isFeatureActive()) {
-                        $this->user_groups = ($this->context->customer->isLogged() ? $this->context->customer->getGroups() : array(Configuration::get('PS_UNIDENTIFIED_GROUP')));
-                    }
-
-                    $depth = Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH');
-                    if ($depth === false) {
-                        $depth = 1;
-                    }
-
-                    $sql_query['select'] = '
-					SELECT c.id_category, c.id_parent, cl.name, (SELECT count(DISTINCT p.id_product) # ';
-                    $sql_query['from'] = '
-					FROM '._DB_PREFIX_.'category_product cp
-					LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = cp.id_product) ';
-                    $sql_query['where'] = '
-					WHERE cp.id_category = c.id_category
-					AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")';
-                    $sql_query['group'] = ') count_products
-					FROM '._DB_PREFIX_.'category c
-					LEFT JOIN '._DB_PREFIX_.'category_lang cl ON (cl.id_category = c.id_category AND cl.`id_shop` = '.(int) Context::getContext()->shop->id.' and cl.id_lang = '.(int) $id_lang.') ';
-
-                    if (Group::isFeatureActive()) {
-                        $sql_query['group'] .= 'RIGHT JOIN '._DB_PREFIX_.'category_group cg ON (cg.id_category = c.id_category AND cg.`id_group` IN ('.implode(', ', $this->user_groups).')) ';
-                    }
-
-                    $sql_query['group'] .= 'WHERE c.nleft > '.(int) $parent->nleft.'
-					AND c.nright < '.(int) $parent->nright.'
-					'.($depth ? 'AND c.level_depth <= '.($parent->level_depth + (int) $depth) : '').'
-					AND c.active = 1
-					GROUP BY c.id_category ORDER BY c.nleft, c.position';
-
-                    $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
-            }
-
-            /*
-             * Loop over the filters again to add their restricting clauses to the sql
-             * query being built.
-             */
-
-            foreach ($filters as $filter_tmp) {
-                $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
-                if (method_exists('Ps_Facetedsearch', $method_name)) {
-                    $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category' || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
-
-                    if ($no_subquery_necessary) {
-                        // Do not apply the same filter twice, i.e. when the primary filter
-                        // and the sub filter have the same type and same id_value.
-                        $sub_query_filter = array();
-                    } else {
-                        // The next part is hard to follow, but here's what I think this
-                        // bit of code does:
-
-                        // It checks whether some filters in the current facet
-                        // (our current iterator, $filter_tmp), which
-                        // is part of the "template" for this category, were selected by the
-                        // user.
-
-                        // If so, it formats the current facet
-                        // in yet another strange way that is appropriate
-                        // for calling get***FilterSubQuery.
-
-                        // For instance, if inside $selected_filters I have:
-
-                        // [id_attribute_group] => Array
-                        //   (
-                        //      [8] => 3_8
-                        //      [11] => 3_11
-                        //   )
-
-                        // And $filter_tmp is:
-                        // Array
-                        // (
-                        //   [type] => id_attribute_group
-                        //   [id_value] => 3
-                        //   [filter_show_limit] => 0
-                        //   [filter_type] => 0
-                        //  )
-
-                        // Then $selected_filters_cleaned will be:
-                        // Array
-                        // (
-                        //   [0] => 8
-                        //   [1] => 11
-                        // )
-
-                        // The strategy employed is different whether we're dealing with
-                        // a facet with an "id_value" (this is the most complex case involving
-                        // the usual underscore-encoded values deserialization witchcraft)
-                        // such as "id_attribute_group" or with a facet without id_value.
-                        // In the latter case we're in luck because we can just use the
-                        // facet in $selected_filters directly.
-
-                        if (!is_null($filter_tmp['id_value'])) {
-                            $selected_filters_cleaned = $this->cleanFilterByIdValue(
-                                @$selected_filters[$filter_tmp['type']],
-                                $filter_tmp['id_value']
-                            );
-                        } else {
-                            $selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
+                    case 'category':
+                        if (Group::isFeatureActive()) {
+                            $this->user_groups = ($this->context->customer->isLogged(
+                            ) ? $this->context->customer->getGroups() : array(
+                                Configuration::get(
+                                    'PS_UNIDENTIFIED_GROUP'
+                                )
+                            ));
                         }
-                        $ignore_join = ($filter['type'] == $filter_tmp['type']);
-                        // Prepare the new bits of SQL query.
-                        // $ignore_join is set to true when the sub-facet
-                        // is of the same "type" as the main facet. This way
-                        // the method ($method_name) knows that the tables it needs are already
-                        // there and don't need to be joined again.
-                        $sub_query_filter = self::$method_name(
-                            $selected_filters_cleaned,
-                            $ignore_join
-                        );
-                    }
-                    // Now we "merge" the query from the subfilter with the main query
-                    foreach ($sub_query_filter as $key => $value) {
-                        $sql_query[$key] .= $value;
+
+                        $depth = Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH');
+                        if ($depth === false) {
+                            $depth = 1;
+                        }
+
+                        $sql_query['select'] = '
+                        SELECT c.id_category, c.id_parent, cl.name, (SELECT count(DISTINCT p.id_product) # ';
+                        $sql_query['from']   = '
+                        FROM '._DB_PREFIX_.'category_product cp
+                        LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = cp.id_product) ';
+                        $sql_query['where']  = '
+                        WHERE cp.id_category = c.id_category
+                        AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")';
+                        $sql_query['group']  = ') count_products
+                        FROM '._DB_PREFIX_.'category c
+                        LEFT JOIN '._DB_PREFIX_.'category_lang cl ON (cl.id_category = c.id_category AND cl.`id_shop` = '.(int)Context::getContext(
+                            )->shop->id.' and cl.id_lang = '.(int)$id_lang.') ';
+
+                        if (Group::isFeatureActive()) {
+                            $sql_query['group'] .= 'RIGHT JOIN '._DB_PREFIX_.'category_group cg ON (cg.id_category = c.id_category AND cg.`id_group` IN ('.implode(
+                                    ', ',
+                                    $this->user_groups
+                                ).')) ';
+                        }
+
+                        $sql_query['group'] .= 'WHERE c.nleft > '.(int)$parent->nleft.'
+                        AND c.nright < '.(int)$parent->nright.'
+                        '.($depth ? 'AND c.level_depth <= '.($parent->level_depth + (int)$depth) : '').'
+                        AND c.active = 1
+                        GROUP BY c.id_category ORDER BY c.nleft, c.position';
+
+                        $sql_query['from'] .= Shop::addSqlAssociation('product', 'p');
+                }
+
+                /*
+                 * Loop over the filters again to add their restricting clauses to the sql
+                 * query being built.
+                 */
+
+                foreach ($filters as $filter_tmp) {
+                    $method_name = 'get'.ucfirst($filter_tmp['type']).'FilterSubQuery';
+                    if (method_exists('Ps_Facetedsearch', $method_name)) {
+                        $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category' || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
+
+                        if ($no_subquery_necessary) {
+                            // Do not apply the same filter twice, i.e. when the primary filter
+                            // and the sub filter have the same type and same id_value.
+                            $sub_query_filter = array();
+                        } else {
+                            // The next part is hard to follow, but here's what I think this
+                            // bit of code does:
+
+                            // It checks whether some filters in the current facet
+                            // (our current iterator, $filter_tmp), which
+                            // is part of the "template" for this category, were selected by the
+                            // user.
+
+                            // If so, it formats the current facet
+                            // in yet another strange way that is appropriate
+                            // for calling get***FilterSubQuery.
+
+                            // For instance, if inside $selected_filters I have:
+
+                            // [id_attribute_group] => Array
+                            //   (
+                            //      [8] => 3_8
+                            //      [11] => 3_11
+                            //   )
+
+                            // And $filter_tmp is:
+                            // Array
+                            // (
+                            //   [type] => id_attribute_group
+                            //   [id_value] => 3
+                            //   [filter_show_limit] => 0
+                            //   [filter_type] => 0
+                            //  )
+
+                            // Then $selected_filters_cleaned will be:
+                            // Array
+                            // (
+                            //   [0] => 8
+                            //   [1] => 11
+                            // )
+
+                            // The strategy employed is different whether we're dealing with
+                            // a facet with an "id_value" (this is the most complex case involving
+                            // the usual underscore-encoded values deserialization witchcraft)
+                            // such as "id_attribute_group" or with a facet without id_value.
+                            // In the latter case we're in luck because we can just use the
+                            // facet in $selected_filters directly.
+
+                            if (!is_null($filter_tmp['id_value'])) {
+                                $selected_filters_cleaned = $this->cleanFilterByIdValue(
+                                    @$selected_filters[$filter_tmp['type']],
+                                    $filter_tmp['id_value']
+                                );
+                            } else {
+                                $selected_filters_cleaned = @$selected_filters[$filter_tmp['type']];
+                            }
+                            $ignore_join = ($filter['type'] == $filter_tmp['type']);
+                            // Prepare the new bits of SQL query.
+                            // $ignore_join is set to true when the sub-facet
+                            // is of the same "type" as the main facet. This way
+                            // the method ($method_name) knows that the tables it needs are already
+                            // there and don't need to be joined again.
+                            $sub_query_filter = self::$method_name(
+                                $selected_filters_cleaned,
+                                $ignore_join
+                            );
+                        }
+                        // Now we "merge" the query from the subfilter with the main query
+                        foreach ($sub_query_filter as $key => $value) {
+                            $sql_query[$key] .= $value;
+                        }
                     }
                 }
-            }
 
-            $products = false;
-            if (!empty($sql_query['from'])) {
-                $assembled_sql_query = implode("\n", array(
-                    $sql_query['select'],
-                    $sql_query['from'],
-                    $sql_query['join'],
-                    $sql_query['where'],
-                    $sql_query['group'],
-                ));
-                $products = Db::getInstance()->executeS($assembled_sql_query, true, false);
-            }
+                $products = false;
+                if (!empty($sql_query['from'])) {
+                    $assembled_sql_query = implode(
+                        "\n",
+                        array(
+                            $sql_query['select'],
+                            $sql_query['from'],
+                            $sql_query['join'],
+                            $sql_query['where'],
+                            $sql_query['group'],
+                        )
+                    );
+                    $products            = Db::getInstance()->executeS($assembled_sql_query, true, false);
+                }
 
-            // price & weight have slidebar, so it's ok to not complete recompute the product list
-            if (!empty($selected_filters['price']) && $filter['type'] != 'price' && $filter['type'] != 'weight') {
-                $products = self::filterProductsByPrice(@$selected_filters['price'], $products);
+                // price & weight have slidebar, so it's ok to not complete recompute the product list
+                if (!empty($selected_filters['price']) && $filter['type'] != 'price' && $filter['type'] != 'weight') {
+                    $products = self::filterProductsByPrice(@$selected_filters['price'], $products);
+                }
+                $productCache[$cacheKey] = $products;
             }
 
             switch ($filter['type']) {
@@ -2214,6 +2237,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     break;
             }
         }
+
+        $latest_selected_filters = $selected_filters;
 
         return array(
             'filters' => $filter_blocks,
