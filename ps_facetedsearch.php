@@ -1284,6 +1284,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $id_lang,
         $selected_filters = array()
     ) {
+        $products_per_page = (int)$products_per_page;
+
         if (!Validate::isOrderBy($order_by)) {
             $order_by = 'cp.position';
         }
@@ -2489,9 +2491,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
 		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 		WHERE c.active = 1'.
-        (count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', $categories_ids).')' : '').'
+        (count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
 		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', $products_ids).')' : ''));
+		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
 
         $attribute_groups_by_id = array();
         while ($row = $db->nextRow($attribute_groups)) {
@@ -2506,8 +2508,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		'.$join_product.'
 		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
 		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
-		WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', $categories_ids).')' : '').'
-		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog") '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', $products_ids).')' : ''));
+		WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
+		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog") '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
 
         $features_by_id = array();
         while ($row = $db->nextRow($features)) {
@@ -2527,9 +2529,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		LEFT JOIN '._DB_PREFIX_.'product_attribute pa ON (pa.id_product = p.id_product)
 		'.$join_product.$join_product_attribute.'
 		LEFT JOIN '._DB_PREFIX_.'product_attribute_combination pac ON (pac.id_product_attribute = pa.id_product_attribute)
-		WHERE c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', $categories_ids).')' : '').'
+		WHERE c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
 		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', $products_ids).')' : '').
+		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : '').
         ' AND (fv.custom IS NULL OR fv.custom = 0)
 		GROUP BY p.id_product');
 
