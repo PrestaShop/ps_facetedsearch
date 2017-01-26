@@ -47,7 +47,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '1.1.1';
+        $this->version = '1.1.2';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
