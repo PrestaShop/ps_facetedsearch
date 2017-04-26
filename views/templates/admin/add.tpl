@@ -1,37 +1,37 @@
 {if isset($message)}{$message}{/if}
 <div class="panel">
-  <h3><i class="icon-cogs"></i> {l s='New filters template' d='Modules.FacetedSearch.Admin'}</h3>
+  <h3><i class="icon-cogs"></i> {l s='New filters template' d='Modules.Facetedsearch.Admin'}</h3>
   <form action="{$current_url}" method="post" class="form-horizontal" onsubmit="return checkForm();">
     <input type="hidden" name="id_layered_filter" id="id_layered_filter" value="{$id_layered_filter}" />
     <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Template name:' d='Modules.FacetedSearch.Admin'}</label>
+      <label class="control-label col-lg-3">{l s='Template name:' d='Modules.Facetedsearch.Admin'}</label>
       <div class="col-lg-9">
         <input type="text" id="layered_tpl_name" name="layered_tpl_name" maxlength="64" value="{$template_name}" />
-        <p class="help-block">{l s='Only as a reminder' d='Modules.FacetedSearch.Admin'}</p>
+        <p class="help-block">{l s='Only as a reminder' d='Modules.Facetedsearch.Admin'}</p>
       </div>
     </div>
     <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.FacetedSearch.Admin'}</label>
+      <label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.Facetedsearch.Admin'}</label>
       <div class="col-lg-9">
         {if trim($categories_tree) != ''}
           {$categories_tree}
         {else}
           <div class="alert alert-warning">
-            {l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.FacetedSearch.Admin'}
+            {l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.Facetedsearch.Admin'}
           </div>
         {/if}
       </div>
     </div>
     {if isset($asso_shops)}
     <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.FacetedSearch.Admin'}</label>
+      <label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.Facetedsearch.Admin'}</label>
       <div class="col-lg-9">{$asso_shops}</div>
     </div>
     {/if}
     <div class="form-group">
       <label class="control-label col-lg-3">
         <span class="badge" id="selected_filters">0</span>
-        <span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='You can drag and drop filters to adjust position' d='Modules.FacetedSearch.Admin'}">{l s='Filters:' d='Modules.FacetedSearch.Admin'}</span>
+        <span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='You can drag and drop filters to adjust position' d='Modules.Facetedsearch.Admin'}">{l s='Filters:' d='Modules.Facetedsearch.Admin'}</span>
       </label>
       <div class="col-lg-9">
         <section class="filter_panel">
@@ -40,7 +40,7 @@
               {l
                 s='Total filters: %s'
                 sprintf=[$total_filters]
-                d='Modules.FacetedSearch.Admin'
+                d='Modules.Facetedsearch.Admin'
               }
             </span>
           </header>
@@ -58,13 +58,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <h4>{l s='Sub-categories filter' d='Modules.FacetedSearch.Admin'}</h4>
+                  <h4>{l s='Sub-categories filter' d='Modules.Facetedsearch.Admin'}</h4>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_subcategories_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -73,12 +73,12 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_subcategories_filter_type">
-                      <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -95,13 +95,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <span class="module_name">{l s='Product stock filter' d='Modules.FacetedSearch.Admin'}</span>
+                  <span class="module_name">{l s='Product stock filter' d='Modules.Facetedsearch.Admin'}</span>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_stock_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -110,12 +110,12 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_stock_filter_type">
-                      <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -132,13 +132,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <span class="module_name">{l s='Product condition filter' d='Modules.FacetedSearch.Admin'}</span>
+                  <span class="module_name">{l s='Product condition filter' d='Modules.Facetedsearch.Admin'}</span>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_condition_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -147,12 +147,12 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_condition_filter_type">
-                      <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -169,13 +169,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <span class="module_name">{l s='Product brand filter' d='Modules.FacetedSearch.Admin'}</span>
+                  <span class="module_name">{l s='Product brand filter' d='Modules.Facetedsearch.Admin'}</span>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_manufacturer_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -184,12 +184,12 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_manufacturer_filter_type">
-                      <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                      <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -206,13 +206,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <span class="module_name">{l s='Product weight filter (slider)' d='Modules.FacetedSearch.Admin'}</span>
+                  <span class="module_name">{l s='Product weight filter (slider)' d='Modules.Facetedsearch.Admin'}</span>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_weight_slider_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -221,10 +221,10 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <input type="hidden" name="layered_selection_weight_slider_filter_type" value="1">
-                    <p class="form-control-static">{l s='List of ranges' d='Modules.FacetedSearch.Admin'}</p>
+                    <p class="form-control-static">{l s='List of ranges' d='Modules.Facetedsearch.Admin'}</p>
                   </div>
                 </div>
               </li>
@@ -240,13 +240,13 @@
                   </label>
                 </div>
                 <div class="col-lg-4">
-                  <span class="module_name">{l s='Product price filter (slider)' d='Modules.FacetedSearch.Admin'}</span>
+                  <span class="module_name">{l s='Product price filter (slider)' d='Modules.Facetedsearch.Admin'}</span>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <select name="layered_selection_price_slider_filter_show_limit">
-                      <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                      <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="4">4</option>
                       <option value="5">5</option>
                       <option value="10">10</option>
@@ -255,10 +255,10 @@
                   </div>
                 </div>
                 <div class="col-lg-3 pull-right">
-                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                  <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
                     <input type="hidden" name="layered_selection_price_slider_filter_type" value="1">
-                    <p class="form-control-static">{l s='List of ranges' d='Modules.FacetedSearch.Admin'}</p>
+                    <p class="form-control-static">{l s='List of ranges' d='Modules.Facetedsearch.Admin'}</p>
                   </div>
                 </div>
               </li>
@@ -284,7 +284,7 @@
                           '%name%' => $attribute_group['name'],
                           '%count%' => $attribute_group['n']
                         ]
-                        d='Modules.FacetedSearch.Admin'
+                        d='Modules.Facetedsearch.Admin'
                       }
                     {else}
                       {l
@@ -293,19 +293,19 @@
                           '%name%' => $attribute_group['name'],
                           '%count%' => $attribute_group['n']
                         ]
-                        d='Modules.FacetedSearch.Admin'
+                        d='Modules.Facetedsearch.Admin'
                       }
                     {/if}
                     {if $attribute_group['is_color_group']}
-                      <img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.FacetedSearch.Admin'}" />
+                      <img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.Facetedsearch.Admin'}" />
                     {/if}
                     </span>
                   </div>
                   <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                     <div class="col-lg-6">
                       <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_show_limit">
-                        <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                        <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                         <option value="4">4</option>
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -314,12 +314,12 @@
                     </div>
                   </div>
                   <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                     <div class="col-lg-6">
                       <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_type">
-                        <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                        <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                        <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                        <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                        <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                        <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                       </select>
                     </div>
                   </div>
@@ -349,7 +349,7 @@
                             '%name%' => $feature['name'],
                             '%count%' => $feature['n']
                           ]
-                          d='Modules.FacetedSearch.Admin'
+                          d='Modules.Facetedsearch.Admin'
                         }
                       {else}
                         {l
@@ -358,16 +358,16 @@
                             '%name%' => $feature['name'],
                             '%count%' => $feature['n']
                           ]
-                          d='Modules.FacetedSearch.Admin'
+                          d='Modules.Facetedsearch.Admin'
                         }
                       {/if}
                     </span>
                   </div>
                   <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.FacetedSearch.Admin'}</label>
+                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                     <div class="col-lg-6">
                       <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_show_limit">
-                        <option value="0">{l s='No limit' d='Modules.FacetedSearch.Admin'}</option>
+                        <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
                         <option value="4">4</option>
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -376,12 +376,12 @@
                     </div>
                   </div>
                   <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.FacetedSearch.Admin'}</label>
+                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                     <div class="col-lg-6">
                       <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_type">
-                        <option value="0">{l s='Checkbox' d='Modules.FacetedSearch.Admin'}</option>
-                        <option value="1">{l s='Radio button' d='Modules.FacetedSearch.Admin'}</option>
-                        <option value="2">{l s='Drop-down list' d='Modules.FacetedSearch.Admin'}</option>
+                        <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                        <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                        <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                       </select>
                     </div>
                   </div>
@@ -405,6 +405,6 @@
 <script type="text/javascript">
   var translations = new Array();
   {if isset($filters)}var filters = '{$filters}';{/if}
-  translations['no_selected_categories'] = "{l s='You must select at least one category' d='Modules.FacetedSearch.Admin'}";
-  translations['no_selected_filters'] = "{l s='You must select at least one filter' d='Modules.FacetedSearch.Admin'}";
+  translations['no_selected_categories'] = "{l s='You must select at least one category' d='Modules.Facetedsearch.Admin'}";
+  translations['no_selected_filters'] = "{l s='You must select at least one filter' d='Modules.Facetedsearch.Admin'}";
 </script>
