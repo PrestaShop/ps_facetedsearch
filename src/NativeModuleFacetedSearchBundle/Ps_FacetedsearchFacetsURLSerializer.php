@@ -1,4 +1,5 @@
 <?php
+namespace NativeModuleFacetedSearchBundle;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
