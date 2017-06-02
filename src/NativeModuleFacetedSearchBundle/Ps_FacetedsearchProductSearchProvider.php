@@ -1,7 +1,5 @@
 <?php
-
-require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFiltersConverter.php';
-require_once __DIR__.DIRECTORY_SEPARATOR.'Ps_FacetedsearchFacetsURLSerializer.php';
+namespace NativeModuleFacetedSearchBundle;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
@@ -10,8 +8,10 @@ use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
-use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
+use Ps_Facetedsearch;
+use Configuration;
+use Tools;
 
 class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInterface
 {
@@ -26,17 +26,11 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer();
     }
 
-    public function getFacetCollectionFromEncodedFacets(
-        ProductSearchQuery $query
+    /* @TODO: remove */
+    public function getFacetCollectionFromQuery(ProductSearchQuery $query,
+        $filterBlock
     ) {
-        // do not compute range filters, all info we need is encoded in $encodedFacets
-        $compute_range_filters = false;
-        $filterBlock = $this->module->getFilterBlock(
-            [],
-            $compute_range_filters
-        );
-
-        $queryTemplate = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
+        $queryTemplate = $this->filtersConverter->getFacetsFromFilterBlocks(
             $filterBlock['filters']
         );
 
@@ -140,16 +134,17 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult();
-        $menu = $this->getFacetCollectionFromEncodedFacets($query);
+        $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
+
+        $facetedSearch = new Ps_FacetedsearchProductSearch($facetedSearchFilters);
+        $facetedSearch->initSearch($facetedSearchFilters);
 
         $order_by = $query->getSortOrder()->toLegacyOrderBy(true);
         $order_way = $query->getSortOrder()->toLegacyOrderWay();
 
-        $facetedSearchFilters = $this->filtersConverter->getFacetedSearchFiltersFromFacets(
-            $menu->getFacets()
-        );
+        $filterProductSearch = new Ps_FacetedsearchFilterProducts($facetedSearch);
 
-        $productsAndCount = $this->module->getProductByFilters(
+        $productsAndCount = $filterProductSearch->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
             $order_by,
@@ -164,11 +159,16 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             ->setAvailableSortOrders($this->getAvailableSortOrders())
         ;
 
-        $filterBlock = $this->module->getFilterBlock($facetedSearchFilters);
-        $facets = $this->filtersConverter->getFacetsFromFacetedSearchFilters(
+        $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
+        $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
+
+        $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
             $filterBlock['filters']
         );
 
+        $menu = (new FacetCollection())->setFacets($facets); //$this->getFacetCollectionFromQuery($query, $filterBlock);
+
+        /* @TODO: remove ? */
         $this->copyFiltersActiveState(
             $menu->getFacets(),
             $facets
