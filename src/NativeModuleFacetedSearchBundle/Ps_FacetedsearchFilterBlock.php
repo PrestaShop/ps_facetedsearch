@@ -40,7 +40,7 @@ class Ps_FacetedsearchFilterBlock
         $this->facetedSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
         $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
 
-        $filterBlocks = array();
+        $filterBlocks = [];
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
@@ -56,7 +56,7 @@ class Ps_FacetedsearchFilterBlock
                     $filterBlocks[] = $this->getQuantitiesBlock($filter, $selectedFilters);
                     break;
                 case 'manufacturer':
-                    $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters);
+                    $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters, $idLang);
                     break;
                 case 'id_attribute_group':
                     $filterBlock = $this->getAttributesBlock($filter, $selectedFilters, $idLang);
@@ -71,7 +71,7 @@ class Ps_FacetedsearchFilterBlock
                     }
                     break;
                 case 'category':
-                    $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang);
+                    $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent->level_depth);
             }
         }
 
@@ -104,7 +104,7 @@ class Ps_FacetedsearchFilterBlock
             'format' => $currency->format,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
-            'list_of_values' => array(),
+            'list_of_values' => [],
         );
 
         $this->facetedSearchAdapter->setDisableFiltersByDefault(true);
@@ -132,7 +132,7 @@ class Ps_FacetedsearchFilterBlock
             'format' => 5, // Ex: xxxxx kg
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
-            'list_of_values' => array(),
+            'list_of_values' => [],
         );
 
         $this->facetedSearchAdapter->setDisableFiltersByDefault(true);
@@ -165,9 +165,9 @@ class Ps_FacetedsearchFilterBlock
     private function getConditionsBlock($filter, $selectedFilters)
     {
         $conditionArray = array(
-            'new' => array('name' => Context::getContext()->getTranslator()->trans('New', array(), 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
-            'used' => array('name' => Context::getContext()->getTranslator()->trans('Used', array(), 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
-            'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', array(), 'Modules.Facetedsearch.Shop'),
+            'new' => array('name' => Context::getContext()->getTranslator()->trans('New', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            'used' => array('name' => Context::getContext()->getTranslator()->trans('Used', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', [], 'Modules.Facetedsearch.Shop'),
                 'nbr' => 0, ),
         );
 
@@ -226,20 +226,30 @@ class Ps_FacetedsearchFilterBlock
         return $quantityBlock;
     }
 
-    private function getManufacturersBlock($filter, $selectedFilters)
+    private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
-        $manufacturersArray = array();
+        $manufacturersArray = [];
+
+        $manufacturers = \Manufacturer::getManufacturers(false, $idLang);
+        if ($manufacturers === []) {
+            return $manufacturersArray;
+        }
+        foreach($manufacturers as $key => $manufacturer) {
+            $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
+        }
 
         $results = $this->facetedSearchAdapter->valueCount('id_manufacturer');
         foreach($results as $key => $values) {
             $id_manufacturer = $values['id_manufacturer'];
             $count = $values['c'];
 
-            $manufacturersArray[$id_manufacturer] = array('name' => \Manufacturer::getNameById($id_manufacturer), 'nbr' => $count);
+            $manufacturersArray[$id_manufacturer] = array('name' => $manufacturers[$id_manufacturer]['name'], 'nbr' => $count);
             if (isset($selectedFilters['manufacturer']) && in_array($id_manufacturer, $selectedFilters['manufacturer'])) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
         }
+
+        $this->sortByKey($manufacturers, $manufacturersArray);
 
         $manufacturerBlock = array(
             'type_lite' => 'manufacturer',
@@ -287,11 +297,39 @@ class Ps_FacetedsearchFilterBlock
     }
 
 
+    /**
+     * Get all attributes groups for a given language
+     *
+     * @param int $idLang Language id
+     *
+     * @return array Attributes groups
+     */
+    public static function getAttributesGroups($idLang)
+    {
+        if (!\Combination::isFeatureActive()) {
+            return [];
+        }
+
+        return Db::getInstance()->executeS('
+			SELECT ag.id_attribute_group, attribute_group_name, is_color_group
+			FROM `'._DB_PREFIX_.'attribute_group` ag
+			'.Shop::addSqlAssociation('attribute_group', 'ag').'
+			LEFT JOIN `'._DB_PREFIX_.'attribute_group_lang` agl
+				ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = '.(int) $idLang.')
+			GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC
+		');
+    }
+
+
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
-        $attributesBlock = array();
+        $attributesBlock = [];
 
-        $attributesGroup = \AttributeGroup::getAttributesGroups($idLang);
+        $attributesGroup = self::getAttributesGroups($idLang);
+        if ($attributesGroup === []) {
+            return $attributesBlock;
+        }
+
         foreach($attributesGroup as $key => $attributeGroup) {
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
@@ -320,7 +358,7 @@ class Ps_FacetedsearchFilterBlock
                     'id_key' => $idAttributeGroup,
                     'name' => $attributeGroup['attribute_group_name'],
                     'is_color_group' => (bool)$attributeGroup['is_color_group'],
-                    'values' => array(),
+                    'values' => [],
                     'url_name' => $urlName,
                     'meta_title' => $metaTitle,
                     'filter_show_limit' => $filter['filter_show_limit'],
@@ -342,11 +380,31 @@ class Ps_FacetedsearchFilterBlock
             }
         }
 
+        foreach($attributesBlock as $idAttributeGroup => $value) {
+            $attributesBlock[$idAttributeGroup]['values'] = $this->sortByKey($attributes, $value['values']);
+        }
+
+        $attributesBlock = $this->sortByKey($attributesGroup, $attributesBlock);
+
         return $attributesBlock;
     }
 
+    private function sortByKey($sortedReferenceArray, $array)
+    {
+        $sortedArray = [];
+
+        // iterate in the original order
+        foreach($sortedReferenceArray as $key => $value) {
+            if (array_key_exists($key, $array)) {
+                $sortedArray[$key] = $sortedReferenceArray[$key];
+            }
+        }
+
+        return $sortedArray;
+    }
+
     private function getFeaturesBlock($filter, $selectedFilters, $idLang) {
-        $featureBlock = array();
+        $featureBlock = [];
 
         $features = \Feature::getFeatures($idLang);
         foreach($features as $key => $feature) {
@@ -369,7 +427,7 @@ class Ps_FacetedsearchFilterBlock
                     'type_lite' => 'id_feature',
                     'type' => 'id_feature',
                     'id_key' => $idFeature,
-                    'values' => array(),
+                    'values' => [],
                     'name' => $feature['feature_name'],
                     'url_name' => $urlName,
                     'meta_title' => $metaTitle,
@@ -402,13 +460,13 @@ class Ps_FacetedsearchFilterBlock
     {
         //Natural sort
         foreach ($featureBlock as $key => $value) {
-            $temp = array();
+            $temp = [];
             foreach ($featureBlock[$key]['values'] as $idFeatureValue => $featureValueInfos) {
                 $temp[$idFeatureValue] = $featureValueInfos['name'];
             }
 
             natcasesort($temp);
-            $temp2 = array();
+            $temp2 = [];
 
             foreach ($temp as $keytemp => $valuetemp) {
                 $temp2[$keytemp] = $featureBlock[$key]['values'][$keytemp];
@@ -420,14 +478,40 @@ class Ps_FacetedsearchFilterBlock
         return $featureBlock;
     }
 
-    private function getCategoriesBlock($filter, $selectedFilters, $idLang)
+    private function addCategoriesBlockFilters($levelDepth) {
+        if (Group::isFeatureActive()) {
+            $userGroups = (Context::getContext()->customer->isLogged(
+            ) ? Context::getContext()->customer->getGroups() : array(
+                Configuration::get(
+                    'PS_UNIDENTIFIED_GROUP'
+                )
+            ));
+
+            $this->facetedSearchAdapter->addFilter('id_group', $userGroups);
+        }
+
+        $depth = (int)Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1);
+
+        if ($depth) {
+            $this->facetedSearchAdapter->addFilter('level_depth', [$depth+$levelDepth], '<=');
+        }
+    }
+    
+    private function getCategoriesBlock($filter, $selectedFilters, $idLang, $levelDepth)
     {
+        $this->addCategoriesBlockFilters($levelDepth);
+
         $categoryArray = [];
-        $categories = Category::getAllCategoriesName(null, $idLang);
+        $categories = Category::getAllCategoriesName(null, $idLang, true, null,
+            true, '', 'ORDER BY c.nleft, c.position');
         foreach($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }
         $results = $this->facetedSearchAdapter->valueCount('id_category');
+
+        // reset category block filters
+        $this->facetedSearchAdapter->resetFilter('level_depth');
+        $this->facetedSearchAdapter->resetFilter('id_group');
         foreach($results as $key => $values) {
             $idCategory = $values['id_category'];
             $count = $values['c'];
@@ -441,6 +525,8 @@ class Ps_FacetedsearchFilterBlock
                 $categoryArray[$idCategory]['checked'] = true;
             }
         }
+
+        $categoryArray = $this->sortByKey($categories, $categoryArray);
 
         $categoryBlock = array(
             'type_lite' => 'category',
