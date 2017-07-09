@@ -19,6 +19,7 @@ class Ps_FacetedsearchFiltersConverter
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
         $facets = [];
+
         foreach ($filterBlocks as $filterBlock) {
             $facet = new Facet();
             $facet

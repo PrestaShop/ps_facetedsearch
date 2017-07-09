@@ -18,4 +18,8 @@ interface FacetedSearchInterface {
     function getFieldRanges($fieldName, $outputLength);
 
     function count();
+
+    function useFiltersAsInitialPopulation();
+
+    function valueCount($fieldName, $extraSelectFields = [], $filter = []);
 }

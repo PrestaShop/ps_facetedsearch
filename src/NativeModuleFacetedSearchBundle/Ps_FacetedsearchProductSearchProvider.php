@@ -139,7 +139,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $facetedSearch = new Ps_FacetedsearchProductSearch($facetedSearchFilters);
         $facetedSearch->initSearch($facetedSearchFilters);
 
-        $order_by = $query->getSortOrder()->toLegacyOrderBy(true);
+        $order_by = $query->getSortOrder()->toLegacyOrderBy(false);
         $order_way = $query->getSortOrder()->toLegacyOrderWay();
 
         $filterProductSearch = new Ps_FacetedsearchFilterProducts($facetedSearch);

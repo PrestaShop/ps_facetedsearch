@@ -122,7 +122,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             self::installPriceIndexTable();
             $this->installIndexableAttributeTable();
             $this->installProductAttributeTable();
-            $this->installProductTable();
 
             if ($products_count < 5000) {
                 // Lock indexation if too many products
@@ -1373,123 +1372,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $selected_filters;
     }
 
-    public function installProductTable()
-    {
-        @set_time_limit(0);
-
-        Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_product');
-        Db::getInstance()->execute('
-		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_product` (
-		`id_layered_product` int(10) unsigned NOT NULL auto_increment,
-		`id_product` int(10) unsigned NOT NULL,
-		`id_shop` INT(11) UNSIGNED NOT NULL DEFAULT \'1\',
-        `id_product_attribute` int(10) unsigned NOT NULL,
-        `id_attribute` int(10) unsigned NOT NULL,
-        `id_feature` int(10) unsigned NOT NULL,
-        `id_feature_value` int(10) unsigned NOT NULL,
-        `id_category` INT(10) UNSIGNED NOT NULL,
-        `quantity` int(10) unsigned NOT NULL DEFAULT 0,
-        `id_manufacturer` int(10) unsigned DEFAULT NULL,
-        `condition` ENUM(\'new\', \'used\', \'refurbished\') NOT NULL DEFAULT \'new\',
-        `weight` DECIMAL(20,6) NOT NULL DEFAULT \'0\',
-        `price` DECIMAL(20, 6) NOT NULL,
-        `has_specific_price` tinyint(1) NOT NULL DEFAULT 0,
-        `nleft` int(10) unsigned NOT NULL DEFAULT \'0\',
-        `nright` int(10) unsigned NOT NULL DEFAULT \'0\',
-        `position` int(10) unsigned NOT NULL DEFAULT \'0\',
-        `id_currency` int(10) unsigned NOT NULL DEFAULT \'0\',
-    	`out_of_stock` tinyint(1) NOT NULL DEFAULT 0,
-    	`id_group` int(10) unsigned NOT NULL,
-    	`level_depth` tinyint(3) unsigned NOT NULL DEFAULT \'0\'
-		PRIMARY KEY (`id_layered_product`),
-		KEY (id_shop, id_category, id_group),
-		KEY (id_shop, nleft),
-		KEY (id_shop, nright),
-		KEY (id_shop, price),
-		KEY (id_shop, weight),
-		KEY (id_shop, id_feature_value))');
-
-        $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
-
-        $alwaysAvailable = false;
-        $ps_order_out_of_stock = false;
-        if (!$ps_stock_management) {
-            $alwaysAvailable = true;
-        } else {
-            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
-        }
-
-        Db::getInstance()->execute('INSERT INTO `'._DB_PREFIX_.'layered_product`
-                    (
-                    id_product,
-                    id_shop,
-                    id_product_attribute,
-                    id_attribute,
-                    id_feature,
-                    id_feature_value,
-                    id_category,
-                    `position`,
-                    quantity,
-                    id_manufacturer,
-                    condition,
-                    weight,
-                    price,
-                    has_specific_price,
-                    nleft,
-                    nright,
-                    out_of_stock,
-                    id_group,
-                    level_depth
-                    )
-                    SELECT
-                    p.id_product,
-                    ps.id_shop,
-                    pa.id_product_attribute,
-                    pac.id_attribute,
-                    fp.id_feature,
-                    fp.id_feature_value,
-                    cp.id_category,
-                    cp.position,
-                    p.quantity,
-                    p.id_manufacturer,
-                    p.condition,
-                    p.weight,
-                    p.price,
-                    EXISTS(SELECT * FROM `'._DB_PREFIX_.'specific_price` sp WHERE id_product=p.id_product)
-                    c.nleft,
-                    c.nright,
-                    '.($alwaysAvailable?1:'IF(sa.out_of_stock = 2, '.$ps_order_out_of_stock.', sa.out_of_stock)').',
-                    cg.id_group,
-                    c.level_depth,
-                    FROM
-                    `'._DB_PREFIX_.'product` p
-                    LEFT JOIN
-                    `'._DB_PREFIX_.'product_shop` ps
-                     ON (p.id_product = ps.id_product)
-                    LEFT JOIN
-                    `'._DB_PREFIX_.'product_attribute` pa
-                     ON (p.id_product = pa.id_product)
-                    LEFT JOIN
-                    `'._DB_PREFIX_.'product_attribute_combination` pac
-                     ON (pa.id_product_attribute = pac.id_product_attribute)
-                    LEFT JOIN
-                     `'._DB_PREFIX_.'category_product` cp
-                     ON (p.id_product = cp.id_product)
-                    LEFT JOIN
-                     `'._DB_PREFIX_.'category` c
-                     ON (cp.id_category = c.id_category AND c.active=1)
-                    LEFT JOIN
-                     `'._DB_PREFIX_.'feature_product` fp
-                     ON (p.id_product = fp.id_product)
-                    LEFT JOIN
-                     `'._DB_PREFIX_.'category_group` cg
-                    LEFT JOIN
-                     `'._DB_PREFIX_.'stock_available` sa
-                     ON (p.id_product=sa.id_product AND pa.id_product_attribute = sa.id_product_attribute)
-                    WHERE
-                    active=1 AND `visibility` IN ("both", "catalog")');
-    }
-
     public function rebuildLayeredStructure()
     {
         @set_time_limit(0);
@@ -1499,7 +1381,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if ($memory_limit != -1 && $memory_limit < 128*1024*1024) {
             @ini_set('memory_limit', '128M');
         }
-
 
         /* Delete and re-create the layered categories table */
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_category');
