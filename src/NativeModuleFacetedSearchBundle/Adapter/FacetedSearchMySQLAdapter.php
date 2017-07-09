@@ -30,6 +30,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
             'position' => ['tableName' => 'category_product', 'tableAlias' => 'cp', 'joinCondition' => '(p.id_product = cp.id_product)', 'joinType' => self::INNER_JOIN],
             'nleft' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_category'],
             'nright' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_category'],
+            'level_depth' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_category'],
             'out_of_stock' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND pa.id_product_attribute = sa.id_product_attribute)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'id_group' => ['tableName' => 'category_group', 'tableAlias' => 'cg', 'joinCondition' => '(cg.id_category = c.id_category)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'nleft'],
         ];
@@ -43,7 +44,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
     public function getQuery() {
         $filterToTableMapping = $this->getFieldMapping();
         $this->computeOrderByField($filterToTableMapping);
-        if (empty($this->filters) && empty($this->groupFields)) {
+        if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)) {
             $query = $this->referenceTable;
             $this->orderField = '';
         } else {
@@ -85,7 +86,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
     }
 
     private function computeOrderByField($filterToTableMapping) {
-        if (empty($this->orderField)) {
+        if (empty($this->orderField) || strpos($this->orderField, '.') !== false) {
             return;
         }
         if (array_key_exists($this->orderField, $filterToTableMapping)) {
@@ -102,11 +103,14 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
         }
 
         foreach($this->groupFields as $key => $values) {
+            if (strpos($values, '.') !== false) {
+                continue;
+            }
             if (array_key_exists($values, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$values];
-                $this->groupFields[$key] = $joinMapping['tableAlias'].'.'.$this->groupFields[$key];
+                $this->groupFields[$key] = $joinMapping['tableAlias'].'.'.$values;
             } else {
-                $this->groupFields[$key] = 'p.'.$this->groupFields[$key];
+                $this->groupFields[$key] = 'p.'.$values;
             }
         }
     }
@@ -249,31 +253,31 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
 
     public function count()
     {
-        $mysqlAdapter = new self();
-        $mysqlAdapter->setReferenceTable($this->referenceTable, $this->referenceAlias);
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->setFilters($this->getFilters());
         $this->setSelectFields(['COUNT(*) c']);
+        $this->setLimit(null);
+        $this->setOrderField('');
 
         $result = $this->execute();
 
         return $result[0]['c'];
     }
 
-    public function valueCount($fieldName, $extraSelectFields = [], $filter = []) {
+    public function getFilteredSearchAdapter() {
         $mysqlAdapter = new self();
         $mysqlAdapter->setReferenceTable($this->referenceTable, $this->referenceAlias);
-        $mysqlAdapter->addGroupBy($fieldName);
-        $mysqlAdapter->addSelectField($fieldName);
-        $mysqlAdapter->addSelectField('COUNT(DISTINCT p.id_product) c');
-        if (!empty($filter)) {
-            $mysqlAdapter->addFilter($filter['filterName'], $filter['values'], $filter['operator']);
-        }
-        $mysqlAdapter->setLimit(null);
-        $mysqlAdapter->setOrderField('');
-        foreach($extraSelectFields as $extraSelectField) {
-            $mysqlAdapter->addSelectField($extraSelectField);
-        }
-        $results = $mysqlAdapter->execute();
+
+        return $mysqlAdapter;
+    }
+
+    public function valueCount($fieldName) {
+        $this->addGroupBy($fieldName);
+        $this->addSelectField($fieldName);
+        $this->addSelectField('COUNT(DISTINCT p.id_product) c');
+        $this->setLimit(null);
+        $this->setOrderField('');
+        $results = $this->execute();
         return $results;
     }
 
