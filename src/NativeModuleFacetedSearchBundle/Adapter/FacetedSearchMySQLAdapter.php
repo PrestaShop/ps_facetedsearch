@@ -32,6 +32,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
             'nright' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_category'],
             'level_depth' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_category'],
             'out_of_stock' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND pa.id_product_attribute = sa.id_product_attribute)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
+            'price_min' => ['tableName' => 'layered_price_index', 'tableAlias' => 'psi', 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.\Context::getContext()->currency->id.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'id_group' => ['tableName' => 'category_group', 'tableAlias' => 'cg', 'joinCondition' => '(cg.id_category = c.id_category)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'nleft'],
         ];
 
@@ -80,13 +81,12 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
             $query .= ' LIMIT ' . $this->offset . ', ' . $this->limit;
         }
 
-        //echo $query."<br />";
-
         return $query;
     }
 
     private function computeOrderByField($filterToTableMapping) {
-        if (empty($this->orderField) || strpos($this->orderField, '.') !== false) {
+        if (empty($this->orderField) || strpos($this->orderField, '.') !== false
+            || strpos($this->orderField, '(') !== false) {
             return;
         }
         if (array_key_exists($this->orderField, $filterToTableMapping)) {
@@ -103,7 +103,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
         }
 
         foreach($this->groupFields as $key => $values) {
-            if (strpos($values, '.') !== false) {
+            if (strpos($values, '.') !== false
+                || strpos($values, '(') !== false) {
                 continue;
             }
             if (array_key_exists($values, $filterToTableMapping)) {
@@ -234,10 +235,11 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
 
     public function getMinMaxValue($fieldName)
     {
-        $mysqlAdapter = new self();
-        $mysqlAdapter->setReferenceTable($this->referenceTable, $this->referenceAlias);
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->setFilters($this->getFilters());
         $this->setSelectFields(['MIN('.$fieldName.') as min, MAX('.$fieldName.') as max']);
+        $this->setLimit(null);
+        $this->setOrderField('');
 
         $result = $this->execute();
 
@@ -246,9 +248,34 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
 
     public function getFieldRanges($fieldName, $outputLength)
     {
-        $diff = 'SELECT ROUND((-MIN(p.price) + MAX(p.price)) / '.$outputLength.') AS diff FROM ps_category c STRAIGHT_JOIN ps_category_product cp ON (c.id_category = cp.id_category AND c.nleft >= 17 AND c.nright <= 78 AND c.active = 1) STRAIGHT_JOIN ps_product_shop product_shop ON (product_shop.id_product = cp.id_product) STRAIGHT_JOIN ps_product p ON (p.id_product=cp.id_product)';
-        $outputRange = 'SELECT FLOOR(p.price/'.$diff.')*'.$diff.' as range_start, (FLOOR(p.price/'.$diff.')+1)*'.$diff.'-1 as range_end, COUNT(DISTINCT(p.id_product)) c FROM ps_category c STRAIGHT_JOIN ps_category_product cp ON (c.id_category = cp.id_category AND c.nleft >= 17 AND c.nright <= 78 AND c.active = 1) STRAIGHT_JOIN ps_product_shop product_shop ON (product_shop.id_product = cp.id_product) STRAIGHT_JOIN ps_product p ON (p.id_product=cp.id_product) GROUP BY FLOOR(p.price / '.$diff.')';
-        return [[0 /*'range_start'*/ => '0', 1 /*'range_end'*/ => '100', 'nbr' => '0']];
+        $fieldNameMin = $fieldNameMax = $fieldName;
+
+        // special case for price_min/max
+        if ($fieldName === 'price') {
+            $fieldNameMin = 'price_min';
+            $fieldNameMax = 'price_max';
+        }
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
+        $mysqlAdapter->setFilters($this->getFilters());
+        $this->setSelectFields([$fieldNameMin, 'ROUND((-MIN('.$fieldNameMax.') + MAX('.$fieldNameMax.')) / '.$outputLength.') AS diff']);
+        $this->setLimit(null);
+        $this->setOrderField('');
+
+        $result = $this->execute();
+        $diff = $result[0]['diff'];
+
+        if ($diff == 0) {
+            return [['range_start' => '0', 'range_end' => '0', 'nbr' => '0']];
+        }
+
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
+        $mysqlAdapter->setFilters($this->getFilters());
+        $this->setSelectFields([$fieldNameMin, 'FLOOR('.$fieldNameMin.'/'.$diff.')*'.$diff.' as range_start', '(FLOOR('.$fieldNameMax.'/'.$diff.')+1)*'.$diff.'-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr']);
+        $this->addGroupBy('FLOOR('.$fieldNameMax.' / '.$diff.')');
+        $this->setLimit(null);
+        $this->setOrderField('');
+
+        return $this->execute();
     }
 
     public function count()
