@@ -8,6 +8,7 @@ use Configuration;
 use Category;
 use Db;
 use Group;
+use Shop;
 
 class Ps_FacetedsearchFilterBlock
 {
@@ -59,16 +60,10 @@ class Ps_FacetedsearchFilterBlock
                     $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters, $idLang);
                     break;
                 case 'id_attribute_group':
-                    $filterBlock = $this->getAttributesBlock($filter, $selectedFilters, $idLang);
-                    if ($filterBlock !== []) {
-                        $filterBlocks[] = $filterBlock;
-                    }
+                    $filterBlocks = array_merge($filterBlocks, $this->getAttributesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'id_feature':
-                    $filterBlock = $this->getFeaturesBlock($filter, $selectedFilters, $idLang);
-                    if ($filterBlock !== []) {
-                        $filterBlocks[] = $filterBlock;
-                    }
+                    $filterBlocks = array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent->level_depth);
@@ -168,7 +163,7 @@ class Ps_FacetedsearchFilterBlock
             'new' => array('name' => Context::getContext()->getTranslator()->trans('New', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
             'used' => array('name' => Context::getContext()->getTranslator()->trans('Used', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
             'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', [], 'Modules.Facetedsearch.Shop'),
-                'nbr' => 0, ),
+                'nbr' => 0),
         );
 
         $results = $this->facetedSearchAdapter->valueCount('condition');
@@ -176,7 +171,7 @@ class Ps_FacetedsearchFilterBlock
             $condition = $values['condition'];
             $count = $values['c'];
 
-            $conditionArray[$condition] = array('nbr' => $count);
+            $conditionArray[$condition]['nbr'] = $count;
             if (isset($selectedFilters['condition']) && in_array($condition, $selectedFilters['condition'])) {
                 $conditionArray[$condition]['checked'] = true;
             }
@@ -202,14 +197,50 @@ class Ps_FacetedsearchFilterBlock
             1 => array('name' => Context::getContext()->getTranslator()->trans('In stock', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
         );
 
-        $results = $this->facetedSearchAdapter->valueCount('is_available');
-        foreach($results as $key => $values) {
-            $is_available = $values['is_available'];
-            $count = $values['c'];
+        static $ps_stock_management = null;
+        static $ps_order_out_of_stock = null;
+        if ($ps_stock_management === null) {
+            $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
+        }
 
-            $quantityArray[$is_available] = array('nbr' => $count);
-            if (isset($selectedFilters['quantity']) && in_array($is_available, $selectedFilters['quantity'])) {
-                $quantityArray[$is_available]['checked'] = true;
+        if ($ps_order_out_of_stock === null) {
+           $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
+        }
+
+        $noMoreQuantityResults = $this->facetedSearchAdapter->valueCount('quantity', [], ['filterName' => 'quantity', 'values' => [0], 'operator' => '=']);
+        $allResults = $this->facetedSearchAdapter->count();
+
+        $results[0]['c'] = $noMoreQuantityResults[0]['c'];
+        $results[1]['c'] = $allResults - $noMoreQuantityResults[0]['c'];
+        if (!$ps_stock_management) {
+            if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
+                $quantityArray[1]['checked'] = true;
+            }
+
+            $count = $results[0]['c'] + $results[1]['c'];
+            $quantityArray[1]['nbr'] = $count;
+        } else {
+            $resultsOutOfStock = $this->facetedSearchAdapter->valueCount('out_of_stock', [], ['filterName' => 'quantity', 'values' => [0], 'operator' => '=']);
+            // search count of products always available when out of stock (out_of_stock == 1)
+            if (array_key_exists(1, $resultsOutOfStock)) {
+                $results[1]['c'] += $resultsOutOfStock[1]['c'];
+                $results[0]['c'] -= $resultsOutOfStock[1]['c'];
+            }
+
+            // if $ps_order_out_of_stock == 1, product with out_of_stock == 2 are available
+            if ($ps_order_out_of_stock == 1) {
+                if (array_key_exists(2, $resultsOutOfStock)) {
+                    $results[1]['c'] += $resultsOutOfStock[2]['c'];
+                    $results[0]['c'] -= $resultsOutOfStock[2]['c'];
+                }
+            }
+            foreach ($results as $key => $values) {
+                $count = $values['c'];
+
+                $quantityArray[$key]['nbr'] = $count;
+                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'])) {
+                    $quantityArray[$key]['checked'] = true;
+                }
             }
         }
 
@@ -296,6 +327,33 @@ class Ps_FacetedsearchFilterBlock
             (int)$idFeature.' AND id_lang='.(int)$idLang);
     }
 
+    /**
+     * @param int  $idLang
+     * @param bool $notNull
+     *
+     * @return array|false|\mysqli_result|null|\PDOStatement|resource
+     */
+    public static function getAttributes($idLang, $notNull = true)
+    {
+        if (!\Combination::isFeatureActive()) {
+            return array();
+        }
+
+        return Db::getInstance()->executeS('
+			SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
+			FROM `'._DB_PREFIX_.'attribute_group` ag
+			LEFT JOIN `'._DB_PREFIX_.'attribute_group_lang` agl
+				ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = '.(int)$idLang.')
+			LEFT JOIN `'._DB_PREFIX_.'attribute` a
+				ON a.`id_attribute_group` = ag.`id_attribute_group`
+			LEFT JOIN `'._DB_PREFIX_.'attribute_lang` al
+				ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = '.(int)$idLang.')
+			'.Shop::addSqlAssociation('attribute_group', 'ag').'
+			'.Shop::addSqlAssociation('attribute', 'a').'
+			'.($notNull ? 'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL' : '').'
+			ORDER BY agl.`name` ASC, a.`position` ASC
+		');
+    }
 
     /**
      * Get all attributes groups for a given language
@@ -311,7 +369,7 @@ class Ps_FacetedsearchFilterBlock
         }
 
         return Db::getInstance()->executeS('
-			SELECT ag.id_attribute_group, attribute_group_name, is_color_group
+			SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
 			FROM `'._DB_PREFIX_.'attribute_group` ag
 			'.Shop::addSqlAssociation('attribute_group', 'ag').'
 			LEFT JOIN `'._DB_PREFIX_.'attribute_group_lang` agl
@@ -325,6 +383,8 @@ class Ps_FacetedsearchFilterBlock
     {
         $attributesBlock = [];
 
+        $idAttributeGroup = $filter['id_value'];
+
         $attributesGroup = self::getAttributesGroups($idLang);
         if ($attributesGroup === []) {
             return $attributesBlock;
@@ -334,19 +394,19 @@ class Ps_FacetedsearchFilterBlock
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
 
-        $attributes = \Attribute::getAttributes($idLang, true);
+        $attributes = self::getAttributes($idLang, true);
         foreach($attributes as $key => $attribute) {
             $attributes[$attribute['id_attribute']] = $attribute;
         }
 
-        $results = $this->facetedSearchAdapter->valueCount('id_attribute');
+        $results = $this->facetedSearchAdapter->valueCount('id_attribute', [], ['filterName' => 'id_attribute_group', 'values' => [(int)$idAttributeGroup], 'operator' => '=']);
 
         foreach($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
             $count = $values['c'];
 
             $attribute = $attributes[$idAttribute];
-            $idAttributeGroup = $attribute->id_attribute_group;
+            $idAttributeGroup = $attribute['id_attribute_group'];
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
@@ -369,7 +429,7 @@ class Ps_FacetedsearchFilterBlock
             list($urlName, $metaTitle) = $this->getAttributeLayeredInfos($idAttribute, $idLang);
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = array(
                 'color' => $attribute['color'],
-                'name' => $attribute['attribute_name'],
+                'name' => $attribute['name'],
                 'nbr' => $count,
                 'url_name' => $urlName,
                 'meta_title' => $metaTitle,
@@ -396,7 +456,7 @@ class Ps_FacetedsearchFilterBlock
         // iterate in the original order
         foreach($sortedReferenceArray as $key => $value) {
             if (array_key_exists($key, $array)) {
-                $sortedArray[$key] = $sortedReferenceArray[$key];
+                $sortedArray[$key] = $array[$key];
             }
         }
 
@@ -404,14 +464,16 @@ class Ps_FacetedsearchFilterBlock
     }
 
     private function getFeaturesBlock($filter, $selectedFilters, $idLang) {
-        $featureBlock = [];
+        $features = $featureBlock = [];
 
-        $features = \Feature::getFeatures($idLang);
-        foreach($features as $key => $feature) {
+        $idFeature = $filter['id_value'];
+
+        $tempFeatures = \Feature::getFeatures($idLang);
+        foreach($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
 
-        $results = $this->facetedSearchAdapter->valueCount('id_feature_value', ['id_feature']);
+        $results = $this->facetedSearchAdapter->valueCount('id_feature_value', ['id_feature'], ['filterName' => 'id_feature', 'values' => [(int)$idFeature], 'operator' => '=']);
         foreach($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
@@ -420,7 +482,12 @@ class Ps_FacetedsearchFilterBlock
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $features[$idFeature]['featureValues'] = \FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
+                $tempFeatureValues = \FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
+
+                foreach($tempFeatureValues as $featureValueKey => $featureValue) {
+                    $features[$idFeature]['featureValues'][$featureValue['id_feature_value']]= $featureValue;
+                }
+
                 list($urlName, $metaTitle) = $this->getFeatureLayeredInfos($idFeature, $idLang);
 
                 $featureBlock[$idFeature] = array(
@@ -428,7 +495,7 @@ class Ps_FacetedsearchFilterBlock
                     'type' => 'id_feature',
                     'id_key' => $idFeature,
                     'values' => [],
-                    'name' => $feature['feature_name'],
+                    'name' => $feature['name'],
                     'url_name' => $urlName,
                     'meta_title' => $metaTitle,
                     'filter_show_limit' => $filter['filter_show_limit'],
@@ -441,7 +508,7 @@ class Ps_FacetedsearchFilterBlock
             list($urlName, $metaTitle) = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
             $featureBlock[$idFeature]['values'][$idFeatureValue] = array(
                 'nbr' => $count,
-                'name' => $featureValues['value'],
+                'name' => $featureValues[$idFeatureValue]['value'],
                 'url_name' => $urlName,
                 'meta_title' => $metaTitle,
             );

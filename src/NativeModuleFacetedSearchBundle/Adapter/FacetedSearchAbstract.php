@@ -2,25 +2,25 @@
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
 abstract class FacetedSearchAbstract implements FacetedSearchInterface {
-    private $filters;
+    protected $filters = [];
 
-    private $priceFilters;
+    protected $priceFilters;
 
-    private $orderField = 'product';
+    protected $orderField = 'id_product';
 
-    private $orderDirection = 'DESC';
+    protected $orderDirection = 'DESC';
 
-    private $disableFiltersByDefault = false;
+    protected $disableFiltersByDefault = false;
 
-    private $enabledFilters = [];
+    protected $enabledFilters = [];
 
-    private $selectFields = [];
+    protected $selectFields = [];
 
-    private $groupFields = [];
+    protected $groupFields = [];
 
-    private $limit = 20;
+    protected $limit = 20;
 
-    private $offset = 0;
+    protected $offset = 0;
 
     public function __construct() {
     }
@@ -30,6 +30,13 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
      */
     public function resetFilter($filterName) {
         unset($this->filters[$filterName]);
+    }
+
+    public function resetAllFilters() {
+        $this->enabledFilters = [];
+        $this->selectFields = [];
+        $this->groupFields = [];
+        $this->filters = [];
     }
 
     /**
@@ -42,6 +49,14 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
         }
 
         return null;
+    }
+
+    public function getFilters() {
+        return $this->filters;
+    }
+
+    public function setFilters($filters) {
+        $this->filters = $filters;
     }
 
     /**
@@ -57,6 +72,10 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
         $this->selectFields[] = $fieldName;
     }
 
+    public function setSelectFields($selectFields) {
+        $this->selectFields = $selectFields;
+    }
+
     public function resetSelectField() {
         $this->selectFields = [];
     }
@@ -65,23 +84,12 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
         $this->groupFields[] = $groupField;
     }
 
-    public function resetGroupBy() {
-        $this->groupFields = [];
+    public function setGroupFields($groupFields) {
+        $this->groupFields = $groupFields;
     }
 
-    public function valueCount($fieldName, $extraSelectFields = []) {
-        $filter = $this->getFilter($fieldName);
-        $this->resetFilter($fieldName);
-        $this->addGroupBy($fieldName);
-        $this->addSelectField($fieldName);
-        $this->addSelectField('COUNT(*) c');
-        foreach($extraSelectFields as $extraSelectField) {
-            $this->addSelectField($extraSelectField);
-        }
-        $results = $this->execute();
-        $this->resetGroupBy();
-        $this->setFilter($fieldName, $filter);
-        return $results;
+    public function resetGroupBy() {
+        $this->groupFields = [];
     }
 
     /**

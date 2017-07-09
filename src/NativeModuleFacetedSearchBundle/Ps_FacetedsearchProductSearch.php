@@ -117,6 +117,8 @@ class Ps_FacetedsearchProductSearch
             $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
         }
         $this->facetedSearchAdapter->addFilter('id_shop', [$idShop]);
+        $this->facetedSearchAdapter->addGroupBy('id_product');
+        $this->facetedSearchAdapter->useFiltersAsInitialPopulation();
     }
 
     public function addFilter($filterName, $filterValues, $delimiter = '_') {
