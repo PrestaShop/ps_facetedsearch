@@ -79,8 +79,8 @@ class Ps_FacetedsearchFiltersConverter
                             ->setMagnitude($value['nbr'])
                             ->setProperty('symbol', $filterBlock['unit'])
                             ->setValue([
-                                'from' => $value[0],
-                                'to' => $value[1],
+                                'from' => $value['range_start'],
+                                'to' => $value['range_end'],
                             ])
                         ;
                         $facet->addFilter($filter);

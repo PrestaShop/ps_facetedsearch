@@ -574,8 +574,8 @@ class Ps_FacetedsearchFilterBlock
             $filteredSearchAdapter->addFilter('level_depth', [$depth+$levelDepth], '<=');
         }
 
-        $filteredSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
-        $filteredSearchAdapter->addFilter('nright', [$parent->nright], '<=');
+        $filteredSearchAdapter->addFilter('nleft', [$parent->nleft], '>');
+        $filteredSearchAdapter->addFilter('nright', [$parent->nright], '<');
     }
     
     private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
