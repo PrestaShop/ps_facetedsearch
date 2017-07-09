@@ -3,6 +3,7 @@ namespace NativeModuleFacetedSearchBundle;
 
 use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
 use Context;
+use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchInterface;
 use Tools;
 use Configuration;
 use Category;
@@ -38,9 +39,6 @@ class Ps_FacetedsearchFilterBlock
 			GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
-        $this->facetedSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
-        $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
-
         $filterBlocks = [];
         foreach ($filters as $filter) {
             switch ($filter['type']) {
@@ -66,7 +64,7 @@ class Ps_FacetedsearchFilterBlock
                     $filterBlocks = array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
-                    $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent->level_depth);
+                    $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }
 
@@ -102,13 +100,15 @@ class Ps_FacetedsearchFilterBlock
             'list_of_values' => [],
         );
 
-        $this->facetedSearchAdapter->setDisableFiltersByDefault(true);
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
         // only apply id_category filter, if it exists, to compute price range block
-        $this->facetedSearchAdapter->enableFilter('id_category');
+        if ($categoryFilter !== null) {
+            $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
+        }
 
-        list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getMinMaxValue('price');
-        $priceBlock['list_of_values'] = $this->facetedSearchAdapter->getFieldRanges('price', 10);
-        $this->facetedSearchAdapter->setDisableFiltersByDefault(false);
+        list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxValue('price');
+        $priceBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('price', 10);
 
         return $priceBlock;
     }
@@ -130,13 +130,15 @@ class Ps_FacetedsearchFilterBlock
             'list_of_values' => [],
         );
 
-        $this->facetedSearchAdapter->setDisableFiltersByDefault(true);
-        // only apply id_category filter, if it exists, to compute price range block
-        $this->facetedSearchAdapter->enableFilter('id_category');
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
+        // only apply id_category filter, if it exists, to compute weight range block
+        if ($categoryFilter !== null) {
+            $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
+        }
 
-        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getMinMaxValue('weight');
-        $weightBlock['list_of_values'] = $this->facetedSearchAdapter->getFieldRanges('weight', 10);
-        $this->facetedSearchAdapter->setDisableFiltersByDefault(false);
+        list($weightBlock['min'], $weightBlock['max']) = $filteredSearchAdapter->getMinMaxValue('weight');
+        $weightBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('weight', 10);
 
         if (empty($weightBlock['list_of_values']) && isset($selected_filters['weight'])) {
             // in case we don't have a list of values,
@@ -165,8 +167,8 @@ class Ps_FacetedsearchFilterBlock
             'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', [], 'Modules.Facetedsearch.Shop'),
                 'nbr' => 0),
         );
-
-        $results = $this->facetedSearchAdapter->valueCount('condition');
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $results = $filteredSearchAdapter->valueCount('condition');
         foreach($results as $key => $values) {
             $condition = $values['condition'];
             $count = $values['c'];
@@ -192,6 +194,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         $quantityArray = array(
             0 => array('name' => Context::getContext()->getTranslator()->trans('Not available', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
             1 => array('name' => Context::getContext()->getTranslator()->trans('In stock', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
@@ -207,8 +210,9 @@ class Ps_FacetedsearchFilterBlock
            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
-        $noMoreQuantityResults = $this->facetedSearchAdapter->valueCount('quantity', [], ['filterName' => 'quantity', 'values' => [0], 'operator' => '=']);
-        $allResults = $this->facetedSearchAdapter->count();
+        $allResults = $filteredSearchAdapter->count();
+        $filteredSearchAdapter->addFilter('quantity', [0]);
+        $noMoreQuantityResults = $filteredSearchAdapter->valueCount('quantity');
 
         $results[0]['c'] = $noMoreQuantityResults[0]['c'];
         $results[1]['c'] = $allResults - $noMoreQuantityResults[0]['c'];
@@ -220,7 +224,7 @@ class Ps_FacetedsearchFilterBlock
             $count = $results[0]['c'] + $results[1]['c'];
             $quantityArray[1]['nbr'] = $count;
         } else {
-            $resultsOutOfStock = $this->facetedSearchAdapter->valueCount('out_of_stock', [], ['filterName' => 'quantity', 'values' => [0], 'operator' => '=']);
+            $resultsOutOfStock = $this->facetedSearchAdapter->valueCount('out_of_stock');
             // search count of products always available when out of stock (out_of_stock == 1)
             if (array_key_exists(1, $resultsOutOfStock)) {
                 $results[1]['c'] += $resultsOutOfStock[1]['c'];
@@ -260,6 +264,7 @@ class Ps_FacetedsearchFilterBlock
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = [];
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
 
         $manufacturers = \Manufacturer::getManufacturers(false, $idLang);
         if ($manufacturers === []) {
@@ -269,7 +274,7 @@ class Ps_FacetedsearchFilterBlock
             $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
         }
 
-        $results = $this->facetedSearchAdapter->valueCount('id_manufacturer');
+        $results = $filteredSearchAdapter->valueCount('id_manufacturer');
         foreach($results as $key => $values) {
             $id_manufacturer = $values['id_manufacturer'];
             $count = $values['c'];
@@ -382,6 +387,7 @@ class Ps_FacetedsearchFilterBlock
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
         $attributesBlock = [];
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
 
         $idAttributeGroup = $filter['id_value'];
 
@@ -399,7 +405,8 @@ class Ps_FacetedsearchFilterBlock
             $attributes[$attribute['id_attribute']] = $attribute;
         }
 
-        $results = $this->facetedSearchAdapter->valueCount('id_attribute', [], ['filterName' => 'id_attribute_group', 'values' => [(int)$idAttributeGroup], 'operator' => '=']);
+        $filteredSearchAdapter->addFilter('id_attribute_group', [(int)$idAttributeGroup]);
+        $results = $filteredSearchAdapter->valueCount('id_attribute');
 
         foreach($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
@@ -465,6 +472,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function getFeaturesBlock($filter, $selectedFilters, $idLang) {
         $features = $featureBlock = [];
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
 
         $idFeature = $filter['id_value'];
 
@@ -473,7 +481,9 @@ class Ps_FacetedsearchFilterBlock
             $features[$feature['id_feature']] = $feature;
         }
 
-        $results = $this->facetedSearchAdapter->valueCount('id_feature_value', ['id_feature'], ['filterName' => 'id_feature', 'values' => [(int)$idFeature], 'operator' => '=']);
+        $filteredSearchAdapter->addFilter('id_feature', [(int)$idFeature]);
+        $filteredSearchAdapter->addSelectField('id_feature');
+        $results = $filteredSearchAdapter->valueCount('id_feature_value');
         foreach($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
@@ -545,7 +555,7 @@ class Ps_FacetedsearchFilterBlock
         return $featureBlock;
     }
 
-    private function addCategoriesBlockFilters($levelDepth) {
+    private function addCategoriesBlockFilters(FacetedSearchInterface $filteredSearchAdapter, $parent) {
         if (Group::isFeatureActive()) {
             $userGroups = (Context::getContext()->customer->isLogged(
             ) ? Context::getContext()->customer->getGroups() : array(
@@ -554,19 +564,24 @@ class Ps_FacetedsearchFilterBlock
                 )
             ));
 
-            $this->facetedSearchAdapter->addFilter('id_group', $userGroups);
+            $filteredSearchAdapter->addFilter('id_group', $userGroups);
         }
 
         $depth = (int)Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1);
 
         if ($depth) {
-            $this->facetedSearchAdapter->addFilter('level_depth', [$depth+$levelDepth], '<=');
+            $levelDepth = $parent->level_depth;
+            $filteredSearchAdapter->addFilter('level_depth', [$depth+$levelDepth], '<=');
         }
+
+        $filteredSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
+        $filteredSearchAdapter->addFilter('nright', [$parent->nright], '<=');
     }
     
-    private function getCategoriesBlock($filter, $selectedFilters, $idLang, $levelDepth)
+    private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
     {
-        $this->addCategoriesBlockFilters($levelDepth);
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
         $categoryArray = [];
         $categories = Category::getAllCategoriesName(null, $idLang, true, null,
@@ -574,11 +589,8 @@ class Ps_FacetedsearchFilterBlock
         foreach($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }
-        $results = $this->facetedSearchAdapter->valueCount('id_category');
+        $results = $filteredSearchAdapter->valueCount('id_category');
 
-        // reset category block filters
-        $this->facetedSearchAdapter->resetFilter('level_depth');
-        $this->facetedSearchAdapter->resetFilter('id_group');
         foreach($results as $key => $values) {
             $idCategory = $values['id_category'];
             $count = $values['c'];

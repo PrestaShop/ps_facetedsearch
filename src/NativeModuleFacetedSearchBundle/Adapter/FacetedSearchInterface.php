@@ -21,5 +21,16 @@ interface FacetedSearchInterface {
 
     function useFiltersAsInitialPopulation();
 
-    function valueCount($fieldName, $extraSelectFields = [], $filter = []);
+    /**
+     * Return a new search adapter, initialized to restrict the results to the initial population
+     *
+     * @return FacetedSearchInterface
+     */
+    function getFilteredSearchAdapter();
+
+    public function addFilter($filterName, $values, $operator = '=');
+
+    public function addSelectField($fieldName);
+
+    function valueCount($fieldName);
 }

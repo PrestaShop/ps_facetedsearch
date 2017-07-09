@@ -10,10 +10,6 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
 
     protected $orderDirection = 'DESC';
 
-    protected $disableFiltersByDefault = false;
-
-    protected $enabledFilters = [];
-
     protected $selectFields = [];
 
     protected $groupFields = [];
@@ -127,22 +123,10 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
     }
 
     /**
-     * @param $value
-     */
-    public function setDisableFiltersByDefault($value) {
-        $this->disableFiltersByDefault = (bool) $value;
-        $this->enabledFilters = [];
-    }
-
-    /**
      * @param $limit
      */
     public function setLimit($limit, $offset = 0) {
         $this->limit = $limit;
         $this->offset = $offset;
-    }
-
-    public function enableFilter($filterName) {
-        $this->enabledFilters[$filterName] = true;
     }
 }
