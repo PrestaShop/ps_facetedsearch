@@ -114,7 +114,8 @@ class Ps_FacetedsearchFiltersConverter
      * @param ProductSearchQuery $query
      * @return array
      */
-    public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query) {
+    public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query)
+    {
         $context = Context::getContext();
         $idShop = (int) $context->shop->id;
         $idLang = (int) $context->language->id;
@@ -137,18 +138,19 @@ class Ps_FacetedsearchFiltersConverter
         $urlSerializer = new URLFragmentSerializer();
         $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
 
-        foreach($filters as $filter) {
+        foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['filter_type']);
-            switch($filter['filter_type']) {
+            switch ($filter['filter_type']) {
                 case 'id_feature':
                     $features = Feature::getFeatures($idLang);
-                    foreach($features as $feature) {
+                    foreach ($features as $feature) {
                         if (isset($facetAndFiltersLabels[$feature['name']])) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
                             $featureValues =FeatureValue::getFeatureValues($feature['id_feature']);
-                            foreach($featureValues as $featureValue) {
+                            foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['name'], $featureValueLabels)) {
-                                    $facetedSearchFilters['id_feature'][$feature['id_feature']] = $featureValue['id_feature_value'];
+                                    $facetedSearchFilters['id_feature'][$feature['id_feature']] =
+                                        $featureValue['id_feature_value'];
                                 }
                             }
                         }
@@ -156,13 +158,14 @@ class Ps_FacetedsearchFiltersConverter
                     break;
                 case 'id_attribute_group':
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
-                    foreach($attributesGroup as $attributeGroup) {
+                    foreach ($attributesGroup as $attributeGroup) {
                         if (isset($facetAndFiltersLabels[$attributeGroup['name']])) {
                             $attributeLabels = $facetAndFiltersLabels[$attributeGroup['name']];
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
-                            foreach($attributes as $attribute) {
+                            foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
-                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']] = $attribute['id_attribute'];
+                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']] =
+                                        $attribute['id_attribute'];
                                 }
                             }
                         }
@@ -180,7 +183,7 @@ class Ps_FacetedsearchFiltersConverter
                     break;
                 default:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        foreach($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
                             $facetedSearchFilters[$filter['filter_type']][] = $queryFilter;
                         }
                     }
@@ -209,7 +212,7 @@ class Ps_FacetedsearchFiltersConverter
 
     private function convertFilterTypeToLabel($filterType)
     {
-        switch($filterType) {
+        switch ($filterType) {
             case 'price':
                 return Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
             case 'weight':

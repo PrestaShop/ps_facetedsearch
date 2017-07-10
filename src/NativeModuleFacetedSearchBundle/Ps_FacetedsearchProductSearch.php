@@ -15,8 +15,9 @@ class Ps_FacetedsearchProductSearch
     private $facetedSearchAdapter;
 
 
-    public function __construct($adapterType = 'MySQL') {
-        switch($adapterType) {
+    public function __construct($adapterType = 'MySQL')
+    {
+        switch ($adapterType) {
             case 'MySQL':
                 $this->facetedSearchAdapter = new FacetedSearchMySQLAdapter();
                 break;
@@ -28,11 +29,13 @@ class Ps_FacetedsearchProductSearch
     /**
      * @return FacetedSearchAbstract
      */
-    public function getFacetedSearchAdapter() {
+    public function getFacetedSearchAdapter()
+    {
         return $this->facetedSearchAdapter;
     }
 
-    public function initSearch($facetedSearchFilters) {
+    public function initSearch($facetedSearchFilters)
+    {
         $homeCategory = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
         $idParent = (int) Tools::getValue('id_category', Tools::getValue('id_category_layered', $homeCategory));
@@ -53,7 +56,8 @@ class Ps_FacetedsearchProductSearch
      * @param int $idCurrency
      * @param Category $parent
      */
-    private function addSearchFilters($selectedFilters, $idCurrency, $parent, $idShop) {
+    private function addSearchFilters($selectedFilters, $idCurrency, $parent, $idShop)
+    {
         $hasCategory = false;
         foreach ($selectedFilters as $key => $filterValues) {
             if (!count($filterValues)) {
@@ -98,15 +102,18 @@ class Ps_FacetedsearchProductSearch
 
                 case 'weight':
                     if ($selectedFilters['weight'][0] != 0 || $selectedFilters['weight'][1] != 0) {
-                        $this->facetedSearchAdapter->addFilter('weight', [(float) ($selectedFilters['weight'][0] - 0.001)], '>=');
-                        $this->facetedSearchAdapter->addFilter('weight', [(float) ($selectedFilters['weight'][1] + 0.001)], '<=');
+                        $this->facetedSearchAdapter->addFilter('weight',
+                            [(float) ($selectedFilters['weight'][0] - 0.001)], '>=');
+                        $this->facetedSearchAdapter->addFilter('weight',
+                            [(float) ($selectedFilters['weight'][1] + 0.001)], '<=');
                     }
                     break;
 
                 case 'price':
                     if (isset($selectedFilters['price'])) {
                         if ($selectedFilters['price'][0] !== '' || $selectedFilters['price'][1] !== '') {
-                            $this->addPriceFilter((float) $selectedFilters['price'][0], (float) $selectedFilters['price'][1] + 0.001, $idCurrency);
+                            $this->addPriceFilter((float) $selectedFilters['price'][0],
+                                (float) $selectedFilters['price'][1] + 0.001, $idCurrency);
                         }
                     }
                     break;
@@ -121,7 +128,8 @@ class Ps_FacetedsearchProductSearch
         $this->facetedSearchAdapter->useFiltersAsInitialPopulation();
     }
 
-    public function addFilter($filterName, $filterValues, $delimiter = '_') {
+    public function addFilter($filterName, $filterValues, $delimiter = '_')
+    {
         $values = [];
         if (!is_array($filterValues)) {
             $filterValues = [$filterValues];
@@ -139,7 +147,8 @@ class Ps_FacetedsearchProductSearch
         }
     }
 
-    private function addPriceFilter($minPrice, $maxPrice, $idCurrency) {
+    private function addPriceFilter($minPrice, $maxPrice, $idCurrency)
+    {
         // @TODO: add price conversion from current currency to default currency
         $this->facetedSearchAdapter->addPriceFilter('price', [$minPrice - 0.001], '>=');
         $this->facetedSearchAdapter->addPriceFilter('price', [$maxPrice + 0.001], '<=');

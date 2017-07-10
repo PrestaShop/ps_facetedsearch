@@ -1,7 +1,8 @@
 <?php
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
-abstract class FacetedSearchAbstract implements FacetedSearchInterface {
+abstract class FacetedSearchAbstract implements FacetedSearchInterface
+{
     protected $filters = [];
 
     protected $priceFilters;
@@ -18,17 +19,20 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
 
     protected $offset = 0;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
     /**
      * @param $filterName
      */
-    public function resetFilter($filterName) {
+    public function resetFilter($filterName)
+    {
         unset($this->filters[$filterName]);
     }
 
-    public function resetAllFilters() {
+    public function resetAllFilters()
+    {
         $this->enabledFilters = [];
         $this->selectFields = [];
         $this->groupFields = [];
@@ -39,7 +43,8 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
      * @param $filterName
      * @return mixed
      */
-    public function getFilter($filterName) {
+    public function getFilter($filterName)
+    {
         if (isset($this->filters[$filterName])) {
             return $this->filters[$filterName];
         }
@@ -47,11 +52,13 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
         return null;
     }
 
-    public function getFilters() {
+    public function getFilters()
+    {
         return $this->filters;
     }
 
-    public function setFilters($filters) {
+    public function setFilters($filters)
+    {
         $this->filters = $filters;
     }
 
@@ -60,31 +67,38 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
      * @param array $values
      * @param string $operator
      */
-    public function addFilter($filterName, $values, $operator = '=') {
+    public function addFilter($filterName, $values, $operator = '=')
+    {
         $this->filters[$filterName][$operator] = $values;
     }
 
-    public function addSelectField($fieldName) {
+    public function addSelectField($fieldName)
+    {
         $this->selectFields[] = $fieldName;
     }
 
-    public function setSelectFields($selectFields) {
+    public function setSelectFields($selectFields)
+    {
         $this->selectFields = $selectFields;
     }
 
-    public function resetSelectField() {
+    public function resetSelectField()
+    {
         $this->selectFields = [];
     }
 
-    public function addGroupBy($groupField) {
+    public function addGroupBy($groupField)
+    {
         $this->groupFields[] = $groupField;
     }
 
-    public function setGroupFields($groupFields) {
+    public function setGroupFields($groupFields)
+    {
         $this->groupFields = $groupFields;
     }
 
-    public function resetGroupBy() {
+    public function resetGroupBy()
+    {
         $this->groupFields = [];
     }
 
@@ -92,7 +106,8 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
      * @param $filterName
      * @param $value
      */
-    public function setFilter($filterName, $value) {
+    public function setFilter($filterName, $value)
+    {
         if ($value === null) {
             return;
         }
@@ -104,28 +119,32 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface {
      * @param array $values
      * @param string $operator
      */
-    public function addPriceFilter($filterName, $values, $operator = '=') {
+    public function addPriceFilter($filterName, $values, $operator = '=')
+    {
         $this->priceFilters[$filterName][$operator][] = $values;
     }
 
     /**
      * @param $fieldName
      */
-    public function setOrderField($fieldName) {
+    public function setOrderField($fieldName)
+    {
         $this->orderField = $fieldName;
     }
 
     /**
      * @param $direction
      */
-    public function setOrderDirection($direction) {
+    public function setOrderDirection($direction)
+    {
         $this->orderDirection = $direction;
     }
 
     /**
      * @param $limit
      */
-    public function setLimit($limit, $offset = 0) {
+    public function setLimit($limit, $offset = 0)
+    {
         $this->limit = $limit;
         $this->offset = $offset;
     }

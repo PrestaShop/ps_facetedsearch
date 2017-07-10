@@ -238,7 +238,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
-                        $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters($activeFacetFilters, $filter, $facet);
+                        $activeFacetFilters =
+                            $this->facetsSerializer->removeFilterFromFacetFilters($activeFacetFilters, $filter, $facet);
                         break;
                     }
                 }
@@ -249,7 +250,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
 
                 // toggle the current filter
                 if ($filter->isActive()) {
-                    $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
+                    $facetFilters =
+                        $this->facetsSerializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
                 } else {
                     $facetFilters = $this->facetsSerializer->addFilterToFacetFilters($facetFilters, $filter, $facet);
                 }

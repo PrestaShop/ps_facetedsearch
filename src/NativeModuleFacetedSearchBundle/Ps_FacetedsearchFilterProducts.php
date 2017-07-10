@@ -11,11 +11,18 @@ class Ps_FacetedsearchFilterProducts
     /** @var FacetedSearchAbstract */
     private $facetedSearchAdapter;
 
-    public function __construct(Ps_FacetedsearchProductSearch $productSearch) {
+    public function __construct(Ps_FacetedsearchProductSearch $productSearch)
+    {
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }
 
-    private function filterPrice(&$matchingProductList, $psLayeredFilterPriceUsetax, $psLayeredFilterPriceRounding, $priceFilter) {
+    private function filterPrice(
+        &$matchingProductList,
+        $psLayeredFilterPriceUsetax,
+        $psLayeredFilterPriceRounding,
+        $priceFilter
+    )
+    {
         /* for this case, price could be out of range, so we need to compute the real price */
         foreach ($matchingProductList as $key => $product) {
             if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
@@ -88,7 +95,8 @@ class Ps_FacetedsearchFilterProducts
             }
 
             if ($psLayeredFilterPriceUsetax || $psLayeredFilterPriceRounding) {
-                $this->filterPrice($matchingProductList, $psLayeredFilterPriceUsetax, $psLayeredFilterPriceRounding, $priceFilter);
+                $this->filterPrice($matchingProductList, $psLayeredFilterPriceUsetax, $psLayeredFilterPriceRounding,
+                    $priceFilter);
             }
         }
     }
