@@ -16,7 +16,8 @@ class Ps_FacetedsearchFilterBlock
     /** @var FacetedSearchAbstract */
     private $facetedSearchAdapter;
 
-    public function __construct(Ps_FacetedsearchProductSearch $productSearch) {
+    public function __construct(Ps_FacetedsearchProductSearch $productSearch)
+    {
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }
 
@@ -28,7 +29,8 @@ class Ps_FacetedsearchFilterBlock
         $idLang = $context->language->id;
         $currency = $context->currency;
         $idShop = (int) $context->shop->id;
-        $idParent = (int) Tools::getValue('id_category', Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')));
+        $idParent = (int) Tools::getValue('id_category',
+            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')));
         $parent = new Category((int) $idParent, $idLang);
 
         /* Get the filters for the current category */
@@ -58,10 +60,12 @@ class Ps_FacetedsearchFilterBlock
                     $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters, $idLang);
                     break;
                 case 'id_attribute_group':
-                    $filterBlocks = array_merge($filterBlocks, $this->getAttributesBlock($filter, $selectedFilters, $idLang));
+                    $filterBlocks =
+                        array_merge($filterBlocks, $this->getAttributesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'id_feature':
-                    $filterBlocks = array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
+                    $filterBlocks =
+                        array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
@@ -162,14 +166,17 @@ class Ps_FacetedsearchFilterBlock
     private function getConditionsBlock($filter, $selectedFilters)
     {
         $conditionArray = array(
-            'new' => array('name' => Context::getContext()->getTranslator()->trans('New', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
-            'used' => array('name' => Context::getContext()->getTranslator()->trans('Used', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
-            'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', [], 'Modules.Facetedsearch.Shop'),
+            'new' => array('name' => Context::getContext()->getTranslator()->trans('New', [],
+                'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            'used' => array('name' => Context::getContext()->getTranslator()->trans('Used', [],
+                'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            'refurbished' => array('name' => Context::getContext()->getTranslator()->trans('Refurbished', [],
+                'Modules.Facetedsearch.Shop'),
                 'nbr' => 0),
         );
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         $results = $filteredSearchAdapter->valueCount('condition');
-        foreach($results as $key => $values) {
+        foreach ($results as $key => $values) {
             $condition = $values['condition'];
             $count = $values['c'];
 
@@ -196,8 +203,10 @@ class Ps_FacetedsearchFilterBlock
     {
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         $quantityArray = array(
-            0 => array('name' => Context::getContext()->getTranslator()->trans('Not available', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
-            1 => array('name' => Context::getContext()->getTranslator()->trans('In stock', [], 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            0 => array('name' => Context::getContext()->getTranslator()->trans('Not available', [],
+                'Modules.Facetedsearch.Shop'), 'nbr' => 0),
+            1 => array('name' => Context::getContext()->getTranslator()->trans('In stock', [],
+                'Modules.Facetedsearch.Shop'), 'nbr' => 0),
         );
 
         static $ps_stock_management = null;
@@ -207,7 +216,7 @@ class Ps_FacetedsearchFilterBlock
         }
 
         if ($ps_order_out_of_stock === null) {
-           $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
+            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
         $allResults = $filteredSearchAdapter->count();
@@ -274,17 +283,19 @@ class Ps_FacetedsearchFilterBlock
         if ($manufacturers === []) {
             return $manufacturersArray;
         }
-        foreach($manufacturers as $key => $manufacturer) {
+        foreach ($manufacturers as $key => $manufacturer) {
             $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
         }
 
         $results = $filteredSearchAdapter->valueCount('id_manufacturer');
-        foreach($results as $key => $values) {
+        foreach ($results as $key => $values) {
             $id_manufacturer = $values['id_manufacturer'];
             $count = $values['c'];
 
-            $manufacturersArray[$id_manufacturer] = array('name' => $manufacturers[$id_manufacturer]['name'], 'nbr' => $count);
-            if (isset($selectedFilters['manufacturer']) && in_array($id_manufacturer, $selectedFilters['manufacturer'])) {
+            $manufacturersArray[$id_manufacturer] = array('name' => $manufacturers[$id_manufacturer]['name'],
+                'nbr' => $count);
+            if (isset($selectedFilters['manufacturer'])
+                && in_array($id_manufacturer, $selectedFilters['manufacturer'])) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
         }
@@ -359,7 +370,9 @@ class Ps_FacetedsearchFilterBlock
 				ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = '.(int)$idLang.')
 			'.Shop::addSqlAssociation('attribute_group', 'ag').'
 			'.Shop::addSqlAssociation('attribute', 'a').'
-			'.($notNull ? 'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL' : '').'
+			'.($notNull ?
+                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL '.
+                'AND agl.`id_attribute_group` IS NOT NULL' : '').'
 			ORDER BY agl.`name` ASC, a.`position` ASC
 		');
     }
@@ -400,19 +413,19 @@ class Ps_FacetedsearchFilterBlock
             return $attributesBlock;
         }
 
-        foreach($attributesGroup as $key => $attributeGroup) {
+        foreach ($attributesGroup as $key => $attributeGroup) {
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
 
         $attributes = self::getAttributes($idLang, true);
-        foreach($attributes as $key => $attribute) {
+        foreach ($attributes as $key => $attribute) {
             $attributes[$attribute['id_attribute']] = $attribute;
         }
 
         $filteredSearchAdapter->addFilter('id_attribute_group', [(int)$idAttributeGroup]);
         $results = $filteredSearchAdapter->valueCount('id_attribute');
 
-        foreach($results as $key => $values) {
+        foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
             $count = $values['c'];
 
@@ -451,7 +464,7 @@ class Ps_FacetedsearchFilterBlock
             }
         }
 
-        foreach($attributesBlock as $idAttributeGroup => $value) {
+        foreach ($attributesBlock as $idAttributeGroup => $value) {
             $attributesBlock[$idAttributeGroup]['values'] = $this->sortByKey($attributes, $value['values']);
         }
 
@@ -465,7 +478,7 @@ class Ps_FacetedsearchFilterBlock
         $sortedArray = [];
 
         // iterate in the original order
-        foreach($sortedReferenceArray as $key => $value) {
+        foreach ($sortedReferenceArray as $key => $value) {
             if (array_key_exists($key, $array)) {
                 $sortedArray[$key] = $array[$key];
             }
@@ -474,21 +487,22 @@ class Ps_FacetedsearchFilterBlock
         return $sortedArray;
     }
 
-    private function getFeaturesBlock($filter, $selectedFilters, $idLang) {
+    private function getFeaturesBlock($filter, $selectedFilters, $idLang)
+    {
         $features = $featureBlock = [];
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
 
         $idFeature = $filter['id_value'];
 
         $tempFeatures = \Feature::getFeatures($idLang);
-        foreach($tempFeatures as $key => $feature) {
+        foreach ($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
 
         $filteredSearchAdapter->addFilter('id_feature', [(int)$idFeature]);
         $filteredSearchAdapter->addSelectField('id_feature');
         $results = $filteredSearchAdapter->valueCount('id_feature_value');
-        foreach($results as $key => $values) {
+        foreach ($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
             $count = $values['c'];
@@ -498,7 +512,7 @@ class Ps_FacetedsearchFilterBlock
             if (!isset($featureBlock[$idFeature])) {
                 $tempFeatureValues = \FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
 
-                foreach($tempFeatureValues as $featureValueKey => $featureValue) {
+                foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']]= $featureValue;
                 }
 
@@ -559,7 +573,8 @@ class Ps_FacetedsearchFilterBlock
         return $featureBlock;
     }
 
-    private function addCategoriesBlockFilters(FacetedSearchInterface $filteredSearchAdapter, $parent) {
+    private function addCategoriesBlockFilters(FacetedSearchInterface $filteredSearchAdapter, $parent)
+    {
         if (Group::isFeatureActive()) {
             $userGroups = (Context::getContext()->customer->isLogged(
             ) ? Context::getContext()->customer->getGroups() : array(
@@ -590,12 +605,12 @@ class Ps_FacetedsearchFilterBlock
         $categoryArray = [];
         $categories = Category::getAllCategoriesName(null, $idLang, true, null,
             true, '', 'ORDER BY c.nleft, c.position');
-        foreach($categories as $key => $value) {
+        foreach ($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }
         $results = $filteredSearchAdapter->valueCount('id_category');
 
-        foreach($results as $key => $values) {
+        foreach ($results as $key => $values) {
             $idCategory = $values['id_category'];
             $count = $values['c'];
 

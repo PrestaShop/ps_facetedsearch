@@ -6,7 +6,8 @@ use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
 class Ps_FacetedsearchFacetsURLSerializer
 {
-    public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, $facet) {
+    public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
+    {
         if ($facet->getProperty('range')) {
             $facetFilters[$facet->getLabel()] = [
                 $facetFilter->getProperty('symbol'),
@@ -19,7 +20,8 @@ class Ps_FacetedsearchFacetsURLSerializer
         return $facetFilters;
     }
 
-    public function removeFilterFromFacetFilters(array $facetFilters, Filter $facetFilter, $facet) {
+    public function removeFilterFromFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
+    {
         if ($facet->getProperty('range')) {
             unset($facetFilters[$facet->getLabel()]);
         } else {
@@ -31,7 +33,8 @@ class Ps_FacetedsearchFacetsURLSerializer
         return $facetFilters;
     }
 
-    public function getActiveFacetFiltersFromFacets(array $facets) {
+    public function getActiveFacetFiltersFromFacets(array $facets)
+    {
         $facetFilters = [];
         foreach ($facets as $facet) {
             if ($facet->getProperty('range')) {
