@@ -135,7 +135,7 @@ class Ps_FacetedsearchProductSearch
             $filterValues = [$filterValues];
         }
         foreach ($filterValues as $filterValue) {
-            if ($delimiter) {
+            if ($delimiter && is_array($filterValue)) {
                 $filterValue_array = explode($delimiter, $filterValue);
                 $values[] = (int)$filterValue_array[1];
             } else {

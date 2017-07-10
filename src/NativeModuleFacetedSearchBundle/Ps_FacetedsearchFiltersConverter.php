@@ -139,14 +139,15 @@ class Ps_FacetedsearchFiltersConverter
         $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
 
         foreach ($filters as $filter) {
-            $filterLabel = $this->convertFilterTypeToLabel($filter['filter_type']);
-            switch ($filter['filter_type']) {
+            $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
+            switch ($filter['type']) {
                 case 'id_feature':
                     $features = Feature::getFeatures($idLang);
                     foreach ($features as $feature) {
-                        if (isset($facetAndFiltersLabels[$feature['name']])) {
+                        if ($filter['id_value'] == $feature['id_feature']
+                            && isset($facetAndFiltersLabels[$feature['name']])) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues =FeatureValue::getFeatureValues($feature['id_feature']);
+                            $featureValues = FeatureValue::getFeatureValues($feature['id_feature']);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['name'], $featureValueLabels)) {
                                     $facetedSearchFilters['id_feature'][$feature['id_feature']] =
@@ -159,7 +160,8 @@ class Ps_FacetedsearchFiltersConverter
                 case 'id_attribute_group':
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
-                        if (isset($facetAndFiltersLabels[$attributeGroup['name']])) {
+                        if ($filter['id_value'] == $attributeGroup['id_attribute_group']
+                            && isset($facetAndFiltersLabels[$attributeGroup['name']])) {
                             $attributeLabels = $facetAndFiltersLabels[$attributeGroup['name']];
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {
@@ -177,14 +179,14 @@ class Ps_FacetedsearchFiltersConverter
                         $filters = $facetAndFiltersLabels[$filterLabel];
                         $from = $filters[1];
                         $to = $filters[2];
-                        $selectedFilters[$filter['filter_type']][0] = $from;
-                        $selectedFilters[$filter['filter_type']][1] = $to;
+                        $selectedFilters[$filter['type']][0] = $from;
+                        $selectedFilters[$filter['type']][1] = $to;
                     }
                     break;
                 default:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $facetedSearchFilters[$filter['filter_type']][] = $queryFilter;
+                            $facetedSearchFilters[$filter['type']][] = $queryFilter;
                         }
                     }
             }
