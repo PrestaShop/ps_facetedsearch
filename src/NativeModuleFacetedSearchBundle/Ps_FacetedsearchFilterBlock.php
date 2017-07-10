@@ -107,7 +107,7 @@ class Ps_FacetedsearchFilterBlock
             $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
         }
 
-        list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxValue('price');
+        list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxPriceValue();
         $priceBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('price', 10);
 
         return $priceBlock;

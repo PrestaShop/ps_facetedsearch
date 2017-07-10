@@ -15,6 +15,8 @@ interface FacetedSearchInterface {
 
     function getMinMaxValue($fieldName);
 
+    function getMinMaxPriceValue();
+
     function getFieldRanges($fieldName, $outputLength);
 
     function count();

@@ -19,6 +19,12 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
      * @return array
      */
     protected function getFieldMapping() {
+        $stockCondition = \StockAvailable::addSqlShopRestriction(
+            null,
+            null,
+            'sa'
+        );
+
         $filterToTableMapping = [
             'id_product_attribute' => ['tableName' => 'product_attribute', 'tableAlias' => 'pa', 'joinCondition' => '(p.id_product = pa.id_product)', 'joinType' => self::LEFT_JOIN],
             'id_attribute' => ['tableName' => 'product_attribute_combination', 'tableAlias' => 'pac', 'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
@@ -31,7 +37,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
             'nleft' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::INNER_JOIN, 'dependencyField' => 'id_category'],
             'nright' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::INNER_JOIN, 'dependencyField' => 'id_category'],
             'level_depth' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::INNER_JOIN, 'dependencyField' => 'id_category'],
-            'out_of_stock' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND pa.id_product_attribute = sa.id_product_attribute)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
+            'out_of_stock' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.$stockCondition.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'price_min' => ['tableName' => 'layered_price_index', 'tableAlias' => 'psi', 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.\Context::getContext()->currency->id.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'id_group' => ['tableName' => 'category_group', 'tableAlias' => 'cg', 'joinCondition' => '(cg.id_category = c.id_category)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'nleft'],
         ];
@@ -233,6 +239,19 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
     }
 
+    public function getMinMaxPriceValue()
+    {
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
+        $mysqlAdapter->setFilters($this->getFilters());
+        $this->setSelectFields(['price_min', 'MIN(price_min) as min, MAX(price_max) as max']);
+        $this->setLimit(null);
+        $this->setOrderField('');
+
+        $result = $this->execute();
+
+        return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
+    }
+
     public function getMinMaxValue($fieldName)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
@@ -265,7 +284,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
         $diff = $result[0]['diff'];
 
         if ($diff == 0) {
-            return [['range_start' => '0', 'range_end' => '0', 'nbr' => '0']];
+            return [];
         }
 
         $mysqlAdapter = $this->getFilteredSearchAdapter();
