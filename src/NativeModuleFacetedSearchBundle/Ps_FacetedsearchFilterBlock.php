@@ -214,8 +214,12 @@ class Ps_FacetedsearchFilterBlock
         $filteredSearchAdapter->addFilter('quantity', [0]);
         $noMoreQuantityResults = $filteredSearchAdapter->valueCount('quantity');
 
-        $results[0]['c'] = $noMoreQuantityResults[0]['c'];
-        $results[1]['c'] = $allResults - $noMoreQuantityResults[0]['c'];
+        if (!empty($noMoreQuantityResults)) {
+            $results[0]['c'] = $noMoreQuantityResults[0]['c'];
+        } else {
+            $results[0]['c'] = 0;
+        }
+        $results[1]['c'] = $allResults - $results[0]['c'];
         if (!$ps_stock_management) {
             if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
                 $quantityArray[1]['checked'] = true;

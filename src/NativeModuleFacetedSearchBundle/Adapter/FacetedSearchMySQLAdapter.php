@@ -38,6 +38,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract {
             'nright' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::INNER_JOIN, 'dependencyField' => 'id_category'],
             'level_depth' => ['tableName' => 'category', 'tableAlias' => 'c', 'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)', 'joinType' => self::INNER_JOIN, 'dependencyField' => 'id_category'],
             'out_of_stock' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.$stockCondition.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
+            'quantity' => ['tableName' => 'stock_available', 'tableAlias' => 'sa', 'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.$stockCondition.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'price_min' => ['tableName' => 'layered_price_index', 'tableAlias' => 'psi', 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.\Context::getContext()->currency->id.')', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'id_product_attribute'],
             'id_group' => ['tableName' => 'category_group', 'tableAlias' => 'cg', 'joinCondition' => '(cg.id_category = c.id_category)', 'joinType' => self::LEFT_JOIN, 'dependencyField' => 'nleft'],
         ];
