@@ -459,9 +459,12 @@ class Ps_FacetedsearchFilterBlock
                 'meta_title' => $metaTitle,
             );
 
-            if (array_key_exists('id_attribute_group', $selectedFilters)
-                && in_array($idAttribute, $selectedFilters['id_attribute_group'])) {
-                $attributesBlock[$idAttributeGroup]['values'][$idAttribute]['checked'] = true;
+            if (array_key_exists('id_attribute_group', $selectedFilters)) {
+                foreach ($selectedFilters['id_attribute_group'] as $selectedAttribute) {
+                    if (in_array($idAttribute, $selectedAttribute)) {
+                        $attributesBlock[$idAttributeGroup]['values'][$idAttribute]['checked'] = true;
+                    }
+                }
             }
         }
 
@@ -542,9 +545,12 @@ class Ps_FacetedsearchFilterBlock
                 'meta_title' => $metaTitle,
             );
 
-            if (array_key_exists('id_feature', $selectedFilters)
-                && in_array($idFeatureValue, $selectedFilters['id_feature'])) {
-                $featureBlock[$feature['id_feature']]['values'][$idFeatureValue]['checked'] = true;
+            if (array_key_exists('id_feature', $selectedFilters)) {
+                foreach ($selectedFilters['id_feature'] as $selectedFeature) {
+                    if (in_array($idFeatureValue, $selectedFeature)) {
+                        $featureBlock[$feature['id_feature']]['values'][$idFeatureValue]['checked'] = true;
+                    }
+                }
             }
         }
 

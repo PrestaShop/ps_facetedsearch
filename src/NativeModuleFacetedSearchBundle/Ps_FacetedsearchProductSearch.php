@@ -77,7 +77,7 @@ class Ps_FacetedsearchProductSearch
                     break;
 
                 case 'category':
-                    $this->addFilter('id_category', $filterValues, null);
+                    $this->addFilter('id_category', $filterValues);
                     $hasCategory = true;
                     break;
 
@@ -90,14 +90,14 @@ class Ps_FacetedsearchProductSearch
                     break;
 
                 case 'manufacturer':
-                    $this->addFilter('id_manufacturer', $filterValues, null);
+                    $this->addFilter('id_manufacturer', $filterValues);
                     break;
 
                 case 'condition':
                     if (count($selectedFilters['condition']) == 3) {
                         break;
                     }
-                    $this->addFilter('condition', $filterValues, null);
+                    $this->addFilter('condition', $filterValues);
                     break;
 
                 case 'weight':
@@ -113,7 +113,7 @@ class Ps_FacetedsearchProductSearch
                     if (isset($selectedFilters['price'])) {
                         if ($selectedFilters['price'][0] !== '' || $selectedFilters['price'][1] !== '') {
                             $this->addPriceFilter((float) $selectedFilters['price'][0],
-                                (float) $selectedFilters['price'][1] + 0.001, $idCurrency);
+                                (float) $selectedFilters['price'][1] + 0.001);
                         }
                     }
                     break;
@@ -128,29 +128,29 @@ class Ps_FacetedsearchProductSearch
         $this->facetedSearchAdapter->useFiltersAsInitialPopulation();
     }
 
-    public function addFilter($filterName, $filterValues, $delimiter = '_')
+    public function addFilter($filterName, $filterValues)
     {
-        $values = [];
         if (!is_array($filterValues)) {
             $filterValues = [$filterValues];
         }
         foreach ($filterValues as $filterValue) {
-            if ($delimiter && is_array($filterValue)) {
-                $filterValue_array = explode($delimiter, $filterValue);
-                $values[] = (int)$filterValue_array[1];
+            $values = [];
+            if (is_array($filterValue)) {
+                foreach($filterValue as $subFilterValue) {
+                    $values[] = (int)$subFilterValue;
+                }
             } else {
                 $values[] = (int)$filterValue;
             }
-        }
-        if ($values) {
-            $this->facetedSearchAdapter->addFilter($filterName, $values);
+            if ($values) {
+                $this->facetedSearchAdapter->addFilter($filterName, $values);
+            }
         }
     }
 
-    private function addPriceFilter($minPrice, $maxPrice, $idCurrency)
+    private function addPriceFilter($minPrice, $maxPrice)
     {
-        // @TODO: add price conversion from current currency to default currency
-        $this->facetedSearchAdapter->addPriceFilter('price', [$minPrice - 0.001], '>=');
-        $this->facetedSearchAdapter->addPriceFilter('price', [$maxPrice + 0.001], '<=');
+        $this->facetedSearchAdapter->addFilter('price_min', [$minPrice - 0.001], '>=');
+        $this->facetedSearchAdapter->addFilter('price_max', [$maxPrice + 0.001], '<=');
     }
 }

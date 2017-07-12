@@ -49,7 +49,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function getQuery()
     {
         $filterToTableMapping = $this->getFieldMapping();
-        $this->computeOrderByField($filterToTableMapping);
+        $orderField = $this->computeOrderByField($filterToTableMapping);
         if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)) {
             $query = $this->referenceTable;
             $this->orderField = '';
@@ -59,7 +59,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             $selectFields = $this->computeSelectFields($filterToTableMapping);
             $whereConditions = $this->computeWhereConditions($filterToTableMapping);
             $joinConditions = $this->computeJoinConditions($filterToTableMapping);
-            $this->computeGroupByFields($filterToTableMapping);
+            $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
             $query .= implode(', ', $selectFields) . ' FROM ' . $this->referenceTable . ' ' .
                 $this->referenceAlias;
@@ -75,13 +75,13 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 $query .= ' WHERE ' . implode(' AND ', $whereConditions);
             }
 
-            if ($this->groupFields) {
-                $query .= ' GROUP BY ' . implode(', ', $this->groupFields);
+            if ($groupFields) {
+                $query .= ' GROUP BY ' . implode(', ', $groupFields);
             }
         }
 
         if ($this->orderField) {
-            $query .= ' ORDER BY ' . $this->orderField . ' ' . $this->orderDirection;
+            $query .= ' ORDER BY ' . $orderField . ' ' . $this->orderDirection;
         }
 
         if ($this->limit !== null) {
@@ -212,6 +212,15 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ],
+            'price_max' =>
+                [
+                    'tableName' => 'layered_price_index',
+                    'tableAlias' => 'psi',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
+                        \Context::getContext()->currency->id.')',
+                    'joinType' => self::LEFT_JOIN,
+                    'dependencyField' => 'id_product_attribute'
+                ],
             'id_group' =>
                 [
                     'tableName' => 'category_group',
@@ -229,14 +238,16 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         if (empty($this->orderField) || strpos($this->orderField, '.') !== false
             || strpos($this->orderField, '(') !== false) {
-            return;
+            return $this->orderField;
         }
         if (array_key_exists($this->orderField, $filterToTableMapping)) {
             $joinMapping = $filterToTableMapping[$this->orderField];
-            $this->orderField = $joinMapping['tableAlias'].'.'.$this->orderField;
+            $orderField = $joinMapping['tableAlias'].'.'.$this->orderField;
         } else {
-            $this->orderField = 'p.'.$this->orderField;
+            $orderField = 'p.'.$this->orderField;
         }
+
+        return $orderField;
     }
 
     /**
@@ -273,28 +284,33 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $whereConditions = [];
         foreach ($this->filters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $values) {
-                $selectAlias = 'p';
-                if (array_key_exists($filterName, $filterToTableMapping)) {
-                    $joinMapping = $filterToTableMapping[$filterName];
-                    $selectAlias = $joinMapping['tableAlias'];
-                }
-
-                if ($operator === '=') {
-                    if (count($values) == 1) {
-                        $whereConditions[] =
-                            $selectAlias . '.' . $filterName . $operator . "'" . current($values) . "'";
-                    } else {
-                        $whereConditions[] =
-                            $selectAlias . '.' . $filterName . ' IN ('.implode(', ', array_map(function ($value) {
-                            return "'".$value."'";
-                        }, $values)).')';
-                    }
+                if (count($values) > 1) {
+                    // @TODO : special treatment for intersect the result of two filters
                 } else {
-                    $orConditions = [];
-                    foreach ($values as $value) {
-                        $orConditions[] = $selectAlias . '.' . $filterName . $operator . $value;
+                    $values = current($values);
+                    $selectAlias = 'p';
+                    if (array_key_exists($filterName, $filterToTableMapping)) {
+                        $joinMapping = $filterToTableMapping[$filterName];
+                        $selectAlias = $joinMapping['tableAlias'];
                     }
-                    $whereConditions[] = implode(' OR ', $orConditions);
+
+                    if ($operator === '=') {
+                        if (count($values) == 1) {
+                            $whereConditions[] =
+                                $selectAlias . '.' . $filterName . $operator . "'" . current($values) . "'";
+                        } else {
+                            $whereConditions[] =
+                                $selectAlias . '.' . $filterName . ' IN (' . implode(', ', array_map(function ($value) {
+                                    return "'" . $value . "'";
+                                }, $values)) . ')';
+                        }
+                    } else {
+                        $orConditions = [];
+                        foreach ($values as $value) {
+                            $orConditions[] = $selectAlias . '.' . $filterName . $operator . $value;
+                        }
+                        $whereConditions[] = implode(' OR ', $orConditions);
+                    }
                 }
             }
         }
@@ -362,22 +378,26 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
 
     private function computeGroupByFields($filterToTableMapping)
     {
+        $groupFields = [];
         if (empty($this->groupFields)) {
-            return;
+            return $groupFields;
         }
 
         foreach ($this->groupFields as $key => $values) {
             if (strpos($values, '.') !== false
                 || strpos($values, '(') !== false) {
+                $groupFields[$key] = $values;
                 continue;
             }
             if (array_key_exists($values, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$values];
-                $this->groupFields[$key] = $joinMapping['tableAlias'].'.'.$values;
+                $groupFields[$key] = $joinMapping['tableAlias'].'.'.$values;
             } else {
-                $this->groupFields[$key] = 'p.'.$values;
+                $groupFields[$key] = 'p.'.$values;
             }
         }
+
+        return $groupFields;
     }
 
     public function getMinMaxValue($fieldName)

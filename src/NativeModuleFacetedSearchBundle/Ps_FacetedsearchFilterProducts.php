@@ -59,6 +59,14 @@ class Ps_FacetedsearchFilterProducts
         if (!Validate::isOrderWay($orderWay)) {
             $this->facetedSearchAdapter->setOrderDirection('ASC');
         }
+
+        if (isset($selectedFilters['price'])) {
+            $this->facetedSearchAdapter->addSelectField('id_product');
+            $this->facetedSearchAdapter->addGroupBy('id_product');
+            $this->facetedSearchAdapter->addSelectField('price_min');
+            $this->facetedSearchAdapter->addSelectField('price_max');
+        }
+
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
         $this->pricePostFiltering($matchingProductList, $selectedFilters);
@@ -80,9 +88,7 @@ class Ps_FacetedsearchFilterProducts
         if (isset($selectedFilters['price'])) {
             $priceFilter['min'] = (float)($selectedFilters['price'][0]);
             $priceFilter['max'] = (float)($selectedFilters['price'][1]);
-        }
 
-        if (isset($priceFilter) && $priceFilter) {
             static $psLayeredFilterPriceUsetax = null;
             static $psLayeredFilterPriceRounding = null;
 
