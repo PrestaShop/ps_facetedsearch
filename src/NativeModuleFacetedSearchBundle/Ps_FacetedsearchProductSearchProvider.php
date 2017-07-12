@@ -26,88 +26,6 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer();
     }
 
-    /* @TODO: remove */
-    public function getFacetCollectionFromQuery(ProductSearchQuery $query,
-        $filterBlock
-    ) {
-        $queryTemplate = $this->filtersConverter->getFacetsFromFilterBlocks(
-            $filterBlock['filters']
-        );
-
-        $facets = $this->facetsSerializer->setFiltersFromEncodedFacets(
-            $queryTemplate,
-            $query->getEncodedFacets()
-        );
-
-        return (new FacetCollection())->setFacets($facets);
-    }
-
-    private function copyFiltersActiveState(
-        array $sourceFacets,
-        array $targetFacets
-    ) {
-        $copyByLabel = function (Facet $source, Facet $target) {
-            foreach ($target->getFilters() as $targetFilter) {
-                foreach ($source->getFilters() as $sourceFilter) {
-                    if ($sourceFilter->getLabel() === $targetFilter->getLabel()) {
-                        $targetFilter->setActive($sourceFilter->isActive());
-                        break;
-                    }
-                }
-            }
-        };
-
-        $copyByRangeValue = function (Facet $source, Facet $target) {
-            foreach ($source->getFilters() as $sourceFilter) {
-                if ($sourceFilter->isActive()) {
-                    $foundRange = false;
-                    foreach ($target->getFilters() as $targetFilter) {
-                        $tFrom = $targetFilter->getValue()['from'];
-                        $tTo = $targetFilter->getValue()['to'];
-                        $sFrom = $sourceFilter->getValue()['from'];
-                        $sTo = $sourceFilter->getValue()['to'];
-                        if ($tFrom <= $sFrom && $sTo <= $tTo) {
-                            $foundRange = true;
-                            $targetFilter->setActive(true);
-                            break;
-                        }
-                    }
-                    if (!$foundRange) {
-                        $filter = clone $sourceFilter;
-                        $filter->setDisplayed(false);
-                        $target->addFilter($filter);
-                    }
-                    break;
-                }
-            }
-        };
-
-        $copy = function (
-            Facet $source,
-            Facet $target
-        ) use (
-            $copyByLabel,
-            $copyByRangeValue
-        ) {
-            if ($target->getProperty('range')) {
-                $strategy = $copyByRangeValue;
-            } else {
-                $strategy = $copyByLabel;
-            }
-
-            $strategy($source, $target);
-        };
-
-        foreach ($targetFacets as $targetFacet) {
-            foreach ($sourceFacets as $sourceFacet) {
-                if ($sourceFacet->getLabel() === $targetFacet->getLabel()) {
-                    $copy($sourceFacet, $targetFacet);
-                    break;
-                }
-            }
-        }
-    }
-
     private function getAvailableSortOrders()
     {
         return [
@@ -164,14 +82,6 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
             $filterBlock['filters']
-        );
-
-        $menu = (new FacetCollection())->setFacets($facets); //$this->getFacetCollectionFromQuery($query, $filterBlock);
-
-        /* @TODO: remove ? */
-        $this->copyFiltersActiveState(
-            $menu->getFacets(),
-            $facets
         );
 
         $this->labelRangeFilters($facets);

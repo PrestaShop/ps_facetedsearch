@@ -26,6 +26,7 @@ class Ps_FacetedsearchFiltersConverter
                 ->setLabel($filterBlock['name'])
                 ->setMultipleSelectionAllowed(true)
             ;
+
             switch ($filterBlock['type']) {
                 case 'category':
                 case 'quantity':
@@ -52,6 +53,9 @@ class Ps_FacetedsearchFiltersConverter
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id)
                         ;
+                        if (array_key_exists('checked', $filterArray)) {
+                            $filter->setActive($filterArray['checked']);
+                        }
                         if (isset($filterArray['color']) && $filterArray['color'] != '') {
                             $filter->setProperty('color', $filterArray['color']);
                         }
@@ -83,6 +87,11 @@ class Ps_FacetedsearchFiltersConverter
                                 'to' => $value['range_end'],
                             ])
                         ;
+
+                        if (array_key_exists('checked', $filterBlock)) {
+                            $filter->setActive($filterBlock['checked']);
+                        }
+
                         $facet->addFilter($filter);
                     }
 
@@ -147,9 +156,9 @@ class Ps_FacetedsearchFiltersConverter
                         if ($filter['id_value'] == $feature['id_feature']
                             && isset($facetAndFiltersLabels[$feature['name']])) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues = FeatureValue::getFeatureValues($feature['id_feature']);
+                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
                             foreach ($featureValues as $featureValue) {
-                                if (in_array($featureValue['name'], $featureValueLabels)) {
+                                if (in_array($featureValue['value'], $featureValueLabels)) {
                                     $facetedSearchFilters['id_feature'][$feature['id_feature']] =
                                         $featureValue['id_feature_value'];
                                 }
