@@ -159,7 +159,7 @@ class Ps_FacetedsearchFiltersConverter
                             $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['value'], $featureValueLabels)) {
-                                    $facetedSearchFilters['id_feature'][$feature['id_feature']] =
+                                    $facetedSearchFilters['id_feature'][$feature['id_feature']][] =
                                         $featureValue['id_feature_value'];
                                 }
                             }
@@ -175,7 +175,7 @@ class Ps_FacetedsearchFiltersConverter
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
-                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']] =
+                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] =
                                         $attribute['id_attribute'];
                                 }
                             }
@@ -188,8 +188,8 @@ class Ps_FacetedsearchFiltersConverter
                         $filters = $facetAndFiltersLabels[$filterLabel];
                         $from = $filters[1];
                         $to = $filters[2];
-                        $selectedFilters[$filter['type']][0] = $from;
-                        $selectedFilters[$filter['type']][1] = $to;
+                        $facetedSearchFilters[$filter['type']][0] = $from;
+                        $facetedSearchFilters[$filter['type']][1] = $to;
                     }
                     break;
                 case 'category':

@@ -5,8 +5,6 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 {
     protected $filters = [];
 
-    protected $priceFilters;
-
     protected $orderField = 'id_product';
 
     protected $orderDirection = 'DESC';
@@ -69,7 +67,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
      */
     public function addFilter($filterName, $values, $operator = '=')
     {
-        $this->filters[$filterName][$operator] = $values;
+        $this->filters[$filterName][$operator][] = $values;
     }
 
     public function addSelectField($fieldName)
@@ -112,16 +110,6 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
             return;
         }
         $this->filters[$filterName] = $value;
-    }
-
-    /**
-     * @param string $filterName
-     * @param array $values
-     * @param string $operator
-     */
-    public function addPriceFilter($filterName, $values, $operator = '=')
-    {
-        $this->priceFilters[$filterName][$operator][] = $values;
     }
 
     /**
