@@ -64,8 +64,8 @@ class Ps_FacetedsearchProductSearch
                 continue;
             }
 
-            preg_match('/^(.*[^_0-9])/', $filterValues, $res);
-            $filterValues = $res[1];
+            /*preg_match('/^(.*[^_0-9])/', $filterValues, $res);
+            $filterValues = $res[1];*/
 
             switch ($key) {
                 case 'id_feature':
