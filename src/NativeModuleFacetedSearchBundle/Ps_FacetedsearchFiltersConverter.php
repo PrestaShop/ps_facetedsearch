@@ -183,6 +183,16 @@ class Ps_FacetedsearchFiltersConverter
                         $selectedFilters[$filter['type']][1] = $to;
                     }
                     break;
+                case 'category':
+                    if (isset($facetAndFiltersLabels[$filterLabel])) {
+                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                            $categories = \Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
+                            if ($categories) {
+                                $facetedSearchFilters[$filter['type']][] = $categories['id_category'];
+                            }
+                        }
+                    }
+                    break;
                 default:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
