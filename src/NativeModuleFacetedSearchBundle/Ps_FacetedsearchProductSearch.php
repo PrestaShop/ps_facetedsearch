@@ -64,8 +64,8 @@ class Ps_FacetedsearchProductSearch
                 continue;
             }
 
-            preg_match('/^(.*[^_0-9])/', $key, $res);
-            $key = $res[1];
+            preg_match('/^(.*[^_0-9])/', $filterValues, $res);
+            $filterValues = $res[1];
 
             switch ($key) {
                 case 'id_feature':
@@ -77,7 +77,7 @@ class Ps_FacetedsearchProductSearch
                     break;
 
                 case 'category':
-                    $this->addFilter('id_category', $key, null);
+                    $this->addFilter('id_category', $filterValues, null);
                     $hasCategory = true;
                     break;
 
@@ -86,18 +86,18 @@ class Ps_FacetedsearchProductSearch
                         break;
                     }
 
-                    $this->facetedSearchAdapter->addFilter('quantity', 0, (!$key[0] ? '<=' : '>'));
+                    $this->facetedSearchAdapter->addFilter('quantity', 0, (!$filterValues[0] ? '<=' : '>'));
                     break;
 
                 case 'manufacturer':
-                    $this->addFilter('id_manufacturer', $key, null);
+                    $this->addFilter('id_manufacturer', $filterValues, null);
                     break;
 
                 case 'condition':
                     if (count($selectedFilters['condition']) == 3) {
                         break;
                     }
-                    $this->addFilter('condition', $key, null);
+                    $this->addFilter('condition', $filterValues, null);
                     break;
 
                 case 'weight':
