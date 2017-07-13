@@ -764,6 +764,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             do {
                 $lastCursor = $cursor;
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                if ($cursor == 0) {
+                    $lastCursor = $cursor;
+                    break;
+                }
                 $time_elapsed = microtime(true) - $start_time;
                 $indexedProducts += $length;
             } while ($cursor != $lastCursor && Tools::getMemoryLimit() > memory_get_peak_usage() && $time_elapsed < $max_executiontime);
@@ -771,6 +775,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             do {
                 $lastCursor = $cursor;
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                if ($cursor == 0) {
+                    $lastCursor = $cursor;
+                    break;
+                }
                 $time_elapsed = microtime(true) - $start_time;
                 $indexedProducts += $length;
             } while ($cursor != $lastCursor && $time_elapsed < $max_executiontime);
@@ -851,7 +859,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         static $groups = null;
 
-        if (is_null($groups)) {
+        if ($groups === null) {
             $groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT id_group FROM `'._DB_PREFIX_.'group_reduction`');
             if (!$groups) {
                 $groups = array();
@@ -861,11 +869,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $shop_list = Shop::getShops(false, null, true);
 
         foreach ($shop_list as $id_shop) {
-            static $currency_list = null;
-
-            if (is_null($currency_list)) {
-                $currency_list = Currency::getCurrencies(false, 1, new Shop($id_shop));
-            }
+            $currency_list = Currency::getCurrencies(false, 1, new Shop($id_shop));
 
             $priceList = array();
             $min_price = array();
@@ -892,70 +896,69 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $product_min_prices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
 			SELECT id_shop, id_currency, id_country, id_group, from_quantity
 			FROM `'._DB_PREFIX_.'specific_price`
-			WHERE id_product = '.(int) $id_product);
+			WHERE id_product = '.(int) $id_product.' AND id_shop IN (0,'.(int)$id_shop.')');
 
-            // Get price by currency & country
+            // Get price by currency & country, without reduction!
             $countries = Country::getCountries(Context::getContext()->language->id, true, false, false);
             foreach($countries as $country) {
                 $id_country = $country['id_country'];
 
                 foreach ($currency_list as $currency) {
                     $price = Product::priceCalculation($id_shop, (int)$id_product, null, $id_country, null, null,
-                        $currency['id_currency'], null, null, false, 6, false, true, true,
+                        $currency['id_currency'], null, null, false, 6, false, false, true,
                         $specific_price_output, true);
 
                     $priceList[$id_country][$currency['id_currency']] = $price;
                 }
-            }
 
-            foreach ($product_min_prices as $specific_price) {
-                foreach ($currency_list as $currency) {
-                    if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']
-                        || $specific_price['id_shop'] && $specific_price['id_shop'] != $id_shop) {
-                        continue;
-                    }
-                    $price = Product::priceCalculation($id_shop, (int) $id_product,
-                        null, (($specific_price['id_country'] == 0) ? null : $specific_price['id_country']), null, null,
-                        $currency['id_currency'], (($specific_price['id_group'] == 0) ? null : $specific_price['id_group']),
-                        $specific_price['from_quantity'], false, 6, false, true, true, $specific_price_output, true);
+                foreach ($product_min_prices as $specific_price) {
+                    foreach ($currency_list as $currency) {
+                        if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']) {
+                            continue;
+                        }
+                        $price = Product::priceCalculation($id_shop, (int)$id_product,
+                            null, $id_country, null, null,
+                            $currency['id_currency'], (($specific_price['id_group'] == 0) ? null : $specific_price['id_group']),
+                            $specific_price['from_quantity'], false, 6, false, true, true, $specific_price_output, true);
 
-                    if (!isset($max_price[$currency['id_currency']])) {
-                        $max_price[$currency['id_currency']] = 0;
-                    }
-                    if (!isset($min_price[$currency['id_currency']])) {
-                        $min_price[$currency['id_currency']] = null;
-                    }
-                    if ($price > $max_price[$currency['id_currency']]) {
-                        $max_price[$currency['id_currency']] = $price;
-                    }
-                    if ($price == 0) {
-                        continue;
-                    }
-                    if (is_null($min_price[$currency['id_currency']]) || $price < $min_price[$currency['id_currency']]) {
-                        $min_price[$currency['id_currency']] = $price;
+                        if (!isset($max_price[$id_country][$currency['id_currency']])) {
+                            $max_price[$id_country][$currency['id_currency']] = $priceList[$id_country][$currency['id_currency']];
+                        }
+                        if (!isset($min_price[$id_country][$currency['id_currency']])) {
+                            $min_price[$id_country][$currency['id_currency']] = null;
+                        }
+                        if ($price > $max_price[$id_country][$currency['id_currency']]) {
+                            $max_price[$id_country][$currency['id_currency']] = $price;
+                        }
+                        if ($price == 0) {
+                            continue;
+                        }
+                        if (is_null($min_price[$id_country][$currency['id_currency']]) || $price < $min_price[$id_country][$currency['id_currency']]) {
+                            $min_price[$id_country][$currency['id_currency']] = $price;
+                        }
                     }
                 }
-            }
 
-            foreach ($groups as $group) {
-                foreach ($currency_list as $currency) {
-                    $price = Product::priceCalculation($id_shop, (int) $id_product, null, null, null, null, (int) $currency['id_currency'], (int) $group['id_group'],
-                        null, false, 6, false, true, true, $specific_price_output, true);
+                foreach ($groups as $group) {
+                    foreach ($currency_list as $currency) {
+                        $price = Product::priceCalculation($id_shop, (int)$id_product, null, $id_country, null, null, (int)$currency['id_currency'], (int)$group['id_group'],
+                            null, false, 6, false, true, true, $specific_price_output, true);
 
-                    if (!isset($max_price[$currency['id_currency']])) {
-                        $max_price[$currency['id_currency']] = 0;
-                    }
-                    if (!isset($min_price[$currency['id_currency']])) {
-                        $min_price[$currency['id_currency']] = null;
-                    }
-                    if ($price > $max_price[$currency['id_currency']]) {
-                        $max_price[$currency['id_currency']] = $price;
-                    }
-                    if ($price == 0) {
-                        continue;
-                    }
-                    if (is_null($min_price[$currency['id_currency']]) || $price < $min_price[$currency['id_currency']]) {
-                        $min_price[$currency['id_currency']] = $price;
+                        if (!isset($max_price[$id_country][$currency['id_currency']])) {
+                            $max_price[$id_country][$currency['id_currency']] = 0;
+                        }
+                        if (!isset($min_price[$id_country][$currency['id_currency']])) {
+                            $min_price[$id_country][$currency['id_currency']] = null;
+                        }
+                        if ($price > $max_price[$id_country][$currency['id_currency']]) {
+                            $max_price[$id_country][$currency['id_currency']] = $price;
+                        }
+                        if ($price == 0) {
+                            continue;
+                        }
+                        if (is_null($min_price[$id_country][$currency['id_currency']]) || $price < $min_price[$id_country][$currency['id_currency']]) {
+                            $min_price[$id_country][$currency['id_currency']] = $price;
+                        }
                     }
                 }
             }
@@ -965,13 +968,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $tax_rate = $tax_rate_by_country['rate'];
                 $id_country = $tax_rate_by_country['id_country'];
                 foreach ($currency_list as $currency) {
-                    $min_price_value = array_key_exists($currency['id_currency'], $min_price)?$min_price[$currency['id_currency']]:0;
-                    $max_price_value = array_key_exists($currency['id_currency'], $max_price)?$max_price[$currency['id_currency']]:0;
+                    $min_price_value = array_key_exists($id_country, $min_price)?$min_price[$id_country][$currency['id_currency']]:0;
+                    $max_price_value = array_key_exists($id_country, $max_price)?$max_price[$id_country][$currency['id_currency']]:0;
                     $values[] = '(' . (int)$id_product . ',
                         ' . (int)$currency['id_currency'] . ',
                         ' . $id_shop . ',
                         ' . (int)$priceList[$id_country][$currency['id_currency']] . ',
-                        ' . (int)$min_price_value . ',
+                        ' . (int)Tools::ps_round($min_price_value * (100 + $tax_rate) / 100, 0) . ',
                         ' . (int)Tools::ps_round($max_price_value * (100 + $tax_rate) / 100, 0) . ',
                         ' . (int)$id_country . ')';
                 }
