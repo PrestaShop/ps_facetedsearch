@@ -188,11 +188,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 			`id_product` INT  NOT NULL,
 			`id_currency` INT NOT NULL,
 			`id_shop` INT NOT NULL,
+			`price` INT NOT NULL,
 			`price_min` INT NOT NULL,
 			`price_max` INT NOT NULL,
-		PRIMARY KEY (`id_product`, `id_currency`, `id_shop`),
+			`id_country` INT NOT NULL,
+		PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
 		INDEX `id_currency` (`id_currency`),
-		INDEX `price_min` (`price_min`), INDEX `price_max` (`price_max`)
+		INDEX `price_min` (`price_min`),
+		INDEX `price_max` (`price_max`)
 		)  ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
@@ -880,6 +883,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $currency_list = Currency::getCurrencies(false, 1, new Shop($id_shop));
             }
 
+            $priceList = array();
             $min_price = array();
             $max_price = array();
 
@@ -888,16 +892,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
 
             if (Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $max_tax_rate = Db::getInstance()->getValue('
-					SELECT max(t.rate) max_rate
+                $tax_rates_by_country = Db::getInstance()->executeS('
+					SELECT t.rate rate, tr.id_country
 					FROM `'._DB_PREFIX_.'product_shop` p
 					LEFT JOIN `'._DB_PREFIX_.'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = '.(int) $id_shop.')
 					LEFT JOIN `'._DB_PREFIX_.'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
 					LEFT JOIN `'._DB_PREFIX_.'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
+					JOIN `'._DB_PREFIX_.'country` c ON (tr.id_country=c.id_country AND c.active = 1)
 					WHERE id_product = '.(int) $id_product.'
-					GROUP BY id_product');
+					GROUP BY id_product, tr.id_country');
             } else {
-                $max_tax_rate = 0;
+                $tax_rates_by_country = [['rate' =>  0, 'id_country' => 0]];
             }
 
             $product_min_prices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -926,26 +931,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     true
                 );
 
-                if (!isset($max_price[$currency['id_currency']])) {
-                    $max_price[$currency['id_currency']] = 0;
-                }
-                if (!isset($min_price[$currency['id_currency']])) {
-                    $min_price[$currency['id_currency']] = null;
-                }
-                if ($price > $max_price[$currency['id_currency']]) {
-                    $max_price[$currency['id_currency']] = $price;
-                }
-                if ($price == 0) {
-                    continue;
-                }
-                if (is_null($min_price[$currency['id_currency']]) || $price < $min_price[$currency['id_currency']]) {
-                    $min_price[$currency['id_currency']] = $price;
-                }
+                $priceList[$id_country][$currency['id_currency']] = $price;
             }
 
             foreach ($product_min_prices as $specific_price) {
                 foreach ($currency_list as $currency) {
-                    if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']) {
+                    if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']
+                        || $specific_price['id_shop'] && $specific_price['id_shop'] != $id_shop) {
                         continue;
                     }
                     $price = Product::priceCalculation(
@@ -1025,16 +1017,24 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
 
             $values = array();
-            foreach ($currency_list as $currency) {
-                $values[] = '('.(int) $id_product.',
-					'.(int) $currency['id_currency'].',
-					'.$id_shop.',
-					'.(int) $min_price[$currency['id_currency']].',
-					'.(int) Tools::ps_round($max_price[$currency['id_currency']] * (100 + $max_tax_rate) / 100, 0).')';
+            foreach ($tax_rates_by_country as $tax_rate_by_country) {
+                $tax_rate = $tax_rate_by_country['rate'];
+                $id_country = $tax_rate_by_country['id_country'];
+                foreach ($currency_list as $currency) {
+                    $min_price_value = array_key_exists($currency['id_currency'], $min_price)?$min_price[$currency['id_currency']]:0;
+                    $max_price_value = array_key_exists($currency['id_currency'], $max_price)?$max_price[$currency['id_currency']]:0;
+                    $values[] = '(' . (int)$id_product . ',
+                        ' . (int)$currency['id_currency'] . ',
+                        ' . $id_shop . ',
+                        ' . (int)$priceList[$id_country][$currency['id_currency']] . ',
+                        ' . (int)$min_price_value . ',
+                        ' . (int)Tools::ps_round($max_price_value * (100 + $tax_rate) / 100, 0) . ',
+                        ' . (int)$id_country . ')';
+                }
             }
 
             Db::getInstance()->execute('
-				INSERT INTO `'._DB_PREFIX_.'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max)
+				INSERT INTO `'._DB_PREFIX_.'layered_price_index` (id_product, id_currency, id_shop, price, price_min, price_max, id_country)
 				VALUES '.implode(',', $values).'
 				ON DUPLICATE KEY UPDATE id_product = id_product # avoid duplicate keys');
         }

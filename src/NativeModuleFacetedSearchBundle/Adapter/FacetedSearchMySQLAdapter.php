@@ -203,12 +203,21 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ],
+            'price' =>
+                [
+                    'tableName' => 'layered_price_index',
+                    'tableAlias' => 'psi',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
+                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
+                    'joinType' => self::LEFT_JOIN,
+                    'dependencyField' => 'id_product_attribute'
+                ],
             'price_min' =>
                 [
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.')',
+                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ],
@@ -217,7 +226,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.')',
+                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ],
