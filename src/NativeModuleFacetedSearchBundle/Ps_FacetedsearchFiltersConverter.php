@@ -89,8 +89,8 @@ class Ps_FacetedsearchFiltersConverter
                         ;
                         ;
 
-                        if (array_key_exists('checked', $filterBlock)) {
-                            $filter->setActive($filterBlock['checked']);
+                        if (array_key_exists('checked', $value)) {
+                            $filter->setActive($value['checked']);
                         }
 
                         $facet->addFilter($filter);
