@@ -45,7 +45,7 @@ class Ps_FacetedsearchFilterBlock
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
-                    $filterBlocks[] = $this->getPriceRangeBlock($currency, $filter);
+                    $filterBlocks[] = $this->getPriceRangeBlock($currency, $selectedFilters, $filter);
                     break;
                 case 'weight':
                     $filterBlocks[] = $this->getWeightRangeBlock($filter, $selectedFilters, $nbProducts);
@@ -83,7 +83,7 @@ class Ps_FacetedsearchFilterBlock
     }
 
 
-    private function getPriceRangeBlock($currency, $filter)
+    private function getPriceRangeBlock($currency, $selectedFilters, $filter)
     {
         if (!$this->showPriceFilter()) {
             return [];
@@ -115,14 +115,15 @@ class Ps_FacetedsearchFilterBlock
         $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
         $priceRangesMax = $filteredSearchAdapter->getFieldRanges('price_max', 10);
 
-        $priceRanges = $this->mergePriceRanges($priceRangesMin, $priceRangesMax);
+        $priceRanges = $this->mergePriceRanges($priceRangesMin, $priceRangesMax, $selectedFilters);
 
         $priceBlock['list_of_values'] = $priceRanges;
+        $priceBlock['values'] = array($priceBlock['min'], $priceBlock['max']);
 
         return $priceBlock;
     }
 
-    private function mergePriceRanges($priceRangesMin, $priceRangesMax)
+    private function mergePriceRanges($priceRangesMin, $priceRangesMax, $selectedFilters)
     {
         // first handle the ranges which are the sames
         foreach($priceRangesMin as $minKey => $priceRangeMin) {
@@ -153,9 +154,39 @@ class Ps_FacetedsearchFilterBlock
 
         $priceRanges = $this->adjustRangesWithLayeredPriceIndex($priceRanges);
 
+        $priceRanges = $this->setActiveRanges($priceRanges, $selectedFilters);
+
         $priceRanges = $this->mergeOverlaps($priceRanges, $priceRanges, true);
 
         $priceRanges = $this->recountRanges($priceRanges);
+
+        return $priceRanges;
+    }
+
+    private function setActiveRanges($priceRanges, $selectedFilters)
+    {
+        if (empty($selectedFilters['price'])) {
+            return $priceRanges;
+        }
+        $checked = false;
+        foreach($priceRanges as $key => $priceRange) {
+            if ($priceRange['range_start'] == $selectedFilters['price'][0]
+                && $priceRange['range_end'] == $selectedFilters['price'][1])
+            {
+                $priceRanges[$key]['checked'] = true;
+                $checked = true;
+            }
+        }
+
+        if ($checked === false) {
+            $priceRanges[] = [
+                'range_start' => $selectedFilters['price'][0],
+                'range_end' => $selectedFilters['price'][1],
+                'nbr' => 1,
+                'need_recount' => true,
+                'checked' => true
+                ];
+        }
 
         return $priceRanges;
     }
@@ -242,39 +273,43 @@ class Ps_FacetedsearchFilterBlock
     {
         foreach ($range1 as $minKey => $priceRangeMin) {
             foreach ($range2 as $key => $priceRange) {
+                if (!$overlapOnly) {
+                    // add non overlapping range
+                    if ($priceRangeMin['range_end'] < $range2[$key]['range_start']
+                        || $priceRangeMin['range_start'] > $range2[$key]['range_end']
+                    ) {
+                        $range2[] = $priceRangeMin;
+                        unset($range1[$minKey]);
+                    }
+                }
+
                 // handle overlap with the beginning of the range
-                if ($priceRangeMin['range_start'] < $priceRange['range_start']
-                    && $priceRangeMin['range_end'] >= $priceRange['range_start']) {
-                    $range2[$key]['range_start'] = $range1[$minKey]['range_start'];
+                if ($priceRangeMin['range_start'] < $range2[$key]['range_start']
+                    && $priceRangeMin['range_end'] >= $range2[$key]['range_start']) {
+                    $range2[$key]['range_start'] = $priceRangeMin['range_start'];
                     $range2[$key]['need_recount'] = true;
-                    if ($priceRangeMin['range_end'] > $priceRange['range_end']) {
-                        $range2[$key]['range_end'] = $range1[$minKey]['range_end'];
+                    if ($priceRangeMin['range_end'] > $range2[$key]['range_end']) {
+                        $range2[$key]['range_end'] = $priceRangeMin['range_end'];
+                    }
+                    if (!empty($range1[$minKey]['checked'])) {
+                        $range2[$key]['checked'] = true;
                     }
                     unset($range1[$minKey]);
-                    break;
+                    continue;
                 }
 
                 // handle overlap with the end of the range
-                if ($priceRangeMin['range_end'] > $priceRange['range_end']
-                    && $priceRangeMin['range_start'] <= $priceRange['range_end']) {
-                    $range2[$key]['range_end'] = $range1[$minKey]['range_end'];
+                if ($priceRangeMin['range_end'] > $range2[$key]['range_end']
+                    && $priceRangeMin['range_start'] <= $range2[$key]['range_end']) {
+                    $range2[$key]['range_end'] = $priceRangeMin['range_end'];
                     $range2[$key]['need_recount'] = true;
-                    if ($priceRangeMin['range_start'] < $priceRange['range_start']) {
-                        $range2[$key]['range_start'] = $range1[$minKey]['range_start'];
+                    if ($priceRangeMin['range_start'] < $range2[$key]['range_start']) {
+                        $range2[$key]['range_start'] = $priceRangeMin['range_start'];
+                    }
+                    if (!empty($range1[$minKey]['checked'])) {
+                        $range2[$key]['checked'] = true;
                     }
                     unset($range1[$minKey]);
-                    break;
-                }
-
-                if (!$overlapOnly) {
-                    // add non overlapping range
-                    if ($priceRangeMin['range_end'] < $priceRange['range_start']
-                        || $priceRangeMin['range_start'] > $priceRange['range_end']
-                    ) {
-                        $range2[] = $range1[$minKey];
-                        unset($range1[$minKey]);
-                        break;
-                    }
                 }
             }
         }
