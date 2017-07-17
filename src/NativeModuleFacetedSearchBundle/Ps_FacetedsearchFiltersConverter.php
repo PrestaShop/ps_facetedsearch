@@ -87,6 +87,7 @@ class Ps_FacetedsearchFiltersConverter
                                 'to' => $value['range_end'],
                             ])
                         ;
+                        ;
 
                         if (array_key_exists('checked', $filterBlock)) {
                             $filter->setActive($filterBlock['checked']);

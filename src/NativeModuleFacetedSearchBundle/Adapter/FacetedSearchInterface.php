@@ -20,6 +20,10 @@ interface FacetedSearchInterface
 
     public function getFieldRanges($fieldName, $outputLength);
 
+    public function getFilters();
+
+    public function getColumnFilters();
+
     public function count();
 
     public function useFiltersAsInitialPopulation();
@@ -38,4 +42,6 @@ interface FacetedSearchInterface
     public function addSelectField($fieldName);
 
     public function valueCount($fieldName);
+
+    public function resetColumnFilters();
 }

@@ -130,6 +130,7 @@ class Ps_FacetedsearchFilterBlock
                 if ($priceRangeMin['range_start'] == $priceRangeMax['range_start']
                 && $priceRangeMax['range_end'] == $priceRangeMax['range_end']) {
                     $priceRanges[$minKey] = $priceRangeMin;
+                    $priceRanges[$minKey]['need_recount'] = true;
                     unset($priceRangesMin[$minKey]);
                     unset($priceRangesMax[$maxKey]);
                 }
@@ -180,9 +181,7 @@ class Ps_FacetedsearchFilterBlock
         foreach($priceRanges as $key => $priceRange) {
             $rangeStart = $priceRange['range_start'];
             $rangeEnd = $priceRange['range_end'];
-            if ($rangeStart == $rangeEnd) {
-                continue;
-            }
+
             // get larger fully overlapping DB ranges
             $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
             $filteredSearchAdapter->addSelectField('price_min');
@@ -197,6 +196,9 @@ class Ps_FacetedsearchFilterBlock
                 $priceRanges[$key]['range_start'] = $result['price_min'];
                 $priceRanges[$key]['range_end'] = $result['price_max'];
                 $priceRanges[$key]['need_recount'] = true;
+            }
+            if ($rangeStart == $rangeEnd) {
+                continue;
             }
 
             // get overlap with the beginning of the DB ranges

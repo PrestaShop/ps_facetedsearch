@@ -31,6 +31,11 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         unset($this->filters[$filterName]);
     }
 
+    public function resetColumnFilters()
+    {
+        $this->columnFilters = [];
+    }
+
     public function resetAllFilters()
     {
         $this->enabledFilters = [];
@@ -58,9 +63,15 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this->filters;
     }
 
-    public function setFilters($filters)
+    public function copyFilters(FacetedSearchInterface $facetedSearch)
     {
-        $this->filters = $filters;
+        $this->filters = $facetedSearch->getFilters();
+        $this->columnFilters = $facetedSearch->getColumnFilters();
+    }
+
+    public function getColumnFilters()
+    {
+        return $this->columnFilters;
     }
 
     /**
