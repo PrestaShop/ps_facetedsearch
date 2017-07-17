@@ -33,6 +33,8 @@ interface FacetedSearchInterface
 
     public function addFilter($filterName, $values, $operator = '=');
 
+    public function addColumnFilter($filterName, $columnName, $operator = '=');
+
     public function addSelectField($fieldName);
 
     public function valueCount($fieldName);
