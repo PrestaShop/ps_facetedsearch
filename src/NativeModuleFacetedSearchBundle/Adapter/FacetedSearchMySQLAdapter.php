@@ -14,7 +14,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function getMinMaxPriceValue()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->setFilters($this->getFilters());
+        $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields(['price_min', 'MIN(price_min) as min, MAX(price_max) as max']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
@@ -435,7 +435,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function getMinMaxValue($fieldName)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->setFilters($this->getFilters());
+        $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields(['MIN('.$fieldName.') as min, MAX('.$fieldName.') as max']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
@@ -448,7 +448,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function getFieldRanges($fieldName, $outputLength)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->setFilters($this->getFilters());
+        $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields([$fieldName, 'ROUND((-MIN('.$fieldName.') + MAX('.$fieldName.')) / '.
             $outputLength.') AS diff']);
         $mysqlAdapter->setLimit(null);
@@ -458,11 +458,11 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $diff = $result[0]['diff'];
 
         if ($diff == 0) {
-            return [];
+            $diff = 1;
         }
 
         $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->setFilters($this->getFilters());
+        $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields([$fieldName, 'FLOOR('.$fieldName.'/'.$diff.')*'.$diff.' as range_start',
             '(FLOOR('.$fieldName.'/'.$diff.')+1)*'.$diff.'-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr']);
         $mysqlAdapter->addGroupBy('FLOOR('.$fieldName.' / '.$diff.')');
@@ -475,7 +475,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function count()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->setFilters($this->getFilters());
+        $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
