@@ -112,9 +112,202 @@ class Ps_FacetedsearchFilterBlock
         }
 
         list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxPriceValue();
-        $priceBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('price', 10);
+        $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
+        $priceRangesMax = $filteredSearchAdapter->getFieldRanges('price_max', 10);
+
+        $priceRanges = $this->mergePriceRanges($priceRangesMin, $priceRangesMax);
+
+        $priceBlock['list_of_values'] = $priceRanges;
 
         return $priceBlock;
+    }
+
+    private function mergePriceRanges($priceRangesMin, $priceRangesMax)
+    {
+        // first handle the ranges which are the sames
+        foreach($priceRangesMin as $minKey => $priceRangeMin) {
+            foreach($priceRangesMax as $maxKey => $priceRangeMax) {
+                if ($priceRangeMin['range_start'] == $priceRangeMax['range_start']
+                && $priceRangeMax['range_end'] == $priceRangeMax['range_end']) {
+                    $priceRanges[$minKey] = $priceRangeMin;
+                    unset($priceRangesMin[$minKey]);
+                    unset($priceRangesMax[$maxKey]);
+                }
+            }
+        }
+
+        // add the remaining priceMin
+        if (empty($priceRanges)) {
+            $priceRanges = $priceRangesMin;
+        } else {
+            $priceRanges = $this->mergeOverlaps($priceRangesMin, $priceRanges);
+        }
+
+        // add the remaining priceMax
+        if (empty($priceRanges)) {
+            $priceRanges = $priceRangesMax;
+        } else {
+            $priceRanges = $this->mergeOverlaps($priceRangesMax, $priceRanges);
+        }
+
+        $priceRanges = $this->adjustRangesWithLayeredPriceIndex($priceRanges);
+
+        $priceRanges = $this->mergeOverlaps($priceRanges, $priceRanges, true);
+
+        $priceRanges = $this->recountRanges($priceRanges);
+
+        return $priceRanges;
+    }
+
+    private function recountRanges($priceRanges)
+    {
+        foreach($priceRanges as $key => $priceRange) {
+            if (!empty($priceRange['need_recount'])) {
+                $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+                $filteredSearchAdapter->addFilter('price_min', [$priceRange['range_start']], '>=');
+                $filteredSearchAdapter->addFilter('price_max', [$priceRange['range_end']], '<=');
+                $count = $filteredSearchAdapter->count();
+                $priceRanges[$key]['nbr'] = $count;
+                unset($priceRanges[$key]['need_recount']);
+            }
+        }
+
+        return $priceRanges;
+    }
+
+    private function adjustRangesWithLayeredPriceIndex($priceRanges)
+    {
+        foreach($priceRanges as $key => $priceRange) {
+            $rangeStart = $priceRange['range_start'];
+            $rangeEnd = $priceRange['range_end'];
+            if ($rangeStart == $rangeEnd) {
+                continue;
+            }
+            // get larger fully overlapping DB ranges
+            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter->addSelectField('price_min');
+            $filteredSearchAdapter->addSelectField('price_max');
+            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '<=');
+            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '>=');
+            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
+            $filteredSearchAdapter->setLimit(null);
+            $filteredSearchAdapter->setOrderField('');
+            $results = $filteredSearchAdapter->execute();
+            foreach($results as $result) {
+                $priceRanges[$key]['range_start'] = $result['price_min'];
+                $priceRanges[$key]['range_end'] = $result['price_max'];
+                $priceRanges[$key]['need_recount'] = true;
+            }
+
+            // get overlap with the beginning of the DB ranges
+            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter->addSelectField('price_min');
+            $filteredSearchAdapter->addSelectField('price_max');
+            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '>');
+            $filteredSearchAdapter->addFilter('price_min', [$rangeEnd], '<');
+            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '>');
+            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
+            $filteredSearchAdapter->setLimit(null);
+            $filteredSearchAdapter->setOrderField('');
+            $results = $filteredSearchAdapter->execute();
+            foreach($results as $result) {
+                $priceRanges[$key]['range_end'] = $result['price_max'];
+                $priceRanges[$key]['need_recount'] = true;
+            }
+
+            // get overlap with the end of the DB ranges
+            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter->addSelectField('price_min');
+            $filteredSearchAdapter->addSelectField('price_max');
+            $filteredSearchAdapter->addFilter('price_max', [$rangeStart], '>');
+            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '<');
+            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '<');
+            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
+            $filteredSearchAdapter->setLimit(null);
+            $filteredSearchAdapter->setOrderField('');
+            $results = $filteredSearchAdapter->execute();
+
+            foreach($results as $result) {
+                $priceRanges[$key]['range_start'] = $result['price_min'];
+                $priceRanges[$key]['need_recount'] = true;
+            }
+        }
+
+        return $priceRanges;
+    }
+
+    private function mergeOverlaps($range1, $range2, $overlapOnly = false)
+    {
+        foreach ($range1 as $minKey => $priceRangeMin) {
+            foreach ($range2 as $key => $priceRange) {
+                // handle overlap with the beginning of the range
+                if ($priceRangeMin['range_start'] < $priceRange['range_start']
+                    && $priceRangeMin['range_end'] >= $priceRange['range_start']) {
+                    $range2[$key]['range_start'] = $range1[$minKey]['range_start'];
+                    $range2[$key]['need_recount'] = true;
+                    if ($priceRangeMin['range_end'] > $priceRange['range_end']) {
+                        $range2[$key]['range_end'] = $range1[$minKey]['range_end'];
+                    }
+                    unset($range1[$minKey]);
+                    break;
+                }
+
+                // handle overlap with the end of the range
+                if ($priceRangeMin['range_end'] > $priceRange['range_end']
+                    && $priceRangeMin['range_start'] <= $priceRange['range_end']) {
+                    $range2[$key]['range_end'] = $range1[$minKey]['range_end'];
+                    $range2[$key]['need_recount'] = true;
+                    if ($priceRangeMin['range_start'] < $priceRange['range_start']) {
+                        $range2[$key]['range_start'] = $range1[$minKey]['range_start'];
+                    }
+                    unset($range1[$minKey]);
+                    break;
+                }
+
+                if (!$overlapOnly) {
+                    // add non overlapping range
+                    if ($priceRangeMin['range_end'] < $priceRange['range_start']
+                        || $priceRangeMin['range_start'] > $priceRange['range_end']
+                    ) {
+                        $range2[] = $range1[$minKey];
+                        unset($range1[$minKey]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        $range2 = $this->removeDuplicatesAndSort($range2);
+
+        return $range2;
+    }
+
+    private function removeDuplicatesAndSort($ranges) {
+        $uniqueRange = [];
+        $skipKeys = [];
+        foreach($ranges as $key => $value) {
+            if (in_array($key, $skipKeys)) {
+                continue;
+            }
+            foreach($ranges as $key2 => $value2) {
+                if ($key != $key2
+                    && $value['range_start'] == $value2['range_start']
+                    && $value['range_end'] == $value2['range_end']) {
+                    // if the duplicate range has the right count, use it instead of trying to recompute it later
+                    if (array_key_exists('need_recount', $ranges[$key])
+                        && !array_key_exists('need_recount', $ranges[$key2])) {
+                        unset($ranges[$key]['need_recount']);
+                        $ranges[$key]['nbr'] = $ranges[$key2]['nbr'];
+                    }
+                    $skipKeys[] = $key2;
+                }
+            }
+            $uniqueRange[$ranges[$key]['range_start']] = $ranges[$key];
+        }
+
+        ksort($uniqueRange);
+
+        return $uniqueRange;
     }
 
     private function getWeightRangeBlock($filter, $selectedFilters, $nbProducts)
