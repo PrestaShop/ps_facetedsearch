@@ -18,7 +18,7 @@ class Ps_FacetedsearchFiltersConverter
 {
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
-        $facets = [];
+        $facets = array();
 
         foreach ($filterBlocks as $filterBlock) {
             $facet = new Facet();
@@ -135,7 +135,7 @@ class Ps_FacetedsearchFiltersConverter
             $idParent = (int)Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
         }
 
-        $facetedSearchFilters = [];
+        $facetedSearchFilters = array();
 
         /* Get the filters for the current category */
         $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
