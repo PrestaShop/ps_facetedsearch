@@ -105,7 +105,13 @@ class Ps_FacetedsearchFilterBlock
         );
 
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        // disable the current price filter to compute the price range
+        $priceMinFilter = $this->facetedSearchAdapter->getInitialPopulation()->getFilter('price_min');
+        $priceMaxFilter = $this->facetedSearchAdapter->getInitialPopulation()->getFilter('price_max');
+        $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_min');
+        $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_max');
         $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
+
         // only apply id_category filter, if it exists, to compute price range block
         if ($categoryFilter !== null) {
             $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
@@ -119,6 +125,13 @@ class Ps_FacetedsearchFilterBlock
 
         $priceBlock['list_of_values'] = $priceRanges;
         $priceBlock['values'] = array($priceBlock['min'], $priceBlock['max']);
+
+        // put back the price filter
+        if ($priceMinFilter) {
+            $this->facetedSearchAdapter->getInitialPopulation()->setFilter('price_min', $priceMinFilter);
+            $this->facetedSearchAdapter->getInitialPopulation()->setFilter('price_max', $priceMaxFilter);
+        }
+
 
         return $priceBlock;
     }
@@ -364,7 +377,8 @@ class Ps_FacetedsearchFilterBlock
             'list_of_values' => [],
         );
 
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('weight');
+
         $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
         // only apply id_category filter, if it exists, to compute weight range block
         if ($categoryFilter !== null) {
@@ -404,7 +418,7 @@ class Ps_FacetedsearchFilterBlock
                 'Modules.Facetedsearch.Shop'),
                 'nbr' => 0),
         );
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('condition');
         $results = $filteredSearchAdapter->valueCount('condition');
         foreach ($results as $key => $values) {
             $condition = $values['condition'];
@@ -431,7 +445,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('quantity');
         $quantityArray = array(
             0 => array('name' => Context::getContext()->getTranslator()->trans('Not available', [],
                 'Modules.Facetedsearch.Shop'), 'nbr' => 0),
@@ -467,7 +481,8 @@ class Ps_FacetedsearchFilterBlock
             $count = $results[0]['c'] + $results[1]['c'];
             $quantityArray[1]['nbr'] = $count;
         } else {
-            $resultsOutOfStock = $this->facetedSearchAdapter->valueCount('out_of_stock');
+            $filteredSearchAdapter->resetFilter('quantity');
+            $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             // search count of products always available when out of stock (out_of_stock == 1)
             if (array_key_exists(1, $resultsOutOfStock)) {
                 $results[1]['c'] += $resultsOutOfStock[1]['c'];
@@ -507,7 +522,7 @@ class Ps_FacetedsearchFilterBlock
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
         $manufacturers = \Manufacturer::getManufacturers(false, $idLang);
         if ($manufacturers === []) {
@@ -634,7 +649,7 @@ class Ps_FacetedsearchFilterBlock
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
         $attributesBlock = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_attribute');
 
         $idAttributeGroup = $filter['id_value'];
 
@@ -724,7 +739,7 @@ class Ps_FacetedsearchFilterBlock
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
         $features = $featureBlock = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_feature_value');
 
         $idFeature = $filter['id_value'];
 
@@ -837,7 +852,7 @@ class Ps_FacetedsearchFilterBlock
     
     private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_category');
         $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
         $categoryArray = [];

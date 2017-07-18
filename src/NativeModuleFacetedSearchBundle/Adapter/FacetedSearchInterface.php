@@ -33,7 +33,7 @@ interface FacetedSearchInterface
      *
      * @return FacetedSearchInterface
      */
-    public function getFilteredSearchAdapter();
+    public function getFilteredSearchAdapter($resetFilter = null);
 
     public function addFilter($filterName, $values, $operator = '=');
 
@@ -44,4 +44,15 @@ interface FacetedSearchInterface
     public function valueCount($fieldName);
 
     public function resetColumnFilters();
+
+    public function resetFilter($filterName);
+
+    public function getFilter($filterName);
+
+    public function setFilter($filterName, $value);
+
+    /**
+     * @return self
+     */
+    public function getInitialPopulation();
 }

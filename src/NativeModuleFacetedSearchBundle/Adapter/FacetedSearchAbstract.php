@@ -1,9 +1,11 @@
 <?php
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
 abstract class FacetedSearchAbstract implements FacetedSearchInterface
 {
-    protected $filters = [];
+    protected $filters;
 
     protected $columnFilters = [];
 
@@ -19,8 +21,17 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 
     protected $offset = 0;
 
+    /** @var FacetedSearchInterface */
+    protected $initialPopulation = null;
+
     public function __construct()
     {
+        $this->filters = new ArrayCollection();
+    }
+
+    public function getInitialPopulation()
+    {
+        return $this->initialPopulation;
     }
 
     /**
@@ -29,20 +40,25 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     public function resetFilter($filterName)
     {
         unset($this->filters[$filterName]);
+
+        return $this;
     }
 
     public function resetColumnFilters()
     {
         $this->columnFilters = [];
+
+        return $this;
     }
 
     public function resetAllFilters()
     {
-        $this->enabledFilters = [];
         $this->selectFields = [];
         $this->groupFields = [];
         $this->filters = [];
         $this->columnFilters = [];
+
+        return $this;
     }
 
     /**
@@ -81,42 +97,58 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
      */
     public function addFilter($filterName, $values, $operator = '=')
     {
-        $this->filters[$filterName][$operator][] = $values;
+        $filters = $this->filters->get($filterName);
+        $filters[$operator][] = $values;
+        $this->filters->set($filterName, $filters);
     }
 
     public function addColumnFilter($filterName, $columnName, $operator = '=')
     {
         $this->columnFilters[$filterName][$operator][] = $columnName;
+
+        return $this;
     }
 
     public function addSelectField($fieldName)
     {
         $this->selectFields[] = $fieldName;
+
+        return $this;
     }
 
     public function setSelectFields($selectFields)
     {
         $this->selectFields = $selectFields;
+
+        return $this;
     }
 
     public function resetSelectField()
     {
         $this->selectFields = [];
+
+        return $this;
     }
 
     public function addGroupBy($groupField)
     {
         $this->groupFields[] = $groupField;
+
+        return $this;
     }
 
     public function setGroupFields($groupFields)
     {
         $this->groupFields = $groupFields;
+
+        return $this;
     }
 
     public function resetGroupBy()
     {
         $this->groupFields = [];
+
+        return $this;
     }
 
     /**
@@ -129,6 +161,8 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
             return;
         }
         $this->filters[$filterName] = $value;
+
+        return $this;
     }
 
     /**
@@ -137,6 +171,8 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     public function setOrderField($fieldName)
     {
         $this->orderField = $fieldName;
+
+        return $this;
     }
 
     /**
@@ -145,6 +181,8 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     public function setOrderDirection($direction)
     {
         $this->orderDirection = $direction;
+
+        return $this;
     }
 
     /**
@@ -154,5 +192,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     {
         $this->limit = $limit;
         $this->offset = $offset;
+
+        return $this;
     }
 }
