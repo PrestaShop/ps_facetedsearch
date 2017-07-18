@@ -41,7 +41,7 @@ class Ps_FacetedsearchFilterBlock
 			GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
-        $filterBlocks = [];
+        $filterBlocks = array();
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
@@ -165,13 +165,44 @@ class Ps_FacetedsearchFilterBlock
             $priceRanges = $this->mergeOverlaps($priceRangesMax, $priceRanges);
         }
 
+        // remove segment intervals by creating larger intervals
+        $priceRanges = $this->mergeSegmentIntervals($priceRanges);
+
+        // adjust the range to fit the one stored in the layer price table
         $priceRanges = $this->adjustRangesWithLayeredPriceIndex($priceRanges);
 
+        // set as active the current price filter
         $priceRanges = $this->setActiveRanges($priceRanges, $selectedFilters);
 
+        // merge overlapping range together
         $priceRanges = $this->mergeOverlaps($priceRanges, $priceRanges, true);
 
+        // recount the ranges flagged with "need_recount" (it occurs during overlapping range merging)
         $priceRanges = $this->recountRanges($priceRanges);
+
+        return $priceRanges;
+    }
+
+    private function mergeSegmentIntervals($priceRanges)
+    {
+        do {
+            $keepLooping = false;
+            foreach ($priceRanges as $key1 => $range1) {
+                foreach ($priceRanges as $key2 => $range2) {
+                    if ($key2 <= $key1) {
+                        continue;
+                    }
+                    if ($range1['range_start'] == $range1['range_end']
+                        || $range2['range_start'] == $range2['range_end']) {
+                        $priceRanges[$key2]['range_start'] = $range1['range_start'];
+                        $priceRanges[$key2]['need_recount'] = true;
+                        unset($priceRanges[$key1]);
+                        $keepLooping = true;
+                        break 2;
+                    }
+                }
+            }
+        } while ($keepLooping);
 
         return $priceRanges;
     }
@@ -287,7 +318,7 @@ class Ps_FacetedsearchFilterBlock
         foreach ($range1 as $minKey => $priceRangeMin) {
             foreach ($range2 as $key => $priceRange) {
                 if (!$overlapOnly) {
-                    // add non overlapping range
+                    // handle non overlapping range
                     if ($priceRangeMin['range_end'] < $range2[$key]['range_start']
                         || $priceRangeMin['range_start'] > $range2[$key]['range_end']
                     ) {
@@ -333,8 +364,8 @@ class Ps_FacetedsearchFilterBlock
     }
 
     private function removeDuplicatesAndSort($ranges) {
-        $uniqueRange = [];
-        $skipKeys = [];
+        $uniqueRange = array();
+        $skipKeys = array();
         foreach($ranges as $key => $value) {
             if (in_array($key, $skipKeys)) {
                 continue;
@@ -521,11 +552,11 @@ class Ps_FacetedsearchFilterBlock
 
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
-        $manufacturersArray = [];
+        $manufacturersArray = array();
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
         $manufacturers = \Manufacturer::getManufacturers(false, $idLang);
-        if ($manufacturers === []) {
+        if ($manufacturers === array()) {
             return $manufacturersArray;
         }
         foreach ($manufacturers as $key => $manufacturer) {
@@ -648,7 +679,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
-        $attributesBlock = [];
+        $attributesBlock = array();
         $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
 
@@ -665,7 +696,7 @@ class Ps_FacetedsearchFilterBlock
         }
 
         $attributesGroup = self::getAttributesGroups($idLang);
-        if ($attributesGroup === []) {
+        if ($attributesGroup === array()) {
             return $attributesBlock;
         }
 
@@ -735,7 +766,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function sortByKey($sortedReferenceArray, $array)
     {
-        $sortedArray = [];
+        $sortedArray = array();
 
         // iterate in the original order
         foreach ($sortedReferenceArray as $key => $value) {
@@ -749,7 +780,7 @@ class Ps_FacetedsearchFilterBlock
 
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
-        $features = $featureBlock = [];
+        $features = $featureBlock = array();
         $idFeature = $filter['id_value'];
         $filteredSearchAdapter = null;
 
@@ -830,13 +861,13 @@ class Ps_FacetedsearchFilterBlock
     {
         //Natural sort
         foreach ($featureBlock as $key => $value) {
-            $temp = [];
+            $temp = array();
             foreach ($featureBlock[$key]['values'] as $idFeatureValue => $featureValueInfos) {
                 $temp[$idFeatureValue] = $featureValueInfos['name'];
             }
 
             natcasesort($temp);
-            $temp2 = [];
+            $temp2 = array();
 
             foreach ($temp as $keytemp => $valuetemp) {
                 $temp2[$keytemp] = $featureBlock[$key]['values'][$keytemp];
@@ -877,7 +908,7 @@ class Ps_FacetedsearchFilterBlock
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_category');
         $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
-        $categoryArray = [];
+        $categoryArray = array();
         $categories = Category::getAllCategoriesName(null, $idLang, true, null,
             true, '', 'ORDER BY c.nleft, c.position');
         foreach ($categories as $key => $value) {

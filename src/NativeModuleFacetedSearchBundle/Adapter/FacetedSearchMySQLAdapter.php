@@ -277,7 +277,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
      */
     private function computeSelectFields($filterToTableMapping)
     {
-        $selectFields = [];
+        $selectFields = array();
         foreach ($this->selectFields as $key => $selectField) {
             $selectAlias = 'p';
             if (array_key_exists($selectField, $filterToTableMapping)) {
@@ -301,7 +301,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
      */
     private function computeWhereConditions($filterToTableMapping)
     {
-        $whereConditions = [];
+        $whereConditions = array();
         foreach ($this->filters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $values) {
                 if (count($values) > 1) {
@@ -325,7 +325,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                                 }, $values)) . ')';
                         }
                     } else {
-                        $orConditions = [];
+                        $orConditions = array();
                         foreach ($values as $value) {
                             $orConditions[] = $selectAlias . '.' . $filterName . $operator . $value;
                         }
@@ -412,7 +412,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
 
     private function computeGroupByFields($filterToTableMapping)
     {
-        $groupFields = [];
+        $groupFields = array();
         if (empty($this->groupFields)) {
             return $groupFields;
         }

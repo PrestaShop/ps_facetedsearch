@@ -134,7 +134,7 @@ class Ps_FacetedsearchProductSearch
             $filterValues = [$filterValues];
         }
         foreach ($filterValues as $filterValue) {
-            $values = [];
+            $values = array();
             if (is_array($filterValue)) {
                 foreach($filterValue as $subFilterValue) {
                     $values[] = (int)$subFilterValue;

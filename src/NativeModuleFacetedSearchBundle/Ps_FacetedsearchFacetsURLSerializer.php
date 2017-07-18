@@ -35,7 +35,7 @@ class Ps_FacetedsearchFacetsURLSerializer
 
     public function getActiveFacetFiltersFromFacets(array $facets)
     {
-        $facetFilters = [];
+        $facetFilters = array();
         foreach ($facets as $facet) {
             if ($facet->getProperty('range')) {
                 foreach ($facet->getFilters() as $facetFilter) {

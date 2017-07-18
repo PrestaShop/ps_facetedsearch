@@ -7,15 +7,15 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 {
     protected $filters;
 
-    protected $columnFilters = [];
+    protected $columnFilters = array();
 
     protected $orderField = 'id_product';
 
     protected $orderDirection = 'DESC';
 
-    protected $selectFields = [];
+    protected $selectFields = array();
 
-    protected $groupFields = [];
+    protected $groupFields = array();
 
     protected $limit = 20;
 
@@ -51,17 +51,17 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 
     public function resetColumnFilters()
     {
-        $this->columnFilters = [];
+        $this->columnFilters = array();
 
         return $this;
     }
 
     public function resetAllFilters()
     {
-        $this->selectFields = [];
-        $this->groupFields = [];
-        $this->filters = [];
-        $this->columnFilters = [];
+        $this->selectFields = array();
+        $this->groupFields = array();
+        $this->filters = array();
+        $this->columnFilters = array();
 
         return $this;
     }
@@ -130,7 +130,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 
     public function resetSelectField()
     {
-        $this->selectFields = [];
+        $this->selectFields = array();
 
         return $this;
     }
@@ -151,7 +151,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 
     public function resetGroupBy()
     {
-        $this->groupFields = [];
+        $this->groupFields = array();
 
         return $this;
     }
