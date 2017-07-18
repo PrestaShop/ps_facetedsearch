@@ -649,9 +649,20 @@ class Ps_FacetedsearchFilterBlock
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
         $attributesBlock = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_attribute');
-
+        $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
+
+        if (!empty($selectedFilters['id_attribute_group'])) {
+            foreach($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
+                if ($key == $idAttributeGroup) {
+                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_attribute');
+                    break;
+                }
+            }
+        }
+        if (!$filteredSearchAdapter) {
+            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        }
 
         $attributesGroup = self::getAttributesGroups($idLang);
         if ($attributesGroup === []) {
@@ -739,9 +750,20 @@ class Ps_FacetedsearchFilterBlock
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
         $features = $featureBlock = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_feature_value');
-
         $idFeature = $filter['id_value'];
+        $filteredSearchAdapter = null;
+
+        if (!empty($selectedFilters['id_feature'])) {
+            foreach($selectedFilters['id_feature'] as $key => $selectedFilter) {
+                if ($key == $idFeature) {
+                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_feature_value');
+                    break;
+                }
+            }
+        }
+        if (!$filteredSearchAdapter) {
+            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        }
 
         $tempFeatures = \Feature::getFeatures($idLang);
         foreach ($tempFeatures as $key => $feature) {

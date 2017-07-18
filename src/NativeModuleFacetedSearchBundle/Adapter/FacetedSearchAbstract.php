@@ -29,6 +29,11 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         $this->filters = new ArrayCollection();
     }
 
+    public function __clone()
+    {
+        $this->filters = clone $this->filters;
+    }
+
     public function getInitialPopulation()
     {
         return $this->initialPopulation;
