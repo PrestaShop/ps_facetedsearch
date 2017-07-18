@@ -8,8 +8,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     const LEFT_JOIN = 'LEFT JOIN';
     const INNER_JOIN = 'INNER JOIN';
 
-    private $referenceTable = _DB_PREFIX_.'product';
-    private $referenceAlias = 'p';
+    private static $referenceTable = _DB_PREFIX_.'product';
+    private static $referenceAlias = 'p';
 
     public function getMinMaxPriceValue()
     {
@@ -24,18 +24,15 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
     }
 
-    public function getFilteredSearchAdapter()
+    public function getFilteredSearchAdapter($resetFilter = null)
     {
         $mysqlAdapter = new self();
-        $mysqlAdapter->setReferenceTable($this->referenceTable, $this->referenceAlias);
+        $mysqlAdapter->initialPopulation = clone ($this->initialPopulation);
+        if ($resetFilter) {
+            $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
+        }
 
         return $mysqlAdapter;
-    }
-
-    private function setReferenceTable($query, $alias)
-    {
-        $this->referenceTable = $query;
-        $this->referenceAlias = $alias;
     }
 
     public function execute()
@@ -50,8 +47,13 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $filterToTableMapping = $this->getFieldMapping();
         $orderField = $this->computeOrderByField($filterToTableMapping);
+        if ($this->initialPopulation === null) {
+            $referenceTable = self::$referenceTable;
+        } else {
+            $referenceTable = '('.$this->initialPopulation->getQuery().')';
+        }
         if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)) {
-            $query = $this->referenceTable;
+            $query = $referenceTable;
             $this->orderField = '';
         } else {
             $query = 'SELECT ';
@@ -61,8 +63,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             $joinConditions = $this->computeJoinConditions($filterToTableMapping);
             $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
-            $query .= implode(', ', $selectFields) . ' FROM ' . $this->referenceTable . ' ' .
-                $this->referenceAlias;
+            $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' ' .
+                self::$referenceAlias;
 
             foreach ($joinConditions as $tableName => $joinAliasConditionInfos) {
                 foreach ($joinAliasConditionInfos as $tableAlias => $joinConditionInfos) {
@@ -487,6 +489,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
 
     public function valueCount($fieldName)
     {
+        $this->resetGroupBy();
         $this->addGroupBy($fieldName);
         $this->addSelectField($fieldName);
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
@@ -502,8 +505,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $this->setLimit(null);
         $this->setOrderField('');
         $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
-        $query = $this->getQuery();
-        $this->setReferenceTable('('.$query.')', 'p');
+        $this->initialPopulation = clone $this;
         $this->resetAllFilters();
     }
 }
