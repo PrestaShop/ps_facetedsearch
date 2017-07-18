@@ -27,7 +27,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     public function getFilteredSearchAdapter($resetFilter = null)
     {
         $mysqlAdapter = new self();
-        $mysqlAdapter->initialPopulation = clone ($this->initialPopulation);
+        $mysqlAdapter->initialPopulation = clone $this->initialPopulation;
         if ($resetFilter) {
             $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
         }
@@ -133,7 +133,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'feature_product',
                     'tableAlias' => 'fp',
                     'joinCondition' => '(p.id_product = fp.id_product)',
-                    'joinType' => self::LEFT_JOIN
+                    'joinType' => self::INNER_JOIN
                 ],
             'id_shop' =>
                 [
