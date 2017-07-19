@@ -11,6 +11,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     private static $referenceTable = _DB_PREFIX_.'product';
     private static $referenceAlias = 'p';
 
+    /**
+     * @inheritdoc
+     */
     public function getMinMaxPriceValue()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
@@ -24,23 +27,33 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
     }
 
-    public function getFilteredSearchAdapter($resetFilter = null)
+    /**
+     * @inheritdoc
+     */
+    public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
         $mysqlAdapter = new self();
-        $mysqlAdapter->initialPopulation = clone $this->initialPopulation;
-        if ($resetFilter) {
-            $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
+        if ($this->initialPopulation && !$skipInitialPopulation) {
+            $mysqlAdapter->initialPopulation = clone $this->initialPopulation;
+            if ($resetFilter) {
+                $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
+            }
         }
 
         return $mysqlAdapter;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function execute()
     {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
     }
 
     /**
+     * Construct the final sql query
+     *
      * @return string
      */
     public function getQuery()
@@ -52,7 +65,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         } else {
             $referenceTable = '('.$this->initialPopulation->getQuery().')';
         }
+
         if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)) {
+            // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
             $query = $referenceTable;
             $this->orderField = '';
         } else {
@@ -94,6 +109,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     }
 
     /**
+     * Define the mapping between fields and tables
+     *
      * @return array
      */
     protected function getFieldMapping()
@@ -104,158 +121,166 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             'sa'
         );
 
-        $filterToTableMapping = [
+        $filterToTableMapping = array(
             'id_product_attribute' =>
-                [
+                array(
                     'tableName' => 'product_attribute',
                     'tableAlias' => 'pa',
                     'joinCondition' => '(p.id_product = pa.id_product)',
                     'joinType' => self::LEFT_JOIN
-                ],
+                ),
             'id_attribute' =>
-                [
+                array(
                     'tableName' => 'product_attribute_combination',
                     'tableAlias' => 'pac',
                     'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'id_attribute_group' =>
-                [
+                array(
                     'tableName' => 'attribute',
                     'tableAlias' => 'a',
                     'joinCondition' => '(a.id_attribute = pac.id_attribute)',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_attribute'
-                ],
+                ),
             'id_feature' =>
-                [
+                array(
                     'tableName' => 'feature_product',
                     'tableAlias' => 'fp',
                     'joinCondition' => '(p.id_product = fp.id_product)',
                     'joinType' => self::INNER_JOIN
-                ],
+                ),
             'id_shop' =>
-                [
+                array(
                     'tableName' => 'product_shop',
                     'tableAlias' => 'ps',
                     'joinCondition' => '(p.id_product = ps.id_product)',
                     'joinType' => self::INNER_JOIN
-                ],
+                ),
             'id_feature_value' =>
-                [
+                array(
                     'tableName' => 'feature_product',
                     'tableAlias' => 'fp',
                     'joinCondition' => '(p.id_product = fp.id_product)',
                     'joinType' => self::LEFT_JOIN
-                ],
+                ),
             'id_category' =>
-                [
+                array(
                     'tableName' => 'category_product',
                     'tableAlias' => 'cp',
                     'joinCondition' => '(p.id_product = cp.id_product)',
                     'joinType' => self::INNER_JOIN
-                ],
+                ),
             'position' =>
-                [
+                array(
                     'tableName' => 'category_product',
                     'tableAlias' => 'cp',
                     'joinCondition' => '(p.id_product = cp.id_product)',
                     'joinType' => self::INNER_JOIN
-                ],
+                ),
             'nleft' =>
-                [
+                array(
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_category'
-                ],
+                ),
             'nright' =>
-                [
+                array(
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_category'
-                ],
+                ),
             'level_depth' =>
-                [
+                array(
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_category'
-                ],
+                ),
             'out_of_stock' =>
-                [
+                array(
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.
                         $stockCondition.')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'quantity' =>
-                [
+                array(
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.
                         $stockCondition.')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'price_min' =>
-                [
+                array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
                         \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'price_max' =>
-                [
+                array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
                         \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'range_start' =>
-                [
+                array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
                         \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'range_end' =>
-                [
+                array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
                         \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
-                ],
+                ),
             'id_group' =>
-                [
+                array(
                     'tableName' => 'category_group',
                     'tableAlias' => 'cg',
                     'joinCondition' => '(cg.id_category = c.id_category)',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'nleft'
-                ],
-        ];
+                ),
+        );
 
         return $filterToTableMapping;
     }
 
+    /**
+     * Compute the orderby fields, adding the proper alias that will be added to the final query
+     *
+     * @param array $filterToTableMapping
+     *
+     * @return string
+     */
     private function computeOrderByField($filterToTableMapping)
     {
+        // do not try to process the orderField if it already has an alias, or if it's a group function
         if (empty($this->orderField) || strpos($this->orderField, '.') !== false
             || strpos($this->orderField, '(') !== false) {
             return $this->orderField;
@@ -271,6 +296,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     }
 
     /**
+     * Compute the select fields, adding the proper alias that will be added to the final query
+     *
      * @param array           $filterToTableMapping
      *
      * @return array
@@ -295,6 +322,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     }
 
     /**
+     * Computer the where conditions that will be added to the final query
+     *
      * @param array           $filterToTableMapping
      *
      * @return array
@@ -302,17 +331,31 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     private function computeWhereConditions($filterToTableMapping)
     {
         $whereConditions = array();
-        foreach ($this->filters as $filterName => $filterContent) {
-            foreach ($filterContent as $operator => $values) {
-                if (count($values) > 1) {
-                    // @TODO : special treatment for intersect the result of two filters
-                } else {
-                    $values = current($values);
+        foreach ($this->columnFilters as $filterName => $filterContent) {
+            foreach ($filterContent as $operator => $columnNames) {
+                foreach ($columnNames as $columnName) {
                     $selectAlias = 'p';
                     if (array_key_exists($filterName, $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$filterName];
                         $selectAlias = $joinMapping['tableAlias'];
                     }
+
+                    $whereConditions[] = $selectAlias . '.' . $filterName . $operator . $columnName;
+                }
+            }
+        }
+
+
+        foreach ($this->filters as $filterName => $filterContent) {
+            $selectAlias = 'p';
+            if (array_key_exists($filterName, $filterToTableMapping)) {
+                $joinMapping = $filterToTableMapping[$filterName];
+                $selectAlias = $joinMapping['tableAlias'];
+            }
+
+            foreach ($filterContent as $operator => $values) {
+                if (count($values) == 1) {
+                    $values = current($values);
 
                     if ($operator === '=') {
                         if (count($values) == 1) {
@@ -335,16 +378,41 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             }
         }
 
-        foreach ($this->columnFilters as $filterName => $filterContent) {
-            foreach ($filterContent as $operator => $columnNames) {
-                foreach ($columnNames as $columnName) {
-                    $selectAlias = 'p';
-                    if (array_key_exists($filterName, $filterToTableMapping)) {
-                        $joinMapping = $filterToTableMapping[$filterName];
-                        $selectAlias = $joinMapping['tableAlias'];
+        // if we have several "groups" of the same filter, we need to use the intersect of the matching products
+        // e.g. : mix of id_feature like Composition & Styles
+
+        $idFilteredProducts = null;
+        foreach ($this->filters as $filterName => $filterContent) {
+            foreach ($filterContent as $operator => $filterValues) {
+                if (count($filterValues) > 1) {
+                    foreach($filterValues as $values) {
+                        $idTmpFilteredProducts = array();
+                        $mysqlAdapter = $this->getFilteredSearchAdapter();
+                        $mysqlAdapter->addSelectField('id_product');
+                        $mysqlAdapter->setLimit(null);
+                        $mysqlAdapter->setOrderField('');
+                        $mysqlAdapter->addFilter($filterName, $values, $operator);
+                        $idProducts = $mysqlAdapter->execute();
+                        foreach($idProducts as $idProduct) {
+                            $idTmpFilteredProducts[] = $idProduct['id_product'];
+                        }
+
+                        if ($idFilteredProducts === null) {
+                            $idFilteredProducts = $idTmpFilteredProducts;
+                        } else {
+                            $idFilteredProducts = array_intersect($idFilteredProducts, $idTmpFilteredProducts);
+                        }
+                        if (empty($idFilteredProducts)) {
+                            // set it to 0 to make sure no result will be returned
+                            $idFilteredProducts[] = 0;
+                            break;
+                        }
                     }
 
-                    $whereConditions[] = $selectAlias . '.' . $filterName . $operator . $columnName;
+                    $whereConditions[] =
+                        'p.id_product IN (' . implode(', ', array_map(function ($value) {
+                            return "'" . $value . "'";
+                        }, $idFilteredProducts)) . ')';
                 }
             }
         }
@@ -353,6 +421,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     }
 
     /**
+     * Compute the joinConditions needed depending on the fields required in select, where, groupby & orderby fields
+     *
      * @param array $filterToTableMapping
      *
      * @return ArrayCollection
@@ -391,6 +461,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     }
 
     /**
+     * Add the required table infos to the join list, taking care of the dependent tables
+     *
      * @param ArrayCollection $joinList
      * @param array           $joinMapping
      * @param array           $filterToTableMapping
@@ -410,6 +482,13 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $joinList->set($joinMapping['tableName'], $joinInfos);
     }
 
+    /**
+     * Compute the groupby condition, adding the proper alias that will be added to the final query
+     *
+     * @param array $filterToTableMapping
+     *
+     * @return array
+     */
     private function computeGroupByFields($filterToTableMapping)
     {
         $groupFields = array();
@@ -434,6 +513,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return $groupFields;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getMinMaxValue($fieldName)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
@@ -447,6 +529,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return [0 => $result[0]['min'], 1 => $result[0]['max']];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getFieldRanges($fieldName, $outputLength)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
@@ -474,6 +559,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return $mysqlAdapter->execute();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function count()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
@@ -487,6 +575,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         return $result[0]['c'];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function valueCount($fieldName)
     {
         $this->resetGroupBy();
@@ -496,16 +587,19 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $this->setLimit(null);
         $this->setOrderField('');
         $results = $this->execute();
+
         return $results;
     }
 
-
+    /**
+     * @inheritdoc
+     */
     public function useFiltersAsInitialPopulation()
     {
         $this->setLimit(null);
         $this->setOrderField('');
         $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
         $this->initialPopulation = clone $this;
-        $this->resetAllFilters();
+        $this->resetAll();
     }
 }

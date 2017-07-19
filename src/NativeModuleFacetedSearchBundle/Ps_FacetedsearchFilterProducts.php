@@ -16,6 +16,14 @@ class Ps_FacetedsearchFilterProducts
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }
 
+    /**
+     * Remove products from the product list in case of price postFiltering
+     *
+     * @param array $matchingProductList
+     * @param bool $psLayeredFilterPriceUsetax
+     * @param bool $psLayeredFilterPriceRounding
+     * @param array $priceFilter
+     */
     private function filterPrice(
         &$matchingProductList,
         $psLayeredFilterPriceUsetax,
@@ -40,12 +48,22 @@ class Ps_FacetedsearchFilterProducts
         }
     }
 
+    /**
+     * Get the products associated with the current filters
+     *
+     * @param int    $productsPerPage
+     * @param int    $page
+     * @param string $orderBy
+     * @param string $orderWay
+     * @param array  $selectedFilters
+     *
+     * @return array
+     */
     public function getProductByFilters(
         $productsPerPage,
         $page,
         $orderBy,
         $orderWay,
-        $idLang,
         $selectedFilters = array()
     ) {
         $this->facetedSearchAdapter->setLimit((int)$productsPerPage, ((int) $page - 1) * $productsPerPage);
@@ -70,6 +88,7 @@ class Ps_FacetedsearchFilterProducts
 
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
+        // @TODO: still usefull ?
         $this->pricePostFiltering($matchingProductList, $selectedFilters);
 
         $nbrProducts = count($matchingProductList);
@@ -84,6 +103,12 @@ class Ps_FacetedsearchFilterProducts
         );
     }
 
+    /**
+     * Post filter product depending on the price and a few extra config variables
+     *
+     * @param array $matchingProductList
+     * @param array $selectedFilters
+     */
     private function pricePostFiltering(&$matchingProductList, $selectedFilters)
     {
         if (isset($selectedFilters['price'])) {
