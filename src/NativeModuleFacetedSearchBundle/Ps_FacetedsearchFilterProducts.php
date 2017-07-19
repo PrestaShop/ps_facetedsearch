@@ -76,6 +76,8 @@ class Ps_FacetedsearchFilterProducts
 
         if (!Validate::isOrderWay($orderWay)) {
             $this->facetedSearchAdapter->setOrderDirection('ASC');
+        } else {
+            $this->facetedSearchAdapter->setOrderDirection($orderWay);
         }
 
         if (isset($selectedFilters['price'])) {
@@ -85,7 +87,6 @@ class Ps_FacetedsearchFilterProducts
             $this->facetedSearchAdapter->addSelectField('price_min');
             $this->facetedSearchAdapter->addSelectField('price_max');
         }
-
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
         // @TODO: still usefull ?
