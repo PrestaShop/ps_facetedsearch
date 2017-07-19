@@ -172,6 +172,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_indexable_feature_lang_value');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_indexable_feature_value_lang_value');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_category');
+        Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_filter_block');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_filter');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_filter_shop');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_product_attribute');
@@ -323,6 +324,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 				)'
             );
         }
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookAfterDeleteAttributeGroup($params)
@@ -339,6 +341,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
 			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookPostProcessAttributeGroup($params)
@@ -415,6 +418,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 				)'
             );
         }
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookAfterDeleteAttribute($params)
@@ -427,6 +431,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_lang_value
 			WHERE `id_attribute` = '.(int) $params['id_attribute']
         );
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookPostProcessAttribute($params)
@@ -504,6 +509,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 				)'
             );
         }
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookAfterDeleteFeature($params)
@@ -516,6 +522,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature
 			WHERE `id_feature` = '.(int) $params['id_feature']
         );
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookPostProcessFeature($params)
@@ -593,6 +600,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 				)'
             );
         }
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookAfterDeleteFeatureValue($params)
@@ -605,6 +613,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
 			WHERE `id_feature_value` = '.(int) $params['id_feature_value']
         );
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookPostProcessFeatureValue($params)
@@ -651,6 +660,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         self::indexProductPrices((int) $params['id_product']);
         $this->indexAttribute((int) $params['id_product']);
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    public function invalidateLayeredFilterBlockCache()
+    {
+        \Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'layered_filter_block');
     }
 
     public function renderWidget($hookName, array $configuration)
@@ -667,6 +682,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     public function hookCategoryAddition($params)
     {
         $this->rebuildLayeredCache(array(), array((int) $params['category']->id));
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     public function hookCategoryUpdate($params)
@@ -674,6 +690,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         /* The category status might (active, inactive) have changed, we have to update the layered cache table structure */
         if (isset($params['category']) && !$params['category']->active) {
             $this->hookCategoryDeletion($params);
+            $this->invalidateLayeredFilterBlockCache();
         }
     }
 
@@ -696,6 +713,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
+        $this->invalidateLayeredFilterBlockCache();
         $this->buildLayeredCategories();
     }
 
@@ -1379,6 +1397,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		`filters` LONGTEXT NULL,
 		`n_categories` INT(10) UNSIGNED NOT NULL,
 		`date_add` DATETIME NOT NULL
+		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+
+        Db::getInstance()->execute('
+		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter_block` (
+		`hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
+        `data` TEXT NULL
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         Db::getInstance()->execute('
