@@ -26,9 +26,12 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer();
     }
 
+    /**
+     * @return array
+     */
     private function getAvailableSortOrders()
     {
-        return [
+        return array(
             (new SortOrder('product', 'position', 'asc'))->setLabel(
                 $this->module->getTranslator()->trans('Relevance', array(), 'Modules.Facetedsearch.Shop')
             ),
@@ -44,17 +47,25 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             (new SortOrder('product', 'price', 'desc'))->setLabel(
                 $this->module->getTranslator()->trans('Price, high to low', array(), 'Shop.Theme.Catalog')
             ),
-        ];
+        );
     }
 
+    /**
+     * @param ProductSearchContext $context
+     * @param ProductSearchQuery   $query
+     *
+     * @return ProductSearchResult
+     */
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult();
+        // extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
-        $facetedSearch = new Ps_FacetedsearchProductSearch($facetedSearchFilters);
+        $facetedSearch = new Ps_FacetedsearchProductSearch();
+        // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
         $order_by = $query->getSortOrder()->toLegacyOrderBy(false);
@@ -62,12 +73,12 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
 
         $filterProductSearch = new Ps_FacetedsearchFilterProducts($facetedSearch);
 
+        // get the product associated with the current filter
         $productsAndCount = $filterProductSearch->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
             $order_by,
             $order_way,
-            $context->getIdLang(),
             $facetedSearchFilters
         );
 
@@ -77,6 +88,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             ->setAvailableSortOrders($this->getAvailableSortOrders())
         ;
 
+        // now get the filter blocks associated with the current search
         $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
         $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
 
@@ -98,6 +110,11 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         return $result;
     }
 
+    /**
+     * Add a label associated with the facets
+     *
+     * @param array $facets
+     */
     private function labelRangeFilters(array $facets)
     {
         foreach ($facets as $facet) {
@@ -176,6 +193,11 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         }
     }
 
+    /**
+     * Hide entries with 0 results
+     *
+     * @param array $facets
+     */
     private function hideZeroValues(array $facets)
     {
         foreach ($facets as $facet) {
@@ -187,6 +209,11 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         }
     }
 
+    /**
+     * Remove the facet when there's only 1 result
+     *
+     * @param array $facets
+     */
     private function hideUselessFacets(array $facets)
     {
         foreach ($facets as $facet) {

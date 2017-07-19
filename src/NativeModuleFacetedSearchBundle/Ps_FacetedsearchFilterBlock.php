@@ -21,6 +21,12 @@ class Ps_FacetedsearchFilterBlock
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }
 
+    /**
+     * @param int $nbProducts
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
     public function getFilterBlock(
         $nbProducts,
         $selectedFilters
@@ -42,6 +48,7 @@ class Ps_FacetedsearchFilterBlock
         );
 
         $filterBlocks = array();
+        // iterate through each filter, and the get corresponding filter block
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
@@ -83,6 +90,13 @@ class Ps_FacetedsearchFilterBlock
     }
 
 
+    /**
+     * @param \Currency $currency
+     * @param array $selectedFilters
+     * @param array $filter
+     *
+     * @return array
+     */
     private function getPriceRangeBlock($currency, $selectedFilters, $filter)
     {
         if (!$this->showPriceFilter()) {
@@ -110,12 +124,6 @@ class Ps_FacetedsearchFilterBlock
         $priceMaxFilter = $this->facetedSearchAdapter->getInitialPopulation()->getFilter('price_max');
         $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_min');
         $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_max');
-        $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
-
-        // only apply id_category filter, if it exists, to compute price range block
-        if ($categoryFilter !== null) {
-            $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
-        }
 
         list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxPriceValue();
         $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
@@ -136,6 +144,16 @@ class Ps_FacetedsearchFilterBlock
         return $priceBlock;
     }
 
+    /**
+     * Merge the price range computed from the price_min, price_max
+     * Use the selectedFilters to make sure the current price filter will be present in the final ranges
+     *
+     * @param array $priceRangesMin
+     * @param array $priceRangesMax
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
     private function mergePriceRanges($priceRangesMin, $priceRangesMax, $selectedFilters)
     {
         // first handle the ranges which are the sames
@@ -165,8 +183,8 @@ class Ps_FacetedsearchFilterBlock
             $priceRanges = $this->mergeOverlaps($priceRangesMax, $priceRanges);
         }
 
-        // remove segment intervals by creating larger intervals
-        $priceRanges = $this->mergeSegmentIntervals($priceRanges);
+        // remove point intervals by creating larger intervals
+        $priceRanges = $this->mergePointIntervals($priceRanges);
 
         // adjust the range to fit the one stored in the layer price table
         $priceRanges = $this->adjustRangesWithLayeredPriceIndex($priceRanges);
@@ -183,7 +201,14 @@ class Ps_FacetedsearchFilterBlock
         return $priceRanges;
     }
 
-    private function mergeSegmentIntervals($priceRanges)
+    /**
+     * Merge together several intervals with the same start and end
+     *
+     * @param array $priceRanges
+     *
+     * @return mixed
+     */
+    private function mergePointIntervals($priceRanges)
     {
         do {
             $keepLooping = false;
@@ -207,6 +232,14 @@ class Ps_FacetedsearchFilterBlock
         return $priceRanges;
     }
 
+    /**
+     * Set the right range of active depending on the selectedFilters
+     *
+     * @param array $priceRanges
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
     private function setActiveRanges($priceRanges, $selectedFilters)
     {
         if (empty($selectedFilters['price'])) {
@@ -235,6 +268,13 @@ class Ps_FacetedsearchFilterBlock
         return $priceRanges;
     }
 
+    /**
+     * Recount the real number of products associated with a price range
+     *
+     * @param array $priceRanges
+     *
+     * @return array
+     */
     private function recountRanges($priceRanges)
     {
         foreach($priceRanges as $key => $priceRange) {
@@ -251,6 +291,13 @@ class Ps_FacetedsearchFilterBlock
         return $priceRanges;
     }
 
+    /**
+     * Adjust the range interval to match what's in the layered_price_index table
+     *
+     * @param array $priceRanges
+     *
+     * @return array
+     */
     private function adjustRangesWithLayeredPriceIndex($priceRanges)
     {
         foreach($priceRanges as $key => $priceRange) {
@@ -313,6 +360,15 @@ class Ps_FacetedsearchFilterBlock
         return $priceRanges;
     }
 
+    /**
+     * Merge together ranges that are overlapping
+     *
+     * @param array $range1
+     * @param array $range2
+     * @param bool  $overlapOnly
+     *
+     * @return array
+     */
     private function mergeOverlaps($range1, $range2, $overlapOnly = false)
     {
         foreach ($range1 as $minKey => $priceRangeMin) {
@@ -363,6 +419,13 @@ class Ps_FacetedsearchFilterBlock
         return $range2;
     }
 
+    /**
+     * Remove duplicates range and sort them
+     *
+     * @param array $ranges
+     *
+     * @return array
+     */
     private function removeDuplicatesAndSort($ranges) {
         $uniqueRange = array();
         $skipKeys = array();
@@ -391,6 +454,15 @@ class Ps_FacetedsearchFilterBlock
         return $uniqueRange;
     }
 
+    /**
+     * Get the weight filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $nbProducts
+     *
+     * @return array
+     */
     private function getWeightRangeBlock($filter, $selectedFilters, $nbProducts)
     {
         $weightBlock = array(
@@ -409,12 +481,6 @@ class Ps_FacetedsearchFilterBlock
         );
 
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('weight');
-
-        $categoryFilter = $this->facetedSearchAdapter->getFilter('id_category');
-        // only apply id_category filter, if it exists, to compute weight range block
-        if ($categoryFilter !== null) {
-            $filteredSearchAdapter->addFilter('id_category', $categoryFilter);
-        }
 
         list($weightBlock['min'], $weightBlock['max']) = $filteredSearchAdapter->getMinMaxValue('weight');
         $weightBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('weight', 10);
@@ -438,6 +504,14 @@ class Ps_FacetedsearchFilterBlock
         return $weightBlock;
     }
 
+    /**
+     * Get the condition filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
     private function getConditionsBlock($filter, $selectedFilters)
     {
         $conditionArray = array(
@@ -474,6 +548,14 @@ class Ps_FacetedsearchFilterBlock
         return $conditionBlock;
     }
 
+    /**
+     * Get the quantities filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('quantity');
@@ -550,6 +632,15 @@ class Ps_FacetedsearchFilterBlock
         return $quantityBlock;
     }
 
+    /**
+     * Get the manufacturers filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = array();
@@ -591,6 +682,14 @@ class Ps_FacetedsearchFilterBlock
         return $manufacturerBlock;
     }
 
+    /**
+     * Get url & meta from layered_indexable_attribute_group_lang_value table
+     *
+     * @param int $idAttributeGroup
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getAttributeGroupLayeredInfos($idAttributeGroup, $idLang)
     {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
@@ -599,6 +698,14 @@ class Ps_FacetedsearchFilterBlock
             (int)$idAttributeGroup.' AND id_lang='.(int)$idLang);
     }
 
+    /**
+     * Get url & meta from layered_indexable_attribute_lang_value table
+     *
+     * @param int $idAttribute
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getAttributeLayeredInfos($idAttribute, $idLang)
     {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
@@ -607,6 +714,14 @@ class Ps_FacetedsearchFilterBlock
             (int)$idAttribute.' AND id_lang='.(int)$idLang);
     }
 
+    /**
+     * Get url & meta from layered_indexable_feature_value_lang_value table
+     *
+     * @param int $idFeatureValue
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getFeatureLayeredInfos($idFeatureValue, $idLang)
     {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
@@ -615,6 +730,14 @@ class Ps_FacetedsearchFilterBlock
             (int)$idFeatureValue.' AND id_lang='.(int)$idLang);
     }
 
+    /**
+     * Get url & meta from layered_indexable_feature_lang_value table
+     *
+     * @param int $idFeature
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getFeatureValueLayeredInfos($idFeature, $idLang)
     {
         return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
@@ -676,7 +799,15 @@ class Ps_FacetedsearchFilterBlock
 		');
     }
 
-
+    /**
+     * Get the attributes filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
         $attributesBlock = array();
@@ -764,6 +895,14 @@ class Ps_FacetedsearchFilterBlock
         return $attributesBlock;
     }
 
+    /**
+     * Sort an array using the same key order than the sortedReferenceArray
+     *
+     * @param array $sortedReferenceArray
+     * @param array $array
+     *
+     * @return array
+     */
     private function sortByKey($sortedReferenceArray, $array)
     {
         $sortedArray = array();
@@ -778,6 +917,15 @@ class Ps_FacetedsearchFilterBlock
         return $sortedArray;
     }
 
+    /**
+     * Get the features filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $idLang
+     *
+     * @return array
+     */
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
         $features = $featureBlock = array();
@@ -857,6 +1005,13 @@ class Ps_FacetedsearchFilterBlock
         return $featureBlock;
     }
 
+    /**
+     * Natural sort multi-dimensional feature array
+     *
+     * @param array $featureBlock
+     *
+     * @return array
+     */
     private function sortFeatureBlock($featureBlock)
     {
         //Natural sort
@@ -879,6 +1034,12 @@ class Ps_FacetedsearchFilterBlock
         return $featureBlock;
     }
 
+    /**
+     * Add the categories filter condition based on the parent and config variables
+     *
+     * @param FacetedSearchInterface $filteredSearchAdapter
+     * @param \Category              $parent
+     */
     private function addCategoriesBlockFilters(FacetedSearchInterface $filteredSearchAdapter, $parent)
     {
         if (Group::isFeatureActive()) {
@@ -902,7 +1063,17 @@ class Ps_FacetedsearchFilterBlock
         $filteredSearchAdapter->addFilter('nleft', [$parent->nleft], '>');
         $filteredSearchAdapter->addFilter('nright', [$parent->nright], '<');
     }
-    
+
+    /**
+     * Get the categories filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $idLang
+     * @param \Category $parent
+     *
+     * @return array
+     */
     private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
     {
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_category');

@@ -34,13 +34,16 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         $this->filters = clone $this->filters;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getInitialPopulation()
     {
         return $this->initialPopulation;
     }
 
     /**
-     * @param $filterName
+     * @inheritdoc
      */
     public function resetFilter($filterName)
     {
@@ -49,6 +52,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function resetColumnFilters()
     {
         $this->columnFilters = array();
@@ -56,7 +62,10 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
-    public function resetAllFilters()
+    /**
+     * @inheritdoc
+     */
+    public function resetAll()
     {
         $this->selectFields = array();
         $this->groupFields = array();
@@ -67,8 +76,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     }
 
     /**
-     * @param $filterName
-     * @return mixed
+     * @inheritdoc
      */
     public function getFilter($filterName)
     {
@@ -79,34 +87,46 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getFilters()
     {
         return $this->filters;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function copyFilters(FacetedSearchInterface $facetedSearch)
     {
         $this->filters = $facetedSearch->getFilters();
         $this->columnFilters = $facetedSearch->getColumnFilters();
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getColumnFilters()
     {
         return $this->columnFilters;
     }
 
     /**
-     * @param string $filterName
-     * @param array $values
-     * @param string $operator
+     * @inheritdoc
      */
     public function addFilter($filterName, $values, $operator = '=')
     {
         $filters = $this->filters->get($filterName);
         $filters[$operator][] = $values;
         $this->filters->set($filterName, $filters);
+
+        return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function addColumnFilter($filterName, $columnName, $operator = '=')
     {
         $this->columnFilters[$filterName][$operator][] = $columnName;
@@ -114,6 +134,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function addSelectField($fieldName)
     {
         $this->selectFields[] = $fieldName;
@@ -121,6 +144,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setSelectFields($selectFields)
     {
         $this->selectFields = $selectFields;
@@ -128,6 +154,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function resetSelectField()
     {
         $this->selectFields = array();
@@ -135,6 +164,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function addGroupBy($groupField)
     {
         $this->groupFields[] = $groupField;
@@ -142,6 +174,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function setGroupFields($groupFields)
     {
         $this->groupFields = $groupFields;
@@ -149,6 +184,9 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
         return $this;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function resetGroupBy()
     {
         $this->groupFields = array();
@@ -157,13 +195,12 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     }
 
     /**
-     * @param $filterName
-     * @param $value
+     * @inheritdoc
      */
     public function setFilter($filterName, $value)
     {
         if ($value === null) {
-            return;
+            return $this;
         }
         $this->filters[$filterName] = $value;
 
@@ -171,7 +208,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     }
 
     /**
-     * @param $fieldName
+     * @inheritdoc
      */
     public function setOrderField($fieldName)
     {
@@ -181,7 +218,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     }
 
     /**
-     * @param $direction
+     * @inheritdoc
      */
     public function setOrderDirection($direction)
     {
@@ -191,7 +228,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     }
 
     /**
-     * @param $limit
+     * @inheritdoc
      */
     public function setLimit($limit, $offset = 0)
     {
