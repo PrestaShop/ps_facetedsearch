@@ -89,6 +89,36 @@ class Ps_FacetedsearchFilterBlock
         return Group::getCurrent()->show_prices;
     }
 
+    /**
+     * Get the filter block from the cache table
+     *
+     * @param $filterHash
+     *
+     * @return array
+     */
+    public function getFromCache($filterHash)
+    {
+        $row = \Db::getInstance()->getRow('SELECT data FROM '._DB_PREFIX_.'layered_filter_block 
+                                            WHERE hash="'.$filterHash.'"');
+        if (!empty($row)) {
+            return unserialize(current($row));
+        }
+
+        return null;
+    }
+
+    /**
+     * Insert the filter block into the cache table
+     *
+     * @param string $filterHash
+     * @param array $data
+     */
+    public function insertIntoCache($filterHash, $data)
+    {
+        \Db::getInstance()->execute('INSERT INTO '._DB_PREFIX_.'layered_filter_block (hash, data) 
+                                        VALUES ("'.$filterHash.'", "'.pSQL(serialize($data)).'")');
+    }
+
 
     /**
      * @param \Currency $currency

@@ -90,7 +90,13 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
 
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
-        $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
+        $filterHash = md5(serialize($facetedSearchFilters));
+
+        $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+        if (empty($filterBlock)) {
+            $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
+            $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+        }
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
             $filterBlock['filters']
