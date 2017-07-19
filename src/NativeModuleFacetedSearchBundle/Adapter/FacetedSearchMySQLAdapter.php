@@ -66,7 +66,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             $referenceTable = '('.$this->initialPopulation->getQuery().')';
         }
 
-        if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)) {
+        if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)
+            && empty($this->orderField)) {
             // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
             $query = $referenceTable;
             $this->orderField = '';
@@ -97,7 +98,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             }
         }
 
-        if ($this->orderField) {
+        if ($orderField) {
             $query .= ' ORDER BY ' . $orderField . ' ' . $this->orderDirection;
         }
 
@@ -156,7 +157,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'product_shop',
                     'tableAlias' => 'ps',
-                    'joinCondition' => '(p.id_product = ps.id_product)',
+                    'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = '.
+                        \Context::getContext()->shop->id.')',
                     'joinType' => self::INNER_JOIN
                 ),
             'id_feature_value' =>
@@ -178,6 +180,14 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'category_product',
                     'tableAlias' => 'cp',
                     'joinCondition' => '(p.id_product = cp.id_product)',
+                    'joinType' => self::INNER_JOIN
+                ),
+            'name' =>
+                array(
+                    'tableName' => 'product_lang',
+                    'tableAlias' => 'pl',
+                    'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = '.
+                        \Context::getContext()->shop->id.' AND pl.id_lang = '.\Context::getContext()->language->id.')',
                     'joinType' => self::INNER_JOIN
                 ),
             'nleft' =>
@@ -601,5 +611,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
         $this->initialPopulation = clone $this;
         $this->resetAll();
+        $this->addSelectField('id_product');
     }
 }
