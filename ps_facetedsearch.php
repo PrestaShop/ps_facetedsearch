@@ -1782,11 +1782,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             ));
                         }
 
-                        $depth = Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH');
-                        if ($depth === false) {
-                            $depth = 1;
-                        }
-
                         $sql_query['select'] = '
                         SELECT c.id_category, c.id_parent, cl.name, (SELECT count(DISTINCT p.id_product) # ';
                         $sql_query['from']   = '
@@ -1807,9 +1802,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                 ).')) ';
                         }
 
-                        $sql_query['group'] .= 'WHERE c.nleft > '.(int)$parent->nleft.'
-                        AND c.nright < '.(int)$parent->nright.'
-                        '.($depth ? 'AND c.level_depth <= '.($parent->level_depth + (int)$depth) : '').'
+                        $sql_query['group'] .= 'WHERE c.id_category = ' . (int)$parent->id . '
                         AND c.active = 1
                         GROUP BY c.id_category ORDER BY c.nleft, c.position';
 
