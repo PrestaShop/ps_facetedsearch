@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
 use Doctrine\Common\Collections\ArrayCollection;

@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -8,9 +9,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     const LEFT_JOIN = 'LEFT JOIN';
     const INNER_JOIN = 'INNER JOIN';
 
-    private static $referenceTable = _DB_PREFIX_.'product';
-    private static $referenceAlias = 'p';
-
     /**
      * @inheritdoc
      */
@@ -18,13 +16,13 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(['price_min', 'MIN(price_min) as min, MAX(price_max) as max']);
+        $mysqlAdapter->setSelectFields(array('price_min', 'MIN(price_min) as min, MAX(price_max) as max'));
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
         $result = $mysqlAdapter->execute();
 
-        return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
+        return array(0 => floor($result[0]['min']), 1 => ceil($result[0]['max']));
     }
 
     /**
@@ -61,9 +59,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         $filterToTableMapping = $this->getFieldMapping();
         $orderField = $this->computeOrderByField($filterToTableMapping);
         if ($this->initialPopulation === null) {
-            $referenceTable = self::$referenceTable;
+            $referenceTable = _DB_PREFIX_ . 'product';
         } else {
-            $referenceTable = '('.$this->initialPopulation->getQuery().')';
+            $referenceTable = '(' . $this->initialPopulation->getQuery() . ')';
         }
 
         if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)
@@ -79,8 +77,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             $joinConditions = $this->computeJoinConditions($filterToTableMapping);
             $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
-            $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' ' .
-                self::$referenceAlias;
+            $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
             foreach ($joinConditions as $tableName => $joinAliasConditionInfos) {
                 foreach ($joinAliasConditionInfos as $tableAlias => $joinConditionInfos) {
@@ -157,8 +154,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'product_shop',
                     'tableAlias' => 'ps',
-                    'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = '.
-                        \Context::getContext()->shop->id.')',
+                    'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
+                        \Context::getContext()->shop->id . ')',
                     'joinType' => self::INNER_JOIN
                 ),
             'id_feature_value' =>
@@ -186,8 +183,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'product_lang',
                     'tableAlias' => 'pl',
-                    'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = '.
-                        \Context::getContext()->shop->id.' AND pl.id_lang = '.\Context::getContext()->language->id.')',
+                    'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
+                        \Context::getContext()->shop->id . ' AND pl.id_lang = ' . \Context::getContext()->language->id . ')',
                     'joinType' => self::INNER_JOIN
                 ),
             'nleft' =>
@@ -218,8 +215,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
-                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.
-                        $stockCondition.')',
+                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                        $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -227,8 +224,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
-                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute '.
-                        $stockCondition.')',
+                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                        $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -236,8 +233,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -245,8 +242,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -254,8 +251,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -263,8 +260,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                 array(
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = '.
-                        \Context::getContext()->currency->id.' AND psi.id_country = '.\Context::getContext()->country->id.')',
+                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
@@ -297,9 +294,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         }
         if (array_key_exists($this->orderField, $filterToTableMapping)) {
             $joinMapping = $filterToTableMapping[$this->orderField];
-            $orderField = $joinMapping['tableAlias'].'.'.$this->orderField;
+            $orderField = $joinMapping['tableAlias'] . '.' . $this->orderField;
         } else {
-            $orderField = 'p.'.$this->orderField;
+            $orderField = 'p.' . $this->orderField;
         }
 
         return $orderField;
@@ -308,7 +305,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     /**
      * Compute the select fields, adding the proper alias that will be added to the final query
      *
-     * @param array           $filterToTableMapping
+     * @param array $filterToTableMapping
      *
      * @return array
      */
@@ -334,7 +331,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     /**
      * Computer the where conditions that will be added to the final query
      *
-     * @param array           $filterToTableMapping
+     * @param array $filterToTableMapping
      *
      * @return array
      */
@@ -395,7 +392,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
         foreach ($this->filters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $filterValues) {
                 if (count($filterValues) > 1) {
-                    foreach($filterValues as $values) {
+                    foreach ($filterValues as $values) {
                         $idTmpFilteredProducts = array();
                         $mysqlAdapter = $this->getFilteredSearchAdapter();
                         $mysqlAdapter->addSelectField('id_product');
@@ -403,7 +400,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                         $mysqlAdapter->setOrderField('');
                         $mysqlAdapter->addFilter($filterName, $values, $operator);
                         $idProducts = $mysqlAdapter->execute();
-                        foreach($idProducts as $idProduct) {
+                        foreach ($idProducts as $idProduct) {
                             $idTmpFilteredProducts[] = $idProduct['id_product'];
                         }
 
@@ -484,10 +481,10 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             $dependencyJoinMapping = $filterToTableMapping[$joinMapping['dependencyField']];
             $this->addJoinConditions($joinList, $dependencyJoinMapping, $filterToTableMapping);
         }
-        $joinInfos[$joinMapping['tableAlias']] = [
+        $joinInfos[$joinMapping['tableAlias']] = array(
             'joinCondition' => $joinMapping['joinCondition'],
             'joinType' => $joinMapping['joinType']
-        ];
+        );
 
         $joinList->set($joinMapping['tableName'], $joinInfos);
     }
@@ -514,9 +511,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
             }
             if (array_key_exists($values, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$values];
-                $groupFields[$key] = $joinMapping['tableAlias'].'.'.$values;
+                $groupFields[$key] = $joinMapping['tableAlias'] . '.' . $values;
             } else {
-                $groupFields[$key] = 'p.'.$values;
+                $groupFields[$key] = 'p.' . $values;
             }
         }
 
@@ -530,13 +527,13 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(['MIN('.$fieldName.') as min, MAX('.$fieldName.') as max']);
+        $mysqlAdapter->setSelectFields(array('MIN(' . $fieldName . ') as min, MAX(' . $fieldName . ') as max'));
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
         $result = $mysqlAdapter->execute();
 
-        return [0 => $result[0]['min'], 1 => $result[0]['max']];
+        return array(0 => $result[0]['min'], 1 => $result[0]['max']);
     }
 
     /**
@@ -546,8 +543,8 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields([$fieldName, 'ROUND((-MIN('.$fieldName.') + MAX('.$fieldName.')) / '.
-            $outputLength.') AS diff']);
+        $mysqlAdapter->setSelectFields(array($fieldName, 'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' .
+            $outputLength . ') AS diff'));
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -560,9 +557,9 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
 
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields([$fieldName, 'FLOOR('.$fieldName.'/'.$diff.')*'.$diff.' as range_start',
-            '(FLOOR('.$fieldName.'/'.$diff.')+1)*'.$diff.'-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr']);
-        $mysqlAdapter->addGroupBy('FLOOR('.$fieldName.' / '.$diff.')');
+        $mysqlAdapter->setSelectFields(array($fieldName, 'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
+            '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr'));
+        $mysqlAdapter->addGroupBy('FLOOR(' . $fieldName . ' / ' . $diff . ')');
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -576,7 +573,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
+        $mysqlAdapter->setSelectFields(array('COUNT(DISTINCT p.id_product) c'));
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -608,7 +605,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
     {
         $this->setLimit(null);
         $this->setOrderField('');
-        $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
+        $this->setSelectFields(array('id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price'));
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');

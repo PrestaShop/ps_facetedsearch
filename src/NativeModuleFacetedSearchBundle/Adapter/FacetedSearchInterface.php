@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle\Adapter;
 
 interface FacetedSearchInterface
@@ -59,7 +60,7 @@ interface FacetedSearchInterface
      * It try to generate the required outputLength number of ranges, if possible
      *
      * @param string $fieldName
-     * @param int $outputLength
+     * @param int    $outputLength
      *
      * @return mixed
      */
@@ -108,7 +109,7 @@ interface FacetedSearchInterface
      * If several values are provided with the = operator, it's converted automatically to a IN () in the final query
      *
      * @param string $filterName
-     * @param array $values
+     * @param array  $values
      * @param string $operator
      *
      * @return self
@@ -174,7 +175,7 @@ interface FacetedSearchInterface
      * Set the filterName to the given array value
      *
      * @param string $filterName
-     * @param array $value
+     * @param array  $value
      *
      * @return mixed
      */

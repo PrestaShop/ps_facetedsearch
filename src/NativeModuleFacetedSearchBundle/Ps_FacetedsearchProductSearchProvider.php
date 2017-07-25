@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
@@ -31,20 +32,25 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
      */
     private function getAvailableSortOrders()
     {
+        $sortPosAsc = new SortOrder('product', 'position', 'asc');
+        $sortNameAsc = new SortOrder('product', 'name', 'asc');
+        $sortNameDesc = new SortOrder('product', 'name', 'desc');
+        $sortPriceAsc = new SortOrder('product', 'price', 'asc');
+        $sortPriceDesc = new SortOrder('product', 'price', 'desc');
         return array(
-            (new SortOrder('product', 'position', 'asc'))->setLabel(
+            $sortPosAsc->setLabel(
                 $this->module->getTranslator()->trans('Relevance', array(), 'Modules.Facetedsearch.Shop')
             ),
-            (new SortOrder('product', 'name', 'asc'))->setLabel(
+            $sortNameAsc->setLabel(
                 $this->module->getTranslator()->trans('Name, A to Z', array(), 'Shop.Theme.Catalog')
             ),
-            (new SortOrder('product', 'name', 'desc'))->setLabel(
+            $sortNameDesc->setLabel(
                 $this->module->getTranslator()->trans('Name, Z to A', array(), 'Shop.Theme.Catalog')
             ),
-            (new SortOrder('product', 'price', 'asc'))->setLabel(
+            $sortPriceAsc->setLabel(
                 $this->module->getTranslator()->trans('Price, low to high', array(), 'Shop.Theme.Catalog')
             ),
-            (new SortOrder('product', 'price', 'desc'))->setLabel(
+            $sortPriceDesc->setLabel(
                 $this->module->getTranslator()->trans('Price, high to low', array(), 'Shop.Theme.Catalog')
             ),
         );
@@ -59,7 +65,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
-    ) {
+    )
+    {
         $result = new ProductSearchResult();
         // extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
@@ -85,8 +92,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $result
             ->setProducts($productsAndCount['products'])
             ->setTotalProductsCount($productsAndCount['count'])
-            ->setAvailableSortOrders($this->getAvailableSortOrders())
-        ;
+            ->setAvailableSortOrders($this->getAvailableSortOrders());
 
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
@@ -109,7 +115,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $this->hideZeroValues($facets);
         $this->hideUselessFacets($facets);
 
-        $nextMenu = (new FacetCollection())->setFacets($facets);
+        $facetCollection = new FacetCollection();
+        $nextMenu = $facetCollection->setFacets($facets);
         $result->setFacetCollection($nextMenu);
         $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
 
@@ -127,23 +134,25 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             if ($facet->getType() === 'weight') {
                 $unit = Configuration::get('PS_WEIGHT_UNIT');
                 foreach ($facet->getFilters() as $filter) {
+                    $filterValue = $filter->getValue();
                     $filter->setLabel(
                         sprintf(
                             '%1$s%2$s - %3$s%4$s',
-                            Tools::displayNumber($filter->getValue()['from']),
+                            Tools::displayNumber($filterValue['from']),
                             $unit,
-                            Tools::displayNumber($filter->getValue()['to']),
+                            Tools::displayNumber($filterValue['to']),
                             $unit
                         )
                     );
                 }
             } elseif ($facet->getType() === 'price') {
                 foreach ($facet->getFilters() as $filter) {
+                    $filterValue = $filter->getValue();
                     $filter->setLabel(
                         sprintf(
                             '%1$s - %2$s',
-                            Tools::displayPrice($filter->getValue()['from']),
-                            Tools::displayPrice($filter->getValue()['to'])
+                            Tools::displayPrice($filterValue['from']),
+                            Tools::displayPrice($filterValue['to'])
                         )
                     );
                 }
