@@ -48,23 +48,23 @@ class Ps_FacetedsearchProductSearch
     {
         $homeCategory = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
-        $idParent = (int) Tools::getValue('id_category', Tools::getValue('id_category_layered', $homeCategory));
+        $idParent = (int)Tools::getValue('id_category', Tools::getValue('id_category_layered', $homeCategory));
 
-        $parent = new Category((int) $idParent);
+        $parent = new Category((int)$idParent);
 
         $context = Context::getContext();
-        $idCurrency = (int) $context->currency->id;
-        $idShop = (int) $context->shop->id;
+        $idCurrency = (int)$context->currency->id;
+        $idShop = (int)$context->shop->id;
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
 
-        $this->addSearchFilters($facetedSearchFilters, $psLayeredFullTree?$parent:null, $idShop);
+        $this->addSearchFilters($facetedSearchFilters, $psLayeredFullTree ? $parent : null, $idShop);
     }
 
     /**
-     * @param array $selectedFilters
+     * @param array    $selectedFilters
      * @param Category $parent
-     * @param int $idShop
+     * @param int      $idShop
      */
     private function addSearchFilters($selectedFilters, $parent, $idShop)
     {
@@ -110,27 +110,27 @@ class Ps_FacetedsearchProductSearch
                 case 'weight':
                     if ($selectedFilters['weight'][0] != 0 || $selectedFilters['weight'][1] != 0) {
                         $this->facetedSearchAdapter->addFilter('weight',
-                            [(float) ($selectedFilters['weight'][0] - 0.001)], '>=');
+                            array((float)($selectedFilters['weight'][0] - 0.001)), '>=');
                         $this->facetedSearchAdapter->addFilter('weight',
-                            [(float) ($selectedFilters['weight'][1] + 0.001)], '<=');
+                            array((float)($selectedFilters['weight'][1] + 0.001)), '<=');
                     }
                     break;
 
                 case 'price':
                     if (isset($selectedFilters['price'])) {
                         if ($selectedFilters['price'][0] !== '' || $selectedFilters['price'][1] !== '') {
-                            $this->addPriceFilter((float) $selectedFilters['price'][0],
-                                (float) $selectedFilters['price'][1] + 0.001);
+                            $this->addPriceFilter((float)$selectedFilters['price'][0],
+                                (float)$selectedFilters['price'][1] + 0.001);
                         }
                     }
                     break;
             }
         }
         if (!$hasCategory && $parent) {
-            $this->facetedSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
-            $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
+            $this->facetedSearchAdapter->addFilter('nleft', array($parent->nleft), '>=');
+            $this->facetedSearchAdapter->addFilter('nright', array($parent->nright), '<=');
         }
-        $this->facetedSearchAdapter->addFilter('id_shop', [$idShop]);
+        $this->facetedSearchAdapter->addFilter('id_shop', array($idShop));
         $this->facetedSearchAdapter->addGroupBy('id_product');
         $this->facetedSearchAdapter->useFiltersAsInitialPopulation();
     }
@@ -139,17 +139,17 @@ class Ps_FacetedsearchProductSearch
      * Add a filter with the filterValues extracted from the selectedFilters
      *
      * @param string $filterName
-     * @param array $filterValues
+     * @param array  $filterValues
      */
     public function addFilter($filterName, $filterValues)
     {
         if (!is_array($filterValues)) {
-            $filterValues = [$filterValues];
+            $filterValues = array($filterValues);
         }
         foreach ($filterValues as $filterValue) {
             $values = array();
             if (is_array($filterValue)) {
-                foreach($filterValue as $subFilterValue) {
+                foreach ($filterValue as $subFilterValue) {
                     $values[] = (int)$subFilterValue;
                 }
             } else {
@@ -169,7 +169,7 @@ class Ps_FacetedsearchProductSearch
      */
     private function addPriceFilter($minPrice, $maxPrice)
     {
-        $this->facetedSearchAdapter->addFilter('price_min', [$minPrice - 0.001], '>=');
-        $this->facetedSearchAdapter->addFilter('price_max', [$maxPrice + 0.001], '<=');
+        $this->facetedSearchAdapter->addFilter('price_min', array($minPrice - 0.001), '>=');
+        $this->facetedSearchAdapter->addFilter('price_max', array($maxPrice + 0.001), '<=');
     }
 }

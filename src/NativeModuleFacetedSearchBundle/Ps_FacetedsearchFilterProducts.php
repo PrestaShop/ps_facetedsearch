@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle;
 
 use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
@@ -20,8 +21,8 @@ class Ps_FacetedsearchFilterProducts
      * Remove products from the product list in case of price postFiltering
      *
      * @param array $matchingProductList
-     * @param bool $psLayeredFilterPriceUsetax
-     * @param bool $psLayeredFilterPriceRounding
+     * @param bool  $psLayeredFilterPriceUsetax
+     * @param bool  $psLayeredFilterPriceRounding
      * @param array $priceFilter
      */
     private function filterPrice(
@@ -33,8 +34,8 @@ class Ps_FacetedsearchFilterProducts
     {
         /* for this case, price could be out of range, so we need to compute the real price */
         foreach ($matchingProductList as $key => $product) {
-            if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
-                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])) {
+            if (($product['price_min'] < (int)$priceFilter['min'] && $product['price_max'] > (int)$priceFilter['min'])
+                || ($product['price_max'] > (int)$priceFilter['max'] && $product['price_min'] < (int)$priceFilter['max'])) {
                 $price = Product::getPriceStatic($product['id_product'], $psLayeredFilterPriceUsetax);
                 if ($psLayeredFilterPriceRounding) {
                     $price = (int)$price;
@@ -65,8 +66,9 @@ class Ps_FacetedsearchFilterProducts
         $orderBy,
         $orderWay,
         $selectedFilters = array()
-    ) {
-        $this->facetedSearchAdapter->setLimit((int)$productsPerPage, ((int) $page - 1) * $productsPerPage);
+    )
+    {
+        $this->facetedSearchAdapter->setLimit((int)$productsPerPage, ((int)$page - 1) * $productsPerPage);
 
         if (!Validate::isOrderBy($orderBy)) {
             $this->facetedSearchAdapter->setOrderField('position');

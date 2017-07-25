@@ -1,4 +1,5 @@
 <?php
+
 namespace NativeModuleFacetedSearchBundle;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
@@ -9,11 +10,12 @@ class Ps_FacetedsearchFacetsURLSerializer
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
     {
         if ($facet->getProperty('range')) {
-            $facetFilters[$facet->getLabel()] = [
+            $facetValue = $facetFilter->getValue();
+            $facetFilters[$facet->getLabel()] = array(
                 $facetFilter->getProperty('symbol'),
-                $facetFilter->getValue()['from'],
-                $facetFilter->getValue()['to'],
-            ];
+                $facetValue['from'],
+                $facetValue['to'],
+            );
         } else {
             $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
         }
@@ -40,11 +42,12 @@ class Ps_FacetedsearchFacetsURLSerializer
             if ($facet->getProperty('range')) {
                 foreach ($facet->getFilters() as $facetFilter) {
                     if ($facetFilter->isActive()) {
-                        $facetFilters[$facet->getLabel()] = [
+                        $facetValue = $facetFilter->getValue();
+                        $facetFilters[$facet->getLabel()] = array(
                             $facetFilter->getProperty('symbol'),
-                            $facetFilter->getValue()['from'],
-                            $facetFilter->getValue()['to'],
-                        ];
+                            $facetValue['from'],
+                            $facetValue['to'],
+                        );
                     }
                 }
             } else {

@@ -24,8 +24,7 @@ class Ps_FacetedsearchFiltersConverter
             $facet = new Facet();
             $facet
                 ->setLabel($filterBlock['name'])
-                ->setMultipleSelectionAllowed(true)
-            ;
+                ->setMultipleSelectionAllowed(true);
 
             switch ($filterBlock['type']) {
                 case 'category':
@@ -51,8 +50,7 @@ class Ps_FacetedsearchFiltersConverter
                             ->setType($type)
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
-                            ->setValue($id)
-                        ;
+                            ->setValue($id);
                         if (array_key_exists('checked', $filterArray)) {
                             $filter->setActive($filterArray['checked']);
                         }
@@ -61,7 +59,7 @@ class Ps_FacetedsearchFiltersConverter
                         }
 
                         if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
-                            $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
+                            $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
                         }
                         $facet->addFilter($filter);
                     }
@@ -73,8 +71,7 @@ class Ps_FacetedsearchFiltersConverter
                         ->setProperty('min', $filterBlock['min'])
                         ->setProperty('max', $filterBlock['max'])
                         ->setMultipleSelectionAllowed(false)
-                        ->setProperty('range', true)
-                    ;
+                        ->setProperty('range', true);
 
                     foreach ($filterBlock['list_of_values'] as $value) {
                         $filter = new Filter();
@@ -82,12 +79,10 @@ class Ps_FacetedsearchFiltersConverter
                             ->setType($filterBlock['type'])
                             ->setMagnitude($value['nbr'])
                             ->setProperty('symbol', $filterBlock['unit'])
-                            ->setValue([
+                            ->setValue(array(
                                 'from' => $value['range_start'],
                                 'to' => $value['range_end'],
-                            ])
-                        ;
-                        ;
+                            ));;
 
                         if (array_key_exists('checked', $value)) {
                             $filter->setActive($value['checked']);
@@ -99,7 +94,7 @@ class Ps_FacetedsearchFiltersConverter
                     break;
             }
 
-            switch ((int) $filterBlock['filter_type']) {
+            switch ((int)$filterBlock['filter_type']) {
                 case 0: // checkbox
                     $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('checkboxes');
@@ -122,13 +117,14 @@ class Ps_FacetedsearchFiltersConverter
 
     /**
      * @param ProductSearchQuery $query
+     *
      * @return array
      */
     public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query)
     {
         $context = Context::getContext();
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
+        $idShop = (int)$context->shop->id;
+        $idLang = (int)$context->language->id;
 
         $idParent = $query->getIdCategory();
         if (empty($idParent)) {
@@ -139,9 +135,9 @@ class Ps_FacetedsearchFiltersConverter
 
         /* Get the filters for the current category */
         $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT type, id_value, filter_show_limit, filter_type FROM '._DB_PREFIX_.'layered_category
-			WHERE id_category = '.(int) $idParent.'
-				AND id_shop = '.$idShop.'
+			SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
+			WHERE id_category = ' . (int)$idParent . '
+				AND id_shop = ' . $idShop . '
 			GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
@@ -236,17 +232,17 @@ class Ps_FacetedsearchFiltersConverter
     {
         switch ($filterType) {
             case 'price':
-                return Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Price', array(), 'Modules.Facetedsearch.Shop');
             case 'weight':
-                return Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Weight', array(), 'Modules.Facetedsearch.Shop');
             case 'condition':
-                return Context::getContext()->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Condition', array(), 'Modules.Facetedsearch.Shop');
             case 'quantity':
-                return Context::getContext()->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Availability', array(), 'Modules.Facetedsearch.Shop');
             case 'manufacturer':
-                return Context::getContext()->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Brand', array(), 'Modules.Facetedsearch.Shop');
             case 'category':
-                return Context::getContext()->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Categories', array(), 'Modules.Facetedsearch.Shop');
             case 'id_feature':
             case 'id_attribute_group':
             default:
