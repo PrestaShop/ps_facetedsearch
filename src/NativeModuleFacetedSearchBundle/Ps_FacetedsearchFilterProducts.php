@@ -82,9 +82,9 @@ class Ps_FacetedsearchFilterProducts
             $this->facetedSearchAdapter->setOrderDirection($orderWay);
         }
 
+        $this->facetedSearchAdapter->addGroupBy('id_product');
         if (isset($selectedFilters['price'])) {
             $this->facetedSearchAdapter->addSelectField('id_product');
-            $this->facetedSearchAdapter->addGroupBy('id_product');
             $this->facetedSearchAdapter->addSelectField('price');
             $this->facetedSearchAdapter->addSelectField('price_min');
             $this->facetedSearchAdapter->addSelectField('price_max');

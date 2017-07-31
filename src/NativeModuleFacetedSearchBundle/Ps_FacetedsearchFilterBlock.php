@@ -689,6 +689,9 @@ class Ps_FacetedsearchFilterBlock
         $results = $filteredSearchAdapter->valueCount('id_manufacturer');
         foreach ($results as $key => $values) {
             $id_manufacturer = $values['id_manufacturer'];
+            if ($id_manufacturer == 0) {
+                continue;
+            }
             $count = $values['c'];
 
             $manufacturersArray[$id_manufacturer] = array('name' => $manufacturers[$id_manufacturer]['name'],
