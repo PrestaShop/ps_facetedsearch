@@ -8,6 +8,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
 {
     const LEFT_JOIN = 'LEFT JOIN';
     const INNER_JOIN = 'INNER JOIN';
+    const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
 
     /**
      * @inheritdoc
@@ -125,14 +126,14 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'product_attribute',
                     'tableAlias' => 'pa',
                     'joinCondition' => '(p.id_product = pa.id_product)',
-                    'joinType' => self::LEFT_JOIN
+                    'joinType' => self::STRAIGHT_JOIN
                 ),
             'id_attribute' =>
                 array(
                     'tableName' => 'product_attribute_combination',
                     'tableAlias' => 'pac',
                     'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
-                    'joinType' => self::LEFT_JOIN,
+                    'joinType' => self::STRAIGHT_JOIN,
                     'dependencyField' => 'id_product_attribute'
                 ),
             'id_attribute_group' =>
@@ -140,7 +141,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'attribute',
                     'tableAlias' => 'a',
                     'joinCondition' => '(a.id_attribute = pac.id_attribute)',
-                    'joinType' => self::LEFT_JOIN,
+                    'joinType' => self::STRAIGHT_JOIN,
                     'dependencyField' => 'id_attribute'
                 ),
             'id_feature' =>
