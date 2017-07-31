@@ -675,14 +675,14 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
-        $manufacturersArray = array();
+        $manufacturersArray = $manufacturers = array();
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
-        $manufacturers = \Manufacturer::getManufacturers(false, $idLang);
-        if ($manufacturers === array()) {
+        $tempManufacturers = \Manufacturer::getManufacturers(false, $idLang);
+        if ($tempManufacturers === array()) {
             return $manufacturersArray;
         }
-        foreach ($manufacturers as $key => $manufacturer) {
+        foreach ($tempManufacturers as $key => $manufacturer) {
             $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
         }
 
@@ -694,7 +694,7 @@ class Ps_FacetedsearchFilterBlock
             $manufacturersArray[$id_manufacturer] = array('name' => $manufacturers[$id_manufacturer]['name'],
                 'nbr' => $count);
             if (isset($selectedFilters['manufacturer'])
-                && in_array($id_manufacturer, $selectedFilters['manufacturer'])) {
+                && in_array($manufacturers[$id_manufacturer]['name'], $selectedFilters['manufacturer'])) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
         }
@@ -842,7 +842,7 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
-        $attributesBlock = array();
+        $attributesBlock = $attributes = $attributesGroup = array();
         $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
 
@@ -858,17 +858,17 @@ class Ps_FacetedsearchFilterBlock
             $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         }
 
-        $attributesGroup = self::getAttributesGroups($idLang);
-        if ($attributesGroup === array()) {
+        $tempAttributesGroup = self::getAttributesGroups($idLang);
+        if ($tempAttributesGroup === array()) {
             return $attributesBlock;
         }
 
-        foreach ($attributesGroup as $key => $attributeGroup) {
+        foreach ($tempAttributesGroup as $key => $attributeGroup) {
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
 
-        $attributes = self::getAttributes($idLang, true);
-        foreach ($attributes as $key => $attribute) {
+        $tempAttributes = self::getAttributes($idLang, true);
+        foreach ($tempAttributes as $key => $attribute) {
             $attributes[$attribute['id_attribute']] = $attribute;
         }
 
