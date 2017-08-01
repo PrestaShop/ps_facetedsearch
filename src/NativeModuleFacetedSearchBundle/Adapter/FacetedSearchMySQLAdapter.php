@@ -219,7 +219,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
                         $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'quantity' =>
                 array(
@@ -228,7 +227,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
                         $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'price_min' =>
                 array(
@@ -237,7 +235,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'price_max' =>
                 array(
@@ -246,7 +243,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'range_start' =>
                 array(
@@ -255,7 +251,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'range_end' =>
                 array(
@@ -264,7 +259,6 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_product_attribute'
                 ),
             'id_group' =>
                 array(
