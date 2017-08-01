@@ -92,9 +92,9 @@ class Ps_FacetedsearchFilterProducts
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
         // @TODO: still usefull ?
-        $this->pricePostFiltering($matchingProductList, $selectedFilters);
+        //$this->pricePostFiltering($matchingProductList, $selectedFilters);
 
-        $nbrProducts = count($matchingProductList);
+        $nbrProducts = $this->facetedSearchAdapter->count();
 
         if ($nbrProducts == 0) {
             $matchingProductList = array();
