@@ -1438,9 +1438,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Db::getInstance()->execute('DROP TEMPORARY TABLE IF EXISTS '._DB_PREFIX_.'cat_filter_restriction', false);
         if (empty($selected_filters['category'])) {
             /* Create the table which contains all the id_product in a cat or a tree */
-            Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY
-                                                        SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category c
-                                                        STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
+            Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY 
+                                                        SELECT cp.id_product, cp.position FROM '._DB_PREFIX_.'category_product cp 
+                                                        STRAIGHT_JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category AND
                                                         '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int) $parent->nleft.'
                                                         AND c.nright <= '.(int) $parent->nright : 'c.id_category = '.(int) $id_parent).'
                                                         AND c.active = 1)
@@ -1448,17 +1448,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                                         '.$price_filter_query_in.'
                                                         '.$query_filters_from.'
                                                         WHERE 1 '.$query_filters_where.'
-                                                        GROUP BY cp.id_product ORDER BY position, id_product', false);
+                                                        GROUP BY cp.id_product ORDER BY cp.position, cp.id_product', false);
         } else {
             $categories = array_map('intval', $selected_filters['category']);
 
             Db::getInstance()->execute('CREATE TEMPORARY TABLE '._DB_PREFIX_.'cat_filter_restriction ENGINE=MEMORY
-                                                        SELECT cp.id_product, MIN(cp.position) position FROM '._DB_PREFIX_.'category_product cp
+                                                        SELECT cp.id_product, cp.position FROM '._DB_PREFIX_.'category_product cp
                                                         STRAIGHT_JOIN `'._DB_PREFIX_.'product` p ON (p.id_product=cp.id_product)
                                                         '.$price_filter_query_in.'
                                                         '.$query_filters_from.'
                                                         WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.'
-                                                        GROUP BY cp.id_product ORDER BY position, id_product', false);
+                                                        GROUP BY cp.id_product ORDER BY cp.position, cp.id_product', false);
         }
         Db::getInstance()->execute('ALTER TABLE '._DB_PREFIX_.'cat_filter_restriction ADD PRIMARY KEY (id_product), ADD KEY (position, id_product) USING BTREE', false);
 
@@ -1484,14 +1484,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         AND c.active = 1)
                     '.$price_filter_query_out.'
                     '.$query_filters_from.'
-                    WHERE 1 '.$query_filters_where.' GROUP BY cp.id_product');
+                    WHERE 1 '.$query_filters_where.' GROUP BY cp.id_product ORDER BY cp.position ASC');
             } else {
                 $all_products_out = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
                     SELECT p.`id_product` id_product
                     FROM `'._DB_PREFIX_.'product` p JOIN '._DB_PREFIX_.'category_product cp USING (id_product)
                     '.$price_filter_query_out.'
                     '.$query_filters_from.'
-                    WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.' GROUP BY cp.id_product');
+                    WHERE cp.`id_category` IN ('.implode(',', $categories).') '.$query_filters_where.' GROUP BY cp.id_product ORDER BY cp.position ASC');
             }
 
             /* for this case, price could be out of range, so we need to compute the real price */
@@ -1544,6 +1544,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     WHERE '.$alias_where.'.`active` = 1 AND '.$alias_where.'.`visibility` IN ("both", "catalog")
                     ORDER BY '.$order_clause.' , cp.id_product'.
                     ' LIMIT '.(((int) $page - 1) * $products_per_page.','.$products_per_page), true, false);
+                    
+                    
             } else {
                 $products = Db::getInstance()->executeS('
                     SELECT
@@ -1584,6 +1586,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'products' => $products,
             'count' => $this->nbr_products,
         );
+      
     }
 
     private static function query($sql_query)
