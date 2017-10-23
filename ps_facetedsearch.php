@@ -1489,16 +1489,32 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
         if (empty($selected_filters['category'])) {
-            $catFilterRestrictionDerivedTable = ' (SELECT cp.id_product, MIN(cp.position) position FROM ' . _DB_PREFIX_ . 'category c
+            $catFilterRestrictionDerivedTable = ' ((SELECT cp.id_product, MIN(cp.position) position FROM ' . _DB_PREFIX_ . 'category c
                                                          STRAIGHT_JOIN ' . _DB_PREFIX_ . 'category_product cp ON (c.id_category = cp.id_category AND
-                                                         ' . ($this->ps_layered_full_tree ? 'c.nleft >= ' . (int)$parent->nleft . '
-                                                         AND c.nright <= ' . (int)$parent->nright : 'c.id_category = ' . (int)$id_parent) . '
+                                                         c.id_category = ' . (int)$id_parent . '
                                                          AND c.active = 1)
                                                          STRAIGHT_JOIN `' . _DB_PREFIX_ . 'product` p ON (p.id_product=cp.id_product)
                                                          ' . $price_filter_query_in . '
                                                          ' . $query_filters_from . '
                                                          WHERE 1 ' . $query_filters_where . $extraWhereQuery . '
                                                          GROUP BY cp.id_product)';
+            if ($this->ps_layered_full_tree) {
+                // add other products in subcategories, but not present in the main cat!
+                $catFilterRestrictionDerivedTable .= ' UNION ALL (SELECT cp.id_product, MIN(cp.position) position FROM ' . _DB_PREFIX_ . 'category c
+                                                         STRAIGHT_JOIN ' . _DB_PREFIX_ . 'category_product cp ON (c.id_category = cp.id_category AND
+                                                         c.id_category != ' . (int)$id_parent . '
+                                                         AND c.nleft >= ' . (int)$parent->nleft . '
+                                                         AND c.nright <= ' . (int)$parent->nright.'
+                                                         AND c.active = 1)
+                                                         STRAIGHT_JOIN `' . _DB_PREFIX_ . 'product` p ON (p.id_product=cp.id_product)
+                                                         ' . $price_filter_query_in . '
+                                                         ' . $query_filters_from . '
+                                                         WHERE NOT EXISTS(SELECT * FROM ' . _DB_PREFIX_ . 'category_product cpe 
+                                                                            WHERE cp.id_product=cpe.id_product AND cpe.id_category = ' . (int)$id_parent . ')
+                                                         ' . $query_filters_where . $extraWhereQuery . '
+                                                         GROUP BY cp.id_product)';
+            }
+            $catFilterRestrictionDerivedTable .= ')';
         } else {
             $catFilterRestrictionDerivedTable = ' (SELECT cp.id_product, MIN(cp.position) position FROM ' . _DB_PREFIX_ . 'category_product cp
                                                          STRAIGHT_JOIN `' . _DB_PREFIX_ . 'product` p ON (p.id_product=cp.id_product)
@@ -1635,16 +1651,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 			GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
-                $catRestrictionDerivedTable = '(SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
-                                                     STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
-                                                     '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int) $parent->nleft.'
-                                                     AND c.nright <= '.(int) $parent->nright : 'c.id_category = '.(int) $id_parent).'
-                                                     AND c.active = 1)
-                                                     STRAIGHT_JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
-                                                     AND product_shop.id_shop = '.(int) $context->shop->id.')
-                                                     STRAIGHT_JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
-                                                     WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog"))';
-
+        $catRestrictionDerivedTable = '(SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
+                                             STRAIGHT_JOIN '._DB_PREFIX_.'category_product cp ON (c.id_category = cp.id_category AND
+                                             '.($this->ps_layered_full_tree ? 'c.nleft >= '.(int) $parent->nleft.'
+                                             AND c.nright <= '.(int) $parent->nright : 'c.id_category = '.(int) $id_parent).'
+                                             AND c.active = 1)
+                                             STRAIGHT_JOIN '._DB_PREFIX_.'product_shop product_shop ON (product_shop.id_product = cp.id_product
+                                             AND product_shop.id_shop = '.(int) $context->shop->id.')
+                                             STRAIGHT_JOIN '._DB_PREFIX_.'product p ON (p.id_product=cp.id_product)
+                                             WHERE product_shop.`active` = 1 AND product_shop.`visibility` IN ("both", "catalog"))';
 
         $filter_blocks = array();
         foreach ($filters as $filter) {
