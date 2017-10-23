@@ -1437,6 +1437,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $query_filters_from .= Shop::addSqlAssociation('product', 'p');
         $extraWhereQuery = '';
 
+        if (!empty($selected_filters['category'])) {
+            $categories = array_map('intval', $selected_filters['category']);
+        }
+
         if (isset($price_filter) && $price_filter) {
             static $ps_layered_filter_price_usetax = null;
             static $ps_layered_filter_price_rounding = null;
@@ -1496,8 +1500,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                                          WHERE 1 ' . $query_filters_where . $extraWhereQuery . '
                                                          GROUP BY cp.id_product)';
         } else {
-            $categories = array_map('intval', $selected_filters['category']);
-
             $catFilterRestrictionDerivedTable = ' (SELECT cp.id_product, MIN(cp.position) position FROM ' . _DB_PREFIX_ . 'category_product cp
                                                          STRAIGHT_JOIN `' . _DB_PREFIX_ . 'product` p ON (p.id_product=cp.id_product)
                                                          ' . $price_filter_query_in . '
