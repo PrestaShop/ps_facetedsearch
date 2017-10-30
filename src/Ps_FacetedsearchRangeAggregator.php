@@ -160,27 +160,96 @@ class Ps_FacetedsearchRangeAggregator
         ];
     }
 
+    private function mergeTwoRanges($range1, $range2)
+    {
+        return [
+            'min' => $range1['min'],
+            'max' => $range2['max'],
+            'count' => $range1['count'] + $range2['count']
+        ];
+    }
+
+    /*
+     * This function goes through all ranges and checks if there's
+     * a range with an equal min and max. If this is the case the
+     * range will be merged with it's successor (if it's the last
+     * range it will be merged with it's predecessor).
+     */
+    private function cleanupForEqualRanges(array $ranges) {
+        $result = $ranges;
+        if (count($result) > 1) {
+            $pos = $this->findEqualRange($result);
+            while (($pos != -1) && (count($result) > 1)) {
+                $result = $this->combineRange($result, $pos);
+                $pos    = $this->findEqualRange($result);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Recreates the supplied list of ranges while merging
+     * the record at position $idx with it's successor 
+     * (or predecessor).
+     */
+    private function combineRange(array $ranges, $idx)
+    {
+        $idx1 = $idx;
+        $idx2 = $idx + 1;
+        if ($idx == count($ranges) - 1) {
+            // it's the last entry, so we're using the predecessor for the merge (we know there's at least two entries)
+            $idx1 = $idx - 1;
+            $idx2 = $idx;
+        }
+        $before = array();
+        if ($idx1 > 0) {
+            $before = array_slice($ranges, 0, $idx1);
+        }
+        $merged = $this->mergeTwoRanges($ranges[$idx1], $ranges[$idx2]);
+        $after = array();
+        if ($idx2 + 1 < count($ranges)) {
+            $after = array_slice($ranges, $idx2 + 1);
+        }
+        $result = $before;
+        array_push($result, $merged);
+        $result = array_merge($result, $after);
+        return $result;
+    }
+
+    /*
+     * Returns -1 in case there's no range with an equal min and max.
+     * Otherwise it returns the index of the range with the equal
+     * min and max. 
+     */
+    private function findEqualRange(array $ranges)
+    {
+        $result = -1;
+        for ($i = 0; $i < count($ranges); $i++) {
+            $range = $ranges[$i];
+            if ($range['min'] == $range['max']) {
+                $result = $i;
+                break;
+            }
+        }
+        return $result;
+    }
+
     public function mergeRanges(array $ranges, $outputLength)
     {
-        if ($outputLength >= count($ranges)) {
-            $raw_ranges = $ranges;
-        } else {
-            $parts = array_chunk($ranges, floor(count($ranges) / $outputLength));
-
-            $raw_ranges = array_map(function (array $ranges) {
-                $min = $ranges[0]['min'];
-                $max = $ranges[count($ranges) - 1]['max'];
-
-                return [
-                    'min' => $min,
-                    'max' => $max,
-                    'count' => array_reduce($ranges, function ($count, array $range) {
-                        return $count + $range['count'];
-                    }, 0),
-                ];
-            }, $parts);
+        // get rid of range elements with equal min and max first,
+        // so we might meet the requirement for $outputLength
+        $raw_ranges = $this->cleanupForEqualRanges($ranges);
+        if ($outputLength < count($ranges)) {
+            // this loop is merging ranges until we meet the
+            // requirement. the use of the index makes sure
+            // that we're not always merging the first element,
+            // so the merging is more or less distributed
+            $idx = 0;
+            while ($outputLength < count($raw_ranges)) {
+                $raw_ranges = $this->combineRange($raw_ranges, $idx);
+                $idx        = ($idx + 1) % count($raw_ranges);
+            }
         }
-
         return $raw_ranges;
     }
 }
