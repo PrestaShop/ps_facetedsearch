@@ -6,10 +6,6 @@ class Ps_FacetedsearchRangeAggregator
     {
         $min = $range[$minColumnIndex];
         $max = $range[$maxColumnIndex];
-        if ($min === $max) {
-            $min = $range[$minColumnIndex] > 0 ? $range[$minColumnIndex] - 1 : 0;
-            $max = $max + 1;
-        }
 
         return [
             'min' => $min,
