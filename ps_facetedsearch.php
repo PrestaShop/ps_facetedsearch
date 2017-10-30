@@ -960,14 +960,23 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $values[] = '('.(int) $id_product.',
 					'.(int) $currency['id_currency'].',
 					'.$id_shop.',
-					'.(int) $min_price[$currency['id_currency']].',
-					'.(int) Tools::ps_round($max_price[$currency['id_currency']] * (100 + $max_tax_rate) / 100, 0).')';
+					'.(int) Ps_Facetedsearch::taxPrice($min_price[$currency['id_currency']], $max_tax_rate).',
+					'.(int) Ps_Facetedsearch::taxPrice($max_price[$currency['id_currency']], $max_tax_rate).')';
             }
 
             Db::getInstance()->execute('
 				INSERT INTO `'._DB_PREFIX_.'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max)
 				VALUES '.implode(',', $values).'
 				ON DUPLICATE KEY UPDATE id_product = id_product # avoid duplicate keys');
+        }
+    }
+
+    private static function taxPrice($price, $tax)
+    {
+        if ($tax > 0) {
+            return Tools::ps_round(($price * (100 + $tax)) / 100, 0);
+        } else {
+            return $price;
         }
     }
 
