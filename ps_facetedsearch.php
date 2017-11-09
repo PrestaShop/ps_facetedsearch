@@ -2372,7 +2372,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     private static function getQuantityFilterSubQuery($filter_value, $ignore_join = false)
     {
-        if (count($filter_value) == 2 || empty($filter_value)) {
+        if (empty($filter_value) || count($filter_value) == 2) {
             return array();
         }
 
@@ -2401,7 +2401,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     private static function getConditionFilterSubQuery($filter_value, $ignore_join = false)
     {
-        if (count($filter_value) == 3 || empty($filter_value)) {
+        if (empty($filter_value) || count($filter_value) == 3) {
             return array();
         }
 
