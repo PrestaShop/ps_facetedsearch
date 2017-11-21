@@ -40,7 +40,7 @@ class Ps_FacetedsearchFiltersConverter
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id)
                         ;
-                        
+
                         if (isset($facetArray['is_color_group']) && $facetArray['is_color_group']){
                             if (isset($filterArray['color']) && $filterArray['color'] != '') {
                                 $filter->setProperty('color', $filterArray['color']);
@@ -49,7 +49,7 @@ class Ps_FacetedsearchFiltersConverter
                                 $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
                             }
                         }
-                        
+
                         $facet->addFilter($filter);
                     }
                     break;
