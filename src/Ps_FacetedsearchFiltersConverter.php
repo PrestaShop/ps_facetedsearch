@@ -40,13 +40,16 @@ class Ps_FacetedsearchFiltersConverter
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id)
                         ;
-                        if (isset($filterArray['color']) && $filterArray['color'] != '') {
-                            $filter->setProperty('color', $filterArray['color']);
+
+                        if (isset($facetArray['is_color_group']) && $facetArray['is_color_group']){
+                            if (isset($filterArray['color']) && $filterArray['color'] != '') {
+                                $filter->setProperty('color', $filterArray['color']);
+                            }
+                            if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
+                                $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
+                            }
                         }
 
-                        if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
-                            $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
-                        }
                         $facet->addFilter($filter);
                     }
                     break;
