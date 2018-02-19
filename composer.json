@@ -2,7 +2,7 @@
   "name": "prestashop/ps_facetedsearch",
   "description": "PrestaShop module ps_facetedsearch",
   "homepage": "https://github.com/PrestaShop/ps_facetedsearch",
-  "license": "AFL - Academic Free License (AFL 3.0)",
+  "license": "AFL-3.0",
   "authors": [
     {
       "name": "PrestaShop SA",
