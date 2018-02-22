@@ -104,7 +104,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $products_count = Db::getInstance()->getValue('SELECT COUNT(*) FROM `'._DB_PREFIX_.'product`');
 
             if ($products_count < 20000) { // Lock template filter creation if too many products
-                $this->rebuildLayeredCache();
+                // build the cache category by category to avoid storing too many infos in an individual row in
+                // layered_filter table
+                $categories = Category::getCategories(false, true, false);
+                foreach ($categories as $category) {
+                    $this->rebuildLayeredCache(array(), array($category['id_category']), false);
+                }
+                $this->buildLayeredCategories();
             }
 
             self::installPriceIndexTable();
@@ -762,7 +768,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             do {
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
                 $time_elapsed = microtime(true) - $start_time;
-            } while ($cursor < $nb_products && Tools::getMemoryLimit() > memory_get_peak_usage() && $time_elapsed < $max_executiontime);
+            } while ($cursor < $nb_products
+            && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+            && $time_elapsed < $max_executiontime);
         } else {
             do {
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
@@ -2414,8 +2422,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         @set_time_limit(0);
 
         /* Set memory limit to 128M only if current is lower */
-        $memory_limit = @ini_get('memory_limit');
-        if (substr($memory_limit, -1) != 'G' && ((substr($memory_limit, -1) == 'M' && substr($memory_limit, 0, -1) < 128) || is_numeric($memory_limit) && (intval($memory_limit) < 131072))) {
+        $memory_limit = Tools::getMemoryLimit();
+        if ($memory_limit != -1 && $memory_limit < 128*1024*1024) {
             @ini_set('memory_limit', '128M');
         }
 
@@ -2439,7 +2447,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter` (
 		`id_layered_filter` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 		`name` VARCHAR(64) NOT NULL,
-		`filters` TEXT NULL,
+		`filters` LONGTEXT NULL,
 		`n_categories` INT(10) UNSIGNED NOT NULL,
 		`date_add` DATETIME NOT NULL
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
@@ -2453,23 +2461,21 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
-    public function rebuildLayeredCache($products_ids = array(), $categories_ids = array())
+    public function rebuildLayeredCache($products_ids = array(), $categories_ids = array(), $rebuildLayeredCategories = true)
     {
         @set_time_limit(0);
 
         $filter_data = array('categories' => array());
 
         /* Set memory limit to 128M only if current is lower */
-        $memory_limit = @ini_get('memory_limit');
-        if (substr($memory_limit, -1) != 'G' && ((substr($memory_limit, -1) == 'M' && substr($memory_limit, 0, -1) < 128) || is_numeric($memory_limit) && (intval($memory_limit) < 131072))) {
+        $memory_limit = Tools::getMemoryLimit();
+        if ($memory_limit != -1 && $memory_limit < 128*1024*1024) {
             @ini_set('memory_limit', '128M');
         }
 
         $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
         $n_categories = array();
         $done_categories = array();
-        $alias = 'p';
-        $join_product_attribute = $join_product = '';
 
         $alias = 'product_shop';
         $join_product = Shop::addSqlAssociation('product', 'p');
@@ -2615,7 +2621,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 					VALUES('.$last_id.', '.(int) $id_shop.')');
             }
 
-            $this->buildLayeredCategories();
+            if ($rebuildLayeredCategories) {
+                $this->buildLayeredCategories();
+            }
         }
     }
 
@@ -2631,9 +2639,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             return true;
         }
 
-        $sql_to_insert = 'INSERT INTO '._DB_PREFIX_.'layered_category (id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
-        $values = false;
-
+        $sqlInsertPrefix = 'INSERT INTO '._DB_PREFIX_.'layered_category (id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
+        $sqlInsert = '';
+        $nbSqlValuesToInsert = 0;
         foreach ($res as $filter_template) {
             $data = Tools::unSerialize($filter_template['filters']);
             foreach ($data['shop_list'] as $id_shop) {
@@ -2644,35 +2652,41 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 foreach ($data['categories'] as  $id_category) {
                     $n = 0;
                     if (!in_array($id_category, $categories[$id_shop])) {
-                        // Last definition, erase preivious categories defined
+                        // Last definition, erase previous categories defined
 
                         $categories[$id_shop][] = $id_category;
 
                         foreach ($data as $key => $value) {
                             if (substr($key, 0, 17) == 'layered_selection') {
-                                $values = true;
                                 $type = $value['filter_type'];
                                 $limit = $value['filter_show_limit'];
                                 ++$n;
 
                                 if ($key == 'layered_selection_stock') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'quantity\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'quantity\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif ($key == 'layered_selection_subcategories') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'category\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'category\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif ($key == 'layered_selection_condition') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'condition\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'condition\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif ($key == 'layered_selection_weight_slider') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'weight\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'weight\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif ($key == 'layered_selection_price_slider') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'price\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'price\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif ($key == 'layered_selection_manufacturer') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'manufacturer\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'manufacturer\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_ag_', '', $key).',
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_ag_', '', $key).',
 										\'id_attribute_group\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
-                                    $sql_to_insert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_feat_', '', $key).',
+                                    $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_feat_', '', $key).',
 										\'id_feature\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                }
+
+                                $nbSqlValuesToInsert++;
+                                if ($nbSqlValuesToInsert > 100) {
+                                    Db::getInstance()->execute($sqlInsertPrefix.rtrim($sqlInsert, ','));
+                                    $sqlInsert = '';
+                                    $nbSqlValuesToInsert = 0;
                                 }
                             }
                         }
@@ -2680,8 +2694,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
             }
         }
-        if ($values) {
-            Db::getInstance()->execute(rtrim($sql_to_insert, ','));
+        if ($nbSqlValuesToInsert) {
+            Db::getInstance()->execute($sqlInsertPrefix.rtrim($sqlInsert, ','));
         }
     }
 
