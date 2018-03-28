@@ -104,11 +104,22 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $products_count = Db::getInstance()->getValue('SELECT COUNT(*) FROM `'._DB_PREFIX_.'product`');
 
             if ($products_count < 20000) { // Lock template filter creation if too many products
-                // build the cache category by category to avoid storing too many infos in an individual row in
+                // build the cache by pack of 100 categories to avoid storing too many infos in an individual row in
                 // layered_filter table
                 $categories = Category::getCategories(false, true, false);
+                $i = 0;
+                $categoriesId = array();
                 foreach ($categories as $category) {
-                    $this->rebuildLayeredCache(array(), array($category['id_category']), false);
+                    $categoriesId[] = $category['id_category'];
+                    $i++;
+                    if ($i == 100) {
+                        $this->rebuildLayeredCache(array(), $categoriesId, false);
+                        $categoriesId = array();
+                        $i = 0;
+                    }
+                }
+                if (!empty($categoriesId)) {
+                    $this->rebuildLayeredCache(array(), $categoriesId, false);
                 }
                 $this->buildLayeredCategories();
             }
