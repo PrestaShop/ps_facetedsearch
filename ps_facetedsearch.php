@@ -699,14 +699,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if (is_null($id_product)) {
             Db::getInstance()->execute('TRUNCATE '._DB_PREFIX_.'layered_product_attribute');
         } else {
-            Db::getInstance()->execute('
-				DELETE FROM '._DB_PREFIX_.'layered_product_attribute
+            Db::getInstance()->execute(
+                'DELETE FROM '._DB_PREFIX_.'layered_product_attribute
 				WHERE id_product = '.(int) $id_product
             );
         }
 
-        Db::getInstance()->execute('
-			INSERT INTO `'._DB_PREFIX_.'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
+        Db::getInstance()->execute(
+            'INSERT INTO `'._DB_PREFIX_.'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
 			SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
 			FROM '._DB_PREFIX_.'product_attribute pa'.
             Shop::addSqlAssociation('product_attribute', 'pa').'
@@ -769,8 +769,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
                 $time_elapsed = microtime(true) - $start_time;
             } while ($cursor < $nb_products
-            && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
-            && $time_elapsed < $max_executiontime);
+                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+                && $time_elapsed < $max_executiontime);
         } else {
             do {
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
@@ -891,9 +891,24 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             // Get min price
             foreach ($currency_list as $currency) {
-                $price = Product::priceCalculation($id_shop, (int) $id_product, null, null, null, null,
-                    $currency['id_currency'], null, null, false, 6, false, true, true,
-                    $specific_price_output, true);
+                $price = Product::priceCalculation(
+                    $id_shop,
+                    (int) $id_product,
+                    null,
+                    null,
+                    null,
+                    null,
+                    $currency['id_currency'],
+                    null,
+                    null,
+                    false,
+                    6,
+                    false,
+                    true,
+                    true,
+                    $specific_price_output,
+                    true
+                );
 
                 if (!isset($max_price[$currency['id_currency']])) {
                     $max_price[$currency['id_currency']] = 0;
@@ -917,10 +932,24 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']) {
                         continue;
                     }
-                    $price = Product::priceCalculation((($specific_price['id_shop'] == 0) ? null : (int) $specific_price['id_shop']), (int) $id_product,
-                        null, (($specific_price['id_country'] == 0) ? null : $specific_price['id_country']), null, null,
-                        $currency['id_currency'], (($specific_price['id_group'] == 0) ? null : $specific_price['id_group']),
-                        $specific_price['from_quantity'], false, 6, false, true, true, $specific_price_output, true);
+                    $price = Product::priceCalculation(
+                        (($specific_price['id_shop'] == 0) ? null : (int) $specific_price['id_shop']),
+                        (int) $id_product,
+                        null,
+                        (($specific_price['id_country'] == 0) ? null : $specific_price['id_country']),
+                        null,
+                        null,
+                        $currency['id_currency'],
+                        (($specific_price['id_group'] == 0) ? null : $specific_price['id_group']),
+                        $specific_price['from_quantity'],
+                        false,
+                        6,
+                        false,
+                        true,
+                        true,
+                        $specific_price_output,
+                        true
+                    );
 
                     if (!isset($max_price[$currency['id_currency']])) {
                         $max_price[$currency['id_currency']] = 0;
@@ -942,8 +971,24 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             foreach ($groups as $group) {
                 foreach ($currency_list as $currency) {
-                    $price = Product::priceCalculation(null, (int) $id_product, null, null, null, null, (int) $currency['id_currency'], (int) $group['id_group'],
-                        null, false, 6, false, true, true, $specific_price_output, true);
+                    $price = Product::priceCalculation(
+                        null,
+                        (int) $id_product,
+                        null,
+                        null,
+                        null,
+                        null,
+                        (int) $currency['id_currency'],
+                        (int) $group['id_group'],
+                        null,
+                        false,
+                        6,
+                        false,
+                        true,
+                        true,
+                        $specific_price_output,
+                        true
+                    );
 
                     if (!isset($max_price[$currency['id_currency']])) {
                         $max_price[$currency['id_currency']] = 0;
@@ -991,8 +1036,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $message = $this->displayError($this->trans('You must select at least one category.', array(), 'Modules.Facetedsearch.Admin'));
             } else {
                 if (Tools::getValue('id_layered_filter')) {
-                    Db::getInstance()->execute('
-						DELETE FROM '._DB_PREFIX_.'layered_filter
+                    Db::getInstance()->execute(
+                        'DELETE FROM '._DB_PREFIX_.'layered_filter
 						WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
                     );
                     $this->buildLayeredCategories();
@@ -1000,8 +1045,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 if (Tools::getValue('scope') == 1) {
                     Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'layered_filter');
-                    $categories = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-						SELECT id_category
+                    $categories = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+                        'SELECT id_category
 						FROM '._DB_PREFIX_.'category'
                     );
 
@@ -1027,8 +1072,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $shop_list = array(Context::getContext()->shop->id);
                 }
 
-                Db::getInstance()->execute('
-					DELETE FROM '._DB_PREFIX_.'layered_filter_shop
+                Db::getInstance()->execute(
+                    'DELETE FROM '._DB_PREFIX_.'layered_filter_shop
 					WHERE `id_layered_filter` = '.(int) $id_layered_filter
                 );
 
@@ -1088,8 +1133,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                     if (isset($assos)) {
                         foreach ($assos as $asso) {
-                            Db::getInstance()->execute('
-							INSERT INTO '._DB_PREFIX_.'layered_filter_shop (`id_layered_filter`, `id_shop`)
+                            Db::getInstance()->execute(
+                                'INSERT INTO '._DB_PREFIX_.'layered_filter_shop (`id_layered_filter`, `id_shop`)
 							VALUES('.$id_layered_filter.', '.(int) $asso['id_shop'].')'
                         );
                         }
@@ -1115,15 +1160,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $message = '<div class="conf">'.$this->trans('Settings saved successfully', array(), 'Modules.Facetedsearch.Admin').'</div>';
             }
         } elseif (Tools::getValue('deleteFilterTemplate')) {
-            $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('
-				SELECT filters
+            $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+                'SELECT filters
 				FROM '._DB_PREFIX_.'layered_filter
 				WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
             );
 
             if ($layered_values) {
-                Db::getInstance()->execute('
-					DELETE FROM '._DB_PREFIX_.'layered_filter
+                Db::getInstance()->execute(
+                    'DELETE FROM '._DB_PREFIX_.'layered_filter
 					WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter').' LIMIT 1'
                 );
                 $this->buildLayeredCategories();
@@ -1134,8 +1179,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $category_box = array();
-        $attribute_groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
+        $attribute_groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
 			FROM '._DB_PREFIX_.'attribute_group ag
 			LEFT JOIN '._DB_PREFIX_.'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
 			LEFT JOIN '._DB_PREFIX_.'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
@@ -1143,8 +1188,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 			GROUP BY ag.id_attribute_group'
         );
 
-        $features = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
+        $features = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
 			FROM '._DB_PREFIX_.'feature_lang fl
 			LEFT JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature = fl.id_feature)
 			WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = '.(int) $cookie->id_lang.'
@@ -1205,12 +1250,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
             } else {
                 $this->context->smarty->assign('categories_tree', $tree_categories_helper->renderCategoryTree(
-                    $root_category, array(), 'categoryBox'));
+                    $root_category,
+                    array(),
+                    'categoryBox'
+                ));
             }
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         } elseif (Tools::getValue('edit_filters_template')) {
-            $template = Db::getInstance()->getRow('
+            $template = Db::getInstance()->getRow(
+                '
 				SELECT *
 				FROM `'._DB_PREFIX_.'layered_filter`
 				WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
@@ -1223,7 +1272,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
             } else {
                 $this->context->smarty->assign('categories_tree', $tree_categories_helper->renderCategoryTree(
-                    $root_category, $filters['categories'], 'categoryBox'));
+                    $root_category,
+                    $filters['categories'],
+                    'categoryBox'
+                ));
             }
 
             $select_shops = $filters['shop_list'];
@@ -1291,8 +1343,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $order_way,
         $id_lang,
         $selected_filters = array()
-    )
-    {
+    ) {
         $products_per_page = (int)$products_per_page;
 
         if (!Validate::isOrderBy($order_by)) {
@@ -1652,8 +1703,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $parent = new Category((int) $id_parent, $id_lang);
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT type, id_value, filter_show_limit, filter_type FROM '._DB_PREFIX_.'layered_category
+        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT type, id_value, filter_show_limit, filter_type FROM '._DB_PREFIX_.'layered_category
 			WHERE id_category = '.(int) $id_parent.'
 				AND id_shop = '.$id_shop.'
 			GROUP BY `type`, id_value ORDER BY position ASC'
@@ -2683,7 +2734,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                 }
 
                                 $nbSqlValuesToInsert++;
-                                if ($nbSqlValuesToInsert > 100) {
+                                if ($nbSqlValuesToInsert >= 100) {
                                     Db::getInstance()->execute($sqlInsertPrefix.rtrim($sqlInsert, ','));
                                     $sqlInsert = '';
                                     $nbSqlValuesToInsert = 0;
