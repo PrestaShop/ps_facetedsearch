@@ -1153,7 +1153,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
             $tree_categories_helper = new HelperTreeCategories('categories-treeview');
-            $tree_categories_helper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
+            $tree_categories_helper->setRootCategory(
+		    (Shop::getContext() == Shop::CONTEXT_SHOP ? (Category::getRootCategory()->id_category == NULL ) ? Category::getRootCategory()->id : Category::getRootCategory()->id_category : 0)
+	    	)
                 ->setUseCheckBox(true);
         } else {
             if (Shop::getContext() == Shop::CONTEXT_SHOP) {
