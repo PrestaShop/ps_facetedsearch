@@ -778,8 +778,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
                 $time_elapsed = microtime(true) - $start_time;
             } while ($cursor < $nb_products
-            && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
-            && $time_elapsed < $max_executiontime);
+                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+                && $time_elapsed < $max_executiontime);
         } else {
             do {
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
