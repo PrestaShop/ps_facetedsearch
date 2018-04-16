@@ -63,30 +63,30 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     public function install()
     {
         $installed = parent::install() && $this->registerHook(array(
-            'categoryAddition',
-            'categoryUpdate',
-            'attributeGroupForm',
-            'afterSaveAttributeGroup',
-            'afterDeleteAttributeGroup',
-            'featureForm',
-            'afterDeleteFeature',
-            'afterSaveFeature',
-            'categoryDeletion',
-            'afterSaveProduct',
-            'postProcessAttributeGroup',
-            'postProcessFeature',
-            'featureValueForm',
-            'postProcessFeatureValue',
-            'afterDeleteFeatureValue',
-            'afterSaveFeatureValue',
-            'attributeForm',
-            'postProcessAttribute',
-            'afterDeleteAttribute',
-            'afterSaveAttribute',
-            'productSearchProvider',
-            'displayLeftColumn',
+                'categoryAddition',
+                'categoryUpdate',
+                'attributeGroupForm',
+                'afterSaveAttributeGroup',
+                'afterDeleteAttributeGroup',
+                'featureForm',
+                'afterDeleteFeature',
+                'afterSaveFeature',
+                'categoryDeletion',
+                'afterSaveProduct',
+                'postProcessAttributeGroup',
+                'postProcessFeature',
+                'featureValueForm',
+                'postProcessFeatureValue',
+                'afterDeleteFeatureValue',
+                'afterSaveFeatureValue',
+                'attributeForm',
+                'postProcessAttribute',
+                'afterDeleteAttribute',
+                'afterSaveAttribute',
+                'productSearchProvider',
+                'displayLeftColumn',
 
-        ));
+            ));
 
         if ($installed) {
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
@@ -107,20 +107,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 // build the cache by pack of 100 categories to avoid storing too many infos in an individual row in
                 // layered_filter table
                 $categories = Category::getCategories(false, true, false);
-                $i = 0;
-                $categoriesId = array();
-                foreach ($categories as $category) {
-                    $categoriesId[] = $category['id_category'];
-                    $i++;
-                    if ($i == 100) {
-                        $this->rebuildLayeredCache(array(), $categoriesId, false);
-                        $categoriesId = array();
-                        $i = 0;
-                    }
+
+                // get all id_category
+                $categoryIds = array_column($categories, 'id_category');
+
+                // group by 100 ids
+                $chunks = array_chunk($categoryIds, 100);
+
+                // rebuild layered cache for each chunk
+                foreach ($chunks as $chunk) {
+                    $this->rebuildLayeredCache(array(), $chunk, false);
                 }
-                if (!empty($categoriesId)) {
-                    $this->rebuildLayeredCache(array(), $categoriesId, false);
-                }
+
                 $this->buildLayeredCategories();
             }
 
@@ -780,8 +778,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
                 $time_elapsed = microtime(true) - $start_time;
             } while ($cursor < $nb_products
-                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
-                && $time_elapsed < $max_executiontime);
+            && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+            && $time_elapsed < $max_executiontime);
         } else {
             do {
                 $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart);
@@ -1147,7 +1145,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             Db::getInstance()->execute(
                                 'INSERT INTO '._DB_PREFIX_.'layered_filter_shop (`id_layered_filter`, `id_shop`)
 							VALUES('.$id_layered_filter.', '.(int) $asso['id_shop'].')'
-                        );
+                            );
                         }
                     }
 
@@ -2362,8 +2360,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         foreach ($product_collection as $key => $product) {
             if (isset($filter_value) && $filter_value && isset($product['price_min']) && isset($product['id_product'])
-            && (($product['price_min'] < (int) $filter_value[0] && $product['price_max'] > (int) $filter_value[0])
-                || ($product['price_max'] > (int) $filter_value[1] && $product['price_min'] < (int) $filter_value[1]))) {
+                && (($product['price_min'] < (int) $filter_value[0] && $product['price_max'] > (int) $filter_value[0])
+                    || ($product['price_max'] > (int) $filter_value[1] && $product['price_min'] < (int) $filter_value[1]))) {
                 $price = Product::getPriceStatic($product['id_product'], $ps_layered_filter_price_usetax);
                 if ($ps_layered_filter_price_rounding) {
                     $price = (int) $price;
@@ -2553,7 +2551,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
 		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
 		WHERE c.active = 1'.
-        (count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
+            (count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
 		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
 		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
 
@@ -2594,7 +2592,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		WHERE c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
 		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
 		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : '').
-        ' AND (fv.custom IS NULL OR fv.custom = 0)
+            ' AND (fv.custom IS NULL OR fv.custom = 0)
 		GROUP BY p.id_product');
 
         $shop_list = Shop::getShops(false, null, true);
