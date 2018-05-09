@@ -90,7 +90,7 @@ class Ps_FacetedsearchFiltersConverter
                     $facet->setWidgetType('radio-buttons');
                     break;
                 case 2: // drop down
-                    $facet->setMultipleSelectionAllowed(false);
+                    $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('dropdown');
                     break;
             }
