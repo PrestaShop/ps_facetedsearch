@@ -1601,7 +1601,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $nb_day_new_product = (Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20);
 
             if (version_compare(_PS_VERSION_, '1.6.1', '>=') === true) {
-                $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
+                $products_sql = '
                     SELECT
                         p.*,
                         ' . ($alias_where == 'p' ? '' : 'product_shop.*,') . '
@@ -1624,10 +1624,22 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         ON (image_shop.`id_product` = p.`id_product` AND image_shop.cover=1 AND image_shop.id_shop=' . (int)$context->shop->id . ')
                     LEFT JOIN `' . _DB_PREFIX_ . 'image_lang` il ON (image_shop.`id_image` = il.`id_image` AND il.`id_lang` = ' . (int)$id_lang . ')
                     LEFT JOIN ' . _DB_PREFIX_ . 'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
-                    ' . Product::sqlStock('p', 0) . '
+                    ' . Product::sqlStock('p', 0);
+                
+                if($order_by == 'p.price') {
+                    $products_sql .= '
+                        LEFT JOIN `' . _DB_PREFIX_ .'layered_price_index` lpi ON (p.`id_product` = lpi.id_product AND product_shop.`id_shop` = lpi.id_shop AND lpi.`id_currency` = "'.(int)$this->context->currency->id.'")
+                    ';
+                    $order_by = 'lpi.price_min';
+                    $order_clause = $order_by . ' ' . $order_way;
+                }
+                
+                $products_sql .= '
                     WHERE ' . $alias_where . '.`active` = 1 AND ' . $alias_where . '.`visibility` IN ("both", "catalog")
                     ORDER BY ' . $order_clause . ' , cp.id_product' .
-                    ' LIMIT ' . (((int)$page - 1) * $products_per_page . ',' . $products_per_page));
+                    ' LIMIT ' . (((int)$page - 1) * $products_per_page . ',' . $products_per_page);
+                    
+                $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($products_sql);
             } else {
                 $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
                     SELECT
