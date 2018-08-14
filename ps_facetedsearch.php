@@ -2391,11 +2391,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if (empty($filter_value)) {
             return array();
         }
-        $query_filters = ' AND EXISTS (SELECT * FROM '._DB_PREFIX_.'feature_product fp WHERE fp.id_product = p.id_product AND ';
+        $query_filters = ' AND EXISTS (SELECT * FROM '._DB_PREFIX_.'feature_product fp WHERE fp.id_product = p.id_product AND (';
         foreach ($filter_value as $filter_val) {
             $query_filters .= 'fp.`id_feature_value` = '.(int) $filter_val.' OR ';
         }
-        $query_filters = rtrim($query_filters, 'OR ').') ';
+        $query_filters = rtrim($query_filters, 'OR ').')) ';
 
         return array('where' => $query_filters);
     }
