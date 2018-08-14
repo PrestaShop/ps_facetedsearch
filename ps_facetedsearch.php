@@ -182,7 +182,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return parent::uninstall();
     }
 
-    private static function installPriceIndexTable()
+    protected static function installPriceIndexTable()
     {
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_price_index`');
 
@@ -199,7 +199,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		)  ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
-    private function installIndexableAttributeTable()
+    protected function installIndexableAttributeTable()
     {
         // Attributes Groups
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_attribute_group`');
@@ -749,7 +749,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return self::indexPrices($cursor, false, $ajax);
     }
 
-    private static function indexPrices($cursor = null, $full = false, $ajax = false, $smart = false)
+    protected static function indexPrices($cursor = null, $full = false, $ajax = false, $smart = false)
     {
         if ($full) {
             $nb_products = (int) Db::getInstance()->getValue('
@@ -818,7 +818,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     /*
      * $cursor $cursor in order to restart indexing from the last state
      */
-    private static function indexPricesUnbreakable($cursor, $full = false, $smart = false)
+    protected static function indexPricesUnbreakable($cursor, $full = false, $smart = false)
     {
         static $length = 100; // Nb of products to index
 
@@ -1670,7 +1670,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         );
     }
 
-    private static function query($sql_query)
+    protected static function query($sql_query)
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql_query);
     }
@@ -2324,7 +2324,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $selected_filters;
     }
 
-    private static function getPriceFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getPriceFilterSubQuery($filter_value, $ignore_join = false)
     {
         $id_currency = (int) Context::getContext()->currency->id;
 
@@ -2341,7 +2341,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return array();
     }
 
-    private static function filterProductsByPrice($filter_value, $product_collection)
+    protected static function filterProductsByPrice($filter_value, $product_collection)
     {
         static $ps_layered_filter_price_usetax = null;
         static $ps_layered_filter_price_rounding = null;
@@ -2375,7 +2375,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $product_collection;
     }
 
-    private static function getWeightFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getWeightFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (isset($filter_value) && $filter_value) {
             if ($filter_value[0] != 0 || $filter_value[1] != 0) {
@@ -2386,7 +2386,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return array();
     }
 
-    private static function getId_featureFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getId_featureFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value)) {
             return array();
@@ -2399,7 +2399,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         return array('where' => $query_filters);
     }
-    private static function getId_attribute_groupFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getId_attribute_groupFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value)) {
             return array();
@@ -2418,7 +2418,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return array('where' => $query_filters);
     }
 
-    private static function getCategoryFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getCategoryFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value)) {
             return array();
@@ -2432,7 +2432,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return array('where' => $query_filters_where);
     }
 
-    private static function getQuantityFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getQuantityFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value) || count($filter_value) == 2) {
             return array();
@@ -2446,7 +2446,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return array('where' => $query_filters, 'join' => $query_filters_join);
     }
 
-    private static function getManufacturerFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getManufacturerFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value)) {
             $query_filters = '';
@@ -2461,7 +2461,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
     }
 
-    private static function getConditionFilterSubQuery($filter_value, $ignore_join = false)
+    protected static function getConditionFilterSubQuery($filter_value, $ignore_join = false)
     {
         if (empty($filter_value) || count($filter_value) == 3) {
             return array();
