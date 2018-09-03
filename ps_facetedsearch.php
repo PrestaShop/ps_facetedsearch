@@ -47,7 +47,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '2.1.2';
+        $this->version = '2.2.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -1442,7 +1442,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 case 'manufacturer':
                     $selected_filters['manufacturer'] = array_map('intval', $selected_filters['manufacturer']);
-                    $query_filters_where .= ' AND p.id_manufacturer IN (' . implode($selected_filters['manufacturer'], ',') . ')';
+                    $query_filters_where .= ' AND p.id_manufacturer IN (' . implode(',', $selected_filters['manufacturer']) . ')';
                     break;
 
                 case 'condition':
@@ -2452,7 +2452,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $query_filters = '';
         } else {
             array_walk($filter_value, create_function('&$id_manufacturer', '$id_manufacturer = (int)$id_manufacturer;'));
-            $query_filters = ' AND p.id_manufacturer IN ('.implode($filter_value, ',').')';
+            $query_filters = ' AND p.id_manufacturer IN ('.implode(',', $filter_value).')';
         }
         if ($ignore_join) {
             return array('where' => $query_filters);
