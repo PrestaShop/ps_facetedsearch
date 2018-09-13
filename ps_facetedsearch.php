@@ -31,10 +31,6 @@ if (!defined('_PS_VERSION_')) {
 use \PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 use NativeModuleFacetedSearchBundle\Ps_FacetedsearchProductSearchProvider;
 
-require_once implode(DIRECTORY_SEPARATOR, array(
-    __DIR__, 'vendor', 'autoload.php',
-));
-
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     private $nbr_products;
