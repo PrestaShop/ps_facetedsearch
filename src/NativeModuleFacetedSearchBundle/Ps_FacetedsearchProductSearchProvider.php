@@ -96,7 +96,16 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
 
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
-        $filterHash = md5(serialize($facetedSearchFilters));
+
+        $currentContext = Context::getContext();
+        $idShop = (int)$currentContext->shop->id;
+        $idLang = (int)$currentContext->language->id;
+        $idCurrency = (int)$currentContext->currency->id;
+        $idCountry = (int)$currentContext->country->id;
+        $idCategory = (int)$query->getIdCategory();
+
+        $filterHash = md5($idShop.'-'.$idCurrency.'-'.$idLang.'-'.$idCategory.
+            '-'.$idCountry.'-'.serialize($facetedSearchFilters));
 
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
         if (empty($filterBlock)) {
