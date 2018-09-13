@@ -13,6 +13,7 @@ use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 use Ps_Facetedsearch;
 use Configuration;
 use Tools;
+use Context;
 
 class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInterface
 {
