@@ -1748,7 +1748,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         break;
                     case 'weight':
                         $sql_query['select'] = 'SELECT p.`id_product`, p.`weight` ';
-                        // price slider is not filter dependent
+                        // weight slider is not filter dependent
                         $sql_query['from'] = '
                         FROM ' . $catRestrictionDerivedTable . ' p';
                         $sql_query['where'] = 'WHERE 1';
@@ -1885,8 +1885,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 foreach ($filters as $filter_tmp) {
                     $method_name = 'get' . ucfirst($filter_tmp['type']) . 'FilterSubQuery';
-                    if (method_exists('Ps_Facetedsearch', $method_name)) {
-                        $no_subquery_necessary = ($filter['type'] == $filter_tmp['type'] && $filter['id_value'] == $filter_tmp['id_value'] && ($filter['id_value'] || $filter['type'] === 'category' || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
+                    // do not apply price / weight subfilter on its own price / weight filter!
+                    if (!($filter['type'] == 'price' && $filter_tmp['type'] == 'price')
+                        && !($filter['type'] == 'weight' && $filter_tmp['type'] == 'weight')
+                        && method_exists('Ps_Facetedsearch', $method_name) ) {
+                        $no_subquery_necessary = ($filter['type'] == $filter_tmp['type']
+                            && $filter['id_value'] == $filter_tmp['id_value']
+                            && ($filter['id_value'] || $filter['type'] === 'category'
+                                || $filter['type'] === 'condition' || $filter['type'] === 'quantity'));
 
                         if ($no_subquery_necessary) {
                             // Do not apply the same filter twice, i.e. when the primary filter
