@@ -285,7 +285,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                 }
             }
             $facet->setDisplayed(
-                $usefulFiltersCount > 1
+                $usefulFiltersCount >= 1
             );
         }
     }
