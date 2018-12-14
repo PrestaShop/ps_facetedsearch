@@ -1666,8 +1666,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Tools::orderbyPrice($products, $order_way);
         }
 
+	$productsWithAccess = [];
+        $customerId = isset($this->context->customer->id) && $this->context->customer->id 
+            ? (int) $this->context->customer->id 
+            : 0;
+        foreach ($products as $p) {
+            if (Product::checkAccessStatic($p['id_product'], $customerId)) {
+                $productsWithAccess[] = $p;
+            }
+        }
+
         return array(
-            'products' => $products,
+            'products' => $productsWithAccess,	   
             'count' => $this->nbr_products,
         );
     }
