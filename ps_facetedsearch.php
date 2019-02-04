@@ -47,7 +47,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '2.2.1';
+        $this->version = '2.2.2';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -95,6 +95,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 1);
 
             $this->ps_layered_full_tree = 1;
 
@@ -166,6 +167,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_USETAX');
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
+        Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
 
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_price_index');
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_indexable_attribute_group');
@@ -187,16 +189,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_price_index`');
 
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_price_index` (
-			`id_product` INT  NOT NULL,
-			`id_currency` INT NOT NULL,
-			`id_shop` INT NOT NULL,
-			`price_min` INT NOT NULL,
-			`price_max` INT NOT NULL,
-		PRIMARY KEY (`id_product`, `id_currency`, `id_shop`),
-		INDEX `id_currency` (`id_currency`),
-		INDEX `price_min` (`price_min`), INDEX `price_max` (`price_max`)
-		)  ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_price_index` (
+            `id_product` INT  NOT NULL,
+            `id_currency` INT NOT NULL,
+            `id_shop` INT NOT NULL,
+            `price_min` INT NOT NULL,
+            `price_max` INT NOT NULL,
+        PRIMARY KEY (`id_product`, `id_currency`, `id_shop`),
+        INDEX `id_currency` (`id_currency`),
+        INDEX `price_min` (`price_min`), INDEX `price_max` (`price_max`)
+        )  ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
     private function installIndexableAttributeTable()
@@ -204,69 +206,69 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Attributes Groups
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_attribute_group`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_group` (
-		`id_attribute_group` INT NOT NULL,
-		`indexable` BOOL NOT NULL DEFAULT 0,
-		PRIMARY KEY (`id_attribute_group`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_group` (
+        `id_attribute_group` INT NOT NULL,
+        `indexable` BOOL NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id_attribute_group`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
         Db::getInstance()->execute('
-		INSERT INTO `'._DB_PREFIX_.'layered_indexable_attribute_group`
-		SELECT id_attribute_group, 1 FROM `'._DB_PREFIX_.'attribute_group`');
+        INSERT INTO `'._DB_PREFIX_.'layered_indexable_attribute_group`
+        SELECT id_attribute_group, 1 FROM `'._DB_PREFIX_.'attribute_group`');
 
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_attribute_group_lang_value`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_group_lang_value` (
-		`id_attribute_group` INT NOT NULL,
-		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(128),
-		`meta_title` VARCHAR(128),
-		PRIMARY KEY (`id_attribute_group`, `id_lang`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_group_lang_value` (
+        `id_attribute_group` INT NOT NULL,
+        `id_lang` INT NOT NULL,
+        `url_name` VARCHAR(128),
+        `meta_title` VARCHAR(128),
+        PRIMARY KEY (`id_attribute_group`, `id_lang`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         // Attributes
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_attribute_lang_value`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_lang_value` (
-		`id_attribute` INT NOT NULL,
-		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(128),
-		`meta_title` VARCHAR(128),
-		PRIMARY KEY (`id_attribute`, `id_lang`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_attribute_lang_value` (
+        `id_attribute` INT NOT NULL,
+        `id_lang` INT NOT NULL,
+        `url_name` VARCHAR(128),
+        `meta_title` VARCHAR(128),
+        PRIMARY KEY (`id_attribute`, `id_lang`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         // Features
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_feature`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature` (
-		`id_feature` INT NOT NULL,
-		`indexable` BOOL NOT NULL DEFAULT 0,
-		PRIMARY KEY (`id_feature`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature` (
+        `id_feature` INT NOT NULL,
+        `indexable` BOOL NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id_feature`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         Db::getInstance()->execute('
-		INSERT INTO `'._DB_PREFIX_.'layered_indexable_feature`
-		SELECT id_feature, 1 FROM `'._DB_PREFIX_.'feature`');
+        INSERT INTO `'._DB_PREFIX_.'layered_indexable_feature`
+        SELECT id_feature, 1 FROM `'._DB_PREFIX_.'feature`');
 
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_feature_lang_value`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_lang_value` (
-		`id_feature` INT NOT NULL,
-		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(128) NOT NULL,
-		`meta_title` VARCHAR(128),
-		PRIMARY KEY (`id_feature`, `id_lang`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_lang_value` (
+        `id_feature` INT NOT NULL,
+        `id_lang` INT NOT NULL,
+        `url_name` VARCHAR(128) NOT NULL,
+        `meta_title` VARCHAR(128),
+        PRIMARY KEY (`id_feature`, `id_lang`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         // Features values
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_indexable_feature_value_lang_value`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_value_lang_value` (
-		`id_feature_value` INT NOT NULL,
-		`id_lang` INT NOT NULL,
-		`url_name` VARCHAR(128),
-		`meta_title` VARCHAR(128),
-		PRIMARY KEY (`id_feature_value`, `id_lang`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_indexable_feature_value_lang_value` (
+        `id_feature_value` INT NOT NULL,
+        `id_lang` INT NOT NULL,
+        `url_name` VARCHAR(128),
+        `meta_title` VARCHAR(128),
+        PRIMARY KEY (`id_feature_value`, `id_lang`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
     /**
@@ -276,14 +278,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         Db::getInstance()->execute('DROP TABLE IF EXISTS `'._DB_PREFIX_.'layered_product_attribute`');
         Db::getInstance()->execute('
-		CREATE TABLE `'._DB_PREFIX_.'layered_product_attribute` (
-		`id_attribute` int(10) unsigned NOT NULL,
-		`id_product` int(10) unsigned NOT NULL,
-		`id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
-		`id_shop` int(10) unsigned NOT NULL DEFAULT "1",
-		PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
-		UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE `'._DB_PREFIX_.'layered_product_attribute` (
+        `id_attribute` int(10) unsigned NOT NULL,
+        `id_product` int(10) unsigned NOT NULL,
+        `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
+        `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
+        PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
+        UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
     //ATTRIBUTES GROUP
@@ -295,16 +297,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_group
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
 
         Db::getInstance()->execute(
             'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group (`id_attribute_group`, `indexable`)
-			VALUES ('.(int) $params['id_attribute_group'].', '.(int) Tools::getValue('layered_indexable').')'
+            VALUES ('.(int) $params['id_attribute_group'].', '.(int) Tools::getValue('layered_indexable').')'
         );
 
         foreach (Language::getLanguages(false) as $language) {
@@ -316,12 +318,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             Db::getInstance()->execute(
                 'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
-				(`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
-				VALUES (
-					'.(int) $params['id_attribute_group'].', '.(int) $language['id_lang'].',
-					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
-					\''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
-				)'
+                (`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                    '.(int) $params['id_attribute_group'].', '.(int) $language['id_lang'].',
+                    \''.pSQL(Tools::link_rewrite($seo_url)).'\',
+                    \''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
+                )'
             );
         }
     }
@@ -334,11 +336,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_group
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
     }
 
@@ -360,8 +362,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $values = array();
         $is_indexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
             'SELECT `indexable`
-			FROM '._DB_PREFIX_.'layered_indexable_attribute_group
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            FROM '._DB_PREFIX_.'layered_indexable_attribute_group
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         );
 
         if ($is_indexable === false) {
@@ -370,7 +372,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` FROM '._DB_PREFIX_.'layered_indexable_attribute_group_lang_value
-			WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
+            WHERE `id_attribute_group` = '.(int) $params['id_attribute_group']
         )) {
             foreach ($result as $data) {
                 $values[$data['id_lang']] = array('url_name' => $data['url_name'], 'meta_title' => $data['meta_title']);
@@ -396,7 +398,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_lang_value
-			WHERE `id_attribute` = '.(int) $params['id_attribute']
+            WHERE `id_attribute` = '.(int) $params['id_attribute']
         );
 
         foreach (Language::getLanguages(false) as $language) {
@@ -408,12 +410,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             Db::getInstance()->execute(
                 'INSERT INTO '._DB_PREFIX_.'layered_indexable_attribute_lang_value
-				(`id_attribute`, `id_lang`, `url_name`, `meta_title`)
-				VALUES (
-					'.(int) $params['id_attribute'].', '.(int) $language['id_lang'].',
-					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
-					\''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
-				)'
+                (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                    '.(int) $params['id_attribute'].', '.(int) $language['id_lang'].',
+                    \''.pSQL(Tools::link_rewrite($seo_url)).'\',
+                    \''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
+                )'
             );
         }
     }
@@ -426,7 +428,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_attribute_lang_value
-			WHERE `id_attribute` = '.(int) $params['id_attribute']
+            WHERE `id_attribute` = '.(int) $params['id_attribute']
         );
     }
 
@@ -449,8 +451,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
-			FROM '._DB_PREFIX_.'layered_indexable_attribute_lang_value
-			WHERE `id_attribute` = '.(int) $params['id_attribute']
+            FROM '._DB_PREFIX_.'layered_indexable_attribute_lang_value
+            WHERE `id_attribute` = '.(int) $params['id_attribute']
         )) {
             foreach ($result as $data) {
                 $values[$data['id_lang']] = array('url_name' => $data['url_name'], 'meta_title' => $data['meta_title']);
@@ -475,17 +477,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature
-			WHERE `id_feature` = '.(int) $params['id_feature']
+            WHERE `id_feature` = '.(int) $params['id_feature']
         );
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature_lang_value
-			WHERE `id_feature` = '.(int) $params['id_feature']
+            WHERE `id_feature` = '.(int) $params['id_feature']
         );
 
         Db::getInstance()->execute(
             'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature
-			(`id_feature`, `indexable`)
-			VALUES ('.(int) $params['id_feature'].', '.(int) Tools::getValue('layered_indexable').')'
+            (`id_feature`, `indexable`)
+            VALUES ('.(int) $params['id_feature'].', '.(int) Tools::getValue('layered_indexable').')'
         );
 
         foreach (Language::getLanguages(false) as $language) {
@@ -497,12 +499,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             Db::getInstance()->execute(
                 'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_lang_value
-				(`id_feature`, `id_lang`, `url_name`, `meta_title`)
-				VALUES (
-					'.(int) $params['id_feature'].', '.(int) $language['id_lang'].',
-					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
-					\''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
-				)'
+                (`id_feature`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                    '.(int) $params['id_feature'].', '.(int) $language['id_lang'].',
+                    \''.pSQL(Tools::link_rewrite($seo_url)).'\',
+                    \''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
+                )'
             );
         }
     }
@@ -515,7 +517,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature
-			WHERE `id_feature` = '.(int) $params['id_feature']
+            WHERE `id_feature` = '.(int) $params['id_feature']
         );
     }
 
@@ -537,8 +539,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $values = array();
         $is_indexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
             'SELECT `indexable`
-			FROM '._DB_PREFIX_.'layered_indexable_feature
-			WHERE `id_feature` = '.(int) $params['id_feature']
+            FROM '._DB_PREFIX_.'layered_indexable_feature
+            WHERE `id_feature` = '.(int) $params['id_feature']
         );
 
         if ($is_indexable === false) {
@@ -547,7 +549,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` FROM '._DB_PREFIX_.'layered_indexable_feature_lang_value
-			WHERE `id_feature` = '.(int) $params['id_feature']
+            WHERE `id_feature` = '.(int) $params['id_feature']
         )) {
             foreach ($result as $data) {
                 $values[$data['id_lang']] = array('url_name' => $data['url_name'], 'meta_title' => $data['meta_title']);
@@ -574,7 +576,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         //Removing all indexed language data for this attribute value id
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
-			WHERE `id_feature_value` = '.(int) $params['id_feature_value']
+            WHERE `id_feature_value` = '.(int) $params['id_feature_value']
         );
 
         foreach (Language::getLanguages(false) as $language) {
@@ -586,12 +588,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             Db::getInstance()->execute(
                 'INSERT INTO '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
-				(`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
-				VALUES (
-					'.(int) $params['id_feature_value'].', '.(int) $language['id_lang'].',
-					\''.pSQL(Tools::link_rewrite($seo_url)).'\',
-					\''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
-				)'
+                (`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                    '.(int) $params['id_feature_value'].', '.(int) $language['id_lang'].',
+                    \''.pSQL(Tools::link_rewrite($seo_url)).'\',
+                    \''.pSQL(Tools::getValue('meta_title_'.(int) $language['id_lang']), true).'\'
+                )'
             );
         }
     }
@@ -604,7 +606,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         Db::getInstance()->execute(
             'DELETE FROM '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
-			WHERE `id_feature_value` = '.(int) $params['id_feature_value']
+            WHERE `id_feature_value` = '.(int) $params['id_feature_value']
         );
     }
 
@@ -627,8 +629,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
-			FROM '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
-			WHERE `id_feature_value` = '.(int) $params['id_feature_value']
+            FROM '._DB_PREFIX_.'layered_indexable_feature_value_lang_value
+            WHERE `id_feature_value` = '.(int) $params['id_feature_value']
         )) {
             foreach ($result as $data) {
                 $values[$data['id_lang']] = array('url_name' => $data['url_name'], 'meta_title' => $data['meta_title']);
@@ -691,8 +693,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
                 Db::getInstance()->execute(
                     'UPDATE `'._DB_PREFIX_.'layered_filter`
-					SET `filters` = \''.pSQL(serialize($data)).'\'
-					WHERE `id_layered_filter` = '.(int) $layered_filter['id_layered_filter']
+                    SET `filters` = \''.pSQL(serialize($data)).'\'
+                    WHERE `id_layered_filter` = '.(int) $layered_filter['id_layered_filter']
                 );
             }
         }
@@ -710,20 +712,20 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         } else {
             Db::getInstance()->execute(
                 'DELETE FROM '._DB_PREFIX_.'layered_product_attribute
-				WHERE id_product = '.(int) $id_product
+                WHERE id_product = '.(int) $id_product
             );
         }
 
         Db::getInstance()->execute(
             'INSERT INTO `'._DB_PREFIX_.'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
-			SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
-			FROM '._DB_PREFIX_.'product_attribute pa'.
+            SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
+            FROM '._DB_PREFIX_.'product_attribute pa'.
             Shop::addSqlAssociation('product_attribute', 'pa').'
-			INNER JOIN '._DB_PREFIX_.'product_attribute_combination pac ON pac.id_product_attribute = pa.id_product_attribute
-			INNER JOIN '._DB_PREFIX_.'attribute a ON (a.id_attribute = pac.id_attribute)
-			INNER JOIN '._DB_PREFIX_.'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
-			'.(is_null($id_product) ? '' : 'AND pa.id_product = '.(int) $id_product).'
-			GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
+            INNER JOIN '._DB_PREFIX_.'product_attribute_combination pac ON pac.id_product_attribute = pa.id_product_attribute
+            INNER JOIN '._DB_PREFIX_.'attribute a ON (a.id_attribute = pac.id_attribute)
+            INNER JOIN '._DB_PREFIX_.'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
+            '.(is_null($id_product) ? '' : 'AND pa.id_product = '.(int) $id_product).'
+            GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
         );
 
         return 1;
@@ -753,17 +755,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         if ($full) {
             $nb_products = (int) Db::getInstance()->getValue('
-				SELECT count(DISTINCT p.`id_product`)
-				FROM '._DB_PREFIX_.'product p
-				INNER JOIN `'._DB_PREFIX_.'product_shop` ps
-					ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))');
+                SELECT count(DISTINCT p.`id_product`)
+                FROM '._DB_PREFIX_.'product p
+                INNER JOIN `'._DB_PREFIX_.'product_shop` ps
+                    ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))');
         } else {
             $nb_products = (int) Db::getInstance()->getValue('
-				SELECT COUNT(DISTINCT p.`id_product`) FROM `'._DB_PREFIX_.'product` p
-				INNER JOIN `'._DB_PREFIX_.'product_shop` ps
-					ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-				LEFT JOIN  `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product)
-				WHERE psi.id_product IS NULL');
+                SELECT COUNT(DISTINCT p.`id_product`) FROM `'._DB_PREFIX_.'product` p
+                INNER JOIN `'._DB_PREFIX_.'product_shop` ps
+                    ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                LEFT JOIN  `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product)
+                WHERE psi.id_product IS NULL');
         }
 
         $max_executiontime = @ini_get('max_execution_time');
@@ -828,22 +830,22 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($full) {
             $query = '
-				SELECT p.`id_product`
-				FROM `'._DB_PREFIX_.'product` p
-				INNER JOIN `'._DB_PREFIX_.'product_shop` ps
-					ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-				GROUP BY p.`id_product`
-				ORDER BY p.`id_product` LIMIT '.(int) $cursor.','.(int) $length;
+                SELECT p.`id_product`
+                FROM `'._DB_PREFIX_.'product` p
+                INNER JOIN `'._DB_PREFIX_.'product_shop` ps
+                    ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                GROUP BY p.`id_product`
+                ORDER BY p.`id_product` LIMIT '.(int) $cursor.','.(int) $length;
         } else {
             $query = '
-				SELECT p.`id_product`
-				FROM `'._DB_PREFIX_.'product` p
-				INNER JOIN `'._DB_PREFIX_.'product_shop` ps
-					ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-				LEFT JOIN  `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product)
-				WHERE psi.id_product IS NULL
-				GROUP BY p.`id_product`
-				ORDER BY p.`id_product` LIMIT 0,'.(int) $length;
+                SELECT p.`id_product`
+                FROM `'._DB_PREFIX_.'product` p
+                INNER JOIN `'._DB_PREFIX_.'product_shop` ps
+                    ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                LEFT JOIN  `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product)
+                WHERE psi.id_product IS NULL
+                GROUP BY p.`id_product`
+                ORDER BY p.`id_product` LIMIT 0,'.(int) $length;
         }
 
         foreach (Db::getInstance()->executeS($query) as $product) {
@@ -882,21 +884,21 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             if (Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
                 $max_tax_rate = Db::getInstance()->getValue('
-					SELECT max(t.rate) max_rate
-					FROM `'._DB_PREFIX_.'product_shop` p
-					LEFT JOIN `'._DB_PREFIX_.'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = '.(int) $id_shop.')
-					LEFT JOIN `'._DB_PREFIX_.'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
-					LEFT JOIN `'._DB_PREFIX_.'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
-					WHERE id_product = '.(int) $id_product.'
-					GROUP BY id_product');
+                    SELECT max(t.rate) max_rate
+                    FROM `'._DB_PREFIX_.'product_shop` p
+                    LEFT JOIN `'._DB_PREFIX_.'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = '.(int) $id_shop.')
+                    LEFT JOIN `'._DB_PREFIX_.'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
+                    LEFT JOIN `'._DB_PREFIX_.'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
+                    WHERE id_product = '.(int) $id_product.'
+                    GROUP BY id_product');
             } else {
                 $max_tax_rate = 0;
             }
 
             $product_min_prices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT id_shop, id_currency, id_country, id_group, from_quantity
-			FROM `'._DB_PREFIX_.'specific_price`
-			WHERE id_product = '.(int) $id_product);
+            SELECT id_shop, id_currency, id_country, id_group, from_quantity
+            FROM `'._DB_PREFIX_.'specific_price`
+            WHERE id_product = '.(int) $id_product);
 
             // Get min price
             foreach ($currency_list as $currency) {
@@ -1020,16 +1022,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $values = array();
             foreach ($currency_list as $currency) {
                 $values[] = '('.(int) $id_product.',
-					'.(int) $currency['id_currency'].',
-					'.$id_shop.',
-					'.(int) $min_price[$currency['id_currency']].',
-					'.(int) Tools::ps_round($max_price[$currency['id_currency']] * (100 + $max_tax_rate) / 100, 0).')';
+                    '.(int) $currency['id_currency'].',
+                    '.$id_shop.',
+                    '.(int) $min_price[$currency['id_currency']].',
+                    '.(int) Tools::ps_round($max_price[$currency['id_currency']] * (100 + $max_tax_rate) / 100, 0).')';
             }
 
             Db::getInstance()->execute('
-				INSERT INTO `'._DB_PREFIX_.'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max)
-				VALUES '.implode(',', $values).'
-				ON DUPLICATE KEY UPDATE id_product = id_product # avoid duplicate keys');
+                INSERT INTO `'._DB_PREFIX_.'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max)
+                VALUES '.implode(',', $values).'
+                ON DUPLICATE KEY UPDATE id_product = id_product # avoid duplicate keys');
         }
     }
 
@@ -1047,7 +1049,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 if (Tools::getValue('id_layered_filter')) {
                     Db::getInstance()->execute(
                         'DELETE FROM '._DB_PREFIX_.'layered_filter
-						WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
+                        WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
                     );
                     $this->buildLayeredCategories();
                 }
@@ -1056,7 +1058,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'layered_filter');
                     $categories = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
                         'SELECT id_category
-						FROM '._DB_PREFIX_.'category'
+                        FROM '._DB_PREFIX_.'category'
                     );
 
                     foreach ($categories as $category) {
@@ -1083,7 +1085,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 Db::getInstance()->execute(
                     'DELETE FROM '._DB_PREFIX_.'layered_filter_shop
-					WHERE `id_layered_filter` = '.(int) $id_layered_filter
+                    WHERE `id_layered_filter` = '.(int) $id_layered_filter
                 );
 
                 if (count($_POST['categoryBox'])) {
@@ -1144,7 +1146,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         foreach ($assos as $asso) {
                             Db::getInstance()->execute(
                                 'INSERT INTO '._DB_PREFIX_.'layered_filter_shop (`id_layered_filter`, `id_shop`)
-							VALUES('.$id_layered_filter.', '.(int) $asso['id_shop'].')'
+                            VALUES('.$id_layered_filter.', '.(int) $asso['id_shop'].')'
                             );
                         }
                     }
@@ -1160,6 +1162,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
 
             $this->ps_layered_full_tree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -1171,14 +1174,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
                 'SELECT filters
-				FROM '._DB_PREFIX_.'layered_filter
-				WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
+                FROM '._DB_PREFIX_.'layered_filter
+                WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
             );
 
             if ($layered_values) {
                 Db::getInstance()->execute(
                     'DELETE FROM '._DB_PREFIX_.'layered_filter
-					WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter').' LIMIT 1'
+                    WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter').' LIMIT 1'
                 );
                 $this->buildLayeredCategories();
                 $message = $this->displayConfirmation($this->trans('Filter template deleted, categories updated (reverted to default Filter template).', array(), 'Modules.Facetedsearch.Admin'));
@@ -1190,19 +1193,19 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $category_box = array();
         $attribute_groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
-			FROM '._DB_PREFIX_.'attribute_group ag
-			LEFT JOIN '._DB_PREFIX_.'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
-			LEFT JOIN '._DB_PREFIX_.'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
-			WHERE agl.id_lang = '.(int) $cookie->id_lang.'
-			GROUP BY ag.id_attribute_group'
+            FROM '._DB_PREFIX_.'attribute_group ag
+            LEFT JOIN '._DB_PREFIX_.'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
+            LEFT JOIN '._DB_PREFIX_.'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
+            WHERE agl.id_lang = '.(int) $cookie->id_lang.'
+            GROUP BY ag.id_attribute_group'
         );
 
         $features = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
-			FROM '._DB_PREFIX_.'feature_lang fl
-			LEFT JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature = fl.id_feature)
-			WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = '.(int) $cookie->id_lang.'
-			GROUP BY fl.id_feature'
+            FROM '._DB_PREFIX_.'feature_lang fl
+            LEFT JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature = fl.id_feature)
+            WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = '.(int) $cookie->id_lang.'
+            GROUP BY fl.id_feature'
         );
 
         if (Shop::isFeatureActive() && count(Shop::getShops(true, null, true)) > 1) {
@@ -1269,9 +1272,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         } elseif (Tools::getValue('edit_filters_template')) {
             $template = Db::getInstance()->getRow(
                 '
-				SELECT *
-				FROM `'._DB_PREFIX_.'layered_filter`
-				WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
+                SELECT *
+                FROM `'._DB_PREFIX_.'layered_filter`
+                WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter')
             );
 
             $filters = Tools::unSerialize($template['filters']);
@@ -1322,6 +1325,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
                 'limit_warning' => $this->displayLimitPostWarning(21 + count($attribute_groups) * 3 + count($features) * 3),
                 'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
+                'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             ));
 
             return $this->display(__FILE__, 'views/templates/admin/view.tpl');
@@ -1579,7 +1583,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                                          STRAIGHT_JOIN `' . _DB_PREFIX_ . 'product` p ON (p.id_product=cp.id_product)
                                                          ' . $price_filter_query_in . '
                                                          ' . $query_filters_from . '
-                                                         WHERE NOT EXISTS(SELECT * FROM ' . _DB_PREFIX_ . 'category_product cpe 
+                                                         WHERE NOT EXISTS(SELECT * FROM ' . _DB_PREFIX_ . 'category_product cpe
                                                                             WHERE cp.id_product=cpe.id_product AND cpe.id_category = ' . (int)$id_parent . ')
                                                          ' . $query_filters_where . $extraWhereQuery . '
                                                          GROUP BY cp.id_product)';
@@ -1628,7 +1632,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     LEFT JOIN ' . _DB_PREFIX_ . 'manufacturer m ON (m.id_manufacturer = p.id_manufacturer)
                     ' . Product::sqlStock('p', 0) . '
                     WHERE ' . $alias_where . '.`active` = 1 AND ' . $alias_where . '.`visibility` IN ("both", "catalog")
-                    ORDER BY ' . $order_clause . ' , cp.id_product' .
+                    ORDER BY '
+                    .self::sqlOrderByOOSP($order_by) // EDVINAS - Adding extra SQL line for ordering by price
+                    . $order_clause . ' , cp.id_product' .
                     ' LIMIT ' . (((int)$page - 1) * $products_per_page . ',' . $products_per_page));
             } else {
                 $products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -1664,12 +1670,58 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($order_by == 'p.price') {
             Tools::orderbyPrice($products, $order_way);
+            if(Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')) {
+                $products = self::modifyGetProducts( $products ); // EDVINAS - modifying results
+            }
         }
 
         return array(
             'products' => $products,
             'count' => $this->nbr_products,
         );
+    }
+
+    /**
+     * EDVINAS - Include sql ORDER BY string to be able sort products: inStock, Allowed oosp, outOfStock
+     *
+     * @param array $orderyBy - way of order
+     *
+     * @return string sql
+     */
+    public static function sqlOrderByOOSP($orderyBy)
+    {
+        if (Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+         && $orderyBy == 'p.price') {
+            return 'stock.quantity DESC, FIELD(stock.out_of_stock, 1, 2, 0) ASC, ';
+        }
+    }
+
+    /**
+     * EDVINAS - Modify SQL of getProducts method.
+     *
+     * @param array $result
+     *
+     * @return array products
+     */
+    public static function modifyGetProducts($array)
+    {
+        $outOfStockProducts = array();
+        $outOfStockOOPSProducts = array();
+
+        foreach($array as $subKey => $subArray){
+            // SPLIT out_of_stock OOPS products
+            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 1 && $subArray['quantity'] == 0) {
+                $outOfStockOOPSProducts[] = $array[$subKey];
+                unset($array[$subKey]);
+            }
+
+            // SPLIT out_of_stock products
+            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 0 && $subArray['quantity'] == 0) {
+                $outOfStockProducts[] = $array[$subKey];
+                unset($array[$subKey]);
+            }
+         }
+        return array_merge($array, $outOfStockOOPSProducts, $outOfStockProducts);
     }
 
     private static function query($sql_query)
@@ -1716,9 +1768,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         /* Get the filters for the current category */
         $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM '._DB_PREFIX_.'layered_category
-			WHERE id_category = '.(int) $id_parent.'
-				AND id_shop = '.$id_shop.'
-			GROUP BY `type`, id_value ORDER BY position ASC'
+            WHERE id_category = '.(int) $id_parent.'
+                AND id_shop = '.$id_shop.'
+            GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
         $catRestrictionDerivedTable = '(SELECT DISTINCT cp.id_product, p.id_manufacturer, product_shop.condition, p.weight FROM '._DB_PREFIX_.'category c
@@ -2334,8 +2386,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             return array('where' => ' AND psi.price_min >= '.(int) $filter_value[0].' AND psi.price_max <= '.(int) $filter_value[1]);
         } elseif ($filter_value) {
             $price_filter_query = '
-			INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product AND psi.id_currency = '.(int) $id_currency.'
-			AND psi.price_min <= '.(int) $filter_value[1].' AND psi.price_max >= '.(int) $filter_value[0].' AND psi.id_shop='.(int) Context::getContext()->shop->id.') ';
+            INNER JOIN `'._DB_PREFIX_.'layered_price_index` psi ON (psi.id_product = p.id_product AND psi.id_currency = '.(int) $id_currency.'
+            AND psi.price_min <= '.(int) $filter_value[1].' AND psi.price_max >= '.(int) $filter_value[0].' AND psi.id_shop='.(int) Context::getContext()->shop->id.') ';
 
             return array('join' => $price_filter_query);
         }
@@ -2407,10 +2459,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             return array();
         }
         $query_filters = '
-		AND EXISTS (SELECT *
-		FROM `'._DB_PREFIX_.'product_attribute_combination` pac
-		LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.`id_product_attribute` = pac.`id_product_attribute`)
-		WHERE pa.id_product = p.id_product AND ';
+        AND EXISTS (SELECT *
+        FROM `'._DB_PREFIX_.'product_attribute_combination` pac
+        LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa ON (pa.`id_product_attribute` = pac.`id_product_attribute`)
+        WHERE pa.id_product = p.id_product AND ';
 
         foreach ($filter_value as $filter_val) {
             $query_filters .= 'pac.`id_attribute` = '.(int) $filter_val.' OR ';
@@ -2492,35 +2544,35 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         /* Delete and re-create the layered categories table */
         Db::getInstance()->execute('DROP TABLE IF EXISTS '._DB_PREFIX_.'layered_category');
         Db::getInstance()->execute('
-		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_category` (
-		`id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-		`id_shop` INT(11) UNSIGNED NOT NULL,
-		`id_category` INT(10) UNSIGNED NOT NULL,
-		`id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
-		`type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
-		`position` INT(10) UNSIGNED NOT NULL,
-		`filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
-		`filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
-		PRIMARY KEY (`id_layered_category`),
-		KEY `id_category` (`id_category`,`type`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;'); /* MyISAM + latin1 = Smaller/faster */
+        CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_category` (
+        `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+        `id_shop` INT(11) UNSIGNED NOT NULL,
+        `id_category` INT(10) UNSIGNED NOT NULL,
+        `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
+        `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
+        `position` INT(10) UNSIGNED NOT NULL,
+        `filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
+        `filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id_layered_category`),
+        KEY `id_category` (`id_category`,`type`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;'); /* MyISAM + latin1 = Smaller/faster */
 
         Db::getInstance()->execute('
-		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter` (
-		`id_layered_filter` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-		`name` VARCHAR(64) NOT NULL,
-		`filters` LONGTEXT NULL,
-		`n_categories` INT(10) UNSIGNED NOT NULL,
-		`date_add` DATETIME NOT NULL
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter` (
+        `id_layered_filter` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        `name` VARCHAR(64) NOT NULL,
+        `filters` LONGTEXT NULL,
+        `n_categories` INT(10) UNSIGNED NOT NULL,
+        `date_add` DATETIME NOT NULL
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
 
         Db::getInstance()->execute('
-		CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter_shop` (
-		`id_layered_filter` INT(10) UNSIGNED NOT NULL,
-		`id_shop` INT(11) UNSIGNED NOT NULL,
-		PRIMARY KEY (`id_layered_filter`, `id_shop`),
-		KEY `id_shop` (`id_shop`)
-		) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
+        CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'layered_filter_shop` (
+        `id_layered_filter` INT(10) UNSIGNED NOT NULL,
+        `id_shop` INT(11) UNSIGNED NOT NULL,
+        PRIMARY KEY (`id_layered_filter`, `id_shop`),
+        KEY `id_shop` (`id_shop`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;');
     }
 
     public function rebuildLayeredCache($products_ids = array(), $categories_ids = array(), $rebuildLayeredCategories = true)
@@ -2544,18 +2596,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $join_product_attribute = Shop::addSqlAssociation('product_attribute', 'pa');
 
         $attribute_groups = self::query('
-		SELECT a.id_attribute, a.id_attribute_group
-		FROM '._DB_PREFIX_.'attribute a
-		LEFT JOIN '._DB_PREFIX_.'product_attribute_combination pac ON (pac.id_attribute = a.id_attribute)
-		LEFT JOIN '._DB_PREFIX_.'product_attribute pa ON (pa.id_product_attribute = pac.id_product_attribute)
-		LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = pa.id_product)
-		'.$join_product.$join_product_attribute.'
-		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
-		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
-		WHERE c.active = 1'.
+        SELECT a.id_attribute, a.id_attribute_group
+        FROM '._DB_PREFIX_.'attribute a
+        LEFT JOIN '._DB_PREFIX_.'product_attribute_combination pac ON (pac.id_attribute = a.id_attribute)
+        LEFT JOIN '._DB_PREFIX_.'product_attribute pa ON (pa.id_product_attribute = pac.id_product_attribute)
+        LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = pa.id_product)
+        '.$join_product.$join_product_attribute.'
+        LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
+        LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
+        WHERE c.active = 1'.
             (count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
-		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
+        AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
+        '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
 
         $attribute_groups_by_id = array();
         while ($row = $db->nextRow($attribute_groups)) {
@@ -2563,15 +2615,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $features = self::query('
-		SELECT fv.id_feature_value, fv.id_feature
-		FROM '._DB_PREFIX_.'feature_value fv
-		LEFT JOIN '._DB_PREFIX_.'feature_product fp ON (fp.id_feature_value = fv.id_feature_value)
-		LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = fp.id_product)
-		'.$join_product.'
-		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
-		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
-		WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
-		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog") '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
+        SELECT fv.id_feature_value, fv.id_feature
+        FROM '._DB_PREFIX_.'feature_value fv
+        LEFT JOIN '._DB_PREFIX_.'feature_product fp ON (fp.id_feature_value = fv.id_feature_value)
+        LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = fp.id_product)
+        '.$join_product.'
+        LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
+        LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
+        WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
+        AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog") '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : ''));
 
         $features_by_id = array();
         while ($row = $db->nextRow($features)) {
@@ -2579,23 +2631,23 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $result = self::query('
-		SELECT p.id_product,
-		GROUP_CONCAT(DISTINCT fv.id_feature_value) features,
-		GROUP_CONCAT(DISTINCT cp.id_category) categories,
-		GROUP_CONCAT(DISTINCT pac.id_attribute) attributes
-		FROM '._DB_PREFIX_.'product p
-		LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
-		LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
-		LEFT JOIN '._DB_PREFIX_.'feature_product fp ON (fp.id_product = p.id_product)
-		LEFT JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value)
-		LEFT JOIN '._DB_PREFIX_.'product_attribute pa ON (pa.id_product = p.id_product)
-		'.$join_product.$join_product_attribute.'
-		LEFT JOIN '._DB_PREFIX_.'product_attribute_combination pac ON (pac.id_product_attribute = pa.id_product_attribute)
-		WHERE c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
-		AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
-		'.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : '').
+        SELECT p.id_product,
+        GROUP_CONCAT(DISTINCT fv.id_feature_value) features,
+        GROUP_CONCAT(DISTINCT cp.id_category) categories,
+        GROUP_CONCAT(DISTINCT pac.id_attribute) attributes
+        FROM '._DB_PREFIX_.'product p
+        LEFT JOIN '._DB_PREFIX_.'category_product cp ON (cp.id_product = p.id_product)
+        LEFT JOIN '._DB_PREFIX_.'category c ON (c.id_category = cp.id_category)
+        LEFT JOIN '._DB_PREFIX_.'feature_product fp ON (fp.id_product = p.id_product)
+        LEFT JOIN '._DB_PREFIX_.'feature_value fv ON (fv.id_feature_value = fp.id_feature_value)
+        LEFT JOIN '._DB_PREFIX_.'product_attribute pa ON (pa.id_product = p.id_product)
+        '.$join_product.$join_product_attribute.'
+        LEFT JOIN '._DB_PREFIX_.'product_attribute_combination pac ON (pac.id_product_attribute = pa.id_product_attribute)
+        WHERE c.active = 1'.(count($categories_ids) ? ' AND cp.id_category IN ('.implode(',', array_map('intval', $categories_ids)).')' : '').'
+        AND '.$alias.'.active = 1 AND '.$alias.'.`visibility` IN ("both", "catalog")
+        '.(count($products_ids) ? 'AND p.id_product IN ('.implode(',', array_map('intval', $products_ids)).')' : '').
             ' AND (fv.custom IS NULL OR fv.custom = 0)
-		GROUP BY p.id_product');
+        GROUP BY p.id_product');
 
         $shop_list = Shop::getShops(false, null, true);
 
@@ -2674,13 +2726,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
         if ($to_insert) {
             Db::getInstance()->execute('INSERT INTO '._DB_PREFIX_.'layered_filter(name, filters, n_categories, date_add)
-				VALUES (\''.sprintf($this->trans('My template %s', array(), 'Modules.Facetedsearch.Admin'), date('Y-m-d')).'\', \''.pSQL(serialize($filter_data)).'\', '.count($filter_data['categories']).', NOW())');
+                VALUES (\''.sprintf($this->trans('My template %s', array(), 'Modules.Facetedsearch.Admin'), date('Y-m-d')).'\', \''.pSQL(serialize($filter_data)).'\', '.count($filter_data['categories']).', NOW())');
 
             $last_id = Db::getInstance()->Insert_ID();
             Db::getInstance()->execute('DELETE FROM '._DB_PREFIX_.'layered_filter_shop WHERE `id_layered_filter` = '.$last_id);
             foreach ($shop_list as $id_shop) {
                 Db::getInstance()->execute('INSERT INTO '._DB_PREFIX_.'layered_filter_shop (`id_layered_filter`, `id_shop`)
-					VALUES('.$last_id.', '.(int) $id_shop.')');
+                    VALUES('.$last_id.', '.(int) $id_shop.')');
             }
 
             if ($rebuildLayeredCategories) {
@@ -2738,10 +2790,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                                     $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', NULL,\'manufacturer\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
                                     $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_ag_', '', $key).',
-										\'id_attribute_group\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                        \'id_attribute_group\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
                                     $sqlInsert .= '('.(int) $id_category.', '.(int) $id_shop.', '.(int) str_replace('layered_selection_feat_', '', $key).',
-										\'id_feature\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
+                                        \'id_feature\','.(int) $n.', '.(int) $limit.', '.(int) $type.'),';
                                 }
 
                                 $nbSqlValuesToInsert++;
