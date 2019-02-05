@@ -1710,13 +1710,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         foreach($array as $subKey => $subArray){
             // SPLIT out_of_stock OOPS products
-            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 1 && $subArray['quantity'] == 0) {
+            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 1 && $subArray['quantity'] <= 0) {
                 $outOfStockOOPSProducts[] = $array[$subKey];
                 unset($array[$subKey]);
             }
 
             // SPLIT out_of_stock products
-            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 0 && $subArray['quantity'] == 0) {
+            if(Product::isAvailableWhenOutOfStock($subArray['out_of_stock']) == 0 && $subArray['quantity'] <= 0) {
                 $outOfStockProducts[] = $array[$subKey];
                 unset($array[$subKey]);
             }
