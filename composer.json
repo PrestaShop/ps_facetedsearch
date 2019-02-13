@@ -12,17 +12,25 @@
   "require": {
     "php": ">=5.4"
   },
+  "require-dev": {
+    "phpunit/phpunit": "~5.7"
+  },
   "config": {
     "preferred-install": "dist",
     "prepend-autoloader": false
   },
   "type": "prestashop-module",
-  "require-dev": {
-    "phpunit/phpunit": "^5.0"
-  },
   "autoload": {
     "psr-4": {
-      "NativeModuleFacetedSearchBundle\\": "src/NativeModuleFacetedSearchBundle/"
-    }
+      "PrestaShop\\Module\\FacetedSearch\\Controller": "src/Controller",
+      "PrestaShop\\Module\\FacetedSearch\\": "src/"
+    },
+    "classmap": ["ps_facetedsearch.php"],
+    "exclude-from-classmap": []
+  },
+  "scripts": {
+    "test": [
+      "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/phpunit.xml"
+    ]
   }
 }

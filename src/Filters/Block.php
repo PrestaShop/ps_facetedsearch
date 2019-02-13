@@ -1,10 +1,14 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
+use PrestaShop\Module\FacetedSearch\Product\Search;
+use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
+use Combination;
 use Context;
-use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchInterface;
+use Feature;
+use FeatureValue;
+use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use Tools;
 use Configuration;
 use Category;
@@ -12,12 +16,12 @@ use Db;
 use Group;
 use Shop;
 
-class Ps_FacetedsearchFilterBlock
+class Block
 {
-    /** @var FacetedSearchAbstract */
+    /** @var AbstractAdapter */
     private $facetedSearchAdapter;
 
-    public function __construct(Ps_FacetedsearchProductSearch $productSearch)
+    public function __construct(Search $productSearch)
     {
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }
@@ -100,7 +104,7 @@ class Ps_FacetedsearchFilterBlock
      */
     public function getFromCache($filterHash)
     {
-        $row = \Db::getInstance()->getRow('SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block 
+        $row = Db::getInstance()->getRow('SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block
                                             WHERE hash="' . $filterHash . '"');
         if (!empty($row)) {
             return unserialize(current($row));
@@ -117,13 +121,13 @@ class Ps_FacetedsearchFilterBlock
      */
     public function insertIntoCache($filterHash, $data)
     {
-        \Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data) 
+        Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
                                         VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")');
     }
 
 
     /**
-     * @param \Currency $currency
+     * @param Currency $currency
      * @param array     $selectedFilters
      * @param array     $filter
      *
@@ -727,7 +731,7 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getAttributeGroupLayeredInfos($idAttributeGroup, $idLang)
     {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value WHERE id_attribute_group=' .
             (int)$idAttributeGroup . ' AND id_lang=' . (int)$idLang);
@@ -743,7 +747,7 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getAttributeLayeredInfos($idAttribute, $idLang)
     {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
             (int)$idAttribute . ' AND id_lang=' . (int)$idLang);
@@ -759,7 +763,7 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getFeatureLayeredInfos($idFeatureValue, $idLang)
     {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
             (int)$idFeatureValue . ' AND id_lang=' . (int)$idLang);
@@ -775,7 +779,7 @@ class Ps_FacetedsearchFilterBlock
      */
     private function getFeatureValueLayeredInfos($idFeature, $idLang)
     {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
             (int)$idFeature . ' AND id_lang=' . (int)$idLang);
@@ -789,7 +793,7 @@ class Ps_FacetedsearchFilterBlock
      */
     public static function getAttributes($idLang, $notNull = true)
     {
-        if (!\Combination::isFeatureActive()) {
+        if (!Combination::isFeatureActive()) {
             return array();
         }
 
@@ -820,7 +824,7 @@ class Ps_FacetedsearchFilterBlock
      */
     public static function getAttributesGroups($idLang)
     {
-        if (!\Combination::isFeatureActive()) {
+        if (!Combination::isFeatureActive()) {
             return array();
         }
 
@@ -979,7 +983,7 @@ class Ps_FacetedsearchFilterBlock
             $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempFeatures = \Feature::getFeatures($idLang);
+        $tempFeatures = Feature::getFeatures($idLang);
         foreach ($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
@@ -995,7 +999,7 @@ class Ps_FacetedsearchFilterBlock
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = \FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
+                $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
 
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
@@ -1072,10 +1076,10 @@ class Ps_FacetedsearchFilterBlock
     /**
      * Add the categories filter condition based on the parent and config variables
      *
-     * @param FacetedSearchInterface $filteredSearchAdapter
-     * @param \Category              $parent
+     * @param InterfaceAdapter $filteredSearchAdapter
+     * @param Category         $parent
      */
-    private function addCategoriesBlockFilters(FacetedSearchInterface $filteredSearchAdapter, $parent)
+    private function addCategoriesBlockFilters(InterfaceAdapter $filteredSearchAdapter, $parent)
     {
         if (Group::isFeatureActive()) {
             $userGroups = (Context::getContext()->customer->isLogged() ? Context::getContext()->customer->getGroups() : array(
@@ -1104,7 +1108,7 @@ class Ps_FacetedsearchFilterBlock
      * @param array     $filter
      * @param array     $selectedFilters
      * @param int       $idLang
-     * @param \Category $parent
+     * @param Category  $parent
      *
      * @return array
      */

@@ -28,8 +28,13 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-use \PrestaShop\PrestaShop\Core\Module\WidgetInterface;
-use NativeModuleFacetedSearchBundle\Ps_FacetedsearchProductSearchProvider;
+$autoloadPath = __DIR__ . '/vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+}
+
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
+use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
@@ -81,58 +86,42 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             ));
 
+        // Installation failed (or hook registration) => uninstall the module
         if ($installed) {
-            Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
-            Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
-            Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
-            Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
-            Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
-            Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
-
-            $this->ps_layered_full_tree = 1;
-
-            $this->rebuildLayeredStructure();
-            $this->buildLayeredCategories();
-
-            $products_count = Db::getInstance()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
-
-            if ($products_count < 20000) { // Lock template filter creation if too many products
-                // build the cache by pack of 100 categories to avoid storing too many infos in an individual row in
-                // layered_filter table
-                $categories = Category::getCategories(false, true, false);
-
-                // get all id_category
-                $categoryIds = array_column($categories, 'id_category');
-
-                // group by 100 ids
-                $chunks = array_chunk($categoryIds, 100);
-
-                // rebuild layered cache for each chunk
-                foreach ($chunks as $chunk) {
-                    $this->rebuildLayeredCache(array(), $chunk, false);
-                }
-
-                $this->buildLayeredCategories();
-            }
-
-            self::installPriceIndexTable();
-            $this->installIndexableAttributeTable();
-            $this->installProductAttributeTable();
-
-            if ($products_count < 5000) {
-                // Lock indexation if too many products
-
-                self::fullPricesIndexProcess();
-                $this->indexAttribute();
-            }
-
-            return true;
-        } else {
-            // Installation failed (or hook registration) => uninstall the module
             $this->uninstall();
-
             return false;
         }
+
+        Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
+        Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
+        Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
+        Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
+        Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
+        Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
+
+        $this->ps_layered_full_tree = 1;
+
+        $this->rebuildLayeredStructure();
+        $this->buildLayeredCategories();
+
+        $products_count = Db::getInstance()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
+
+        if ($products_count < 20000) { // Lock template filter creation if too many products
+            $this->rebuildLayeredCache();
+        }
+
+        self::installPriceIndexTable();
+        $this->installIndexableAttributeTable();
+        $this->installProductAttributeTable();
+
+        if ($products_count < 5000) {
+            // Lock indexation if too many products
+
+            self::fullPricesIndexProcess();
+            $this->indexAttribute();
+        }
+
+        return true;
     }
 
     public function hookProductSearchProvider($params)
@@ -144,10 +133,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            return new Ps_FacetedsearchProductSearchProvider($this);
-        } else {
-            return null;
+            return new SearchProvider($this);
         }
+
+        return null;
     }
 
     public function uninstall()

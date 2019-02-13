@@ -1,11 +1,11 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
-class Ps_FacetedsearchFacetsURLSerializer
+class URLSerializer
 {
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
     {

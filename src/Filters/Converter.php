@@ -1,6 +1,6 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
@@ -14,7 +14,7 @@ use Configuration;
 use AttributeGroup;
 use Db;
 
-class Ps_FacetedsearchFiltersConverter
+class Converter
 {
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {

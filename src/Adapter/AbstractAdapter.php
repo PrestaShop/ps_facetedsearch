@@ -1,10 +1,10 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle\Adapter;
+namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Doctrine\Common\Collections\ArrayCollection;
 
-abstract class FacetedSearchAbstract implements FacetedSearchInterface
+abstract class AbstractAdapter implements InterfaceAdapter
 {
     protected $filters;
 
@@ -22,7 +22,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
 
     protected $offset = 0;
 
-    /** @var FacetedSearchInterface */
+    /** @var InterfaceAdapter */
     protected $initialPopulation = null;
 
     public function __construct()
@@ -99,7 +99,7 @@ abstract class FacetedSearchAbstract implements FacetedSearchInterface
     /**
      * @inheritdoc
      */
-    public function copyFilters(FacetedSearchInterface $facetedSearch)
+    public function copyFilters(InterfaceAdapter $facetedSearch)
     {
         $this->filters = $facetedSearch->getFilters();
         $this->columnFilters = $facetedSearch->getColumnFilters();

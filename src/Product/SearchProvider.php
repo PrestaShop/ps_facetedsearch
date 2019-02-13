@@ -1,21 +1,24 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch\Product;
 
-use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
+use Configuration;
+use Context;
+use PrestaShop\Module\FacetedSearch\Filters;
+use PrestaShop\Module\FacetedSearch\Product\Search;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
+use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use Ps_Facetedsearch;
-use Configuration;
 use Tools;
-use Context;
 
-class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInterface
+class SearchProvider implements ProductSearchProviderInterface
 {
     private $module;
     private $filtersConverter;
@@ -24,8 +27,8 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     public function __construct(Ps_Facetedsearch $module)
     {
         $this->module = $module;
-        $this->filtersConverter = new Ps_FacetedsearchFiltersConverter();
-        $this->facetsSerializer = new Ps_FacetedsearchFacetsURLSerializer();
+        $this->filtersConverter = new Filters\Converter();
+        $this->facetsSerializer = new URLSerializer();
     }
 
     /**
@@ -38,21 +41,22 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $sortNameDesc = new SortOrder('product', 'name', 'desc');
         $sortPriceAsc = new SortOrder('product', 'price', 'asc');
         $sortPriceDesc = new SortOrder('product', 'price', 'desc');
+        $translator = $this->module->getTranslator();
         return array(
             $sortPosAsc->setLabel(
-                $this->module->getTranslator()->trans('Relevance', array(), 'Modules.Facetedsearch.Shop')
+                $translator->trans('Relevance', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortNameAsc->setLabel(
-                $this->module->getTranslator()->trans('Name, A to Z', array(), 'Shop.Theme.Catalog')
+                $translator->trans('Name, A to Z', [], 'Shop.Theme.Catalog')
             ),
             $sortNameDesc->setLabel(
-                $this->module->getTranslator()->trans('Name, Z to A', array(), 'Shop.Theme.Catalog')
+                $translator->trans('Name, Z to A', [], 'Shop.Theme.Catalog')
             ),
             $sortPriceAsc->setLabel(
-                $this->module->getTranslator()->trans('Price, low to high', array(), 'Shop.Theme.Catalog')
+                $translator->trans('Price, low to high', [], 'Shop.Theme.Catalog')
             ),
             $sortPriceDesc->setLabel(
-                $this->module->getTranslator()->trans('Price, high to low', array(), 'Shop.Theme.Catalog')
+                $translator->trans('Price, high to low', [], 'Shop.Theme.Catalog')
             ),
         );
     }
@@ -66,20 +70,19 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
     public function runQuery(
         ProductSearchContext $context,
         ProductSearchQuery $query
-    )
-    {
+    ) {
         $result = new ProductSearchResult();
         // extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
-        $facetedSearch = new Ps_FacetedsearchProductSearch();
+        $facetedSearch = new Search();
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
         $order_by = $query->getSortOrder()->toLegacyOrderBy(false);
         $order_way = $query->getSortOrder()->toLegacyOrderWay();
 
-        $filterProductSearch = new Ps_FacetedsearchFilterProducts($facetedSearch);
+        $filterProductSearch = new Filters\Products($facetedSearch);
 
         // get the product associated with the current filter
         $productsAndCount = $filterProductSearch->getProductByFilters(
@@ -96,7 +99,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
             ->setAvailableSortOrders($this->getAvailableSortOrders());
 
         // now get the filter blocks associated with the current search
-        $filterBlockSearch = new Ps_FacetedsearchFilterBlock($facetedSearch);
+        $filterBlockSearch = new Filters\Block($facetedSearch);
 
         $currentContext = Context::getContext();
         $idShop = (int)$currentContext->shop->id;

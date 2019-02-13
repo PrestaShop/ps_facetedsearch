@@ -1,22 +1,23 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch\Product;
 
-use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchMySQLAdapter;
-use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
+use PrestaShop\Module\FacetedSearch\Product\Search;
+use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
+use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use Configuration;
 use Tools;
 use Category;
 use Context;
 
-class Ps_FacetedsearchProductSearch
+class Search
 {
-    /** @var FacetedSearchAbstract */
+    /** @var AbstractAdapter */
     private $facetedSearchAdapter;
 
 
     /**
-     * Ps_FacetedsearchProductSearch constructor.
+     * Search constructor.
      *
      * @param string $adapterType
      */
@@ -24,15 +25,13 @@ class Ps_FacetedsearchProductSearch
     {
         switch ($adapterType) {
             case 'MySQL':
-                $this->facetedSearchAdapter = new FacetedSearchMySQLAdapter();
-                break;
             default:
-                $this->facetedSearchAdapter = new FacetedSearchMySQLAdapter();
+                $this->facetedSearchAdapter = new MySQLAdapter();
         }
     }
 
     /**
-     * @return FacetedSearchAbstract
+     * @return AbstractAdapter
      */
     public function getFacetedSearchAdapter()
     {

@@ -1,20 +1,19 @@
 <?php
 
-require_once implode(DIRECTORY_SEPARATOR, [
-    __DIR__,
-    '..', 'src', 'Ps_FacetedsearchFacetsURLSerializer.php',
-]);
+require_once __DIR__ . '/../src/URLSerializer.php';
 
+use PHPUnit\Framework\TestCase;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
-class Ps_FacetedsearchFacetsURLSerializerTest extends PHPUnit_Framework_TestCase
+class URLSerializerTest extends TestCase
 {
     private $serializer;
 
-    public function setup()
+    protected function setup()
     {
-        $this->serializer = new Ps_FacetedsearchFacetsURLSerializer();
+        $this->serializer = new URLSerializer();
     }
 
     public function test_serialize_one_facet()

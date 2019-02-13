@@ -1,10 +1,13 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle\Adapter;
+namespace PrestaShop\Module\FacetedSearch\Adapter;
 
+use Db;
+use Context;
+use StockAvailable;
 use Doctrine\Common\Collections\ArrayCollection;
 
-class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
+class MySQL extends AbstractAdapter
 {
     const LEFT_JOIN = 'LEFT JOIN';
     const INNER_JOIN = 'INNER JOIN';
@@ -47,7 +50,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
      */
     public function execute()
     {
-        return \Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
     }
 
     /**
@@ -114,7 +117,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
      */
     protected function getFieldMapping()
     {
-        $stockCondition = \StockAvailable::addSqlShopRestriction(
+        $stockCondition = StockAvailable::addSqlShopRestriction(
             null,
             null,
             'sa'
@@ -156,7 +159,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'product_shop',
                     'tableAlias' => 'ps',
                     'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                        \Context::getContext()->shop->id . ')',
+                        Context::getContext()->shop->id . ')',
                     'joinType' => self::INNER_JOIN
                 ),
             'id_feature_value' =>
@@ -185,7 +188,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'product_lang',
                     'tableAlias' => 'pl',
                     'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
-                        \Context::getContext()->shop->id . ' AND pl.id_lang = ' . \Context::getContext()->language->id . ')',
+                        Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
                     'joinType' => self::INNER_JOIN
                 ),
             'nleft' =>
@@ -233,7 +236,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
+                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                 ),
             'price_max' =>
@@ -241,7 +244,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
+                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                 ),
             'range_start' =>
@@ -249,7 +252,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
+                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                 ),
             'range_end' =>
@@ -257,7 +260,7 @@ class FacetedSearchMySQLAdapter extends FacetedSearchAbstract
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        \Context::getContext()->currency->id . ' AND psi.id_country = ' . \Context::getContext()->country->id . ')',
+                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
                 ),
             'id_group' =>

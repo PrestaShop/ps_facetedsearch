@@ -1,18 +1,19 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle;
+namespace PrestaShop\Module\FacetedSearch\Filters;
 
+use PrestaShop\Module\FacetedSearch\Product\Search;
 use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
 use Product;
 use Validate;
 use Configuration;
 
-class Ps_FacetedsearchFilterProducts
+class Products
 {
     /** @var FacetedSearchAbstract */
     private $facetedSearchAdapter;
 
-    public function __construct(Ps_FacetedsearchProductSearch $productSearch)
+    public function __construct(Search $productSearch)
     {
         $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
     }

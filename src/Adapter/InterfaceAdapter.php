@@ -1,8 +1,8 @@
 <?php
 
-namespace NativeModuleFacetedSearchBundle\Adapter;
+namespace PrestaShop\Module\FacetedSearch\Adapter;
 
-interface FacetedSearchInterface
+interface InterfaceAdapter
 {
     /**
      * Set order by field
@@ -100,7 +100,7 @@ interface FacetedSearchInterface
      * @param string $resetFilter reset this filter inside the initialPopulation
      * @param bool   $skipInitialPopulation if enable, do not copy the initialPopulation filter
      *
-     * @return FacetedSearchInterface
+     * @return InterfaceAdapter
      */
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false);
 
@@ -198,9 +198,9 @@ interface FacetedSearchInterface
     /**
      * Copy all the filters & columnFilters from facetedSearch to the current search
      *
-     * @param FacetedSearchInterface $facetedSearch
+     * @param InterfaceAdapter $facetedSearch
      */
-    public function copyFilters(FacetedSearchInterface $facetedSearch);
+    public function copyFilters(InterfaceAdapter $facetedSearch);
 
     /**
      * Set all the select fields
