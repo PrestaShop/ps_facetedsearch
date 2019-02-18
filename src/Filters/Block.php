@@ -8,6 +8,7 @@ use Combination;
 use Context;
 use Feature;
 use FeatureValue;
+use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use Tools;
 use Configuration;
@@ -20,6 +21,16 @@ class Block
 {
     /** @var AbstractAdapter */
     private $facetedSearchAdapter;
+
+    /**
+     * @var boolean
+     */
+    private $ps_stock_management;
+
+    /**
+     * @var boolean
+     */
+    private $ps_order_out_of_stock;
 
     public function __construct(Search $productSearch)
     {
@@ -40,16 +51,18 @@ class Block
         $idLang = $context->language->id;
         $currency = $context->currency;
         $idShop = (int) $context->shop->id;
-        $idParent = (int) Tools::getValue('id_category',
-            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')));
+        $idParent = (int) Tools::getValue(
+            'id_category',
+            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
+        );
         $parent = new Category((int) $idParent, $idLang);
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-			WHERE id_category = ' . (int) $idParent . '
-				AND id_shop = ' . $idShop . '
-			GROUP BY `type`, id_value ORDER BY position ASC'
+        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
+            WHERE id_category = ' . (int) $idParent . '
+            AND id_shop = ' . $idShop . '
+            GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
         $filterBlocks = [];
@@ -103,8 +116,10 @@ class Block
      */
     public function getFromCache($filterHash)
     {
-        $row = Db::getInstance()->getRow('SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block
-                                            WHERE hash="' . $filterHash . '"');
+        $row = Db::getInstance()->getRow(
+            'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . $filterHash . '"'
+        );
+
         if (!empty($row)) {
             return unserialize(current($row));
         }
@@ -120,8 +135,10 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
-        Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
-                                        VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")');
+        Db::getInstance()->execute(
+            'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
+            VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
+        );
     }
 
     /**
@@ -548,13 +565,30 @@ class Block
     private function getConditionsBlock($filter, $selectedFilters)
     {
         $conditionArray = [
-            'new' => ['name' => Context::getContext()->getTranslator()->trans('New', [],
-                'Modules.Facetedsearch.Shop'), 'nbr' => 0],
-            'used' => ['name' => Context::getContext()->getTranslator()->trans('Used', [],
-                'Modules.Facetedsearch.Shop'), 'nbr' => 0],
-            'refurbished' => ['name' => Context::getContext()->getTranslator()->trans('Refurbished', [],
-                'Modules.Facetedsearch.Shop'),
-                'nbr' => 0, ],
+            'new' => [
+                'name' => Context::getContext()->getTranslator()->trans(
+                    'New',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0
+            ],
+            'used' => [
+                'name' => Context::getContext()->getTranslator()->trans(
+                    'Used',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0
+            ],
+            'refurbished' => [
+                'name' => Context::getContext()->getTranslator()->trans(
+                    'Refurbished',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0,
+            ],
         ];
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('condition');
         $results = $filteredSearchAdapter->valueCount('condition');
@@ -593,33 +627,40 @@ class Block
     {
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('quantity');
         $quantityArray = [
-            0 => ['name' => Context::getContext()->getTranslator()->trans('Not available', [],
-                'Modules.Facetedsearch.Shop'), 'nbr' => 0],
-            1 => ['name' => Context::getContext()->getTranslator()->trans('In stock', [],
-                'Modules.Facetedsearch.Shop'), 'nbr' => 0],
+            0 => [
+                'name' => Context::getContext()->getTranslator()->trans(
+                    'Not available',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0
+            ],
+            1 => [
+                'name' => Context::getContext()->getTranslator()->trans(
+                    'In stock',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0
+            ],
         ];
 
-        static $ps_stock_management = null;
-        static $ps_order_out_of_stock = null;
-        if ($ps_stock_management === null) {
-            $ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
+        if ($this->ps_stock_management === null) {
+            $this->ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
         }
 
-        if ($ps_order_out_of_stock === null) {
-            $ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
+        if ($this->ps_order_out_of_stock === null) {
+            $this->ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
         $allResults = $filteredSearchAdapter->count();
         $filteredSearchAdapter->addFilter('quantity', [0]);
         $noMoreQuantityResults = $filteredSearchAdapter->valueCount('quantity');
 
-        if (!empty($noMoreQuantityResults)) {
-            $results[0]['c'] = $noMoreQuantityResults[0]['c'];
-        } else {
-            $results[0]['c'] = 0;
-        }
+        $results[0]['c'] = !empty($noMoreQuantityResults) ? $noMoreQuantityResults[0]['c'] : 0;
         $results[1]['c'] = $allResults - $results[0]['c'];
-        if (!$ps_stock_management) {
+
+        if (!$this->ps_stock_management) {
             if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
                 $quantityArray[1]['checked'] = true;
             }
@@ -635,8 +676,8 @@ class Block
                 $results[0]['c'] -= $resultsOutOfStock[1]['c'];
             }
 
-            // if $ps_order_out_of_stock == 1, product with out_of_stock == 2 are available
-            if ($ps_order_out_of_stock == 1) {
+            // if $this->ps_order_out_of_stock == 1, product with out_of_stock == 2 are available
+            if ($this->ps_order_out_of_stock == 1) {
                 if (array_key_exists(2, $resultsOutOfStock)) {
                     $results[1]['c'] += $resultsOutOfStock[2]['c'];
                     $results[0]['c'] -= $resultsOutOfStock[2]['c'];
@@ -679,7 +720,7 @@ class Block
         $manufacturersArray = $manufacturers = [];
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
-        $tempManufacturers = \Manufacturer::getManufacturers(false, $idLang);
+        $tempManufacturers = Manufacturer::getManufacturers(false, $idLang);
         if ($tempManufacturers === []) {
             return $manufacturersArray;
         }
@@ -698,7 +739,8 @@ class Block
             $manufacturersArray[$id_manufacturer] = ['name' => $manufacturers[$id_manufacturer]['name'],
                 'nbr' => $count, ];
             if (isset($selectedFilters['manufacturer'])
-                && in_array($manufacturers[$id_manufacturer]['name'], $selectedFilters['manufacturer'])) {
+                && in_array($manufacturers[$id_manufacturer]['name'], $selectedFilters['manufacturer'])
+            ) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
         }
@@ -731,7 +773,8 @@ class Block
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value WHERE id_attribute_group=' .
-            (int) $idAttributeGroup . ' AND id_lang=' . (int) $idLang);
+            (int) $idAttributeGroup . ' AND id_lang=' . (int) $idLang
+        );
     }
 
     /**
@@ -747,7 +790,8 @@ class Block
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
-            (int) $idAttribute . ' AND id_lang=' . (int) $idLang);
+            (int) $idAttribute . ' AND id_lang=' . (int) $idLang
+        );
     }
 
     /**
@@ -763,7 +807,8 @@ class Block
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
-            (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang);
+            (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang
+        );
     }
 
     /**
@@ -779,7 +824,8 @@ class Block
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
-            (int) $idFeature . ' AND id_lang=' . (int) $idLang);
+            (int) $idFeature . ' AND id_lang=' . (int) $idLang
+        );
     }
 
     /**
@@ -794,22 +840,24 @@ class Block
             return [];
         }
 
-        return Db::getInstance()->executeS('
-			SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
-			FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-			LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-				ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
-			LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
-				ON a.`id_attribute_group` = ag.`id_attribute_group`
-			LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
-				ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')
-			' . Shop::addSqlAssociation('attribute_group', 'ag') . '
-			' . Shop::addSqlAssociation('attribute', 'a') . '
-			' . ($notNull ?
+        return Db::getInstance()->executeS(
+            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
+            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
+            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
+            ON a.`id_attribute_group` = ag.`id_attribute_group`
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
+            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            Shop::addSqlAssociation('attribute', 'a') . ' ' .
+            (
+                $notNull ?
                 'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
-                'AND agl.`id_attribute_group` IS NOT NULL' : '') . '
-			ORDER BY agl.`name` ASC, a.`position` ASC
-		');
+                'AND agl.`id_attribute_group` IS NOT NULL ' :
+                ''
+            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
+        );
     }
 
     /**
@@ -825,14 +873,14 @@ class Block
             return [];
         }
 
-        return Db::getInstance()->executeS('
-			SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
-			FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-			' . Shop::addSqlAssociation('attribute_group', 'ag') . '
-			LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-				ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ')
-			GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC
-		');
+        return Db::getInstance()->executeS(
+            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
+            FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . '
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
+            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ')
+            GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+        );
     }
 
     /**
@@ -1115,8 +1163,15 @@ class Block
         $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
         $categoryArray = [];
-        $categories = Category::getAllCategoriesName(null, $idLang, true, null,
-            true, '', 'ORDER BY c.nleft, c.position');
+        $categories = Category::getAllCategoriesName(
+            null,
+            $idLang,
+            true,
+            null,
+            true,
+            '',
+            'ORDER BY c.nleft, c.position'
+        );
         foreach ($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }

@@ -134,11 +134,11 @@ class Converter
         $facetedSearchFilters = [];
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-			WHERE id_category = ' . (int) $idParent . '
-				AND id_shop = ' . $idShop . '
-			GROUP BY `type`, id_value ORDER BY position ASC'
+        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
+            WHERE id_category = ' . (int) $idParent . '
+            AND id_shop = ' . $idShop . '
+            GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
         $urlSerializer = new URLFragmentSerializer();
@@ -172,8 +172,7 @@ class Converter
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
-                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] =
-                                        $attribute['id_attribute'];
+                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
                                 }
                             }
                         }

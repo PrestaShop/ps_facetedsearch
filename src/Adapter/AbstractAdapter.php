@@ -223,7 +223,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function setOrderDirection($direction)
     {
-        $this->orderDirection = $direction;
+        $this->orderDirection = $direction === 'desc' ? 'desc' : 'asc';
 
         return $this;
     }
@@ -233,8 +233,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function setLimit($limit, $offset = 0)
     {
-        $this->limit = $limit;
-        $this->offset = $offset;
+        $this->limit = $limit ? (int) $limit : null;
+        $this->offset = (int) $offset;
 
         return $this;
     }

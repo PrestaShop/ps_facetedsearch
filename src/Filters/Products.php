@@ -68,18 +68,13 @@ class Products
         $selectedFilters = []
     ) {
         $this->facetedSearchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
+        $this->facetedSearchAdapter->setOrderField(
+            Validate::isOrderBy($orderBy) ? $orderBy : 'position'
+        );
 
-        if (!Validate::isOrderBy($orderBy)) {
-            $this->facetedSearchAdapter->setOrderField('position');
-        } else {
-            $this->facetedSearchAdapter->setOrderField($orderBy);
-        }
-
-        if (!Validate::isOrderWay($orderWay)) {
-            $this->facetedSearchAdapter->setOrderDirection('ASC');
-        } else {
-            $this->facetedSearchAdapter->setOrderDirection($orderWay);
-        }
+        $this->facetedSearchAdapter->setOrderDirection(
+            Validate::isOrderWay($orderWay) ? $orderWay : 'ASC'
+        );
 
         $this->facetedSearchAdapter->addGroupBy('id_product');
         if (isset($selectedFilters['price'])) {
@@ -88,10 +83,11 @@ class Products
             $this->facetedSearchAdapter->addSelectField('price_min');
             $this->facetedSearchAdapter->addSelectField('price_max');
         }
+
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
         // @TODO: still usefull ?
-        //$this->pricePostFiltering($matchingProductList, $selectedFilters);
+        // $this->pricePostFiltering($matchingProductList, $selectedFilters);
 
         $nbrProducts = $this->facetedSearchAdapter->count();
 
