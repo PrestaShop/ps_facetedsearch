@@ -22,7 +22,7 @@
   "type": "prestashop-module",
   "autoload": {
     "psr-4": {
-      "PrestaShop\\Module\\FacetedSearch\\Controller": "src/Controller",
+      "PrestaShop\\Module\\FacetedSearch\\Controller\\": "src/Controller/",
       "PrestaShop\\Module\\FacetedSearch\\": "src/"
     },
     "classmap": ["ps_facetedsearch.php"],
