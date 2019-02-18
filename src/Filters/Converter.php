@@ -18,7 +18,7 @@ class Converter
 {
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
-        $facets = array();
+        $facets = [];
 
         foreach ($filterBlocks as $filterBlock) {
             $facet = new Facet();
@@ -79,10 +79,10 @@ class Converter
                             ->setType($filterBlock['type'])
                             ->setMagnitude($value['nbr'])
                             ->setProperty('symbol', $filterBlock['unit'])
-                            ->setValue(array(
+                            ->setValue([
                                 'from' => $value['range_start'],
                                 'to' => $value['range_end'],
-                            ));;
+                            ]);
 
                         if (array_key_exists('checked', $value)) {
                             $filter->setActive($value['checked']);
@@ -94,7 +94,7 @@ class Converter
                     break;
             }
 
-            switch ((int)$filterBlock['filter_type']) {
+            switch ((int) $filterBlock['filter_type']) {
                 case 0: // checkbox
                     $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('checkboxes');
@@ -123,20 +123,20 @@ class Converter
     public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query)
     {
         $context = Context::getContext();
-        $idShop = (int)$context->shop->id;
-        $idLang = (int)$context->language->id;
+        $idShop = (int) $context->shop->id;
+        $idLang = (int) $context->language->id;
 
         $idParent = $query->getIdCategory();
         if (empty($idParent)) {
-            $idParent = (int)Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
+            $idParent = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
         }
 
-        $facetedSearchFilters = array();
+        $facetedSearchFilters = [];
 
         /* Get the filters for the current category */
         $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
 			SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-			WHERE id_category = ' . (int)$idParent . '
+			WHERE id_category = ' . (int) $idParent . '
 				AND id_shop = ' . $idShop . '
 			GROUP BY `type`, id_value ORDER BY position ASC'
         );
@@ -218,7 +218,7 @@ class Converter
                     }
                     break;
                 default:
-                    if ($value == '' || $value == array()) {
+                    if ($value == '' || $value == []) {
                         unset($facetedSearchFilters[$key]);
                     }
                     break;
@@ -232,17 +232,17 @@ class Converter
     {
         switch ($filterType) {
             case 'price':
-                return Context::getContext()->getTranslator()->trans('Price', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
             case 'weight':
-                return Context::getContext()->getTranslator()->trans('Weight', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
             case 'condition':
-                return Context::getContext()->getTranslator()->trans('Condition', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
             case 'quantity':
-                return Context::getContext()->getTranslator()->trans('Availability', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
             case 'manufacturer':
-                return Context::getContext()->getTranslator()->trans('Brand', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
             case 'category':
-                return Context::getContext()->getTranslator()->trans('Categories', array(), 'Modules.Facetedsearch.Shop');
+                return Context::getContext()->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
             case 'id_feature':
             case 'id_attribute_group':
             default:

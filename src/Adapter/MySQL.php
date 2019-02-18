@@ -14,23 +14,23 @@ class MySQL extends AbstractAdapter
     const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(array('price_min', 'MIN(price_min) as min, MAX(price_max) as max'));
+        $mysqlAdapter->setSelectFields(['price_min', 'MIN(price_min) as min, MAX(price_max) as max']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
         $result = $mysqlAdapter->execute();
 
-        return array(0 => floor($result[0]['min']), 1 => ceil($result[0]['max']));
+        return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
@@ -46,7 +46,7 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function execute()
     {
@@ -123,155 +123,136 @@ class MySQL extends AbstractAdapter
             'sa'
         );
 
-        $filterToTableMapping = array(
-            'id_product_attribute' =>
-                array(
+        $filterToTableMapping = [
+            'id_product_attribute' => [
                     'tableName' => 'product_attribute',
                     'tableAlias' => 'pa',
                     'joinCondition' => '(p.id_product = pa.id_product)',
-                    'joinType' => self::STRAIGHT_JOIN
-                ),
-            'id_attribute' =>
-                array(
+                    'joinType' => self::STRAIGHT_JOIN,
+                ],
+            'id_attribute' => [
                     'tableName' => 'product_attribute_combination',
                     'tableAlias' => 'pac',
                     'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
                     'joinType' => self::STRAIGHT_JOIN,
-                    'dependencyField' => 'id_product_attribute'
-                ),
-            'id_attribute_group' =>
-                array(
+                    'dependencyField' => 'id_product_attribute',
+                ],
+            'id_attribute_group' => [
                     'tableName' => 'attribute',
                     'tableAlias' => 'a',
                     'joinCondition' => '(a.id_attribute = pac.id_attribute)',
                     'joinType' => self::STRAIGHT_JOIN,
-                    'dependencyField' => 'id_attribute'
-                ),
-            'id_feature' =>
-                array(
+                    'dependencyField' => 'id_attribute',
+                ],
+            'id_feature' => [
                     'tableName' => 'feature_product',
                     'tableAlias' => 'fp',
                     'joinCondition' => '(p.id_product = fp.id_product)',
-                    'joinType' => self::INNER_JOIN
-                ),
-            'id_shop' =>
-                array(
+                    'joinType' => self::INNER_JOIN,
+                ],
+            'id_shop' => [
                     'tableName' => 'product_shop',
                     'tableAlias' => 'ps',
                     'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
                         Context::getContext()->shop->id . ')',
-                    'joinType' => self::INNER_JOIN
-                ),
-            'id_feature_value' =>
-                array(
+                    'joinType' => self::INNER_JOIN,
+                ],
+            'id_feature_value' => [
                     'tableName' => 'feature_product',
                     'tableAlias' => 'fp',
                     'joinCondition' => '(p.id_product = fp.id_product)',
-                    'joinType' => self::LEFT_JOIN
-                ),
-            'id_category' =>
-                array(
+                    'joinType' => self::LEFT_JOIN,
+                ],
+            'id_category' => [
                     'tableName' => 'category_product',
                     'tableAlias' => 'cp',
                     'joinCondition' => '(p.id_product = cp.id_product)',
-                    'joinType' => self::INNER_JOIN
-                ),
-            'position' =>
-                array(
+                    'joinType' => self::INNER_JOIN,
+                ],
+            'position' => [
                     'tableName' => 'category_product',
                     'tableAlias' => 'cp',
                     'joinCondition' => '(p.id_product = cp.id_product)',
-                    'joinType' => self::INNER_JOIN
-                ),
-            'name' =>
-                array(
+                    'joinType' => self::INNER_JOIN,
+                ],
+            'name' => [
                     'tableName' => 'product_lang',
                     'tableAlias' => 'pl',
                     'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
                         Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
-                    'joinType' => self::INNER_JOIN
-                ),
-            'nleft' =>
-                array(
+                    'joinType' => self::INNER_JOIN,
+                ],
+            'nleft' => [
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category'
-                ),
-            'nright' =>
-                array(
+                    'dependencyField' => 'id_category',
+                ],
+            'nright' => [
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category'
-                ),
-            'level_depth' =>
-                array(
+                    'dependencyField' => 'id_category',
+                ],
+            'level_depth' => [
                     'tableName' => 'category',
                     'tableAlias' => 'c',
                     'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
                     'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category'
-                ),
-            'out_of_stock' =>
-                array(
+                    'dependencyField' => 'id_category',
+                ],
+            'out_of_stock' => [
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
                         $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
-                ),
-            'quantity' =>
-                array(
+                ],
+            'quantity' => [
                     'tableName' => 'stock_available',
                     'tableAlias' => 'sa',
                     'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
                         $stockCondition . ')',
                     'joinType' => self::LEFT_JOIN,
-                ),
-            'price_min' =>
-                array(
+                ],
+            'price_min' => [
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                ),
-            'price_max' =>
-                array(
+                ],
+            'price_max' => [
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                ),
-            'range_start' =>
-                array(
+                ],
+            'range_start' => [
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                ),
-            'range_end' =>
-                array(
+                ],
+            'range_end' => [
                     'tableName' => 'layered_price_index',
                     'tableAlias' => 'psi',
                     'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
                         Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
                     'joinType' => self::INNER_JOIN,
-                ),
-            'id_group' =>
-                array(
+                ],
+            'id_group' => [
                     'tableName' => 'category_group',
                     'tableAlias' => 'cg',
                     'joinCondition' => '(cg.id_category = c.id_category)',
                     'joinType' => self::LEFT_JOIN,
-                    'dependencyField' => 'nleft'
-                ),
-        );
+                    'dependencyField' => 'nleft',
+                ],
+        ];
 
         return $filterToTableMapping;
     }
@@ -309,7 +290,7 @@ class MySQL extends AbstractAdapter
      */
     private function computeSelectFields($filterToTableMapping)
     {
-        $selectFields = array();
+        $selectFields = [];
         foreach ($this->selectFields as $key => $selectField) {
             $selectAlias = 'p';
             if (array_key_exists($selectField, $filterToTableMapping)) {
@@ -335,7 +316,7 @@ class MySQL extends AbstractAdapter
      */
     private function computeWhereConditions($filterToTableMapping)
     {
-        $whereConditions = array();
+        $whereConditions = [];
         foreach ($this->columnFilters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $columnNames) {
                 foreach ($columnNames as $columnName) {
@@ -349,7 +330,6 @@ class MySQL extends AbstractAdapter
                 }
             }
         }
-
 
         foreach ($this->filters as $filterName => $filterContent) {
             $selectAlias = 'p';
@@ -373,7 +353,7 @@ class MySQL extends AbstractAdapter
                                 }, $values)) . ')';
                         }
                     } else {
-                        $orConditions = array();
+                        $orConditions = [];
                         foreach ($values as $value) {
                             $orConditions[] = $selectAlias . '.' . $filterName . $operator . $value;
                         }
@@ -391,7 +371,7 @@ class MySQL extends AbstractAdapter
             foreach ($filterContent as $operator => $filterValues) {
                 if (count($filterValues) > 1) {
                     foreach ($filterValues as $values) {
-                        $idTmpFilteredProducts = array();
+                        $idTmpFilteredProducts = [];
                         $mysqlAdapter = $this->getFilteredSearchAdapter();
                         $mysqlAdapter->addSelectField('id_product');
                         $mysqlAdapter->setLimit(null);
@@ -469,9 +449,8 @@ class MySQL extends AbstractAdapter
      * Add the required table infos to the join list, taking care of the dependent tables
      *
      * @param ArrayCollection $joinList
-     * @param array           $joinMapping
-     * @param array           $filterToTableMapping
-     *
+     * @param array $joinMapping
+     * @param array $filterToTableMapping
      */
     private function addJoinConditions(ArrayCollection $joinList, $joinMapping, $filterToTableMapping)
     {
@@ -479,10 +458,10 @@ class MySQL extends AbstractAdapter
             $dependencyJoinMapping = $filterToTableMapping[$joinMapping['dependencyField']];
             $this->addJoinConditions($joinList, $dependencyJoinMapping, $filterToTableMapping);
         }
-        $joinInfos[$joinMapping['tableAlias']] = array(
+        $joinInfos[$joinMapping['tableAlias']] = [
             'joinCondition' => $joinMapping['joinCondition'],
-            'joinType' => $joinMapping['joinType']
-        );
+            'joinType' => $joinMapping['joinType'],
+        ];
 
         $joinList->set($joinMapping['tableName'], $joinInfos);
     }
@@ -496,7 +475,7 @@ class MySQL extends AbstractAdapter
      */
     private function computeGroupByFields($filterToTableMapping)
     {
-        $groupFields = array();
+        $groupFields = [];
         if (empty($this->groupFields)) {
             return $groupFields;
         }
@@ -519,30 +498,30 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getMinMaxValue($fieldName)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(array('MIN(' . $fieldName . ') as min, MAX(' . $fieldName . ') as max'));
+        $mysqlAdapter->setSelectFields(['MIN(' . $fieldName . ') as min, MAX(' . $fieldName . ') as max']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
         $result = $mysqlAdapter->execute();
 
-        return array(0 => $result[0]['min'], 1 => $result[0]['max']);
+        return [0 => $result[0]['min'], 1 => $result[0]['max']];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getFieldRanges($fieldName, $outputLength)
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(array($fieldName, 'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' .
-            $outputLength . ') AS diff'));
+        $mysqlAdapter->setSelectFields([$fieldName, 'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' .
+            $outputLength . ') AS diff', ]);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -555,8 +534,8 @@ class MySQL extends AbstractAdapter
 
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(array($fieldName, 'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
-            '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr'));
+        $mysqlAdapter->setSelectFields([$fieldName, 'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
+            '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr', ]);
         $mysqlAdapter->addGroupBy('FLOOR(' . $fieldName . ' / ' . $diff . ')');
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
@@ -565,13 +544,13 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function count()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(array('COUNT(DISTINCT p.id_product) c'));
+        $mysqlAdapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -581,7 +560,7 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function valueCount($fieldName)
     {
@@ -597,13 +576,13 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function useFiltersAsInitialPopulation()
     {
         $this->setLimit(null);
         $this->setOrderField('');
-        $this->setSelectFields(array('id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price'));
+        $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');

@@ -20,7 +20,7 @@ if (!Tools::getValue('ajax')) {
         $domain = Tools::getShopDomain(true);
     }
     // Return a content without waiting the end of index execution
-    header('Location: '.$domain.__PS_BASE_URI__.'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token='.Tools::getValue('token').'&return_message='.(int) Tools::getValue('cursor'));
+    header('Location: ' . $domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . Tools::getValue('token') . '&return_message=' . (int) Tools::getValue('cursor'));
     flush();
 }
 

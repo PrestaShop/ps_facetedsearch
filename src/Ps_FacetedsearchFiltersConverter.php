@@ -41,12 +41,12 @@ class Ps_FacetedsearchFiltersConverter
                             ->setValue($id)
                         ;
 
-                        if (isset($facetArray['is_color_group']) && $facetArray['is_color_group']){
+                        if (isset($facetArray['is_color_group']) && $facetArray['is_color_group']) {
                             if (isset($filterArray['color']) && $filterArray['color'] != '') {
                                 $filter->setProperty('color', $filterArray['color']);
                             }
                             if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
-                                $filter->setProperty('texture', _THEME_COL_DIR_.$id.'.jpg');
+                                $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
                             }
                         }
 
@@ -139,11 +139,11 @@ class Ps_FacetedsearchFiltersConverter
                         $value = $filter->getValue();
                         if ($type === 'id_attribute_group') {
                             $key = $value;
-                            $value = $facet->getProperty('id_attribute_group').'_'.$filter->getValue();
+                            $value = $facet->getProperty('id_attribute_group') . '_' . $filter->getValue();
                         }
                         if ($type === 'id_feature') {
                             $key = $value;
-                            $value = $facet->getProperty('id_feature').'_'.$filter->getValue();
+                            $value = $facet->getProperty('id_feature') . '_' . $filter->getValue();
                         }
                         $facetedSearchFilters[$type][$key] = $value;
                     }

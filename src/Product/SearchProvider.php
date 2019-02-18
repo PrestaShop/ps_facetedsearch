@@ -5,7 +5,6 @@ namespace PrestaShop\Module\FacetedSearch\Product;
 use Configuration;
 use Context;
 use PrestaShop\Module\FacetedSearch\Filters;
-use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
@@ -42,7 +41,8 @@ class SearchProvider implements ProductSearchProviderInterface
         $sortPriceAsc = new SortOrder('product', 'price', 'asc');
         $sortPriceDesc = new SortOrder('product', 'price', 'desc');
         $translator = $this->module->getTranslator();
-        return array(
+
+        return [
             $sortPosAsc->setLabel(
                 $translator->trans('Relevance', [], 'Modules.Facetedsearch.Shop')
             ),
@@ -58,12 +58,12 @@ class SearchProvider implements ProductSearchProviderInterface
             $sortPriceDesc->setLabel(
                 $translator->trans('Price, high to low', [], 'Shop.Theme.Catalog')
             ),
-        );
+        ];
     }
 
     /**
      * @param ProductSearchContext $context
-     * @param ProductSearchQuery   $query
+     * @param ProductSearchQuery $query
      *
      * @return ProductSearchResult
      */
@@ -102,14 +102,14 @@ class SearchProvider implements ProductSearchProviderInterface
         $filterBlockSearch = new Filters\Block($facetedSearch);
 
         $currentContext = Context::getContext();
-        $idShop = (int)$currentContext->shop->id;
-        $idLang = (int)$currentContext->language->id;
-        $idCurrency = (int)$currentContext->currency->id;
-        $idCountry = (int)$currentContext->country->id;
-        $idCategory = (int)$query->getIdCategory();
+        $idShop = (int) $currentContext->shop->id;
+        $idLang = (int) $currentContext->language->id;
+        $idCurrency = (int) $currentContext->currency->id;
+        $idCountry = (int) $currentContext->country->id;
+        $idCategory = (int) $query->getIdCategory();
 
-        $filterHash = md5($idShop.'-'.$idCurrency.'-'.$idLang.'-'.$idCategory.
-            '-'.$idCountry.'-'.serialize($facetedSearchFilters));
+        $filterHash = md5($idShop . '-' . $idCurrency . '-' . $idLang . '-' . $idCategory .
+            '-' . $idCountry . '-' . serialize($facetedSearchFilters));
 
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
         if (empty($filterBlock)) {

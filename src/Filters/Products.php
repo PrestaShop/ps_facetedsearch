@@ -22,8 +22,8 @@ class Products
      * Remove products from the product list in case of price postFiltering
      *
      * @param array $matchingProductList
-     * @param bool  $psLayeredFilterPriceUsetax
-     * @param bool  $psLayeredFilterPriceRounding
+     * @param bool $psLayeredFilterPriceUsetax
+     * @param bool $psLayeredFilterPriceRounding
      * @param array $priceFilter
      */
     private function filterPrice(
@@ -31,15 +31,14 @@ class Products
         $psLayeredFilterPriceUsetax,
         $psLayeredFilterPriceRounding,
         $priceFilter
-    )
-    {
+    ) {
         /* for this case, price could be out of range, so we need to compute the real price */
         foreach ($matchingProductList as $key => $product) {
-            if (($product['price_min'] < (int)$priceFilter['min'] && $product['price_max'] > (int)$priceFilter['min'])
-                || ($product['price_max'] > (int)$priceFilter['max'] && $product['price_min'] < (int)$priceFilter['max'])) {
+            if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
+                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])) {
                 $price = Product::getPriceStatic($product['id_product'], $psLayeredFilterPriceUsetax);
                 if ($psLayeredFilterPriceRounding) {
-                    $price = (int)$price;
+                    $price = (int) $price;
                 }
 
                 if ($price < $priceFilter['min'] || $price > $priceFilter['max']) {
@@ -53,11 +52,11 @@ class Products
     /**
      * Get the products associated with the current filters
      *
-     * @param int    $productsPerPage
-     * @param int    $page
+     * @param int $productsPerPage
+     * @param int $page
      * @param string $orderBy
      * @param string $orderWay
-     * @param array  $selectedFilters
+     * @param array $selectedFilters
      *
      * @return array
      */
@@ -66,10 +65,9 @@ class Products
         $page,
         $orderBy,
         $orderWay,
-        $selectedFilters = array()
-    )
-    {
-        $this->facetedSearchAdapter->setLimit((int)$productsPerPage, ((int)$page - 1) * $productsPerPage);
+        $selectedFilters = []
+    ) {
+        $this->facetedSearchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
 
         if (!Validate::isOrderBy($orderBy)) {
             $this->facetedSearchAdapter->setOrderField('position');
@@ -98,13 +96,13 @@ class Products
         $nbrProducts = $this->facetedSearchAdapter->count();
 
         if ($nbrProducts == 0) {
-            $matchingProductList = array();
+            $matchingProductList = [];
         }
 
-        return array(
+        return [
             'products' => $matchingProductList,
             'count' => $nbrProducts,
-        );
+        ];
     }
 
     /**
@@ -116,8 +114,8 @@ class Products
     private function pricePostFiltering(&$matchingProductList, $selectedFilters)
     {
         if (isset($selectedFilters['price'])) {
-            $priceFilter['min'] = (float)($selectedFilters['price'][0]);
-            $priceFilter['max'] = (float)($selectedFilters['price'][1]);
+            $priceFilter['min'] = (float) ($selectedFilters['price'][0]);
+            $priceFilter['max'] = (float) ($selectedFilters['price'][1]);
 
             static $psLayeredFilterPriceUsetax = null;
             static $psLayeredFilterPriceRounding = null;

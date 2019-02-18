@@ -60,7 +60,7 @@ interface InterfaceAdapter
      * It try to generate the required outputLength number of ranges, if possible
      *
      * @param string $fieldName
-     * @param int    $outputLength
+     * @param int $outputLength
      *
      * @return mixed
      */
@@ -98,7 +98,7 @@ interface InterfaceAdapter
      * Create a new SearchAdapter, keeping the initialPopulation of the current Search
      *
      * @param string $resetFilter reset this filter inside the initialPopulation
-     * @param bool   $skipInitialPopulation if enable, do not copy the initialPopulation filter
+     * @param bool $skipInitialPopulation if enable, do not copy the initialPopulation filter
      *
      * @return InterfaceAdapter
      */
@@ -109,7 +109,7 @@ interface InterfaceAdapter
      * If several values are provided with the = operator, it's converted automatically to a IN () in the final query
      *
      * @param string $filterName
-     * @param array  $values
+     * @param array $values
      * @param string $operator
      *
      * @return self
@@ -175,7 +175,7 @@ interface InterfaceAdapter
      * Set the filterName to the given array value
      *
      * @param string $filterName
-     * @param array  $value
+     * @param array $value
      *
      * @return mixed
      */

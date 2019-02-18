@@ -8,15 +8,15 @@ abstract class AbstractAdapter implements InterfaceAdapter
 {
     protected $filters;
 
-    protected $columnFilters = array();
+    protected $columnFilters = [];
 
     protected $orderField = 'id_product';
 
     protected $orderDirection = 'DESC';
 
-    protected $selectFields = array();
+    protected $selectFields = [];
 
-    protected $groupFields = array();
+    protected $groupFields = [];
 
     protected $limit = 20;
 
@@ -36,7 +36,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getInitialPopulation()
     {
@@ -44,7 +44,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resetFilter($filterName)
     {
@@ -54,30 +54,30 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resetColumnFilters()
     {
-        $this->columnFilters = array();
+        $this->columnFilters = [];
 
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resetAll()
     {
-        $this->selectFields = array();
-        $this->groupFields = array();
-        $this->filters = array();
-        $this->columnFilters = array();
+        $this->selectFields = [];
+        $this->groupFields = [];
+        $this->filters = [];
+        $this->columnFilters = [];
 
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getFilter($filterName)
     {
@@ -89,7 +89,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getFilters()
     {
@@ -97,7 +97,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function copyFilters(InterfaceAdapter $facetedSearch)
     {
@@ -106,7 +106,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getColumnFilters()
     {
@@ -114,7 +114,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function addFilter($filterName, $values, $operator = '=')
     {
@@ -126,7 +126,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function addColumnFilter($filterName, $columnName, $operator = '=')
     {
@@ -136,7 +136,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function addSelectField($fieldName)
     {
@@ -146,7 +146,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setSelectFields($selectFields)
     {
@@ -156,17 +156,17 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resetSelectField()
     {
-        $this->selectFields = array();
+        $this->selectFields = [];
 
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function addGroupBy($groupField)
     {
@@ -176,7 +176,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setGroupFields($groupFields)
     {
@@ -186,17 +186,17 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function resetGroupBy()
     {
-        $this->groupFields = array();
+        $this->groupFields = [];
 
         return $this;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setFilter($filterName, $value)
     {
@@ -209,7 +209,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setOrderField($fieldName)
     {
@@ -219,7 +219,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setOrderDirection($direction)
     {
@@ -229,7 +229,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setLimit($limit, $offset = 0)
     {
