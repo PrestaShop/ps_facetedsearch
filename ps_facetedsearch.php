@@ -52,15 +52,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         parent::__construct();
 
-        $this->displayName = $this->trans('Faceted search', array(), 'Modules.Facetedsearch.Admin');
-        $this->description = $this->trans('Displays a block allowing multiple filters.', array(), 'Modules.Facetedsearch.Admin');
+        $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
+        $this->description = $this->trans('Displays a block allowing multiple filters.', [], 'Modules.Facetedsearch.Admin');
         $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = array('min' => '1.7.1.0', 'max' => _PS_VERSION_);
     }
 
     public function install()
     {
-        $installed = parent::install() && $this->registerHook(array(
+        $installed = parent::install() && $this->registerHook(
+            [
                 'categoryAddition',
                 'categoryUpdate',
                 'attributeGroupForm',
@@ -83,11 +84,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'afterSaveAttribute',
                 'productSearchProvider',
                 'displayLeftColumn',
-
-            ));
+            ]
+        );
 
         // Installation failed (or hook registration) => uninstall the module
-        if ($installed) {
+        if (!$installed) {
             $this->uninstall();
             return false;
         }
@@ -344,7 +345,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function hookAttributeGroupForm($params)
     {
-        $values = array();
+        $values = [];
         $is_indexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
             'SELECT `indexable`
 			FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
@@ -434,7 +435,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function hookAttributeForm($params)
     {
-        $values = array();
+        $values = [];
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
@@ -525,7 +526,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function hookFeatureForm($params)
     {
-        $values = array();
+        $values = [];
         $is_indexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
             'SELECT `indexable`
 			FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
@@ -616,7 +617,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function hookFeatureValueForm($params)
     {
-        $values = array();
+        $values = [];
 
         if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
@@ -661,12 +662,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function getWidgetVariables($hookName, array $configuration)
     {
-        return array();
+        return [];
     }
 
     public function hookCategoryAddition($params)
     {
-        $this->rebuildLayeredCache(array(), array((int)$params['category']->id));
+        $this->rebuildLayeredCache([], array((int)$params['category']->id));
         $this->invalidateLayeredFilterBlockCache();
     }
 
@@ -881,7 +882,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if ($groups === null) {
             $groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT id_group FROM `' . _DB_PREFIX_ . 'group_reduction`');
             if (!$groups) {
-                $groups = array();
+                $groups = [];
             }
         }
 
@@ -890,8 +891,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         foreach ($shop_list as $id_shop) {
             $currency_list = Currency::getCurrencies(false, 1, new Shop($id_shop));
 
-            $min_price = array();
-            $max_price = array();
+            $min_price = [];
+            $max_price = [];
 
             if ($smart) {
                 Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int)$id_product . ' AND `id_shop` = ' . (int)$id_shop);
@@ -993,7 +994,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
             }
 
-            $values = array();
+            $values = [];
             foreach ($tax_rates_by_country as $tax_rate_by_country) {
                 $tax_rate = $tax_rate_by_country['rate'];
                 $id_country = $tax_rate_by_country['id_country'];
@@ -1023,9 +1024,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if (Tools::isSubmit('SubmitFilter')) {
             if (!Tools::getValue('layered_tpl_name')) {
-                $message = $this->displayError($this->trans('Filter template name required (cannot be empty)', array(), 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayError($this->trans('Filter template name required (cannot be empty)', [], 'Modules.Facetedsearch.Admin'));
             } elseif (!Tools::getValue('categoryBox')) {
-                $message = $this->displayError($this->trans('You must select at least one category.', array(), 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayError($this->trans('You must select at least one category.', [], 'Modules.Facetedsearch.Admin'));
             } else {
                 if (Tools::getValue('id_layered_filter')) {
                     Db::getInstance()->execute(
@@ -1052,7 +1053,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $id_layered_filter = (int)Db::getInstance()->Insert_ID();
                 }
 
-                $shop_list = array();
+                $shop_list = [];
 
                 if (isset($_POST['checkBoxShopAsso_layered_filter'])) {
                     foreach ($_POST['checkBoxShopAsso_layered_filter'] as $id_shop => $row) {
@@ -1077,7 +1078,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         }
                     }
 
-                    $filter_values = array();
+                    $filter_values = [];
 
                     foreach ($_POST['categoryBox'] as $idc) {
                         $filter_values['categories'][] = (int)$idc;
@@ -1133,8 +1134,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     }
 
                     $this->buildLayeredCategories();
-                    $message = $this->displayConfirmation($this->trans('Your filter', array(), 'Modules.Facetedsearch.Admin') . ' "' . Tools::safeOutput(Tools::getValue('layered_tpl_name')) . '" ' .
-                        ((isset($_POST['id_layered_filter']) && $_POST['id_layered_filter']) ? $this->trans('was updated successfully.', array(), 'Modules.Facetedsearch.Admin') : $this->trans('was added successfully.', array(), 'Modules.Facetedsearch.Admin')));
+                    $message = $this->displayConfirmation($this->trans('Your filter', [], 'Modules.Facetedsearch.Admin') . ' "' . Tools::safeOutput(Tools::getValue('layered_tpl_name')) . '" ' .
+                        ((isset($_POST['id_layered_filter']) && $_POST['id_layered_filter']) ? $this->trans('was updated successfully.', [], 'Modules.Facetedsearch.Admin') : $this->trans('was added successfully.', [], 'Modules.Facetedsearch.Admin')));
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
@@ -1147,9 +1148,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->ps_layered_full_tree = (int)Tools::getValue('ps_layered_full_tree');
 
             if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', array(), 'Modules.Facetedsearch.Admin') . '</div>';
+                $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
             } else {
-                $message = '<div class="conf">' . $this->trans('Settings saved successfully', array(), 'Modules.Facetedsearch.Admin') . '</div>';
+                $message = '<div class="conf">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
             }
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
@@ -1164,13 +1165,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 					WHERE id_layered_filter = '.(int) Tools::getValue('id_layered_filter').' LIMIT 1'
                 );
                 $this->buildLayeredCategories();
-                $message = $this->displayConfirmation($this->trans('Filter template deleted, categories updated (reverted to default Filter template).', array(), 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayConfirmation($this->trans('Filter template deleted, categories updated (reverted to default Filter template).', [], 'Modules.Facetedsearch.Admin'));
             } else {
-                $message = $this->displayError($this->trans('Filter template not found', array(), 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayError($this->trans('Filter template not found', [], 'Modules.Facetedsearch.Admin'));
             }
         }
 
-        $category_box = array();
+        $category_box = [];
         $attribute_groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
 			SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
 			FROM ' . _DB_PREFIX_ . 'attribute_group ag
@@ -1205,7 +1206,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $root_category = Category::getRootCategory();
                 $root_category = array('id_category' => $root_category->id_category, 'name' => $root_category->name);
             } else {
-                $root_category = array('id_category' => '0', 'name' => $this->trans('Root', array(), 'Modules.Facetedsearch.Admin'));
+                $root_category = array('id_category' => '0', 'name' => $this->trans('Root', [], 'Modules.Facetedsearch.Admin'));
             }
 
             $tree_categories_helper = new Helper();
@@ -1232,7 +1233,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => 0,
-                'template_name' => sprintf($this->trans('My template - %s', array(), 'Modules.Facetedsearch.Admin'), date('Y-m-d')),
+                'template_name' => sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')),
                 'attribute_groups' => $attribute_groups,
                 'features' => $features,
                 'total_filters' => 6 + count($attribute_groups) + count($features),
@@ -1243,7 +1244,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             } else {
                 $this->context->smarty->assign('categories_tree', $tree_categories_helper->renderCategoryTree(
                     $root_category,
-                    array(),
+                    [],
                     'categoryBox'
                 ));
             }
@@ -1313,7 +1314,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function displayLimitPostWarning($count)
     {
-        $return = array();
+        $return = [];
         if ((ini_get('suhosin.post.max_vars') && ini_get('suhosin.post.max_vars') < $count) || (ini_get('suhosin.request.max_vars') && ini_get('suhosin.request.max_vars') < $count)) {
             $return['error_type'] = 'suhosin';
             $return['post.max_vars'] = ini_get('suhosin.post.max_vars');
@@ -1335,7 +1336,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     public function cleanFilterByIdValue($attributes, $id_value)
     {
-        $selected_filters = array();
+        $selected_filters = [];
         if (is_array($attributes)) {
             foreach ($attributes as $attribute) {
                 $attribute_data = explode('_', $attribute);
@@ -1400,11 +1401,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;');
     }
 
-    public function rebuildLayeredCache($products_ids = array(), $categories_ids = array(), $rebuildLayeredCategories = true)
+    public function rebuildLayeredCache($products_ids = [], $categories_ids = [], $rebuildLayeredCategories = true)
     {
         @set_time_limit(0);
 
-        $filter_data = array('categories' => array());
+        $filter_data = array('categories' => []);
 
         /* Set memory limit to 128M only if current is lower */
         $memory_limit = Tools::getMemoryLimit();
@@ -1413,8 +1414,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
-        $n_categories = array();
-        $done_categories = array();
+        $n_categories = [];
+        $done_categories = [];
 
         $alias = 'product_shop';
         $join_product = Shop::addSqlAssociation('product', 'p');
@@ -1434,7 +1435,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog")
 		' . (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : ''));
 
-        $attribute_groups_by_id = array();
+        $attribute_groups_by_id = [];
         while ($row = $db->nextRow($attribute_groups)) {
             $attribute_groups_by_id[(int)$row['id_attribute']] = (int)$row['id_attribute_group'];
         }
@@ -1450,7 +1451,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 		WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1' . (count($categories_ids) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categories_ids)) . ')' : '') . '
 		AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog") ' . (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : ''));
 
-        $features_by_id = array();
+        $features_by_id = [];
         while ($row = $db->nextRow($features)) {
             $features_by_id[(int)$row['id_feature_value']] = (int)$row['id_feature'];
         }
@@ -1478,7 +1479,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $to_insert = false;
         while ($product = $db->nextRow($result)) {
-            $a = $c = $f = array();
+            $a = $c = $f = [];
             if (!empty($product['attributes'])) {
                 $a = array_flip(explode(',', $product['attributes']));
             }
@@ -1551,7 +1552,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
         if ($to_insert) {
             Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter(name, filters, n_categories, date_add)
-				VALUES (\'' . sprintf($this->trans('My template %s', array(), 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filter_data)) . '\', ' . count($filter_data['categories']) . ', NOW())');
+				VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filter_data)) . '\', ' . count($filter_data['categories']) . ', NOW())');
 
             $last_id = Db::getInstance()->Insert_ID();
             Db::getInstance()->execute('DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . $last_id);
@@ -1570,7 +1571,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         // Get all filter template
         $res = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
-        $categories = array();
+        $categories = [];
         // Remove all from layered_category
         Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
 
@@ -1586,7 +1587,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $data = Tools::unSerialize($filter_template['filters']);
             foreach ($data['shop_list'] as $id_shop) {
                 if (!isset($categories[$id_shop])) {
-                    $categories[$id_shop] = array();
+                    $categories[$id_shop] = [];
                 }
 
                 foreach ($data['categories'] as $id_category) {
