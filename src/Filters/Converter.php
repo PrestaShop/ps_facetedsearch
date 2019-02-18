@@ -2,17 +2,18 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
+use AttributeGroup;
+use Configuration;
+use Context;
+use Db;
+use Feature;
+use FeatureValue;
+use Manufacturer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
-use Context;
 use Tools;
-use Feature;
-use FeatureValue;
-use Configuration;
-use AttributeGroup;
-use Db;
 
 class Converter
 {
@@ -143,10 +144,22 @@ class Converter
 
         $urlSerializer = new URLFragmentSerializer();
         $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
-
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
             switch ($filter['type']) {
+                case 'manufacturer':
+                    if (empty($facetAndFiltersLabels[$filterLabel])) {
+                        continue 2;
+                    }
+
+                    $manufacturers = Manufacturer::getManufacturers(false, $idLang);
+                    $facetedSearchFilters['manufacturer'] = [];
+                    foreach ($manufacturers as $manufacturer) {
+                        if (in_array($manufacturer['name'], $facetAndFiltersLabels[$filterLabel])) {
+                            $facetedSearchFilters['manufacturer'][$manufacturer['name']] = $manufacturer['id_manufacturer'];
+                        }
+                    }
+                    break;
                 case 'id_feature':
                     $features = Feature::getFeatures($idLang);
                     foreach ($features as $feature) {

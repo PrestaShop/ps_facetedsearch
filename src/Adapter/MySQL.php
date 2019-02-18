@@ -68,8 +68,11 @@ class MySQL extends AbstractAdapter
             $referenceTable = '(' . $this->initialPopulation->getQuery() . ')';
         }
 
-        if (empty($this->selectFields) && empty($this->filters) && empty($this->groupFields)
-            && empty($this->orderField)) {
+        if (empty($this->selectFields)
+            && empty($this->filters)
+            && empty($this->groupFields)
+            && empty($this->orderField)
+        ) {
             // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
             $query = $referenceTable;
             $this->orderField = '';

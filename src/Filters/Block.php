@@ -721,25 +721,29 @@ class Block
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
         $tempManufacturers = Manufacturer::getManufacturers(false, $idLang);
-        if ($tempManufacturers === []) {
+        if (empty($tempManufacturers)) {
             return $manufacturersArray;
         }
+
         foreach ($tempManufacturers as $key => $manufacturer) {
             $manufacturers[$manufacturer['id_manufacturer']] = $manufacturer;
         }
 
         $results = $filteredSearchAdapter->valueCount('id_manufacturer');
         foreach ($results as $key => $values) {
-            $id_manufacturer = $values['id_manufacturer'];
-            if ($id_manufacturer == 0) {
+            if (empty($values['id_manufacturer'])) {
                 continue;
             }
-            $count = $values['c'];
 
-            $manufacturersArray[$id_manufacturer] = ['name' => $manufacturers[$id_manufacturer]['name'],
-                'nbr' => $count, ];
+            $id_manufacturer = $values['id_manufacturer'];
+            $count = $values['c'];
+            $manufacturersArray[$id_manufacturer] = [
+                'name' => $manufacturers[$id_manufacturer]['name'],
+                'nbr' => $count,
+            ];
+
             if (isset($selectedFilters['manufacturer'])
-                && in_array($manufacturers[$id_manufacturer]['name'], $selectedFilters['manufacturer'])
+                && in_array($id_manufacturer, $selectedFilters['manufacturer'])
             ) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
