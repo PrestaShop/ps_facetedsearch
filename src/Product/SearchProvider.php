@@ -79,8 +79,8 @@ class SearchProvider implements ProductSearchProviderInterface
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
-        $order_by = $query->getSortOrder()->toLegacyOrderBy(false);
-        $order_way = $query->getSortOrder()->toLegacyOrderWay();
+        $orderBy = $query->getSortOrder()->toLegacyOrderBy(false);
+        $orderWay = $query->getSortOrder()->toLegacyOrderWay();
 
         $filterProductSearch = new Filters\Products($facetedSearch);
 
@@ -88,8 +88,8 @@ class SearchProvider implements ProductSearchProviderInterface
         $productsAndCount = $filterProductSearch->getProductByFilters(
             $query->getResultsPerPage(),
             $query->getPage(),
-            $order_by,
-            $order_way,
+            $orderBy,
+            $orderWay,
             $facetedSearchFilters
         );
 

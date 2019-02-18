@@ -125,8 +125,12 @@ class Products
             }
 
             if ($psLayeredFilterPriceUsetax || $psLayeredFilterPriceRounding) {
-                $this->filterPrice($matchingProductList, $psLayeredFilterPriceUsetax, $psLayeredFilterPriceRounding,
-                    $priceFilter);
+                $this->filterPrice(
+                    $matchingProductList,
+                    $psLayeredFilterPriceUsetax,
+                    $psLayeredFilterPriceRounding,
+                    $priceFilter
+                );
             }
         }
     }
