@@ -151,7 +151,7 @@ class Block
     private function getPriceRangeBlock($currency, $selectedFilters, $filter)
     {
         if (!$this->showPriceFilter()) {
-            return [];
+            return null;
         }
 
         $priceBlock = [
