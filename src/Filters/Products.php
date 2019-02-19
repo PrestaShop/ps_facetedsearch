@@ -3,14 +3,14 @@
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use PrestaShop\Module\FacetedSearch\Product\Search;
-use NativeModuleFacetedSearchBundle\Adapter\FacetedSearchAbstract;
+use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use Product;
 use Validate;
 use Configuration;
 
 class Products
 {
-    /** @var FacetedSearchAbstract */
+    /** @var AbstractAdapter */
     private $facetedSearchAdapter;
 
     public function __construct(Search $productSearch)
