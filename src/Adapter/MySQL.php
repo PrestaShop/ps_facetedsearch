@@ -390,6 +390,7 @@ class MySQL extends AbstractAdapter
                         } else {
                             $idFilteredProducts = array_intersect($idFilteredProducts, $idTmpFilteredProducts);
                         }
+
                         if (empty($idFilteredProducts)) {
                             // set it to 0 to make sure no result will be returned
                             $idFilteredProducts[] = 0;
@@ -397,10 +398,7 @@ class MySQL extends AbstractAdapter
                         }
                     }
 
-                    $whereConditions[] =
-                        'p.id_product IN (' . implode(', ', array_map(function ($value) {
-                            return "'" . $value . "'";
-                        }, $idFilteredProducts)) . ')';
+                    $whereConditions[] = 'p.id_product IN (' . implode(', ', $idFilteredProducts) . ')';
                 }
             }
         }
