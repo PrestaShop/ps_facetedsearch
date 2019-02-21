@@ -99,7 +99,7 @@ class Search
                         break;
                     }
 
-                    $this->facetedSearchAdapter->addFilter('quantity', 0, (!$filterValues[0] ? '<=' : '>'));
+                    $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
                     break;
 
                 case 'manufacturer':

@@ -146,17 +146,45 @@ class Converter
         $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
+
             switch ($filter['type']) {
                 case 'manufacturer':
-                    if (empty($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                        // No need to filter if no information
                         continue 2;
                     }
 
                     $manufacturers = Manufacturer::getManufacturers(false, $idLang);
-                    $facetedSearchFilters['manufacturer'] = [];
+                    $facetedSearchFilters[$filter['type']] = [];
                     foreach ($manufacturers as $manufacturer) {
                         if (in_array($manufacturer['name'], $facetAndFiltersLabels[$filterLabel])) {
-                            $facetedSearchFilters['manufacturer'][$manufacturer['name']] = $manufacturer['id_manufacturer'];
+                            $facetedSearchFilters[$filter['type']][$manufacturer['name']] = $manufacturer['id_manufacturer'];
+                        }
+                    }
+                    break;
+                case 'quantity':
+                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                        // No need to filter if no information
+                        continue 2;
+                    }
+
+                    $quantityArray = [
+                        Context::getContext()->getTranslator()->trans(
+                            'Not available',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 0,
+                        Context::getContext()->getTranslator()->trans(
+                            'In stock',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 1,
+                    ];
+
+                    $facetedSearchFilters[$filter['type']] = [];
+                    foreach ($quantityArray as $quantityName => $quantityId) {
+                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($quantityName, $facetAndFiltersLabels[$filterLabel])) {
+                            $facetedSearchFilters[$filter['type']][] = $quantityId;
                         }
                     }
                     break;
@@ -164,7 +192,8 @@ class Converter
                     $features = Feature::getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] == $feature['id_feature']
-                            && isset($facetAndFiltersLabels[$feature['name']])) {
+                            && isset($facetAndFiltersLabels[$feature['name']])
+                        ) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
                             $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
                             foreach ($featureValues as $featureValue) {
@@ -180,7 +209,8 @@ class Converter
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
                         if ($filter['id_value'] == $attributeGroup['id_attribute_group']
-                            && isset($facetAndFiltersLabels[$attributeGroup['name']])) {
+                            && isset($facetAndFiltersLabels[$attributeGroup['name']])
+                        ) {
                             $attributeLabels = $facetAndFiltersLabels[$attributeGroup['name']];
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {

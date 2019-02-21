@@ -25,12 +25,12 @@ class Block
     /**
      * @var boolean
      */
-    private $ps_stock_management;
+    private $psStockManagement;
 
     /**
      * @var boolean
      */
-    private $ps_order_out_of_stock;
+    private $psOrderOutOfStock;
 
     public function __construct(Search $productSearch)
     {
@@ -645,12 +645,12 @@ class Block
             ],
         ];
 
-        if ($this->ps_stock_management === null) {
-            $this->ps_stock_management = Configuration::get('PS_STOCK_MANAGEMENT');
+        if ($this->psStockManagement === null) {
+            $this->psStockManagement = Configuration::get('PS_STOCK_MANAGEMENT');
         }
 
-        if ($this->ps_order_out_of_stock === null) {
-            $this->ps_order_out_of_stock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
+        if ($this->psOrderOutOfStock === null) {
+            $this->psOrderOutOfStock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
         $allResults = $filteredSearchAdapter->count();
@@ -660,7 +660,7 @@ class Block
         $results[0]['c'] = !empty($noMoreQuantityResults) ? $noMoreQuantityResults[0]['c'] : 0;
         $results[1]['c'] = $allResults - $results[0]['c'];
 
-        if (!$this->ps_stock_management) {
+        if (!$this->psStockManagement) {
             if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
                 $quantityArray[1]['checked'] = true;
             }
@@ -676,8 +676,8 @@ class Block
                 $results[0]['c'] -= $resultsOutOfStock[1]['c'];
             }
 
-            // if $this->ps_order_out_of_stock == 1, product with out_of_stock == 2 are available
-            if ($this->ps_order_out_of_stock == 1) {
+            // if $this->psOrderOutOfStock == 1, product with out_of_stock == 2 are available
+            if ($this->psOrderOutOfStock == 1) {
                 if (array_key_exists(2, $resultsOutOfStock)) {
                     $results[1]['c'] += $resultsOutOfStock[2]['c'];
                     $results[0]['c'] -= $resultsOutOfStock[2]['c'];
