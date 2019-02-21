@@ -683,6 +683,7 @@ class Block
                     $results[0]['c'] -= $resultsOutOfStock[2]['c'];
                 }
             }
+
             foreach ($results as $key => $values) {
                 $count = $values['c'];
 

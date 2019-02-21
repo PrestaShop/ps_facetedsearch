@@ -3,6 +3,7 @@
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use AttributeGroup;
+use Category;
 use Configuration;
 use Context;
 use Db;
@@ -234,7 +235,7 @@ class Converter
                 case 'category':
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = \Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
+                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
                             if ($categories) {
                                 $facetedSearchFilters[$filter['type']][] = $categories['id_category'];
                             }
