@@ -372,34 +372,34 @@ class MySQL extends AbstractAdapter
         $idFilteredProducts = null;
         foreach ($this->filters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $filterValues) {
-                if (count($filterValues) > 1) {
-                    foreach ($filterValues as $values) {
-                        $idTmpFilteredProducts = [];
-                        $mysqlAdapter = $this->getFilteredSearchAdapter();
-                        $mysqlAdapter->addSelectField('id_product');
-                        $mysqlAdapter->setLimit(null);
-                        $mysqlAdapter->setOrderField('');
-                        $mysqlAdapter->addFilter($filterName, $values, $operator);
-                        $idProducts = $mysqlAdapter->execute();
-                        foreach ($idProducts as $idProduct) {
-                            $idTmpFilteredProducts[] = $idProduct['id_product'];
-                        }
-
-                        if ($idFilteredProducts === null) {
-                            $idFilteredProducts = $idTmpFilteredProducts;
-                        } else {
-                            $idFilteredProducts = array_intersect($idFilteredProducts, $idTmpFilteredProducts);
-                        }
-
-                        if (empty($idFilteredProducts)) {
-                            // set it to 0 to make sure no result will be returned
-                            $idFilteredProducts[] = 0;
-                            break;
-                        }
-                    }
-
-                    $whereConditions[] = 'p.id_product IN (' . implode(', ', $idFilteredProducts) . ')';
+                if (count($filterValues) <= 1) {
+                    continue;
                 }
+
+                $idTmpFilteredProducts = [];
+                $mysqlAdapter = $this->getFilteredSearchAdapter();
+                $mysqlAdapter->addSelectField('id_product');
+                $mysqlAdapter->setLimit(null);
+                $mysqlAdapter->setOrderField('');
+                $mysqlAdapter->addFilter($filterName, $filterValues, $operator);
+                $idProducts = $mysqlAdapter->execute();
+                foreach ($idProducts as $idProduct) {
+                    $idTmpFilteredProducts[] = $idProduct['id_product'];
+                }
+
+                if ($idFilteredProducts === null) {
+                    $idFilteredProducts = $idTmpFilteredProducts;
+                } else {
+                    $idFilteredProducts += array_intersect($idFilteredProducts, $idTmpFilteredProducts);
+                }
+
+                if (empty($idFilteredProducts)) {
+                    // set it to 0 to make sure no result will be returned
+                    $idFilteredProducts[] = 0;
+                    break;
+                }
+
+                $whereConditions[] = 'p.id_product IN (' . implode(', ', $idFilteredProducts) . ')';
             }
         }
 

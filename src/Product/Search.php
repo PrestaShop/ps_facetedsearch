@@ -164,8 +164,9 @@ class Search
         if (!is_array($filterValues)) {
             $filterValues = [$filterValues];
         }
+
+        $values = [];
         foreach ($filterValues as $filterValue) {
-            $values = [];
             if (is_array($filterValue)) {
                 foreach ($filterValue as $subFilterValue) {
                     $values[] = (int) $subFilterValue;
@@ -173,9 +174,11 @@ class Search
             } else {
                 $values[] = (int) $filterValue;
             }
-            if ($values) {
-                $this->facetedSearchAdapter->addFilter($filterName, $values);
-            }
+
+        }
+
+        if (!empty($values)) {
+            $this->facetedSearchAdapter->addFilter($filterName, $values);
         }
     }
 
