@@ -41,8 +41,8 @@ class URLSerializer
     {
         $facetFilters = [];
         foreach ($facets as $facet) {
-            if ($facet->getProperty('range')) {
-                foreach ($facet->getFilters() as $facetFilter) {
+            foreach ($facet->getFilters() as $facetFilter) {
+                if ($facet->getProperty('range')) {
                     if ($facetFilter->isActive()) {
                         $facetValue = $facetFilter->getValue();
                         $facetFilters[$facet->getLabel()] = [
@@ -51,9 +51,7 @@ class URLSerializer
                             $facetValue['to'],
                         ];
                     }
-                }
-            } else {
-                foreach ($facet->getFilters() as $facetFilter) {
+                } else {
                     if ($facetFilter->isActive()) {
                         $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
                     }
