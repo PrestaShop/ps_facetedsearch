@@ -1392,7 +1392,7 @@ SELECT *
 
         Db::getInstance()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_category` (
-            `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+            `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `id_shop` INT(11) UNSIGNED NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
@@ -1400,10 +1400,9 @@ SELECT *
             `position` INT(10) UNSIGNED NOT NULL,
             `filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
             `filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
-            `PRIMARY KEY (`id_layered_category`),
-            KEY `id_category_shop` (`id_category`,`id_shop`, `type`, id_value, `position`),
+            KEY `id_category_shop` (`id_category`, `id_shop`, `type`, id_value, `position`),
             KEY `id_category` (`id_category`,`type`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;'
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
         Db::getInstance()->execute(
@@ -1427,7 +1426,7 @@ SELECT *
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_shop` (
             `id_layered_filter` INT(10) UNSIGNED NOT NULL,
             `id_shop` INT(11) UNSIGNED NOT NULL,
-            `PRIMARY KEY (`id_layered_filter`, `id_shop`),
+            PRIMARY KEY (`id_layered_filter`, `id_shop`),
             KEY `id_shop` (`id_shop`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
@@ -1464,7 +1463,7 @@ SELECT *
             LEFT JOIN ' . _DB_PREFIX_ . 'category c ON (c.id_category = cp.id_category)
             WHERE c.active = 1' .
             (count($categories_ids) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categories_ids)) . ')' : '') . '
-            ' . $join_product . $join_product_attribute . 'AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog")
+            AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog")
             ' . (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : '')
         );
 
