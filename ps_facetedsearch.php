@@ -33,7 +33,6 @@ if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
 }
 
-use Db;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 
