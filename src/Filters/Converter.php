@@ -18,6 +18,11 @@ use Tools;
 
 class Converter
 {
+    const WIDGET_TYPE_CHECKBOX = 0;
+    const WIDGET_TYPE_RADIO = 1;
+    const WIDGET_TYPE_DROPDOWN = 2;
+    const WIDGET_TYPE_SLIDER = 3;
+
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
         $facets = [];
@@ -97,17 +102,21 @@ class Converter
             }
 
             switch ((int) $filterBlock['filter_type']) {
-                case 0: // checkbox
+                case self::WIDGET_TYPE_CHECKBOX:
                     $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('checkboxes');
                     break;
-                case 1: // radio
+                case self::WIDGET_TYPE_RADIO:
                     $facet->setMultipleSelectionAllowed(false);
                     $facet->setWidgetType('radio-buttons');
                     break;
-                case 2: // drop down
+                case self::WIDGET_TYPE_DROPDOWN:
                     $facet->setMultipleSelectionAllowed(false);
                     $facet->setWidgetType('dropdown');
+                    break;
+                case self::WIDGET_TYPE_SLIDER:
+                    $facet->setMultipleSelectionAllowed(false);
+                    $facet->setWidgetType('slider');
                     break;
             }
 
