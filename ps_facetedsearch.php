@@ -37,7 +37,6 @@ use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 
-
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     private $nbr_products;
@@ -1177,11 +1176,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
 
             $this->ps_layered_full_tree = (int) Tools::getValue('ps_layered_full_tree');
 
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
-            } else {
-                $message = '<div class="conf">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
-            }
+            $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
                 'SELECT filters
@@ -1227,33 +1222,15 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             $this->context->smarty->assign('asso_shops', $helper->renderAssoShop());
         }
 
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-            $tree_categories_helper = new HelperTreeCategories('categories-treeview');
-            $tree_categories_helper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
-                ->setUseCheckBox(true);
-        } else {
-            if (Shop::getContext() == Shop::CONTEXT_SHOP) {
-                $root_category = Category::getRootCategory();
-                $root_category = ['id_category' => $root_category->id_category, 'name' => $root_category->name];
-            } else {
-                $root_category = ['id_category' => '0', 'name' => $this->trans('Root', [], 'Modules.Facetedsearch.Admin')];
-            }
-
-            $tree_categories_helper = new Helper();
-        }
+        $tree_categories_helper = new HelperTreeCategories('categories-treeview');
+        $tree_categories_helper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
+                                                                     ->setUseCheckBox(true);
 
         $module_url = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
             $this->context->controller->addJS($this->_path . 'js/ps_facetedsearchadmin.js');
-
-            if (version_compare(_PS_VERSION_, '1.6.0.3', '>=') === true) {
-                $this->context->controller->addjqueryPlugin('sortable');
-            } elseif (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
-            } else {
-                $this->context->controller->addJS($this->_path . 'js/jquery.sortable.js');
-            }
+            $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
         }
 
         $this->context->controller->addCSS($this->_path . 'css/ps_facetedsearch_admin.css');
@@ -1269,15 +1246,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 'total_filters' => 6 + count($attribute_groups) + count($features),
             ]);
 
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
-            } else {
-                $this->context->smarty->assign('categories_tree', $tree_categories_helper->renderCategoryTree(
-                    $root_category,
-                    [],
-                    'categoryBox'
-                ));
-            }
+            $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         } elseif (Tools::getValue('edit_filters_template')) {
@@ -1289,17 +1258,8 @@ SELECT *
             );
 
             $filters = Tools::unSerialize($template['filters']);
-
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-                $tree_categories_helper->setSelectedCategories($filters['categories']);
-                $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
-            } else {
-                $this->context->smarty->assign('categories_tree', $tree_categories_helper->renderCategoryTree(
-                    $root_category,
-                    $filters['categories'],
-                    'categoryBox'
-                ));
-            }
+            $tree_categories_helper->setSelectedCategories($filters['categories']);
+            $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
 
             $select_shops = $filters['shop_list'];
             unset($filters['categories']);
