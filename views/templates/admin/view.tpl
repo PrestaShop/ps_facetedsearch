@@ -1,3 +1,27 @@
+{**
+  * 2007-2019 PrestaShop.
+  *
+  * NOTICE OF LICENSE
+  *
+  * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+  * that is bundled with this package in the file LICENSE.txt.
+  * It is also available through the world-wide-web at this URL:
+  * https://opensource.org/licenses/AFL-3.0
+  * If you did not receive a copy of the license and are unable to
+  * obtain it through the world-wide-web, please send an email
+  * to license@prestashop.com so we can send you a copy immediately.
+  *
+  * DISCLAIMER
+  *
+  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+  * versions in the future. If you wish to customize PrestaShop for your
+  * needs please refer to http://www.prestashop.com for more information.
+  *
+  * @author    PrestaShop SA <contact@prestashop.com>
+  * @copyright 2007-2019 PrestaShop SA
+  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+  * International Registered Trademark & Property of PrestaShop SA
+  *}
 {if isset($message)}{$message}{/if}
 <div id="ajax-message-ok" class="conf ajax-message alert alert-success" style="display: none">
 	<span class="message"></span>
@@ -52,59 +76,59 @@
 <div class="panel">
 	<h3><i class="icon-cogs"></i> {l s='Filters templates' d='Modules.Facetedsearch.Admin'}<span class="badge">{$filters_templates|count}</span></h3>
 	{if $filters_templates|count > 0}
-	<div class="row">
-		<table class="table">
-			<thead>
-				<tr>
-					<th class="fixed-width-xs center"><span class="title_box">{l s='ID' d='Admin.Global'}</span></th>
-					<th><span class="title_box text-left">{l s='Name' d='Admin.Global'}</span></th>
-					<th class="fixed-width-sm center"><span class="title_box">{l s='Categories' d='Admin.Global'}</span></th>
-					<th class="fixed-width-lg"><span class="title_box">{l s='Created on' d='Modules.Facetedsearch.Admin'}</span></th>
-					<th class="fixed-width-sm"><span class="title_box text-right">{l s='Actions' d='Modules.Facetedsearch.Admin'}</span></th>
-				</tr>
-			</thead>
-			<tbody>
-				{foreach $filters_templates as $template}
-				<tr>
-					<td class="center">{(int)$template['id_layered_filter']}</td>
-					<td class="text-left">{$template['name']}</td>
-					<td class="center">{(int)$template['n_categories']}</td>
-					<td>{Tools::displayDate($template['date_add'],null , true)}</td>
-					<td>
-						{if empty($limit_warning)}
-						<div class="btn-group-action">
-							<div class="btn-group pull-right">
-								<a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
-									<i class="icon-pencil"></i> {l s='Edit' d='Admin.Actions'}
-								</a>
-								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-									<span class="caret"></span>&nbsp;
-								</button>
-								<ul class="dropdown-menu">
-									<li>
-										<a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
-						onclick="return confirm('{l s='Do you really want to delete this filter template?' d='Modules.Facetedsearch.Admin'}');">
-											<i class="icon-trash"></i> {l s='Delete' d='Admin.Actions'}
-										</a>
-									</li>
-								</ul>
-							</div>
-						</div>
-						{/if}
-					</td>
-				</tr>
-				{/foreach}
-			</tbody>
-		</table>
-		<div class="clearfix">&nbsp;</div>
-	</div>
+	  <div class="row">
+		  <table class="table">
+			  <thead>
+				  <tr>
+					  <th class="fixed-width-xs center"><span class="title_box">{l s='ID' d='Admin.Global'}</span></th>
+					  <th><span class="title_box text-left">{l s='Name' d='Admin.Global'}</span></th>
+					  <th class="fixed-width-sm center"><span class="title_box">{l s='Categories' d='Admin.Global'}</span></th>
+					  <th class="fixed-width-lg"><span class="title_box">{l s='Created on' d='Modules.Facetedsearch.Admin'}</span></th>
+					  <th class="fixed-width-sm"><span class="title_box text-right">{l s='Actions' d='Modules.Facetedsearch.Admin'}</span></th>
+				  </tr>
+			  </thead>
+			  <tbody>
+				  {foreach $filters_templates as $template}
+				    <tr>
+					    <td class="center">{(int)$template['id_layered_filter']}</td>
+					    <td class="text-left">{$template['name']}</td>
+					    <td class="center">{(int)$template['n_categories']}</td>
+					    <td>{Tools::displayDate($template['date_add'],null , true)}</td>
+					    <td>
+						    {if empty($limit_warning)}
+						      <div class="btn-group-action">
+							      <div class="btn-group pull-right">
+								      <a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
+									      <i class="icon-pencil"></i> {l s='Edit' d='Admin.Actions'}
+								      </a>
+								      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+									      <span class="caret"></span>&nbsp;
+								      </button>
+								      <ul class="dropdown-menu">
+									      <li>
+										      <a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
+						                onclick="return confirm('{l s='Do you really want to delete this filter template?' d='Modules.Facetedsearch.Admin'}');">
+											      <i class="icon-trash"></i> {l s='Delete' d='Admin.Actions'}
+										      </a>
+									      </li>
+								      </ul>
+							      </div>
+						      </div>
+						    {/if}
+					    </td>
+				    </tr>
+				  {/foreach}
+			  </tbody>
+		  </table>
+		  <div class="clearfix">&nbsp;</div>
+	  </div>
 	{else}
 		<div class="row alert alert-warning">{l s='No filter template found.' d='Modules.Facetedsearch.Admin'}</div>
 	{/if}
 	{if empty($limit_warning)}
-	<div class="panel-footer">
-		<a class="btn btn-default pull-right" href="{$current_url}&amp;add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' d='Modules.Facetedsearch.Admin'}</a>
-	</div>
+	  <div class="panel-footer">
+		  <a class="btn btn-default pull-right" href="{$current_url}&amp;add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' d='Modules.Facetedsearch.Admin'}</a>
+	  </div>
 	{/if}
 </div>
 <div class="panel">

@@ -1,3 +1,27 @@
+{**
+  * 2007-2019 PrestaShop.
+  *
+  * NOTICE OF LICENSE
+  *
+  * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+  * that is bundled with this package in the file LICENSE.txt.
+  * It is also available through the world-wide-web at this URL:
+  * https://opensource.org/licenses/AFL-3.0
+  * If you did not receive a copy of the license and are unable to
+  * obtain it through the world-wide-web, please send an email
+  * to license@prestashop.com so we can send you a copy immediately.
+  *
+  * DISCLAIMER
+  *
+  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+  * versions in the future. If you wish to customize PrestaShop for your
+  * needs please refer to http://www.prestashop.com for more information.
+  *
+  * @author    PrestaShop SA <contact@prestashop.com>
+  * @copyright 2007-2019 PrestaShop SA
+  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+  * International Registered Trademark & Property of PrestaShop SA
+  *}
 {if isset($message)}{$message}{/if}
 <div class="panel">
   <h3><i class="icon-cogs"></i> {l s='New filters template' d='Modules.Facetedsearch.Admin'}</h3>
@@ -23,10 +47,10 @@
       </div>
     </div>
     {if isset($asso_shops)}
-    <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.Facetedsearch.Admin'}</label>
-      <div class="col-lg-9">{$asso_shops}</div>
-    </div>
+      <div class="form-group">
+        <label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.Facetedsearch.Admin'}</label>
+        <div class="col-lg-9">{$asso_shops}</div>
+      </div>
     {/if}
     <div class="form-group">
       <label class="control-label col-lg-3">
@@ -264,128 +288,128 @@
               </li>
               {if $attribute_groups|count > 0}
                 {foreach $attribute_groups as $attribute_group}
-                <li class="filter_list_item row" draggable="true">
-                  <div class="col-lg-2">
-                    <label class="switch-light prestashop-switch fixed-width-lg">
-                      <input name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" id="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" type="checkbox" />
-                      <span>
-                        <span>{l s='Yes' d='Admin.Global'}</span>
-                        <span>{l s='No' d='Admin.Global'}</span>
+                  <li class="filter_list_item row" draggable="true">
+                    <div class="col-lg-2">
+                      <label class="switch-light prestashop-switch fixed-width-lg">
+                        <input name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" id="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" type="checkbox" />
+                        <span>
+                          <span>{l s='Yes' d='Admin.Global'}</span>
+                          <span>{l s='No' d='Admin.Global'}</span>
+                        </span>
+                        <a class="slide-button btn"></a>
+                      </label>
+                    </div>
+                    <div class="col-lg-4">
+                      <span class="module_name">
+                        {if $attribute_group['n'] > 1}
+                          {l
+                            s='Attribute group: %name% (%count% attributes)'
+                            sprintf=[
+                              '%name%' => $attribute_group['name'],
+                              '%count%' => $attribute_group['n']
+                            ]
+                            d='Modules.Facetedsearch.Admin'
+                          }
+                        {else}
+                          {l
+                            s='Attribute group: %name% (%count% attribute)'
+                            sprintf=[
+                              '%name%' => $attribute_group['name'],
+                              '%count%' => $attribute_group['n']
+                            ]
+                            d='Modules.Facetedsearch.Admin'
+                          }
+                        {/if}
+                        {if $attribute_group['is_color_group']}
+                          <img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.Facetedsearch.Admin'}" />
+                        {/if}
                       </span>
-                      <a class="slide-button btn"></a>
-                    </label>
-                  </div>
-                  <div class="col-lg-4">
-                    <span class="module_name">
-                    {if $attribute_group['n'] > 1}
-                      {l
-                        s='Attribute group: %name% (%count% attributes)'
-                        sprintf=[
-                          '%name%' => $attribute_group['name'],
-                          '%count%' => $attribute_group['n']
-                        ]
-                        d='Modules.Facetedsearch.Admin'
-                      }
-                    {else}
-                      {l
-                        s='Attribute group: %name% (%count% attribute)'
-                        sprintf=[
-                          '%name%' => $attribute_group['name'],
-                          '%count%' => $attribute_group['n']
-                        ]
-                        d='Modules.Facetedsearch.Admin'
-                      }
-                    {/if}
-                    {if $attribute_group['is_color_group']}
-                      <img src="../img/admin/color_swatch.png" alt="" title="{l s='This group will allow user to select a color' d='Modules.Facetedsearch.Admin'}" />
-                    {/if}
-                    </span>
-                  </div>
-                  <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
-                    <div class="col-lg-6">
-                      <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_show_limit">
-                        <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                      </select>
                     </div>
-                  </div>
-                  <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
-                    <div class="col-lg-6">
-                      <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_type">
-                        <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
-                      </select>
+                    <div class="col-lg-3 pull-right">
+                      <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
+                      <div class="col-lg-6">
+                        <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_show_limit">
+                          <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="10">10</option>
+                          <option value="20">20</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                </li>
+                    <div class="col-lg-3 pull-right">
+                      <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
+                      <div class="col-lg-6">
+                        <select name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}_filter_type">
+                          <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </li>
                 {/foreach}
               {/if}
 
               {if $features|count > 0}
                 {foreach $features as $feature}
-                <li class="filter_list_item row" draggable="true">
-                  <div class="col-lg-2">
-                    <label class="switch-light prestashop-switch fixed-width-lg">
-                      <input name="layered_selection_feat_{(int)$feature['id_feature']}" id="layered_selection_feat_{(int)$feature['id_feature']}" type="checkbox" />
-                      <span>
-                        <span>{l s='Yes' d='Admin.Global'}</span>
-                        <span>{l s='No' d='Admin.Global'}</span>
+                  <li class="filter_list_item row" draggable="true">
+                    <div class="col-lg-2">
+                      <label class="switch-light prestashop-switch fixed-width-lg">
+                        <input name="layered_selection_feat_{(int)$feature['id_feature']}" id="layered_selection_feat_{(int)$feature['id_feature']}" type="checkbox" />
+                        <span>
+                          <span>{l s='Yes' d='Admin.Global'}</span>
+                          <span>{l s='No' d='Admin.Global'}</span>
+                        </span>
+                        <a class="slide-button btn"></a>
+                      </label>
+                    </div>
+                    <div class="col-lg-4">
+                      <span class="module_name">
+                        {if $feature['n'] > 1}
+                          {l
+                            s='Feature: %name% (%count% values)'
+                            sprintf=[
+                              '%name%' => $feature['name'],
+                              '%count%' => $feature['n']
+                            ]
+                            d='Modules.Facetedsearch.Admin'
+                          }
+                        {else}
+                          {l
+                            s='Feature: %name% (%count% value)'
+                            sprintf=[
+                              '%name%' => $feature['name'],
+                              '%count%' => $feature['n']
+                            ]
+                            d='Modules.Facetedsearch.Admin'
+                          }
+                        {/if}
                       </span>
-                      <a class="slide-button btn"></a>
-                    </label>
-                  </div>
-                  <div class="col-lg-4">
-                    <span class="module_name">
-                      {if $feature['n'] > 1}
-                        {l
-                          s='Feature: %name% (%count% values)'
-                          sprintf=[
-                            '%name%' => $feature['name'],
-                            '%count%' => $feature['n']
-                          ]
-                          d='Modules.Facetedsearch.Admin'
-                        }
-                      {else}
-                        {l
-                          s='Feature: %name% (%count% value)'
-                          sprintf=[
-                            '%name%' => $feature['name'],
-                            '%count%' => $feature['n']
-                          ]
-                          d='Modules.Facetedsearch.Admin'
-                        }
-                      {/if}
-                    </span>
-                  </div>
-                  <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
-                    <div class="col-lg-6">
-                      <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_show_limit">
-                        <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                      </select>
                     </div>
-                  </div>
-                  <div class="col-lg-3 pull-right">
-                    <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
-                    <div class="col-lg-6">
-                      <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_type">
-                        <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
-                        <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
-                      </select>
+                    <div class="col-lg-3 pull-right">
+                      <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
+                      <div class="col-lg-6">
+                        <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_show_limit">
+                          <option value="0">{l s='No limit' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="10">10</option>
+                          <option value="20">20</option>
+                        </select>
+                      </div>
                     </div>
-                  </div>
-                </li>
+                    <div class="col-lg-3 pull-right">
+                      <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
+                      <div class="col-lg-6">
+                        <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_type">
+                          <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </li>
                 {/foreach}
               {/if}
             </ul>
