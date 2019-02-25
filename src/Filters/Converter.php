@@ -127,11 +127,11 @@ class Converter
             switch ((int) $filterBlock['filter_type']) {
                 case self::WIDGET_TYPE_CHECKBOX:
                     $facet->setMultipleSelectionAllowed(true);
-                    $facet->setWidgetType('checkboxes');
+                    $facet->setWidgetType('checkbox');
                     break;
                 case self::WIDGET_TYPE_RADIO:
                     $facet->setMultipleSelectionAllowed(false);
-                    $facet->setWidgetType('radio-buttons');
+                    $facet->setWidgetType('radio');
                     break;
                 case self::WIDGET_TYPE_DROPDOWN:
                     $facet->setMultipleSelectionAllowed(false);
