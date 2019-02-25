@@ -50,6 +50,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
+        $this->ajax = (bool) Tools::getValue('ajax');
 
         parent::__construct();
 
@@ -1249,12 +1250,13 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
-        } elseif (Tools::getValue('edit_filters_template')) {
+        }
+
+        if (Tools::getValue('edit_filters_template')) {
             $template = Db::getInstance()->getRow(
-                '
-SELECT *
-            FROM `' . _DB_PREFIX_ . 'layered_filter`
-            WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
+                'SELECT *
+                FROM `' . _DB_PREFIX_ . 'layered_filter`
+                WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
             );
 
             $filters = Tools::unSerialize($template['filters']);
@@ -1277,29 +1279,29 @@ SELECT *
             ]);
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
-        } else {
-            $this->context->smarty->assign([
-                'message' => $message,
-                'uri' => $this->getPathUri(),
-                'PS_LAYERED_INDEXED' => Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
-                'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
-                'id_lang' => Context::getContext()->cookie->id_lang,
-                'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-                'base_folder' => urlencode(_PS_ADMIN_DIR_),
-                'price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-                'full_price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
-                'attribute_indexer_url' => $module_url . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-                'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
-                'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
-                'full_tree' => $this->ps_layered_full_tree,
-                'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
-                'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
-                'limit_warning' => $this->displayLimitPostWarning(21 + count($attribute_groups) * 3 + count($features) * 3),
-                'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
-            ]);
-
-            return $this->display(__FILE__, 'views/templates/admin/view.tpl');
         }
+
+        $this->context->smarty->assign([
+            'message' => $message,
+            'uri' => $this->getPathUri(),
+            'PS_LAYERED_INDEXED' => Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
+            'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
+            'id_lang' => Context::getContext()->cookie->id_lang,
+            'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'base_folder' => urlencode(_PS_ADMIN_DIR_),
+            'price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'full_price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
+            'attribute_indexer_url' => $module_url . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
+            'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
+            'full_tree' => $this->ps_layered_full_tree,
+            'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
+            'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
+            'limit_warning' => $this->displayLimitPostWarning(21 + count($attribute_groups) * 3 + count($features) * 3),
+            'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
+        ]);
+
+        return $this->display(__FILE__, 'views/templates/admin/view.tpl');
     }
 
     public function displayLimitPostWarning($count)
@@ -1632,9 +1634,35 @@ VALUES(' . $last_id . ', ' . (int) $id_shop . ')');
                 }
             }
         }
+
         if ($nbSqlValuesToInsert) {
             Db::getInstance()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
         }
+    }
+
+    /**
+     * Render template
+     *
+     * @param string $template
+     * @param array  $params
+     *
+     * @return string
+     */
+    public function render($template, array $params = [])
+    {
+        $this->context->smarty->assign($params);
+
+        return $this->display(__FILE__, $template);
+    }
+
+    /**
+     * Is ajax request
+     *
+     * @return boolean
+     */
+    public function isAjax()
+    {
+        return $this->ajax;
     }
 
     /**

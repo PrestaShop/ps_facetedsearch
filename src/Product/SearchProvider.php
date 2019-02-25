@@ -8,6 +8,7 @@ use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
+use PrestaShop\PrestaShop\Core\Product\Search\FacetsRendererInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
@@ -17,7 +18,7 @@ use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use Ps_Facetedsearch;
 use Tools;
 
-class SearchProvider implements ProductSearchProviderInterface
+class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
     private $module;
     private $filtersConverter;
@@ -134,6 +135,124 @@ class SearchProvider implements ProductSearchProviderInterface
         $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
 
         return $result;
+    }
+    /**
+     * Renders an product search result.
+     *
+     * @param ProductSearchContext $context
+     * @param ProductSearchResult  $result
+     *
+     * @return string the HTML of the facets
+     */
+    public function renderFacets(ProductSearchContext $context, ProductSearchResult $result)
+    {
+        list($activeFilters, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
+
+        return $this->module->render(
+            'views/templates/front/catalog/facets.tpl',
+            [
+                'facets' => $facetsVar,
+                'js_enabled' => $this->module->isAjax(),
+                'activeFilters' => $activeFilters,
+                'sort_order' => $result->getCurrentSortOrder()->toString(),
+                'clear_all_link' => $this->updateQueryString(
+                    [
+                        'q' => null,
+                        'page' => null,
+                    ],
+                ),
+            ]
+        );
+    }
+
+    /**
+     * Renders an product search result of active filters.
+     *
+     * @param ProductSearchContext $context
+     * @param ProductSearchResult  $result
+     *
+     * @return string the HTML of the facets
+     */
+    public function renderActiveFilters(ProductSearchContext $context, ProductSearchResult $result)
+    {
+        list($activeFilters,) = $this->prepareActiveFiltersForRender($context, $result);
+        return $this->module->render(
+            'views/templates/front/catalog/active-filters.tpl',
+            [
+                'activeFilters' => $activeFilters,
+                'clear_all_link' => $this->updateQueryString(
+                    [
+                        'q' => null,
+                        'page' => null,
+                    ],
+                ),
+            ]
+        );
+    }
+
+    /**
+     * Prepare active filters for renderer.
+     *
+     * @param ProductSearchContext $context
+     * @param ProductSearchResult  $result
+     *
+     * @return array|null
+     */
+    private function prepareActiveFiltersForRender(ProductSearchContext $context, ProductSearchResult $result)
+    {
+        $facetCollection = $result->getFacetCollection();
+        // not all search providers generate menus
+        if (empty($facetCollection)) {
+            return null;
+        }
+
+        $facetsVar = array_map(
+            array($this, 'prepareFacetForTemplate'),
+            $facetCollection->getFacets()
+        );
+
+        $activeFilters = array();
+        foreach ($facetsVar as $facet) {
+            foreach ($facet['filters'] as $filter) {
+                if ($filter['active']) {
+                    $activeFilters[] = $filter;
+                }
+            }
+        }
+
+        return [
+            $activeFilters,
+            $facetsVar,
+        ];
+    }
+
+    /**
+     * Converts a Facet to an array with all necessary
+     * information for templating.
+     *
+     * @param Facet $facet
+     *
+     * @return array ready for templating
+     */
+    protected function prepareFacetForTemplate(Facet $facet)
+    {
+        $facetsArray = $facet->toArray();
+        foreach ($facetsArray['filters'] as &$filter) {
+            $filter['facetLabel'] = $facet->getLabel();
+            if ($filter['nextEncodedFacets']) {
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString(array(
+                    'q' => $filter['nextEncodedFacets'],
+                    'page' => null,
+                ));
+            } else {
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString(array(
+                    'q' => null,
+                ));
+            }
+        }
+        unset($filter);
+
+        return $facetsArray;
     }
 
     /**
@@ -255,5 +374,50 @@ class SearchProvider implements ProductSearchProviderInterface
                 $usefulFiltersCount > 1
             );
         }
+    }
+
+    /**
+     * Generate a URL corresponding to the current page but
+     * with the query string altered.
+     *
+     * If $extraParams is set to NULL, then all query params are stripped.
+     *
+     * Otherwise, params from $extraParams that have a null value are stripped,
+     * and other params are added. Params not in $extraParams are unchanged.
+     */
+    private function updateQueryString(array $extraParams = null)
+    {
+        $uriWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
+        $url = Tools::getCurrentUrlProtocolPrefix() . $_SERVER['HTTP_HOST'] . $uriWithoutParams;
+        $params = array();
+        $paramsFromUri = '';
+        if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
+            $paramsFromUri = explode('?', $_SERVER['REQUEST_URI'])[1];
+        }
+        parse_str($paramsFromUri, $params);
+
+        if (null !== $extraParams) {
+            foreach ($extraParams as $key => $value) {
+                if (null === $value) {
+                    unset($params[$key]);
+                } else {
+                    $params[$key] = $value;
+                }
+            }
+        }
+
+        if (null !== $extraParams) {
+            foreach ($params as $key => $param) {
+                if (null === $param || '' === $param) {
+                    unset($params[$key]);
+                }
+            }
+        } else {
+            $params = array();
+        }
+
+        $queryString = str_replace('%2F', '/', http_build_query($params, '', '&'));
+
+        return $url . ($queryString ? "?$queryString" : '');
     }
 }
