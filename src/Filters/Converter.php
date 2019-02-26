@@ -51,6 +51,11 @@ class Converter
         $facets = [];
 
         foreach ($filterBlocks as $filterBlock) {
+            if (empty($filterBlock)) {
+                // Empty filter, let's continue
+                continue;
+            }
+
             $facet = new Facet();
             $facet
                 ->setLabel($filterBlock['name'])
@@ -100,6 +105,8 @@ class Converter
                         ->setType($filterBlock['type'])
                         ->setProperty('min', $filterBlock['min'])
                         ->setProperty('max', $filterBlock['max'])
+                        ->setProperty('unit', $filterBlock['unit'])
+                        ->setProperty('format', $filterBlock['format'])
                         ->setMultipleSelectionAllowed(false)
                         ->setProperty('range', true);
 
@@ -113,10 +120,6 @@ class Converter
                                 'from' => $value['range_start'],
                                 'to' => $value['range_end'],
                             ]);
-
-                        if (array_key_exists('checked', $value)) {
-                            $filter->setActive($value['checked']);
-                        }
 
                         $facet->addFilter($filter);
                     }

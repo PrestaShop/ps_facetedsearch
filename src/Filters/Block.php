@@ -93,7 +93,7 @@ class Block
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
-                    $filterBlocks[] = $this->getPriceRangeBlock($currency, $selectedFilters, $filter);
+                    $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $currency);
                     break;
                 case 'weight':
                     $filterBlocks[] = $this->getWeightRangeBlock($filter, $selectedFilters, $nbProducts);
@@ -165,13 +165,14 @@ class Block
     }
 
     /**
-     * @param Currency $currency
-     * @param array $selectedFilters
      * @param array $filter
+     * @param array $selectedFilters
+     * @param integer $nbProducts
+     * @param Currency $currency
      *
      * @return array
      */
-    private function getPriceRangeBlock($currency, $selectedFilters, $filter)
+    private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $currency)
     {
         if (!$this->showPriceFilter()) {
             return null;
@@ -182,13 +183,12 @@ class Block
             'type' => 'price',
             'id_key' => 0,
             'name' => Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
-            'slider' => true,
             'max' => '0',
             'min' => null,
             'unit' => $currency->sign,
             'format' => $currency->format,
             'filter_show_limit' => $filter['filter_show_limit'],
-            'filter_type' => $filter['filter_type'],
+            'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'list_of_values' => [],
         ];
 
@@ -203,10 +203,14 @@ class Block
         $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
         $priceRangesMax = $filteredSearchAdapter->getFieldRanges('price_max', 10);
 
-        $priceRanges = $this->mergePriceRanges($priceRangesMin, $priceRangesMax, $selectedFilters);
-
-        $priceBlock['list_of_values'] = $priceRanges;
         $priceBlock['values'] = [$priceBlock['min'], $priceBlock['max']];
+        $priceBlock['list_of_values'] = [
+            [
+                'range_start' => $priceBlock['min'],
+                'range_end' => $priceBlock['max'],
+                'nbr' => $nbProducts
+            ]
+        ];
 
         // put back the price filter
         if ($priceMinFilter) {
@@ -215,316 +219,6 @@ class Block
         }
 
         return $priceBlock;
-    }
-
-    /**
-     * Merge the price range computed from the price_min, price_max
-     * Use the selectedFilters to make sure the current price filter will be present in the final ranges
-     *
-     * @param array $priceRangesMin
-     * @param array $priceRangesMax
-     * @param array $selectedFilters
-     *
-     * @return array
-     */
-    private function mergePriceRanges($priceRangesMin, $priceRangesMax, $selectedFilters)
-    {
-        // first handle the ranges which are the sames
-        foreach ($priceRangesMin as $minKey => $priceRangeMin) {
-            foreach ($priceRangesMax as $maxKey => $priceRangeMax) {
-                if ($priceRangeMin['range_start'] == $priceRangeMax['range_start']
-                    && $priceRangeMax['range_end'] == $priceRangeMax['range_end']) {
-                    $priceRanges[$minKey] = $priceRangeMin;
-                    $priceRanges[$minKey]['need_recount'] = true;
-                    unset($priceRangesMin[$minKey]);
-                    unset($priceRangesMax[$maxKey]);
-                }
-            }
-        }
-
-        // add the remaining priceMin
-        if (empty($priceRanges)) {
-            $priceRanges = $priceRangesMin;
-        } else {
-            $priceRanges = $this->mergeOverlaps($priceRangesMin, $priceRanges);
-        }
-
-        // add the remaining priceMax
-        if (empty($priceRanges)) {
-            $priceRanges = $priceRangesMax;
-        } else {
-            $priceRanges = $this->mergeOverlaps($priceRangesMax, $priceRanges);
-        }
-
-        // remove point intervals by creating larger intervals
-        $priceRanges = $this->mergePointIntervals($priceRanges);
-
-        // adjust the range to fit the one stored in the layer price table
-        $priceRanges = $this->adjustRangesWithLayeredPriceIndex($priceRanges);
-
-        // set as active the current price filter
-        $priceRanges = $this->setActiveRanges($priceRanges, $selectedFilters);
-
-        // merge overlapping range together
-        $priceRanges = $this->mergeOverlaps($priceRanges, $priceRanges, true);
-
-        // recount the ranges flagged with "need_recount" (it occurs during overlapping range merging)
-        $priceRanges = $this->recountRanges($priceRanges);
-
-        return $priceRanges;
-    }
-
-    /**
-     * Merge together several intervals with the same start and end
-     *
-     * @param array $priceRanges
-     *
-     * @return mixed
-     */
-    private function mergePointIntervals($priceRanges)
-    {
-        do {
-            $keepLooping = false;
-            foreach ($priceRanges as $key1 => $range1) {
-                foreach ($priceRanges as $key2 => $range2) {
-                    if ($key2 <= $key1) {
-                        continue;
-                    }
-                    if ($range1['range_start'] == $range1['range_end']
-                        || $range2['range_start'] == $range2['range_end']) {
-                        $priceRanges[$key2]['range_start'] = $range1['range_start'];
-                        $priceRanges[$key2]['need_recount'] = true;
-                        unset($priceRanges[$key1]);
-                        $keepLooping = true;
-                        break 2;
-                    }
-                }
-            }
-        } while ($keepLooping);
-
-        return $priceRanges;
-    }
-
-    /**
-     * Set the right range of active depending on the selectedFilters
-     *
-     * @param array $priceRanges
-     * @param array $selectedFilters
-     *
-     * @return array
-     */
-    private function setActiveRanges($priceRanges, $selectedFilters)
-    {
-        if (empty($selectedFilters['price'])) {
-            return $priceRanges;
-        }
-        $checked = false;
-        foreach ($priceRanges as $key => $priceRange) {
-            if ($priceRange['range_start'] == $selectedFilters['price'][0]
-                && $priceRange['range_end'] == $selectedFilters['price'][1]) {
-                $priceRanges[$key]['checked'] = true;
-                $checked = true;
-            }
-        }
-
-        if ($checked === false) {
-            $priceRanges[] = [
-                'range_start' => $selectedFilters['price'][0],
-                'range_end' => $selectedFilters['price'][1],
-                'nbr' => 1,
-                'need_recount' => true,
-                'checked' => true,
-            ];
-        }
-
-        return $priceRanges;
-    }
-
-    /**
-     * Recount the real number of products associated with a price range
-     *
-     * @param array $priceRanges
-     *
-     * @return array
-     */
-    private function recountRanges($priceRanges)
-    {
-        foreach ($priceRanges as $key => $priceRange) {
-            if (!empty($priceRange['need_recount'])) {
-                $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
-                $filteredSearchAdapter->addFilter('price_min', [$priceRange['range_start']], '>=');
-                $filteredSearchAdapter->addFilter('price_max', [$priceRange['range_end']], '<=');
-                $count = $filteredSearchAdapter->count();
-                $priceRanges[$key]['nbr'] = $count;
-                unset($priceRanges[$key]['need_recount']);
-            }
-        }
-
-        return $priceRanges;
-    }
-
-    /**
-     * Adjust the range interval to match what's in the layered_price_index table
-     *
-     * @param array $priceRanges
-     *
-     * @return array
-     */
-    private function adjustRangesWithLayeredPriceIndex($priceRanges)
-    {
-        foreach ($priceRanges as $key => $priceRange) {
-            $rangeStart = $priceRange['range_start'];
-            $rangeEnd = $priceRange['range_end'];
-
-            // get larger fully overlapping DB ranges
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
-            $filteredSearchAdapter->addSelectField('price_min');
-            $filteredSearchAdapter->addSelectField('price_max');
-            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '<=');
-            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '>=');
-            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
-            $filteredSearchAdapter->setLimit(null);
-            $filteredSearchAdapter->setOrderField('');
-            $results = $filteredSearchAdapter->execute();
-            foreach ($results as $result) {
-                $priceRanges[$key]['range_start'] = $result['price_min'];
-                $priceRanges[$key]['range_end'] = $result['price_max'];
-                $priceRanges[$key]['need_recount'] = true;
-            }
-            if ($rangeStart == $rangeEnd) {
-                continue;
-            }
-
-            // get overlap with the beginning of the DB ranges
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
-            $filteredSearchAdapter->addSelectField('price_min');
-            $filteredSearchAdapter->addSelectField('price_max');
-            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '>');
-            $filteredSearchAdapter->addFilter('price_min', [$rangeEnd], '<');
-            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '>');
-            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
-            $filteredSearchAdapter->setLimit(null);
-            $filteredSearchAdapter->setOrderField('');
-            $results = $filteredSearchAdapter->execute();
-            foreach ($results as $result) {
-                $priceRanges[$key]['range_end'] = $result['price_max'];
-                $priceRanges[$key]['need_recount'] = true;
-            }
-
-            // get overlap with the end of the DB ranges
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
-            $filteredSearchAdapter->addSelectField('price_min');
-            $filteredSearchAdapter->addSelectField('price_max');
-            $filteredSearchAdapter->addFilter('price_max', [$rangeStart], '>');
-            $filteredSearchAdapter->addFilter('price_max', [$rangeEnd], '<');
-            $filteredSearchAdapter->addFilter('price_min', [$rangeStart], '<');
-            $filteredSearchAdapter->addColumnFilter('price_max', 'price_min', '!=');
-            $filteredSearchAdapter->setLimit(null);
-            $filteredSearchAdapter->setOrderField('');
-            $results = $filteredSearchAdapter->execute();
-
-            foreach ($results as $result) {
-                $priceRanges[$key]['range_start'] = $result['price_min'];
-                $priceRanges[$key]['need_recount'] = true;
-            }
-        }
-
-        return $priceRanges;
-    }
-
-    /**
-     * Merge together ranges that are overlapping
-     *
-     * @param array $range1
-     * @param array $range2
-     * @param bool $overlapOnly
-     *
-     * @return array
-     */
-    private function mergeOverlaps($range1, $range2, $overlapOnly = false)
-    {
-        foreach ($range1 as $minKey => $priceRangeMin) {
-            foreach ($range2 as $key => $priceRange) {
-                if (!$overlapOnly) {
-                    // handle non overlapping range
-                    if ($priceRangeMin['range_end'] < $range2[$key]['range_start']
-                        || $priceRangeMin['range_start'] > $range2[$key]['range_end']
-                    ) {
-                        $range2[] = $priceRangeMin;
-                        unset($range1[$minKey]);
-                    }
-                }
-
-                // handle overlap with the beginning of the range
-                if ($priceRangeMin['range_start'] < $range2[$key]['range_start']
-                    && $priceRangeMin['range_end'] >= $range2[$key]['range_start']) {
-                    $range2[$key]['range_start'] = $priceRangeMin['range_start'];
-                    $range2[$key]['need_recount'] = true;
-                    if ($priceRangeMin['range_end'] > $range2[$key]['range_end']) {
-                        $range2[$key]['range_end'] = $priceRangeMin['range_end'];
-                    }
-                    if (!empty($range1[$minKey]['checked'])) {
-                        $range2[$key]['checked'] = true;
-                    }
-                    unset($range1[$minKey]);
-                    continue;
-                }
-
-                // handle overlap with the end of the range
-                if ($priceRangeMin['range_end'] > $range2[$key]['range_end']
-                    && $priceRangeMin['range_start'] <= $range2[$key]['range_end']) {
-                    $range2[$key]['range_end'] = $priceRangeMin['range_end'];
-                    $range2[$key]['need_recount'] = true;
-                    if ($priceRangeMin['range_start'] < $range2[$key]['range_start']) {
-                        $range2[$key]['range_start'] = $priceRangeMin['range_start'];
-                    }
-                    if (!empty($range1[$minKey]['checked'])) {
-                        $range2[$key]['checked'] = true;
-                    }
-                    unset($range1[$minKey]);
-                }
-            }
-        }
-
-        $range2 = $this->removeDuplicatesAndSort($range2);
-
-        return $range2;
-    }
-
-    /**
-     * Remove duplicates range and sort them
-     *
-     * @param array $ranges
-     *
-     * @return array
-     */
-    private function removeDuplicatesAndSort($ranges)
-    {
-        $uniqueRange = [];
-        $skipKeys = [];
-        foreach ($ranges as $key => $value) {
-            if (in_array($key, $skipKeys)) {
-                continue;
-            }
-            foreach ($ranges as $key2 => $value2) {
-                if ($key != $key2
-                    && $value['range_start'] == $value2['range_start']
-                    && $value['range_end'] == $value2['range_end']) {
-                    // if the duplicate range has the right count, use it instead of trying to recompute it later
-                    if (array_key_exists('need_recount', $ranges[$key])
-                        && !array_key_exists('need_recount', $ranges[$key2])) {
-                        unset($ranges[$key]['need_recount']);
-                        $ranges[$key]['nbr'] = $ranges[$key2]['nbr'];
-                    }
-                    $skipKeys[] = $key2;
-                }
-            }
-            $uniqueRange[$ranges[$key]['range_start']] = $ranges[$key];
-        }
-
-        ksort($uniqueRange);
-
-        return $uniqueRange;
     }
 
     /**
@@ -543,30 +237,34 @@ class Block
             'type' => 'weight',
             'id_key' => 0,
             'name' => Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop'),
-            'slider' => true,
             'max' => '0',
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
             'format' => 5, // Ex: xxxxx kg
             'filter_show_limit' => $filter['filter_show_limit'],
-            'filter_type' => $filter['filter_type'],
+            'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'list_of_values' => [],
         ];
 
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('weight');
 
         list($weightBlock['min'], $weightBlock['max']) = $filteredSearchAdapter->getMinMaxValue('weight');
+        if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
+            // We don't need to continue, no filter available
+            return [];
+        }
+
         $weightBlock['list_of_values'] = $filteredSearchAdapter->getFieldRanges('weight', 10);
 
-        if (empty($weightBlock['list_of_values']) && isset($selected_filters['weight'])) {
+        if (empty($weightBlock['list_of_values']) && isset($selectedFilters['weight'])) {
             // in case we don't have a list of values,
             // add the original one.
             // This may happen when e.g. all products
             // weigh 0.
             $weightBlock['list_of_values'] = [
                 [
-                    0 => $selectedFilters['weight'][0],
-                    1 => $selectedFilters['weight'][1],
+                    'range_start' => $selectedFilters['weight'][0],
+                    'range_end' => $selectedFilters['weight'][1],
                     'nbr' => $nbProducts,
                 ],
             ];

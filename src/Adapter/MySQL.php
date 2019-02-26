@@ -534,7 +534,7 @@ class MySQL extends AbstractAdapter
 
         $result = $mysqlAdapter->execute();
 
-        return [0 => $result[0]['min'], 1 => $result[0]['max']];
+        return [0 => (float) $result[0]['min'], 1 => (float) $result[0]['max']];
     }
 
     /**

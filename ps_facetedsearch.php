@@ -137,6 +137,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
+            $this->context->controller->addJS($this->_path . 'js/ps_facetedsearchfront.js');
+
             return new SearchProvider($this);
         }
 

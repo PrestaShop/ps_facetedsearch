@@ -78,7 +78,7 @@
                           id="facet_input_{$_expand_id}_{$filter_key}"
                           data-search-url="{$filter.nextEncodedFacetsURL}"
                           type="checkbox"
-                          {if $filter.active } checked {/if}
+                          {if $filter.active }checked{/if}
                         >
                         {if isset($filter.properties.color)}
                           <span class="color" style="background-color:{$filter.properties.color}"></span>
@@ -95,7 +95,7 @@
                           data-search-url="{$filter.nextEncodedFacetsURL}"
                           type="radio"
                           name="filter {$facet.label}"
-                          {if $filter.active } checked {/if}
+                          {if $filter.active }checked{/if}
                         >
                         <span {if !$js_enabled} class="ps-shown-by-js" {/if}></span>
                       </span>
@@ -118,7 +118,6 @@
           {/block}
 
         {elseif $facet.widgetType == 'dropdown'}
-
           {block name='facet_item_dropdown'}
             <ul id="facet_{$_expand_id}" class="collapse{if !$_collapse} in{/if}">
               <li>
@@ -162,6 +161,28 @@
             </ul>
           {/block}
 
+        {elseif $facet.widgetType == 'slider'}
+          {block name='facet_item_slider'}
+            {foreach from=$facet.filters item="filter"}
+              <ul id="facet_{$_expand_id}"
+                class="faceted-slider"
+                data-slider-min="{$filter.value.from}"
+                data-slider-max="{$filter.value.to}"
+                data-slider-id="{$_expand_id}"
+                data-slider-unit="{$facet.properties.unit}"
+                data-slider-format="{$facet.properties.format}"
+                data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
+              >
+                <li>
+                  <p>
+                    <input type="text" id="amount_{$_expand_id}" readonly>
+                  </p>
+
+                  <div id="slider-range_{$_expand_id}"></div>
+                </li>
+              </ul>
+            {/foreach}
+          {/block}
         {/if}
       </section>
     {/foreach}

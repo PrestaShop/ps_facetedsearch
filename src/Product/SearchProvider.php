@@ -230,11 +230,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
 
         $facetsVar = array_map(
-            array($this, 'prepareFacetForTemplate'),
+            [$this, 'prepareFacetForTemplate'],
             $facetCollection->getFacets()
         );
 
-        $activeFilters = array();
+        $activeFilters = [];
         foreach ($facetsVar as $facet) {
             foreach ($facet['filters'] as $filter) {
                 if ($filter['active']) {
@@ -263,14 +263,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         foreach ($facetsArray['filters'] as &$filter) {
             $filter['facetLabel'] = $facet->getLabel();
             if ($filter['nextEncodedFacets']) {
-                $filter['nextEncodedFacetsURL'] = $this->updateQueryString(array(
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
                     'q' => $filter['nextEncodedFacets'],
                     'page' => null,
-                ));
+                ]);
             } else {
-                $filter['nextEncodedFacetsURL'] = $this->updateQueryString(array(
+                $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
                     'q' => null,
-                ));
+                ]);
             }
         }
         unset($filter);
@@ -335,8 +335,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
-                        $activeFacetFilters =
-                            $this->facetsSerializer->removeFilterFromFacetFilters($activeFacetFilters, $filter, $facet);
+                        $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
+                            $activeFacetFilters,
+                            $filter,
+                            $facet
+                        );
                         break;
                     }
                 }
@@ -347,10 +350,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
                 // toggle the current filter
                 if ($filter->isActive()) {
-                    $facetFilters =
-                        $this->facetsSerializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
+                    $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
+                        $facetFilters,
+                        $filter,
+                        $facet
+                    );
                 } else {
-                    $facetFilters = $this->facetsSerializer->addFilterToFacetFilters($facetFilters, $filter, $facet);
+                    $facetFilters = $this->facetsSerializer->addFilterToFacetFilters(
+                        $facetFilters,
+                        $filter,
+                        $facet
+                    );
                 }
 
                 // We've toggled the filter, so the call to serialize
@@ -393,7 +403,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     ++$usefulFiltersCount;
                 }
             }
+
             $facet->setDisplayed(
+                $facet->getWidgetType() === 'slider' ?
+                $usefulFiltersCount >= 1 :
                 $usefulFiltersCount > 1
             );
         }
@@ -412,7 +425,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         $uriWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
         $url = Tools::getCurrentUrlProtocolPrefix() . $_SERVER['HTTP_HOST'] . $uriWithoutParams;
-        $params = array();
+        $params = [];
         $paramsFromUri = '';
         if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
             $paramsFromUri = explode('?', $_SERVER['REQUEST_URI'])[1];
@@ -436,7 +449,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 }
             }
         } else {
-            $params = array();
+            $params = [];
         }
 
         $queryString = str_replace('%2F', '/', http_build_query($params, '', '&'));
