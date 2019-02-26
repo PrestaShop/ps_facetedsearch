@@ -231,6 +231,7 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
         $urlSerializer = new URLFragmentSerializer();
 
         foreach ($facets as $facet) {
+            $facetFiltersToAdd = $activeFacetFilters;
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
@@ -238,14 +239,14 @@ class Ps_FacetedsearchProductSearchProvider implements ProductSearchProviderInte
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
-                        $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters($activeFacetFilters, $filter, $facet);
+                        $facetFiltersToAdd = $this->facetsSerializer->removeFilterFromFacetFilters($facetFiltersToAdd, $filter, $facet);
                         break;
                     }
                 }
             }
 
             foreach ($facet->getFilters() as $filter) {
-                $facetFilters = $activeFacetFilters;
+                $facetFilters = $facetFiltersToAdd;
 
                 // toggle the current filter
                 if ($filter->isActive()) {
