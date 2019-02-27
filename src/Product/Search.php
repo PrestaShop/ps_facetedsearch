@@ -137,7 +137,7 @@ class Search
                     break;
 
                 case 'weight':
-                    if ($selectedFilters['weight'][0] != 0 || $selectedFilters['weight'][1] != 0) {
+                    if (!empty($selectedFilters['weight'][0]) || !empty($selectedFilters['weight'][1])) {
                         $this->facetedSearchAdapter->addFilter(
                             'weight',
                             [(float) ($selectedFilters['weight'][0] - 0.001)],
