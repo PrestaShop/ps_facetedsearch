@@ -171,12 +171,12 @@
                 data-slider-id="{$_expand_id}"
                 data-slider-unit="{$facet.properties.unit}"
                 data-slider-format="{$facet.properties.format}"
-                data-slider-encoded-filter="{$filter.nextEncodedFacets}"
+                data-slider-encoded-facets="{$filter.nextEncodedFacets}"
                 data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
               >
                 <li>
                   <p>
-                    <input type="text" id="amount_{$_expand_id}" readonly>
+                    {$filter.label}
                   </p>
 
                   <div id="slider-range_{$_expand_id}"></div>

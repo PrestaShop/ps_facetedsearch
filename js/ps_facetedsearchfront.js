@@ -15,12 +15,12 @@ $(document).ready(function() {
         ],
         change: function(event, ui) {
           const nextEncodedFacetsURL = $el.data('slider-encoded-url');
-          const nextEncodedFilter = encodeURIComponent($el.data('slider-encoded-filter'));
+          const nextEncodedFacets = escape($el.data('slider-encoded-facets')).replace(/%20/g,'+');
           prestashop.emit(
             'updateFacets',
             nextEncodedFacetsURL.replace(
-              nextEncodedFilter,
-              nextEncodedFilter.replace(
+              nextEncodedFacets,
+              nextEncodedFacets.replace(
                 $el.data('slider-min') + '-' + $el.data('slider-max'),
                 ui.values[0] + '-' + ui.values[1]
               )
