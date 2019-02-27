@@ -15,6 +15,7 @@ $(document).ready(function() {
         ],
         change: function(event, ui) {
           const nextEncodedFacetsURL = $el.data('slider-encoded-url');
+          // because spaces are replaces with %20, and sometimes by +, we want to keep the + sign
           const nextEncodedFacets = escape($el.data('slider-encoded-facets')).replace(/%20/g,'+');
           prestashop.emit(
             'updateFacets',
