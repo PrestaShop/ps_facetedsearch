@@ -18,15 +18,13 @@ $(document).ready(function() {
           const nextEncodedFilter = encodeURIComponent($el.data('slider-encoded-filter'));
           prestashop.emit(
             'updateFacets',
-            [
-              nextEncodedFacetsURL.replace(
-                nextEncodedFilter,
-                nextEncodedFilter.replace(
-                  $el.data('slider-min') + '-' + $el.data('slider-max'),
-                  ui.values[0] + '-' + ui.values[1]
-                )
+            nextEncodedFacetsURL.replace(
+              nextEncodedFilter,
+              nextEncodedFilter.replace(
+                $el.data('slider-min') + '-' + $el.data('slider-max'),
+                ui.values[0] + '-' + ui.values[1]
               )
-            ]
+            )
           );
         },
         slide: function(event, ui) {

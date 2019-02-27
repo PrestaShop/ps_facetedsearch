@@ -49,7 +49,7 @@ class MySQL extends AbstractAdapter
 
         $result = $mysqlAdapter->execute();
 
-        return [0 => floor($result[0]['min']), 1 => ceil($result[0]['max'])];
+        return [floor((float) $result[0]['min']), ceil((float) $result[0]['max'])];
     }
 
     /**
@@ -151,133 +151,133 @@ class MySQL extends AbstractAdapter
 
         $filterToTableMapping = [
             'id_product_attribute' => [
-                    'tableName' => 'product_attribute',
-                    'tableAlias' => 'pa',
-                    'joinCondition' => '(p.id_product = pa.id_product)',
-                    'joinType' => self::STRAIGHT_JOIN,
-                ],
+                'tableName' => 'product_attribute',
+                'tableAlias' => 'pa',
+                'joinCondition' => '(p.id_product = pa.id_product)',
+                'joinType' => self::STRAIGHT_JOIN,
+            ],
             'id_attribute' => [
-                    'tableName' => 'product_attribute_combination',
-                    'tableAlias' => 'pac',
-                    'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
-                    'joinType' => self::STRAIGHT_JOIN,
-                    'dependencyField' => 'id_product_attribute',
-                ],
+                'tableName' => 'product_attribute_combination',
+                'tableAlias' => 'pac',
+                'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
+                'joinType' => self::STRAIGHT_JOIN,
+                'dependencyField' => 'id_product_attribute',
+            ],
             'id_attribute_group' => [
-                    'tableName' => 'attribute',
-                    'tableAlias' => 'a',
-                    'joinCondition' => '(a.id_attribute = pac.id_attribute)',
-                    'joinType' => self::STRAIGHT_JOIN,
-                    'dependencyField' => 'id_attribute',
-                ],
+                'tableName' => 'attribute',
+                'tableAlias' => 'a',
+                'joinCondition' => '(a.id_attribute = pac.id_attribute)',
+                'joinType' => self::STRAIGHT_JOIN,
+                'dependencyField' => 'id_attribute',
+            ],
             'id_feature' => [
-                    'tableName' => 'feature_product',
-                    'tableAlias' => 'fp',
-                    'joinCondition' => '(p.id_product = fp.id_product)',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'feature_product',
+                'tableAlias' => 'fp',
+                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
             'id_shop' => [
-                    'tableName' => 'product_shop',
-                    'tableAlias' => 'ps',
-                    'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                        Context::getContext()->shop->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'product_shop',
+                'tableAlias' => 'ps',
+                'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
+                Context::getContext()->shop->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'id_feature_value' => [
-                    'tableName' => 'feature_product',
-                    'tableAlias' => 'fp',
-                    'joinCondition' => '(p.id_product = fp.id_product)',
-                    'joinType' => self::LEFT_JOIN,
-                ],
+                'tableName' => 'feature_product',
+                'tableAlias' => 'fp',
+                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinType' => self::LEFT_JOIN,
+            ],
             'id_category' => [
-                    'tableName' => 'category_product',
-                    'tableAlias' => 'cp',
-                    'joinCondition' => '(p.id_product = cp.id_product)',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'category_product',
+                'tableAlias' => 'cp',
+                'joinCondition' => '(p.id_product = cp.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
             'position' => [
-                    'tableName' => 'category_product',
-                    'tableAlias' => 'cp',
-                    'joinCondition' => '(p.id_product = cp.id_product)',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'category_product',
+                'tableAlias' => 'cp',
+                'joinCondition' => '(p.id_product = cp.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
             'name' => [
-                    'tableName' => 'product_lang',
-                    'tableAlias' => 'pl',
-                    'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
-                        Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'product_lang',
+                'tableAlias' => 'pl',
+                'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
+                Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'nleft' => [
-                    'tableName' => 'category',
-                    'tableAlias' => 'c',
-                    'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
-                    'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category',
-                ],
+                'tableName' => 'category',
+                'tableAlias' => 'c',
+                'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
+                'joinType' => self::INNER_JOIN,
+                'dependencyField' => 'id_category',
+            ],
             'nright' => [
-                    'tableName' => 'category',
-                    'tableAlias' => 'c',
-                    'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
-                    'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category',
-                ],
+                'tableName' => 'category',
+                'tableAlias' => 'c',
+                'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
+                'joinType' => self::INNER_JOIN,
+                'dependencyField' => 'id_category',
+            ],
             'level_depth' => [
-                    'tableName' => 'category',
-                    'tableAlias' => 'c',
-                    'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
-                    'joinType' => self::INNER_JOIN,
-                    'dependencyField' => 'id_category',
-                ],
+                'tableName' => 'category',
+                'tableAlias' => 'c',
+                'joinCondition' => '(cp.id_category = c.id_category AND c.active=1)',
+                'joinType' => self::INNER_JOIN,
+                'dependencyField' => 'id_category',
+            ],
             'out_of_stock' => [
-                    'tableName' => 'stock_available',
-                    'tableAlias' => 'sa',
-                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
-                        $stockCondition . ')',
-                    'joinType' => self::LEFT_JOIN,
-                ],
+                'tableName' => 'stock_available',
+                'tableAlias' => 'sa',
+                'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                $stockCondition . ')',
+                'joinType' => self::LEFT_JOIN,
+            ],
             'quantity' => [
-                    'tableName' => 'stock_available',
-                    'tableAlias' => 'sa',
-                    'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
-                        $stockCondition . ')',
-                    'joinType' => self::LEFT_JOIN,
-                ],
+                'tableName' => 'stock_available',
+                'tableAlias' => 'sa',
+                'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                $stockCondition . ')',
+                'joinType' => self::LEFT_JOIN,
+            ],
             'price_min' => [
-                    'tableName' => 'layered_price_index',
-                    'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'layered_price_index',
+                'tableAlias' => 'psi',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'price_max' => [
-                    'tableName' => 'layered_price_index',
-                    'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'layered_price_index',
+                'tableAlias' => 'psi',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'range_start' => [
-                    'tableName' => 'layered_price_index',
-                    'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'layered_price_index',
+                'tableAlias' => 'psi',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'range_end' => [
-                    'tableName' => 'layered_price_index',
-                    'tableAlias' => 'psi',
-                    'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                        Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
-                    'joinType' => self::INNER_JOIN,
-                ],
+                'tableName' => 'layered_price_index',
+                'tableAlias' => 'psi',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                'joinType' => self::INNER_JOIN,
+            ],
             'id_group' => [
-                    'tableName' => 'category_group',
-                    'tableAlias' => 'cg',
-                    'joinCondition' => '(cg.id_category = c.id_category)',
-                    'joinType' => self::LEFT_JOIN,
-                    'dependencyField' => 'nleft',
-                ],
+                'tableName' => 'category_group',
+                'tableAlias' => 'cg',
+                'joinCondition' => '(cg.id_category = c.id_category)',
+                'joinType' => self::LEFT_JOIN,
+                'dependencyField' => 'nleft',
+            ],
         ];
 
         return $filterToTableMapping;
@@ -510,6 +510,7 @@ class MySQL extends AbstractAdapter
                 $groupFields[$key] = $values;
                 continue;
             }
+
             if (array_key_exists($values, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$values];
                 $groupFields[$key] = $joinMapping['tableAlias'] . '.' . $values;
@@ -534,7 +535,7 @@ class MySQL extends AbstractAdapter
 
         $result = $mysqlAdapter->execute();
 
-        return [0 => (float) $result[0]['min'], 1 => (float) $result[0]['max']];
+        return [(float) $result[0]['min'], (float) $result[0]['max']];
     }
 
     /**
@@ -544,8 +545,12 @@ class MySQL extends AbstractAdapter
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields([$fieldName, 'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' .
-            $outputLength . ') AS diff', ]);
+        $mysqlAdapter->setSelectFields(
+            [
+                $fieldName,
+                'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' . $outputLength . ') AS diff',
+            ]
+        );
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');
 
@@ -558,8 +563,14 @@ class MySQL extends AbstractAdapter
 
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields([$fieldName, 'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
-            '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end', 'COUNT(DISTINCT(p.id_product)) nbr', ]);
+        $mysqlAdapter->setSelectFields(
+            [
+                $fieldName,
+                'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
+                '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end',
+                'COUNT(DISTINCT(p.id_product)) nbr',
+            ]
+        );
         $mysqlAdapter->addGroupBy('FLOOR(' . $fieldName . ' / ' . $diff . ')');
         $mysqlAdapter->setLimit(null);
         $mysqlAdapter->setOrderField('');

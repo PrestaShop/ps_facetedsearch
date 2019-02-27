@@ -132,8 +132,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $idCountry = (int) $currentContext->country->id;
         $idCategory = (int) $query->getIdCategory();
 
-        $filterHash = md5($idShop . '-' . $idCurrency . '-' . $idLang . '-' . $idCategory .
-            '-' . $idCountry . '-' . serialize($facetedSearchFilters));
+        $filterHash = md5(
+            sprintf(
+                '%d-%d-%d-%d-%d-%s',
+                $idShop,
+                $idCurrency,
+                $idLang,
+                $idCategory,
+                $idCountry,
+                serialize($facetedSearchFilters)
+            )
+        );
 
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
         if (empty($filterBlock)) {

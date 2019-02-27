@@ -197,7 +197,6 @@ class Search
             } else {
                 $values[] = (int) $filterValue;
             }
-
         }
 
         if (!empty($values)) {

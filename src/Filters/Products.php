@@ -58,7 +58,8 @@ class Products
         /* for this case, price could be out of range, so we need to compute the real price */
         foreach ($matchingProductList as $key => $product) {
             if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
-                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])) {
+                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])
+            ) {
                 $price = Product::getPriceStatic($product['id_product'], $psLayeredFilterPriceUsetax);
                 if ($psLayeredFilterPriceRounding) {
                     $price = (int) $price;

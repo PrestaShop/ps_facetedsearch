@@ -153,7 +153,9 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function addColumnFilter($filterName, $columnName, $operator = '=')
     {
-        $this->columnFilters[$filterName][$operator][] = $columnName;
+        if (!in_array($filterName, $this->columnFilters[$filterName][$operator])) {
+            $this->columnFilters[$filterName][$operator][] = $columnName;
+        }
 
         return $this;
     }
@@ -163,7 +165,9 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function addSelectField($fieldName)
     {
-        $this->selectFields[] = $fieldName;
+        if (!in_array($fieldName, $this->selectFields)) {
+            $this->selectFields[] = $fieldName;
+        }
 
         return $this;
     }
@@ -223,10 +227,9 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function setFilter($filterName, $value)
     {
-        if ($value === null) {
-            return $this;
+        if ($value !== null) {
+            $this->filters[$filterName] = $value;
         }
-        $this->filters[$filterName] = $value;
 
         return $this;
     }
