@@ -171,6 +171,7 @@
                 data-slider-id="{$_expand_id}"
                 data-slider-unit="{$facet.properties.unit}"
                 data-slider-format="{$facet.properties.format}"
+                data-slider-encoded-filter="{$filter.nextEncodedFacets}"
                 data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
               >
                 <li>

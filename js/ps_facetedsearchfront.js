@@ -13,21 +13,30 @@ $(document).ready(function() {
           $el.data('slider-min'),
           $el.data('slider-max')
         ],
-        change: function( event, ui ) {
-          prestashop.emit('updateFacets', []);
+        change: function(event, ui) {
+          const nextEncodedFacetsURL = $el.data('slider-encoded-url');
+          const nextEncodedFilter = encodeURIComponent($el.data('slider-encoded-filter'));
+          prestashop.emit(
+            'updateFacets',
+            [
+              nextEncodedFacetsURL.replace(
+                nextEncodedFilter,
+                nextEncodedFilter.replace(
+                  $el.data('slider-min') + '-' + $el.data('slider-max'),
+                  ui.values[0] + '-' + ui.values[1]
+                )
+              )
+            ]
+          );
         },
-        slide: function( event, ui ) {
-          $('#amount_' + $el.data('slider-id')).val(ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+        slide: function(event, ui) {
+          $('#amount_' + $el.data('slider-id')).val(ui.values[0] + ' - ' + ui.values[1]);
         }
       });
 
-      $('#amount_' + $el.data('slider-id')).val($el.data('slider-min') + " - " + $el.data('slider-max'));
+      $('#amount_' + $el.data('slider-id')).val($el.data('slider-min') + ' - ' + $el.data('slider-max'));
     });
   }
-
-  /* prestashop.on('updateProductList', (data) => {
-   *   refreshSliders(data);
-   * }); */
 
   prestashop.on('updateProductList', (data) => {
     refreshSliders(data);
