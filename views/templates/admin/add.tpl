@@ -22,9 +22,11 @@
   * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
   * International Registered Trademark & Property of PrestaShop SA
   *}
-{if isset($message)}{$message}{/if}
+{include file='./_partials/messages.tpl'}
+
 <div class="panel">
   <h3><i class="icon-cogs"></i> {l s='New filters template' d='Modules.Facetedsearch.Admin'}</h3>
+
   <form action="{$current_url}" method="post" class="form-horizontal" onsubmit="return checkForm();">
     <input type="hidden" name="id_layered_filter" id="id_layered_filter" value="{$id_layered_filter}" />
     <div class="form-group">
@@ -107,6 +109,7 @@
                   </div>
                 </div>
               </li>
+
               <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">

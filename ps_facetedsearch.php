@@ -1312,7 +1312,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
         ]);
 
-        return $this->display(__FILE__, 'views/templates/admin/view.tpl');
+        return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
     }
 
     public function displayLimitPostWarning($count)
