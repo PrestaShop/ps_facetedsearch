@@ -32,7 +32,6 @@ function checkForm() {
 }
 
 $(document).ready(function() {
-  console.log('here');
   $('.ajaxcall').click(function() {
     if (this.legend == undefined) {
       this.legend = $(this).html();

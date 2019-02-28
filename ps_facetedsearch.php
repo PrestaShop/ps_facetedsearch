@@ -1567,6 +1567,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                         }
                     }
                 }
+
                 if (!isset($doneCategories[(int) $idCategory]['q'])) {
                     $filterData['layered_selection_stock'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
                     $doneCategories[(int) $idCategory]['q'] = true;
@@ -1641,43 +1642,44 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
                 foreach ($data['categories'] as $idCategory) {
                     $n = 0;
-                    if (!in_array($idCategory, $categories[$idShop])) {
-                        // Last definition, erase previous categories defined
+                    if (in_array($idCategory, $categories[$idShop])) {
+                        continue;
+                    }
+                    // Last definition, erase previous categories defined
 
-                        $categories[$idShop][] = $idCategory;
+                    $categories[$idShop][] = $idCategory;
 
-                        foreach ($data as $key => $value) {
-                            if (substr($key, 0, 17) == 'layered_selection') {
-                                $type = $value['filter_type'];
-                                $limit = $value['filter_show_limit'];
-                                ++$n;
+                    foreach ($data as $key => $value) {
+                        if (substr($key, 0, 17) == 'layered_selection') {
+                            $type = $value['filter_type'];
+                            $limit = $value['filter_show_limit'];
+                            ++$n;
 
-                                if ($key == 'layered_selection_stock') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif ($key == 'layered_selection_subcategories') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif ($key == 'layered_selection_condition') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif ($key == 'layered_selection_weight_slider') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif ($key == 'layered_selection_price_slider') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif ($key == 'layered_selection_manufacturer') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
+                            if ($key == 'layered_selection_stock') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_subcategories') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_condition') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_weight_slider') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_price_slider') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_manufacturer') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
 \'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
-                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
+                            } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
 \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                                }
+                            }
 
-                                ++$nbSqlValuesToInsert;
-                                if ($nbSqlValuesToInsert >= 100) {
-                                    Db::getInstance()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
-                                    $sqlInsert = '';
-                                    $nbSqlValuesToInsert = 0;
-                                }
+                            ++$nbSqlValuesToInsert;
+                            if ($nbSqlValuesToInsert >= 100) {
+                                Db::getInstance()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
+                                $sqlInsert = '';
+                                $nbSqlValuesToInsert = 0;
                             }
                         }
                     }
