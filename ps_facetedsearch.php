@@ -39,8 +39,8 @@ use PrestaShop\Module\FacetedSearch\Filters\Converter;
 
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
-    private $nbr_products;
-    private $ps_layered_full_tree;
+    private $nbrProducts;
+    private $psLayeredFullTree;
 
     public function __construct()
     {
@@ -56,7 +56,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
         $this->description = $this->trans('Displays a block allowing multiple filters.', [], 'Modules.Facetedsearch.Admin');
-        $this->ps_layered_full_tree = Configuration::get('PS_LAYERED_FULL_TREE');
+        $this->psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
     }
 
@@ -103,7 +103,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
         Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
 
-        $this->ps_layered_full_tree = 1;
+        $this->psLayeredFullTree = 1;
 
         $this->rebuildLayeredStructure();
         $this->buildLayeredCategories();
@@ -311,10 +311,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         );
 
         foreach (Language::getLanguages(false) as $language) {
-            $seo_url = Tools::getValue('url_name_' . (int) $language['id_lang']);
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
-            if (empty($seo_url)) {
-                $seo_url = Tools::getValue('name_' . (int) $language['id_lang']);
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
             Db::getInstance()->execute(
@@ -322,7 +322,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 (`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
                 ' . (int) $params['id_attribute_group'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seo_url)) . '\',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
@@ -396,10 +396,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         );
 
         foreach (Language::getLanguages(false) as $language) {
-            $seo_url = Tools::getValue('url_name_' . (int) $language['id_lang']);
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
-            if (empty($seo_url)) {
-                $seo_url = Tools::getValue('name_' . (int) $language['id_lang']);
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
             Db::getInstance()->execute(
@@ -407,7 +407,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
                 ' . (int) $params['id_attribute'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seo_url)) . '\',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
@@ -478,10 +478,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         );
 
         foreach (Language::getLanguages(false) as $language) {
-            $seo_url = Tools::getValue('url_name_' . (int) $language['id_lang']);
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
-            if (empty($seo_url)) {
-                $seo_url = Tools::getValue('name_' . (int) $language['id_lang']);
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
             Db::getInstance()->execute(
@@ -489,7 +489,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 (`id_feature`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
                 ' . (int) $params['id_feature'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seo_url)) . '\',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
@@ -561,10 +561,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         );
 
         foreach (Language::getLanguages(false) as $language) {
-            $seo_url = Tools::getValue('url_name_' . (int) $language['id_lang']);
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
-            if (empty($seo_url)) {
-                $seo_url = Tools::getValue('name_' . (int) $language['id_lang']);
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
             Db::getInstance()->execute(
@@ -572,7 +572,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 (`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
                 ' . (int) $params['id_feature_value'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seo_url)) . '\',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
@@ -668,19 +668,19 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
 
     public function hookCategoryDeletion($params)
     {
-        $layered_filter_list = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
         );
 
-        foreach ($layered_filter_list as $layered_filter) {
-            $data = Tools::unSerialize($layered_filter['filters']);
+        foreach ($layeredFilterList as $layeredFilter) {
+            $data = Tools::unSerialize($layeredFilter['filters']);
 
             if (in_array((int) $params['category']->id, $data['categories'])) {
                 unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
                     SET `filters` = \'' . pSQL(serialize($data)) . '\'
-                    WHERE `id_layered_filter` = ' . (int) $layered_filter['id_layered_filter']
+                    WHERE `id_layered_filter` = ' . (int) $layeredFilter['id_layered_filter']
                 );
             }
         }
@@ -692,14 +692,14 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
     /*
      * Generate data product attribute
      */
-    public function indexAttribute($id_product = null)
+    public function indexAttribute($idProduct = null)
     {
-        if (is_null($id_product)) {
+        if (is_null($idProduct)) {
             Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
         } else {
             Db::getInstance()->execute(
                 'DELETE FROM ' . _DB_PREFIX_ . 'layered_product_attribute
-                WHERE id_product = ' . (int) $id_product
+                WHERE id_product = ' . (int) $idProduct
             );
         }
 
@@ -711,7 +711,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             INNER JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON pac.id_product_attribute = pa.id_product_attribute
             INNER JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute = pac.id_attribute)
             INNER JOIN ' . _DB_PREFIX_ . 'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
-            ' . (is_null($id_product) ? '' : 'AND pa.id_product = ' . (int) $id_product) . '
+            ' . (is_null($idProduct) ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
             GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
         );
 
@@ -840,7 +840,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
      */
     private static function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
     {
-        if (is_null($cursor)) {
+        if (null === $cursor) {
             $cursor = 0;
         }
 
@@ -849,7 +849,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 FROM `' . _DB_PREFIX_ . 'product` p
                 INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
                 ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                WHERE p.id_product>' . (int) $cursor . '
+                WHERE p.id_product > ' . (int) $cursor . '
                 GROUP BY p.`id_product`
                 ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
         } else {
@@ -872,7 +872,13 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         return (int) $lastIdProduct;
     }
 
-    public static function indexProductPrices($id_product, $smart = true)
+    /**
+     * Index product prices
+     *
+     * @param int $idProduct
+     * @param bool $smart
+     */
+    public static function indexProductPrices($idProduct, $smart = true)
     {
         static $groups = null;
 
@@ -883,50 +889,50 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             }
         }
 
-        $shop_list = Shop::getShops(false, null, true);
+        $shopList = Shop::getShops(false, null, true);
 
-        foreach ($shop_list as $id_shop) {
-            $currency_list = Currency::getCurrencies(false, 1, new Shop($id_shop));
+        foreach ($shopList as $idShop) {
+            $currencyList = Currency::getCurrencies(false, 1, new Shop($idShop));
 
-            $min_price = [];
-            $max_price = [];
+            $minPrice = [];
+            $maxPrice = [];
 
             if ($smart) {
-                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $id_product . ' AND `id_shop` = ' . (int) $id_shop);
+                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
             }
 
-            if (Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $tax_rates_by_country = Db::getInstance()->executeS(
+            if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
+                $taxRatesByCountry = [['rate' => 0, 'id_country' => 0]];
+            } else {
+                $taxRatesByCountry = Db::getInstance()->executeS(
                     'SELECT t.rate rate, tr.id_country
                     FROM `' . _DB_PREFIX_ . 'product_shop` p
-                    LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $id_shop . ')
+                    LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ')
                     LEFT JOIN `' . _DB_PREFIX_ . 'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
                     LEFT JOIN `' . _DB_PREFIX_ . 'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
                     JOIN `' . _DB_PREFIX_ . 'country` c ON (tr.id_country=c.id_country AND c.active = 1)
-                    WHERE id_product = ' . (int) $id_product . '
+                    WHERE id_product = ' . (int) $idProduct . '
                     GROUP BY id_product, tr.id_country'
                 );
-            } else {
-                $tax_rates_by_country = [['rate' => 0, 'id_country' => 0]];
             }
 
-            $product_min_prices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            $productMinPrices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
                 'SELECT id_shop, id_currency, id_country, id_group, from_quantity
                 FROM `' . _DB_PREFIX_ . 'specific_price`
-                WHERE id_product = ' . (int) $id_product . ' AND id_shop IN (0,' . (int) $id_shop . ')'
+                WHERE id_product = ' . (int) $idProduct . ' AND id_shop IN (0,' . (int) $idShop . ')'
             );
 
             $countries = Country::getCountries(Context::getContext()->language->id, true, false, false);
             foreach ($countries as $country) {
-                $id_country = $country['id_country'];
+                $idCountry = $country['id_country'];
 
                 // Get price by currency & country, without reduction!
-                foreach ($currency_list as $currency) {
+                foreach ($currencyList as $currency) {
                     $price = Product::priceCalculation(
-                        $id_shop,
-                        (int) $id_product,
+                        $idShop,
+                        (int) $idProduct,
                         null,
-                        $id_country,
+                        $idCountry,
                         null,
                         null,
                         $currency['id_currency'],
@@ -937,58 +943,61 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                         false,
                         false,
                         true,
-                        $specific_price_output,
+                        $specificPriceOutput,
                         true
                     );
 
-                    $min_price[$id_country][$currency['id_currency']] = $price;
-                    $max_price[$id_country][$currency['id_currency']] = $price;
+                    $minPrice[$idCountry][$currency['id_currency']] = $price;
+                    $maxPrice[$idCountry][$currency['id_currency']] = $price;
                 }
 
-                foreach ($product_min_prices as $specific_price) {
-                    foreach ($currency_list as $currency) {
-                        if ($specific_price['id_currency'] && $specific_price['id_currency'] != $currency['id_currency']) {
+                foreach ($productMinPrices as $specificPrice) {
+                    foreach ($currencyList as $currency) {
+                        if ($specificPrice['id_currency'] &&
+                            $specificPrice['id_currency'] != $currency['id_currency']
+                        ) {
                             continue;
                         }
+
                         $price = Product::priceCalculation(
-                            $id_shop,
-                            (int) $id_product,
+                            $idShop,
+                            (int) $idProduct,
                             null,
-                            $id_country,
+                            $idCountry,
                             null,
                             null,
                             $currency['id_currency'],
-                            (($specific_price['id_group'] == 0) ? null : $specific_price['id_group']),
-                            $specific_price['from_quantity'],
+                            (($specificPrice['id_group'] == 0) ? null : $specificPrice['id_group']),
+                            $specificPrice['from_quantity'],
                             false,
                             6,
                             false,
                             true,
                             true,
-                            $specific_price_output,
+                            $specificPriceOutput,
                             true
                         );
 
-                        if ($price > $max_price[$id_country][$currency['id_currency']]) {
-                            $max_price[$id_country][$currency['id_currency']] = $price;
+                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
+                            $maxPrice[$idCountry][$currency['id_currency']] = $price;
                         }
 
                         if ($price == 0) {
                             continue;
                         }
 
-                        if (is_null($min_price[$id_country][$currency['id_currency']]) || $price < $min_price[$id_country][$currency['id_currency']]) {
-                            $min_price[$id_country][$currency['id_currency']] = $price;
+                        if (null === $minPrice[$idCountry][$currency['id_currency']] || $price < $minPrice[$idCountry][$currency['id_currency']]) {
+                            $minPrice[$idCountry][$currency['id_currency']] = $price;
                         }
                     }
                 }
 
                 foreach ($groups as $group) {
-                    foreach ($currency_list as $currency) {
+                    foreach ($currencyList as $currency) {
                         $price = Product::priceCalculation(
-                            $id_shop,
-                            (int) $id_product,
-                            (int) $id_country,
+                            $idShop,
+                            (int) $idProduct,
+                            (int) $idCountry,
                             null,
                             null,
                             null,
@@ -1000,46 +1009,46 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                             false,
                             true,
                             true,
-                            $specific_price_output,
+                            $specificPriceOutput,
                             true
                         );
 
-                        if (!isset($max_price[$id_country][$currency['id_currency']])) {
-                            $max_price[$id_country][$currency['id_currency']] = 0;
+                        if (!isset($maxPrice[$idCountry][$currency['id_currency']])) {
+                            $maxPrice[$idCountry][$currency['id_currency']] = 0;
                         }
 
-                        if (!isset($min_price[$id_country][$currency['id_currency']])) {
-                            $min_price[$id_country][$currency['id_currency']] = null;
+                        if (!isset($minPrice[$idCountry][$currency['id_currency']])) {
+                            $minPrice[$idCountry][$currency['id_currency']] = null;
                         }
 
-                        if ($price > $max_price[$id_country][$currency['id_currency']]) {
-                            $max_price[$id_country][$currency['id_currency']] = $price;
+                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
+                            $maxPrice[$idCountry][$currency['id_currency']] = $price;
                         }
 
                         if ($price == 0) {
                             continue;
                         }
 
-                        if (is_null($min_price[$id_country][$currency['id_currency']]) || $price < $min_price[$id_country][$currency['id_currency']]) {
-                            $min_price[$id_country][$currency['id_currency']] = $price;
+                        if (null === $minPrice[$idCountry][$currency['id_currency']] || $price < $minPrice[$idCountry][$currency['id_currency']]) {
+                            $minPrice[$idCountry][$currency['id_currency']] = $price;
                         }
                     }
                 }
             }
 
             $values = [];
-            foreach ($tax_rates_by_country as $tax_rate_by_country) {
-                $tax_rate = $tax_rate_by_country['rate'];
-                $id_country = $tax_rate_by_country['id_country'];
-                foreach ($currency_list as $currency) {
-                    $min_price_value = array_key_exists($id_country, $min_price) ? $min_price[$id_country][$currency['id_currency']] : 0;
-                    $max_price_value = array_key_exists($id_country, $max_price) ? $max_price[$id_country][$currency['id_currency']] : 0;
-                    $values[] = '(' . (int) $id_product . ',
+            foreach ($taxRatesByCountry as $taxRateByCountry) {
+                $taxRate = $taxRateByCountry['rate'];
+                $idCountry = $taxRateByCountry['id_country'];
+                foreach ($currencyList as $currency) {
+                    $minPriceValue = array_key_exists($idCountry, $minPrice) ? $minPrice[$idCountry][$currency['id_currency']] : 0;
+                    $maxPriceValue = array_key_exists($idCountry, $maxPrice) ? $maxPrice[$idCountry][$currency['id_currency']] : 0;
+                    $values[] = '(' . (int) $idProduct . ',
                         ' . (int) $currency['id_currency'] . ',
-                        ' . $id_shop . ',
-                        ' . (int) Tools::ps_round($min_price_value * (100 + $tax_rate) / 100, 0) . ',
-                        ' . (int) Tools::ps_round($max_price_value * (100 + $tax_rate) / 100, 0) . ',
-                        ' . (int) $id_country . ')';
+                        ' . $idShop . ',
+                        ' . (int) Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, 0) . ',
+                        ' . (int) Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, 0) . ',
+                        ' . (int) $idCountry . ')';
                 }
             }
 
@@ -1081,45 +1090,45 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                     }
                 }
 
-                $id_layered_filter = (int) Tools::getValue('id_layered_filter');
+                $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
 
-                if (!$id_layered_filter) {
-                    $id_layered_filter = (int) Db::getInstance()->Insert_ID();
+                if (!$idLayeredFilter) {
+                    $idLayeredFilter = (int) Db::getInstance()->Insert_ID();
                 }
 
-                $shop_list = [];
+                $shopList = [];
 
                 if (isset($_POST['checkBoxShopAsso_layered_filter'])) {
-                    foreach ($_POST['checkBoxShopAsso_layered_filter'] as $id_shop => $row) {
-                        $assos[] = ['id_object' => (int) $id_layered_filter, 'id_shop' => (int) $id_shop];
-                        $shop_list[] = (int) $id_shop;
+                    foreach ($_POST['checkBoxShopAsso_layered_filter'] as $idShop => $row) {
+                        $assos[] = ['id_object' => (int) $idLayeredFilter, 'id_shop' => (int) $idShop];
+                        $shopList[] = (int) $idShop;
                     }
                 } else {
-                    $shop_list = [Context::getContext()->shop->id];
+                    $shopList = [Context::getContext()->shop->id];
                 }
 
                 Db::getInstance()->execute(
-                    'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . (int) $id_layered_filter
+                    'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . (int) $idLayeredFilter
                 );
 
                 if (count($_POST['categoryBox'])) {
                     /* Clean categoryBox before use */
                     if (isset($_POST['categoryBox']) && is_array($_POST['categoryBox'])) {
-                        foreach ($_POST['categoryBox'] as &$category_box_tmp) {
-                            $category_box_tmp = (int) $category_box_tmp;
+                        foreach ($_POST['categoryBox'] as &$categoryBoxTmp) {
+                            $categoryBoxTmp = (int) $categoryBoxTmp;
                         }
                     }
 
-                    $filter_values = [];
+                    $filterValues = [];
 
                     foreach ($_POST['categoryBox'] as $idc) {
-                        $filter_values['categories'][] = (int) $idc;
+                        $filterValues['categories'][] = (int) $idc;
                     }
 
-                    $filter_values['shop_list'] = $shop_list;
+                    $filterValues['shop_list'] = $shopList;
                     $values = false;
 
-                    foreach ($_POST['categoryBox'] as $id_category_layered) {
+                    foreach ($_POST['categoryBox'] as $idCategoryLayered) {
                         foreach ($_POST as $key => $value) {
                             if (substr($key, 0, 17) == 'layered_selection' && $value == 'on') {
                                 $values = true;
@@ -1133,7 +1142,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                                     $limit = Tools::getValue($key . '_filter_show_limit');
                                 }
 
-                                $filter_values[$key] = [
+                                $filterValues[$key] = [
                                     'filter_type' => (int) $type,
                                     'filter_show_limit' => (int) $limit,
                                 ];
@@ -1141,26 +1150,26 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                         }
                     }
 
-                    $values_to_insert = [
+                    $valuesToInsert = [
                         'name' => pSQL(Tools::getValue('layered_tpl_name')),
-                        'filters' => pSQL(serialize($filter_values)),
-                        'n_categories' => (int) count($filter_values['categories']),
+                        'filters' => pSQL(serialize($filterValues)),
+                        'n_categories' => (int) count($filterValues['categories']),
                         'date_add' => date('Y-m-d H:i:s'), ];
 
                     if (isset($_POST['id_layered_filter']) && $_POST['id_layered_filter']) {
-                        $values_to_insert['id_layered_filter'] = (int) Tools::getValue('id_layered_filter');
+                        $valuesToInsert['id_layered_filter'] = (int) Tools::getValue('id_layered_filter');
                     }
 
-                    $id_layered_filter = isset($values_to_insert['id_layered_filter']) ? (int) $values_to_insert['id_layered_filter'] : 'NULL';
-                    $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter (name, filters, n_categories, date_add, id_layered_filter) VALUES ("' . pSQL($values_to_insert['name']) . '", "' . $values_to_insert['filters'] . '",' . (int) $values_to_insert['n_categories'] . ',"' . pSQL($values_to_insert['date_add']) . '",' . $id_layered_filter . ')';
+                    $idLayeredFilter = isset($valuesToInsert['id_layered_filter']) ? (int) $valuesToInsert['id_layered_filter'] : 'NULL';
+                    $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter (name, filters, n_categories, date_add, id_layered_filter) VALUES ("' . pSQL($valuesToInsert['name']) . '", "' . $valuesToInsert['filters'] . '",' . (int) $valuesToInsert['n_categories'] . ',"' . pSQL($valuesToInsert['date_add']) . '",' . $idLayeredFilter . ')';
                     Db::getInstance()->execute($sql);
-                    $id_layered_filter = (int) Db::getInstance()->Insert_ID();
+                    $idLayeredFilter = (int) Db::getInstance()->Insert_ID();
 
                     if (isset($assos)) {
                         foreach ($assos as $asso) {
                             Db::getInstance()->execute(
                                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
-    VALUES(' . $id_layered_filter . ', ' . (int) $asso['id_shop'] . ')'
+    VALUES(' . $idLayeredFilter . ', ' . (int) $asso['id_shop'] . ')'
                             );
                         }
                     }
@@ -1172,12 +1181,12 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int) Tools::getValue('ps_layered_show_qties'));
-            Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('ps_layered_full_tree'));
+            Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('psLayeredFullTree'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
 
-            $this->ps_layered_full_tree = (int) Tools::getValue('ps_layered_full_tree');
+            $this->psLayeredFullTree = (int) Tools::getValue('psLayeredFullTree');
 
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
         } elseif (Tools::getValue('deleteFilterTemplate')) {
@@ -1199,8 +1208,8 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             }
         }
 
-        $category_box = [];
-        $attribute_groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $categoryBox = [];
+        $attributeGroups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
             FROM ' . _DB_PREFIX_ . 'attribute_group ag
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
@@ -1225,11 +1234,11 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             $this->context->smarty->assign('asso_shops', $helper->renderAssoShop());
         }
 
-        $tree_categories_helper = new HelperTreeCategories('categories-treeview');
-        $tree_categories_helper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
+        $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
+        $treeCategoriesHelper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
                                                                      ->setUseCheckBox(true);
 
-        $module_url = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
+        $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
             $this->context->controller->addJS($this->_path . 'js/ps_facetedsearchadmin.js');
@@ -1244,12 +1253,12 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => 0,
                 'template_name' => sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')),
-                'attribute_groups' => $attribute_groups,
+                'attribute_groups' => $attributeGroups,
                 'features' => $features,
-                'total_filters' => 6 + count($attribute_groups) + count($features),
+                'total_filters' => 6 + count($attributeGroups) + count($features),
             ]);
 
-            $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
+            $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         }
@@ -1262,10 +1271,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             );
 
             $filters = Tools::unSerialize($template['filters']);
-            $tree_categories_helper->setSelectedCategories($filters['categories']);
-            $this->context->smarty->assign('categories_tree', $tree_categories_helper->render());
+            $treeCategoriesHelper->setSelectedCategories($filters['categories']);
+            $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
 
-            $select_shops = $filters['shop_list'];
+            $selectShops = $filters['shop_list'];
             unset($filters['categories']);
             unset($filters['shop_list']);
 
@@ -1274,10 +1283,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 'uri' => $this->getPathUri(),
                 'id_layered_filter' => (int) Tools::getValue('id_layered_filter'),
                 'template_name' => $template['name'],
-                'attribute_groups' => $attribute_groups,
+                'attribute_groups' => $attributeGroups,
                 'features' => $features,
                 'filters' => Tools::jsonEncode($filters),
-                'total_filters' => 6 + count($attribute_groups) + count($features),
+                'total_filters' => 6 + count($attributeGroups) + count($features),
             ]);
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
@@ -1291,15 +1300,15 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             'id_lang' => Context::getContext()->cookie->id_lang,
             'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'base_folder' => urlencode(_PS_ADMIN_DIR_),
-            'price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-            'full_price_indexer_url' => $module_url . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
-            'attribute_indexer_url' => $module_url . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
+            'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
-            'full_tree' => $this->ps_layered_full_tree,
+            'full_tree' => $this->psLayeredFullTree,
             'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
             'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
-            'limit_warning' => $this->displayLimitPostWarning(21 + count($attribute_groups) * 3 + count($features) * 3),
+            'limit_warning' => $this->displayLimitPostWarning(21 + count($attributeGroups) * 3 + count($features) * 3),
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
         ]);
 
@@ -1323,24 +1332,24 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         return $return;
     }
 
-    private static function query($sql_query)
+    private static function query($sqlQuery)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql_query);
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sqlQuery);
     }
 
-    public function cleanFilterByIdValue($attributes, $id_value)
+    public function cleanFilterByIdValue($attributes, $idValue)
     {
-        $selected_filters = [];
+        $selectedFilters = [];
         if (is_array($attributes)) {
             foreach ($attributes as $attribute) {
-                $attribute_data = explode('_', $attribute);
-                if ($attribute_data[0] == $id_value) {
-                    $selected_filters[] = $attribute_data[1];
+                $attributeData = explode('_', $attribute);
+                if ($attributeData[0] == $idValue) {
+                    $selectedFilters[] = $attributeData[1];
                 }
             }
         }
 
-        return $selected_filters;
+        return $selectedFilters;
     }
 
     public function rebuildLayeredStructure()
@@ -1348,8 +1357,8 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         @set_time_limit(0);
 
         /* Set memory limit to 128M only if current is lower */
-        $memory_limit = Tools::getMemoryLimit();
-        if ($memory_limit != -1 && $memory_limit < 128 * 1024 * 1024) {
+        $memoryLimit = Tools::getMemoryLimit();
+        if ($memoryLimit != -1 && $memoryLimit < 128 * 1024 * 1024) {
             @ini_set('memory_limit', '128M');
         }
 
@@ -1398,44 +1407,49 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         );
     }
 
-    public function rebuildLayeredCache($products_ids = [], $categories_ids = [], $rebuildLayeredCategories = true)
+    /**
+     * @param array $productsIds
+     * @param array $categoriesIds
+     * @param bool $rebuildLayeredCategories
+     */
+    public function rebuildLayeredCache($productsIds = [], $categoriesIds = [], $rebuildLayeredCategories = true)
     {
         @set_time_limit(0);
 
-        $filter_data = ['categories' => []];
+        $filterData = ['categories' => []];
 
         /* Set memory limit to 128M only if current is lower */
-        $memory_limit = Tools::getMemoryLimit();
-        if ($memory_limit != -1 && $memory_limit < 128 * 1024 * 1024) {
+        $memoryLimit = Tools::getMemoryLimit();
+        if ($memoryLimit != -1 && $memoryLimit < 128 * 1024 * 1024) {
             @ini_set('memory_limit', '128M');
         }
 
         $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
-        $n_categories = [];
-        $done_categories = [];
+        $nCategories = [];
+        $doneCategories = [];
 
         $alias = 'product_shop';
-        $join_product = Shop::addSqlAssociation('product', 'p');
-        $join_product_attribute = Shop::addSqlAssociation('product_attribute', 'pa');
+        $joinProduct = Shop::addSqlAssociation('product', 'p');
+        $joinProductAttribute = Shop::addSqlAssociation('product_attribute', 'pa');
 
-        $attribute_groups = self::query(
+        $attributeGroups = self::query(
             'SELECT a.id_attribute, a.id_attribute_group
             FROM ' . _DB_PREFIX_ . 'attribute a
             LEFT JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON (pac.id_attribute = a.id_attribute)
             LEFT JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON (pa.id_product_attribute = pac.id_product_attribute)
             LEFT JOIN ' . _DB_PREFIX_ . 'product p ON (p.id_product = pa.id_product)
-            ' . $join_product . $join_product_attribute . '
+            ' . $joinProduct . $joinProductAttribute . '
             LEFT JOIN ' . _DB_PREFIX_ . 'category_product cp ON (cp.id_product = p.id_product)
             LEFT JOIN ' . _DB_PREFIX_ . 'category c ON (c.id_category = cp.id_category)
             WHERE c.active = 1' .
-            (count($categories_ids) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categories_ids)) . ')' : '') . '
+            (count($categoriesIds) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categoriesIds)) . ')' : '') . '
             AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog")
-            ' . (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : '')
+            ' . (count($productsIds) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $productsIds)) . ')' : '')
         );
 
-        $attribute_groups_by_id = [];
-        while ($row = $db->nextRow($attribute_groups)) {
-            $attribute_groups_by_id[(int) $row['id_attribute']] = (int) $row['id_attribute_group'];
+        $attributeGroupsById = [];
+        while ($row = $db->nextRow($attributeGroups)) {
+            $attributeGroupsById[(int) $row['id_attribute']] = (int) $row['id_attribute_group'];
         }
 
         $features = self::query(
@@ -1443,17 +1457,17 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             FROM ' . _DB_PREFIX_ . 'feature_value fv
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_product fp ON (fp.id_feature_value = fv.id_feature_value)
             LEFT JOIN ' . _DB_PREFIX_ . 'product p ON (p.id_product = fp.id_product)
-            ' . $join_product . '
+            ' . $joinProduct . '
             LEFT JOIN ' . _DB_PREFIX_ . 'category_product cp ON (cp.id_product = p.id_product)
             LEFT JOIN ' . _DB_PREFIX_ . 'category c ON (c.id_category = cp.id_category)
-            WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1' . (count($categories_ids) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categories_ids)) . ')' : '') . '
+            WHERE (fv.custom IS NULL OR fv.custom = 0) AND c.active = 1' . (count($categoriesIds) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categoriesIds)) . ')' : '') . '
             AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog") ' .
-            (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : '')
+            (count($productsIds) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $productsIds)) . ')' : '')
         );
 
-        $features_by_id = [];
+        $featuresById = [];
         while ($row = $db->nextRow($features)) {
-            $features_by_id[(int) $row['id_feature_value']] = (int) $row['id_feature'];
+            $featuresById[(int) $row['id_feature_value']] = (int) $row['id_feature'];
         }
 
         $result = self::query(
@@ -1467,99 +1481,106 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_product fp ON (fp.id_product = p.id_product)
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_value fv ON (fv.id_feature_value = fp.id_feature_value)
             LEFT JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON (pa.id_product = p.id_product)
-            ' . $join_product . $join_product_attribute . '
+            ' . $joinProduct . $joinProductAttribute . '
             LEFT JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON (pac.id_product_attribute = pa.id_product_attribute)
-            WHERE c.active = 1' . (count($categories_ids) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categories_ids)) . ')' : '') . '
+            WHERE c.active = 1' . (count($categoriesIds) ? ' AND cp.id_category IN (' . implode(',', array_map('intval', $categoriesIds)) . ')' : '') . '
             AND ' . $alias . '.active = 1 AND ' . $alias . '.`visibility` IN ("both", "catalog")
-            ' . (count($products_ids) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $products_ids)) . ')' : '') .
+            ' . (count($productsIds) ? 'AND p.id_product IN (' . implode(',', array_map('intval', $productsIds)) . ')' : '') .
             ' AND (fv.custom IS NULL OR fv.custom = 0)
             GROUP BY p.id_product'
         );
 
-        $shop_list = Shop::getShops(false, null, true);
+        $shopList = Shop::getShops(false, null, true);
 
-        $to_insert = false;
+        $toInsert = false;
         while ($product = $db->nextRow($result)) {
             $a = $c = $f = [];
             if (!empty($product['attributes'])) {
                 $a = array_flip(explode(',', $product['attributes']));
             }
+
             if (!empty($product['categories'])) {
                 $c = array_flip(explode(',', $product['categories']));
             }
+
             if (!empty($product['features'])) {
                 $f = array_flip(explode(',', $product['features']));
             }
 
-            $filter_data['shop_list'] = $shop_list;
+            $filterData['shop_list'] = $shopList;
 
-            foreach ($c as $id_category => $category) {
-                if (!in_array($id_category, $filter_data['categories'])) {
-                    $filter_data['categories'][] = $id_category;
+            foreach ($c as $idCategory => $category) {
+                if (!in_array($idCategory, $filterData['categories'])) {
+                    $filterData['categories'][] = $idCategory;
                 }
 
-                if (!isset($n_categories[(int) $id_category])) {
-                    $n_categories[(int) $id_category] = 1;
+                if (!isset($nCategories[(int) $idCategory])) {
+                    $nCategories[(int) $idCategory] = 1;
                 }
-                if (!isset($done_categories[(int) $id_category]['cat'])) {
-                    $filter_data['layered_selection_subcategories'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['cat'] = true;
-                    $to_insert = true;
+                if (!isset($doneCategories[(int) $idCategory]['cat'])) {
+                    $filterData['layered_selection_subcategories'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['cat'] = true;
+                    $toInsert = true;
                 }
-                if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0) {
-                    foreach ($a as $k_attribute => $attribute) {
-                        if (!isset($done_categories[(int) $id_category]['a' . (int) $attribute_groups_by_id[(int) $k_attribute]])) {
-                            $filter_data['layered_selection_ag_' . (int) $attribute_groups_by_id[(int) $k_attribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                            $done_categories[(int) $id_category]['a' . (int) $attribute_groups_by_id[(int) $k_attribute]] = true;
-                            $to_insert = true;
+                if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
+                    foreach ($a as $kAttribute => $attribute) {
+                        if (!isset($doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
+                            $filterData['layered_selection_ag_' . (int) $attributeGroupsById[(int) $kAttribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                            $doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]] = true;
+                            $toInsert = true;
                         }
                     }
                 }
-                if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0) {
-                    foreach ($f as $k_feature => $feature) {
-                        if (!isset($done_categories[(int) $id_category]['f' . (int) $features_by_id[(int) $k_feature]])) {
-                            $filter_data['layered_selection_feat_' . (int) $features_by_id[(int) $k_feature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                            $done_categories[(int) $id_category]['f' . (int) $features_by_id[(int) $k_feature]] = true;
-                            $to_insert = true;
+                if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
+                    foreach ($f as $kFeature => $feature) {
+                        if (!isset($doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
+                            $filterData['layered_selection_feat_' . (int) $featuresById[(int) $kFeature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                            $doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]] = true;
+                            $toInsert = true;
                         }
                     }
                 }
-                if (!isset($done_categories[(int) $id_category]['q'])) {
-                    $filter_data['layered_selection_stock'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['q'] = true;
-                    $to_insert = true;
+                if (!isset($doneCategories[(int) $idCategory]['q'])) {
+                    $filterData['layered_selection_stock'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['q'] = true;
+                    $toInsert = true;
                 }
-                if (!isset($done_categories[(int) $id_category]['m'])) {
-                    $filter_data['layered_selection_manufacturer'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['m'] = true;
-                    $to_insert = true;
+
+                if (!isset($doneCategories[(int) $idCategory]['m'])) {
+                    $filterData['layered_selection_manufacturer'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['m'] = true;
+                    $toInsert = true;
                 }
-                if (!isset($done_categories[(int) $id_category]['c'])) {
-                    $filter_data['layered_selection_condition'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['c'] = true;
-                    $to_insert = true;
+
+                if (!isset($doneCategories[(int) $idCategory]['c'])) {
+                    $filterData['layered_selection_condition'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['c'] = true;
+                    $toInsert = true;
                 }
-                if (!isset($done_categories[(int) $id_category]['w'])) {
-                    $filter_data['layered_selection_weight_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['w'] = true;
-                    $to_insert = true;
+
+                if (!isset($doneCategories[(int) $idCategory]['w'])) {
+                    $filterData['layered_selection_weight_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['w'] = true;
+                    $toInsert = true;
                 }
-                if (!isset($done_categories[(int) $id_category]['p'])) {
-                    $filter_data['layered_selection_price_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $done_categories[(int) $id_category]['p'] = true;
-                    $to_insert = true;
+
+                if (!isset($doneCategories[(int) $idCategory]['p'])) {
+                    $filterData['layered_selection_price_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['p'] = true;
+                    $toInsert = true;
                 }
             }
         }
-        if ($to_insert) {
+
+        if ($toInsert) {
             Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter(name, filters, n_categories, date_add)
-VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filter_data)) . '\', ' . count($filter_data['categories']) . ', NOW())');
+VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filterData)) . '\', ' . count($filterData['categories']) . ', NOW())');
 
             $last_id = Db::getInstance()->Insert_ID();
             Db::getInstance()->execute('DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . $last_id);
-            foreach ($shop_list as $id_shop) {
+            foreach ($shopList as $idShop) {
                 Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
-VALUES(' . $last_id . ', ' . (int) $id_shop . ')');
+VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             }
 
             if ($rebuildLayeredCategories) {
@@ -1584,19 +1605,19 @@ VALUES(' . $last_id . ', ' . (int) $id_shop . ')');
         $sqlInsert = '';
         $nbSqlValuesToInsert = 0;
 
-        foreach ($res as $filter_template) {
-            $data = Tools::unSerialize($filter_template['filters']);
-            foreach ($data['shop_list'] as $id_shop) {
-                if (!isset($categories[$id_shop])) {
-                    $categories[$id_shop] = [];
+        foreach ($res as $filterTemplate) {
+            $data = Tools::unSerialize($filterTemplate['filters']);
+            foreach ($data['shop_list'] as $idShop) {
+                if (!isset($categories[$idShop])) {
+                    $categories[$idShop] = [];
                 }
 
-                foreach ($data['categories'] as $id_category) {
+                foreach ($data['categories'] as $idCategory) {
                     $n = 0;
-                    if (!in_array($id_category, $categories[$id_shop])) {
+                    if (!in_array($idCategory, $categories[$idShop])) {
                         // Last definition, erase previous categories defined
 
-                        $categories[$id_shop][] = $id_category;
+                        $categories[$idShop][] = $idCategory;
 
                         foreach ($data as $key => $value) {
                             if (substr($key, 0, 17) == 'layered_selection') {
@@ -1605,22 +1626,22 @@ VALUES(' . $last_id . ', ' . (int) $id_shop . ')');
                                 ++$n;
 
                                 if ($key == 'layered_selection_stock') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif ($key == 'layered_selection_subcategories') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif ($key == 'layered_selection_condition') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif ($key == 'layered_selection_weight_slider') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif ($key == 'layered_selection_price_slider') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif ($key == 'layered_selection_manufacturer') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
 \'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
-                                    $sqlInsert .= '(' . (int) $id_category . ', ' . (int) $id_shop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
+                                    $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
 \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                                 }
 
