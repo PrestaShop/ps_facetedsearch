@@ -60,6 +60,32 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
     }
 
+    protected function getDefaultFilters()
+    {
+        return [
+            'layered_selection_subcategories' => [
+                'label' => 'Sub-categories filter',
+            ],
+            'layered_selection_stock' => [
+                'label' => 'Product stock filter',
+            ],
+            'layered_selection_condition' => [
+                'label' => 'Product condition filter',
+            ],
+            'layered_selection_manufacturer' => [
+                'label' => 'Product brand filter',
+            ],
+            'layered_selection_weight_slider' => [
+                'label' => 'Product weight filter (slider)',
+                'slider' => true,
+            ],
+            'layered_selection_price_slider' => [
+                'label' => 'Product price filter (slider)',
+                'slider' => true,
+            ],
+        ];
+    }
+
     public function install()
     {
         $installed = parent::install() && $this->registerHook(
@@ -1285,11 +1311,12 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 'template_name' => $template['name'],
                 'attribute_groups' => $attributeGroups,
                 'features' => $features,
-                'filters' => Tools::jsonEncode($filters),
+                'filters' => $filters,
                 'total_filters' => 6 + count($attributeGroups) + count($features),
+                'default_filters' => $this->getDefaultFilters(),
             ]);
 
-            return $this->display(__FILE__, 'views/templates/admin/add.tpl');
+            return $this->display(__FILE__, 'views/templates/admin/view.tpl');
         }
 
         $this->context->smarty->assign([

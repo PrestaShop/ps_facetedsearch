@@ -29,31 +29,11 @@
 
   <form action="{$current_url}" method="post" class="form-horizontal" onsubmit="return checkForm();">
     <input type="hidden" name="id_layered_filter" id="id_layered_filter" value="{$id_layered_filter}" />
-    <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Template name:' d='Modules.Facetedsearch.Admin'}</label>
-      <div class="col-lg-9">
-        <input type="text" id="layered_tpl_name" name="layered_tpl_name" maxlength="64" value="{$template_name}" />
-        <p class="help-block">{l s='Only as a reminder' d='Modules.Facetedsearch.Admin'}</p>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.Facetedsearch.Admin'}</label>
-      <div class="col-lg-9">
-        {if trim($categories_tree) != ''}
-          {$categories_tree}
-        {else}
-          <div class="alert alert-warning">
-            {l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.Facetedsearch.Admin'}
-          </div>
-        {/if}
-      </div>
-    </div>
-    {if isset($asso_shops)}
-      <div class="form-group">
-        <label class="control-label col-lg-3">{l s='Choose shop association:' d='Modules.Facetedsearch.Admin'}</label>
-        <div class="col-lg-9">{$asso_shops}</div>
-      </div>
-    {/if}
+
+    {include file='./_partials/header.tpl'}
+    {include file='./_partials/categories-tree.tpl'}
+    {include file='./_partials/shops.tpl'}
+
     <div class="form-group">
       <label class="control-label col-lg-3">
         <span class="badge" id="selected_filters">0</span>
@@ -420,18 +400,7 @@
         </section>
       </div>
     </div>
-    <div class="panel-footer" id="toolbar-footer">
-      <button class="btn btn-default pull-right" id="submit-filter" name="SubmitFilter" type="submit"><i class="process-icon-save"></i> <span>{l s='Save' d='Admin.Actions'}</span></button>
-      <a class="btn btn-default" href="{$current_url}">
-        <i class="process-icon-cancel"></i> <span>{l s='Cancel' d='Admin.Actions'}</span>
-      </a>
-    </div>
+
+    {include file='./_partials/footer.tpl'}
   </form>
 </div>
-
-<script type="text/javascript">
-  var translations = new Array();
-  {if isset($filters)}var filters = '{$filters}';{/if}
-  translations['no_selected_categories'] = "{l s='You must select at least one category' d='Modules.Facetedsearch.Admin'}";
-  translations['no_selected_filters'] = "{l s='You must select at least one filter' d='Modules.Facetedsearch.Admin'}";
-</script>
