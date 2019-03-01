@@ -44,7 +44,15 @@ use Tools;
 class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
     private $module;
+
+    /**
+     * @var Filters\Converter
+     */
     private $filtersConverter;
+
+    /**
+     * @var URLSerializer
+     */
     private $facetsSerializer;
 
     public function __construct(Ps_Facetedsearch $module)
@@ -155,9 +163,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         );
 
         $this->labelRangeFilters($facets);
-
         $this->addEncodedFacetsToFilters($facets);
-
         $this->hideZeroValues($facets);
         $this->hideUselessFacets($facets);
 

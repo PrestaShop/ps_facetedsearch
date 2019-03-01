@@ -203,7 +203,7 @@ class Block
         $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
         $priceRangesMax = $filteredSearchAdapter->getFieldRanges('price_max', 10);
 
-        $priceBlock['values'] = $filteredSearchAdapter->getMinMaxPriceValue();
+        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : $filteredSearchAdapter->getMinMaxPriceValue();
         $priceBlock['list_of_values'] = [
             [
                 'range_start' => $priceBlock['min'],
