@@ -199,11 +199,11 @@ class Block
         $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_min');
         $this->facetedSearchAdapter->getInitialPopulation()->resetFilter('price_max');
 
-        list($priceBlock['min'], $priceBlock['max']) = $filteredSearchAdapter->getMinMaxPriceValue();
+        list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
         $priceRangesMin = $filteredSearchAdapter->getFieldRanges('price_min', 10);
         $priceRangesMax = $filteredSearchAdapter->getFieldRanges('price_max', 10);
 
-        $priceBlock['values'] = [$priceBlock['min'], $priceBlock['max']];
+        $priceBlock['values'] = $filteredSearchAdapter->getMinMaxPriceValue();
         $priceBlock['list_of_values'] = [
             [
                 'range_start' => $priceBlock['min'],

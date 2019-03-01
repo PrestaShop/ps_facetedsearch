@@ -169,6 +169,7 @@
                 data-slider-min="{$filter.value.from}"
                 data-slider-max="{$filter.value.to}"
                 data-slider-id="{$_expand_id}"
+                data-slider-values="{$facet.properties.values|@json_encode}"
                 data-slider-unit="{$facet.properties.unit}"
                 data-slider-format="{$facet.properties.format}"
                 data-slider-encoded-facets="{$filter.nextEncodedFacets}"

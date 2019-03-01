@@ -5,13 +5,15 @@ $(document).ready(function() {
   function refreshSliders() {
     $('.faceted-slider').each(function() {
       const $el = $(this);
+      const $values = $el.data('slider-values');
+
       $('#slider-range_' + $el.data('slider-id')).slider({
         range: true,
         min: $el.data('slider-min'),
         max: $el.data('slider-max'),
         values: [
-          $el.data('slider-min'),
-          $el.data('slider-max')
+          $values[0],
+          $values[1]
         ],
         change: function(event, ui) {
           const nextEncodedFacetsURL = $el.data('slider-encoded-url');
