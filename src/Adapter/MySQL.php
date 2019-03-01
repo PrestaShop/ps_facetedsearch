@@ -541,46 +541,6 @@ class MySQL extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-    public function getFieldRanges($fieldName, $outputLength)
-    {
-        $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(
-            [
-                $fieldName,
-                'ROUND((-MIN(' . $fieldName . ') + MAX(' . $fieldName . ')) / ' . $outputLength . ') AS diff',
-            ]
-        );
-        $mysqlAdapter->setLimit(null);
-        $mysqlAdapter->setOrderField('');
-
-        $result = $mysqlAdapter->execute();
-        $diff = $result[0]['diff'];
-
-        if ($diff == 0) {
-            $diff = 1;
-        }
-
-        $mysqlAdapter = $this->getFilteredSearchAdapter();
-        $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(
-            [
-                $fieldName,
-                'FLOOR(' . $fieldName . '/' . $diff . ')*' . $diff . ' as range_start',
-                '(FLOOR(' . $fieldName . '/' . $diff . ')+1)*' . $diff . '-1 as range_end',
-                'COUNT(DISTINCT(p.id_product)) nbr',
-            ]
-        );
-        $mysqlAdapter->addGroupBy('FLOOR(' . $fieldName . ' / ' . $diff . ')');
-        $mysqlAdapter->setLimit(null);
-        $mysqlAdapter->setOrderField('');
-
-        return $mysqlAdapter->execute();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function count()
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();

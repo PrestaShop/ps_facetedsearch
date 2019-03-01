@@ -79,17 +79,6 @@ interface InterfaceAdapter
     public function getMinMaxPriceValue();
 
     /**
-     * Get the range of values + associated number of product for the given fieldName
-     * It try to generate the required outputLength number of ranges, if possible
-     *
-     * @param string $fieldName
-     * @param int $outputLength
-     *
-     * @return mixed
-     */
-    public function getFieldRanges($fieldName, $outputLength);
-
-    /**
      * Return all the filters associated with the current search
      *
      * @return mixed
