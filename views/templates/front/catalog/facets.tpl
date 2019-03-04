@@ -176,7 +176,7 @@
                 data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
               >
                 <li>
-                  <p>
+                  <p id="facet_label_{$_expand_id}">
                     {$filter.label}
                   </p>
 

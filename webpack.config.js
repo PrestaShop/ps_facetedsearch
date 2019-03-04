@@ -7,7 +7,7 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, './views/js')
+    path: path.resolve(__dirname, './views/js'),
   },
   module: {
     rules: [
@@ -19,7 +19,7 @@ module.exports = {
     ],
   },
   stats: {
-    colors: true
+    colors: true,
   },
   devtool: 'source-map',
 };
