@@ -34,7 +34,13 @@ function refreshSliders() {
         );
       },
       slide(event, ui) {
-        $(`#facet_label_${$el.data('slider-id')}`).val(`${formatter(ui.values[0])}-${formatter(ui.values[1])}`);
+        const $displayBlock = $(`#facet_label_${$el.data('slider-id')}`);
+        $displayBlock.text(
+          $displayBlock.text().replace(
+            /([^\d]*)(?:[\d \.,]+)([^\d]+)(?:[\d \.,]+)(.*)/,
+            `$1${formatter(ui.values[0])}$2${formatter(ui.values[1])}$3`,
+          ),
+        );
       },
     });
   });
