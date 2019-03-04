@@ -1,0 +1,33 @@
+{
+  "name": "ps_facetedsearch",
+  "version": "1.0.0",
+  "description": "## About",
+  "private": true,
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack-cli --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrestaShop/ps_facetedsearch.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PrestaShop/ps_facetedsearch/issues"
+  },
+  "homepage": "https://github.com/PrestaShop/ps_facetedsearch#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.4",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.4",
+    "babel-loader": "^8.0.5",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3"
+  }
+}

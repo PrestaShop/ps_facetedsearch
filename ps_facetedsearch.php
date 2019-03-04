@@ -163,7 +163,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            $this->context->controller->addJS($this->_path . 'js/ps_facetedsearchfront.js');
+            $this->context->controller->addJS($this->_path . 'views/js/front.js');
 
             return new SearchProvider($this);
         }
@@ -1267,7 +1267,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
-            $this->context->controller->addJS($this->_path . 'js/ps_facetedsearchadmin.js');
+            $this->context->controller->addJS($this->_path . 'views/js/admin.js');
             $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
         }
 

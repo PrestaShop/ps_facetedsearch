@@ -1,28 +1,28 @@
 function checkForm() {
-  var is_category_selected = false;
-  var is_filter_selected   = false;
+  let isCategorySelected = false;
+  let isFilterSelected = false;
 
   $('#categories-treeview input[type=checkbox]').each(function() {
     if ($(this).prop('checked')) {
-      is_category_selected = true;
+      isCategorySelected = true;
       return false;
     }
   });
 
   $('.filter_list_item input[type=checkbox]').each(function() {
     if ($(this).prop('checked')) {
-      is_filter_selected = true;
+      isFilterSelected = true;
       return false;
     }
   });
 
-  if (!is_category_selected) {
+  if (!isCategorySelected) {
     alert(translations['no_selected_categories']);
     $('#categories-treeview input[type=checkbox]').first().focus();
     return false;
   }
 
-  if (!is_filter_selected) {
+  if (!isFilterSelected) {
     alert(translations['no_selected_filters']);
     $('#filter_list_item input[type=checkbox]').first().focus();
     return false;
@@ -54,7 +54,7 @@ $(document).ready(function() {
     }
 
     this.restartAllowed = false;
-    var type = $(this).attr('rel');
+    const type = $(this).attr('rel');
 
     $.ajax({
       url: this.href+'&ajax=1',
@@ -169,20 +169,20 @@ $(document).ready(function() {
   });
 
   $('.filter_list_item input[type=checkbox]').click(function() {
-    var current_selected_filters_count = parseInt($('#selected_filters').html());
+    const currentSelectedFiltersCount = parseInt($('#selected_filters').html(), 10);
 
     $('#selected_filters').html(
       $(this).prop('checked') ?
-      current_selected_filters_count+1 :
-      current_selected_filters_count-1
+      currentSelectedFiltersCount+1 :
+      currentSelectedFiltersCount-1
     );
   });
 
 
   if (typeof filters !== 'undefined') {
     filters = JSON.parse(filters);
-    var container = null;
-    var $el;
+    let container = null;
+    let $el;
     for (filter in filters) {
       $el = $('#'+filter);
       $el.prop('checked', true);
