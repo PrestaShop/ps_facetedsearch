@@ -163,7 +163,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            $this->context->controller->addJS($this->_path . 'views/js/front.js');
+            $this->context->controller->addJS($this->_path . 'views/dist/front.js');
 
             return new SearchProvider($this);
         }
@@ -965,7 +965,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                         null,
                         null,
                         false,
-                        6,
+                        6, // Decimals
                         false,
                         false,
                         true,
@@ -1267,11 +1267,11 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
-            $this->context->controller->addJS($this->_path . 'views/js/admin.js');
+            $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
             $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
         }
 
-        $this->context->controller->addCSS($this->_path . 'css/ps_facetedsearch_admin.css');
+        $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
 
         if (Tools::getValue('add_new_filters_template')) {
             $this->context->smarty->assign([

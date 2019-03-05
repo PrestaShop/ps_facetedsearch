@@ -1,3 +1,5 @@
+import './blocklayered.scss';
+
 function checkForm() {
   let isCategorySelected = false;
   let isFilterSelected = false;
