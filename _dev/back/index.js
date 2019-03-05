@@ -24,32 +24,35 @@
  */
 import './blocklayered.scss';
 
+/* eslint-disable no-unused-vars, no-alert */
 function checkForm() {
   let isCategorySelected = false;
   let isFilterSelected = false;
 
-  $('#categories-treeview input[type=checkbox]').each(function() {
+  $('#categories-treeview input[type=checkbox]').each(function checkCategoriesCheckboxes() {
     if ($(this).prop('checked')) {
       isCategorySelected = true;
       return false;
     }
+    return true;
   });
 
-  $('.filter_list_item input[type=checkbox]').each(function() {
+  $('.filter_list_item input[type=checkbox]').each(function checkFilterListCheckboxes() {
     if ($(this).prop('checked')) {
       isFilterSelected = true;
       return false;
     }
+    return true;
   });
 
   if (!isCategorySelected) {
-    alert(translations['no_selected_categories']);
+    alert(translations.no_selected_categories);
     $('#categories-treeview input[type=checkbox]').first().focus();
     return false;
   }
 
   if (!isFilterSelected) {
-    alert(translations['no_selected_filters']);
+    alert(translations.no_selected_filters);
     $('#filter_list_item input[type=checkbox]').first().focus();
     return false;
   }
@@ -57,25 +60,25 @@ function checkForm() {
   return true;
 }
 
-$(document).ready(function() {
-  $('.ajaxcall').click(function() {
-    if (this.legend == undefined) {
+$(document).ready(() => {
+  $('.ajaxcall').click(function onAjaxCall() {
+    if (this.legend === undefined) {
       this.legend = $(this).html();
     }
 
-    if (this.running == undefined) {
+    if (this.running === undefined) {
       this.running = false;
     }
 
-    if (this.running == true) {
+    if (this.running === true) {
       return false;
     }
 
     $('.ajax-message').hide();
     this.running = true;
 
-    if (typeof(this.restartAllowed) == 'undefined' || this.restartAllowed) {
-      $(this).html(this.legend + translations['in_progress']);
+    if (typeof (this.restartAllowed) === 'undefined' || this.restartAllowed) {
+      $(this).html(this.legend + translations.in_progress);
       $('#indexing-warning').show();
     }
 
@@ -83,106 +86,101 @@ $(document).ready(function() {
     const type = $(this).attr('rel');
 
     $.ajax({
-      url: this.href+'&ajax=1',
+      url: `${this.href}&ajax=1`,
       context: this,
       dataType: 'json',
       cache: 'false',
-      success: function(res) {
+      success() {
         this.running = false;
         this.restartAllowed = true;
         $('#indexing-warning').hide();
         $(this).html(this.legend);
 
         $('#ajax-message-ok span').html(
-          type === 'price' ?
-          translations['url_indexation_finished'] :
-          translations['attribute_indexation_finished']
+          type === 'price' ? translations.url_indexation_finished : translations.attribute_indexation_finished,
         );
 
         $('#ajax-message-ok').show();
       },
-      error: function(res) {
+      error() {
         this.restartAllowed = true;
         $('#indexing-warning').hide();
 
         $('#ajax-message-ko span').html(
-          type === 'price' ?
-          translations['url_indexation_failed'] :
-          translations['attribute_indexation_failed']
+          type === 'price' ? translations.url_indexation_failed : translations.attribute_indexation_failed,
         );
 
         $('#ajax-message-ko').show();
         $(this).html(this.legend);
         this.running = false;
-      }
+      },
     });
 
     return false;
   });
 
-  $('.ajaxcall-recurcive').each(function(it, elm) {
-    $(elm).click(
-      function() {
-        if (this.cursor == undefined) {
-          this.cursor = 0;
-        }
+  $('.ajaxcall-recurcive').each((it, elm) => {
+    $(elm).click(function onAjaxRecursiveCall() {
+      if (this.cursor === undefined) {
+        this.cursor = 0;
+      }
 
-        if (this.legend == undefined) {
-          this.legend = $(this).html();
-        }
+      if (this.legend === undefined) {
+        this.legend = $(this).html();
+      }
 
-        if (this.running == undefined) {
-          this.running = false;
-        }
+      if (this.running === undefined) {
+        this.running = false;
+      }
 
-        if (this.running == true) {
-          return false;
-        }
-
-        $('.ajax-message').hide();
-
-        this.running = true;
-
-        if (typeof(this.restartAllowed) == 'undefined' || this.restartAllowed) {
-          $(this).html(this.legend+translations['in_progress']);
-          $('#indexing-warning').show();
-        }
-
-        this.restartAllowed = false;
-
-        $.ajax({
-          url: this.href+'&ajax=1&cursor=' + this.cursor,
-          context: this,
-          dataType: 'json',
-          cache: 'false',
-          success: function(res) {
-            this.running = false;
-            if (res.result) {
-              this.cursor = 0;
-              $('#indexing-warning').hide();
-              $(this).html(this.legend);
-              $('#ajax-message-ok span').html(translations['price_indexation_finished']);
-              $('#ajax-message-ok').show();
-              return;
-            }
-
-            this.cursor = parseInt(res.cursor);
-            $(this).html(this.legend+translations['price_indexation_in_progress'].replace('%s', res.count));
-            $(this).click();
-          },
-          error: function(res) {
-            this.restartAllowed = true;
-            $('#indexing-warning').hide();
-            $('#ajax-message-ko span').html(translations['price_indexation_failed']);
-            $('#ajax-message-ko').show();
-            $(this).html(this.legend);
-
-            this.cursor = 0;
-            this.running = false;
-          }
-        });
+      if (this.running === true) {
         return false;
+      }
+
+      $('.ajax-message').hide();
+
+      this.running = true;
+
+      if (typeof (this.restartAllowed) === 'undefined' || this.restartAllowed) {
+        $(this).html(this.legend + translations.in_progress);
+        $('#indexing-warning').show();
+      }
+
+      this.restartAllowed = false;
+
+      $.ajax({
+        url: `${this.href}&ajax=1&cursor=${this.cursor}`,
+        context: this,
+        dataType: 'json',
+        cache: 'false',
+        success(res) {
+          this.running = false;
+          if (res.result) {
+            this.cursor = 0;
+            $('#indexing-warning').hide();
+            $(this).html(this.legend);
+            $('#ajax-message-ok span').html(translations.price_indexation_finished);
+            $('#ajax-message-ok').show();
+            return;
+          }
+
+          this.cursor = parseInt(res.cursor, 10);
+          $(this).html(this.legend + translations.price_indexation_in_progress.replace('%s', res.count));
+          $(this).click();
+        },
+        error(res) {
+          this.restartAllowed = true;
+          $('#indexing-warning').hide();
+          $('#ajax-message-ko span').html(translations.price_indexation_failed);
+          $('#ajax-message-ko').show();
+          $(this).html(this.legend);
+
+          this.cursor = 0;
+          this.running = false;
+        },
       });
+      return false;
+    });
   });
 
   if (typeof PS_LAYERED_INDEXED !== 'undefined' && PS_LAYERED_INDEXED) {
@@ -191,16 +189,14 @@ $(document).ready(function() {
   }
 
   $('.sortable').sortable({
-    forcePlaceholderSize: true
+    forcePlaceholderSize: true,
   });
 
-  $('.filter_list_item input[type=checkbox]').click(function() {
+  $('.filter_list_item input[type=checkbox]').click(function onFilterLickItemCheckboxesClicked() {
     const currentSelectedFiltersCount = parseInt($('#selected_filters').html(), 10);
 
     $('#selected_filters').html(
-      $(this).prop('checked') ?
-      currentSelectedFiltersCount+1 :
-      currentSelectedFiltersCount-1
+      $(this).prop('checked') ? currentSelectedFiltersCount + 1 : currentSelectedFiltersCount - 1,
     );
   });
 
@@ -209,20 +205,20 @@ $(document).ready(function() {
     filters = JSON.parse(filters);
     let container = null;
     let $el;
-    for (filter in filters) {
-      $el = $('#'+filter);
+    Object.keys(filters).forEach((filter) => {
+      $el = $(`#${filter}`);
       $el.prop('checked', true);
-      $('#selected_filters').html(parseInt($('#selected_filters').html())+1);
-      $('select[name="'+filter+'_filter_type"]').val(filters[filter].filter_type);
-      $('select[name="'+filter+'_filter_show_limit"]').val(filters[filter].filter_show_limit);
+      $('#selected_filters').html(parseInt($('#selected_filters').html(), 10) + 1);
+      $(`select[name="${filter}_filter_type"]`).val(filters[filter].filter_type);
+      $(`select[name="${filter}_filter_show_limit"]`).val(filters[filter].filter_show_limit);
       if (container === null) {
-        container = $('#'+filter).closest('ul');
+        container = $(`#${filter}`).closest('ul');
         $el.closest('li').detach().prependTo(container);
       } else {
         $el.closest('li').detach().insertAfter(container);
       }
 
       container = $el.closest('li');
-    }
+    });
   }
 });

@@ -1268,10 +1268,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
         if (method_exists($this->context->controller, 'addJquery')) {
-            $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
             $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
         }
 
+        $this->context->controller->addJS($this->_path . 'views/dist/back.js');
         $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
 
         if (Tools::getValue('add_new_filters_template')) {

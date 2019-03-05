@@ -61,7 +61,7 @@ function refreshSliders() {
         const $displayBlock = $(`#facet_label_${$el.data('slider-id')}`);
         $displayBlock.text(
           $displayBlock.text().replace(
-            /([^\d]*)(?:[\d \.,]+)([^\d]+)(?:[\d \.,]+)(.*)/,
+            /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
             `$1${formatter(ui.values[0])}$2${formatter(ui.values[1])}$3`,
           ),
         );
