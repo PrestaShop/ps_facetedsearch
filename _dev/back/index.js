@@ -120,7 +120,9 @@ $(document).ready(() => {
   });
 
   $('.ajaxcall-recurcive').each((it, elm) => {
-    $(elm).click(function onAjaxRecursiveCall() {
+    $(elm).click(function onAjaxRecursiveCall(e) {
+      e.preventDefault();
+
       if (this.cursor === undefined) {
         this.cursor = 0;
       }

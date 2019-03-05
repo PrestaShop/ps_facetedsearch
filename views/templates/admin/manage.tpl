@@ -194,17 +194,17 @@
 	var token = '{$token}';
 	var id_lang = {$id_lang};
 	var base_folder = '{$base_folder}';
-	var translations = new Array();
+	var translations = new Object();
 
-	translations['in_progress'] = '{l s='(in progress)' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['url_indexation_finished'] = '{l s='URL indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['attribute_indexation_finished'] = '{l s='Attribute indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['url_indexation_failed'] = '{l s='URL indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['attribute_indexation_failed'] = '{l s='Attribute indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['price_indexation_finished'] = '{l s='Price indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['price_indexation_failed'] = '{l s='Price indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['price_indexation_in_progress'] = '{l s='(in progress, %s products price to index)' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['loading'] = '{l s='Loading...' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['delete_all_filters_templates'] = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 d='Modules.Facetedsearch.Admin'}';
-	translations['no_selected_categories'] = '{l s='You must select at least one category' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.in_progress = '{l s='(in progress)' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.url_indexation_finished = '{l s='URL indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.attribute_indexation_finished = '{l s='Attribute indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.url_indexation_failed = '{l s='URL indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.attribute_indexation_failed = '{l s='Attribute indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_finished = '{l s='Price indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_failed = '{l s='Price indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_in_progress = '{l s='(in progress, %s products price to index)' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.loading = '{l s='Loading...' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.delete_all_filters_templates = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.no_selected_categories = '{l s='You must select at least one category' js=1 d='Modules.Facetedsearch.Admin'}';
 </script>

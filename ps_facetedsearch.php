@@ -1323,7 +1323,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         $this->context->smarty->assign([
             'message' => $message,
             'uri' => $this->getPathUri(),
-            'PS_LAYERED_INDEXED' => Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
+            'PS_LAYERED_INDEXED' => (int) Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
             'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
             'id_lang' => Context::getContext()->cookie->id_lang,
             'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
