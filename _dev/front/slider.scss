@@ -1,14 +1,22 @@
-.faceted-search {
+#search_filters {
   .ui-slider-horizontal {
     .ui-slider-handle {
       margin-left: -1px;
+      cursor: pointer;
     }
+  }
+  .ui-widget-header {
+    background: #555;
   }
   .ui-slider {
     .ui-slider-handle {
+      top: -.4em;
       width: 0.4em;
       background: #fff;
       border: 1px solid #555;
     }
+  }
+  .ui-slider-horizontal {
+    height: .4em;
   }
 }

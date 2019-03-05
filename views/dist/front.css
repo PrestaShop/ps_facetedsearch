@@ -1,10 +1,18 @@
-.faceted-search .ui-slider-horizontal .ui-slider-handle {
-  margin-left: -1px; }
+#search_filters .ui-slider-horizontal .ui-slider-handle {
+  margin-left: -1px;
+  cursor: pointer; }
 
-.faceted-search .ui-slider .ui-slider-handle {
+#search_filters .ui-widget-header {
+  background: #555; }
+
+#search_filters .ui-slider .ui-slider-handle {
+  top: -.4em;
   width: 0.4em;
   background: #fff;
   border: 1px solid #555; }
+
+#search_filters .ui-slider-horizontal {
+  height: .4em; }
 
 
 /*# sourceMappingURL=front.css.map*/
