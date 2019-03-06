@@ -199,13 +199,15 @@ class Block
 
         list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
         $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : $filteredSearchAdapter->getMinMaxPriceValue();
-        $priceBlock['list_of_values'] = [
-            [
-                'range_start' => $priceBlock['min'],
-                'range_end' => $priceBlock['max'],
-                'nbr' => $nbProducts
-            ]
-        ];
+        if ($priceBlock['min'] !== $priceBlock['max']) {
+            $priceBlock['list_of_values'] = [
+                [
+                    'range_start' => $priceBlock['min'],
+                    'range_end' => $priceBlock['max'],
+                    'nbr' => $nbProducts
+                ]
+            ];
+        }
 
         $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
@@ -302,13 +304,15 @@ class Block
         }
 
         $weightBlock['values'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : [$weightBlock['min'], $weightBlock['max']];
-        $weightBlock['list_of_values'] = [
-            [
-                'range_start' => $weightBlock['min'],
-                'range_end' => $weightBlock['max'],
-                'nbr' => $nbProducts
-            ]
-        ];
+        if ($weightBlock['min'] !== $weightBlock['max']) {
+            $weightBlock['list_of_values'] = [
+                [
+                    'range_start' => $weightBlock['min'],
+                    'range_end' => $weightBlock['max'],
+                    'nbr' => $nbProducts
+                ]
+            ];
+        }
 
         $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
