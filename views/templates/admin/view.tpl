@@ -196,7 +196,7 @@
 					<a class="slide-button btn"></a>
 				</span>
 				<p class="help-block">
-					Sorts products like this: In Stock, Back-order available, Out Of Stock.
+					{l s='Sorts products like this: In Stock, Back-order available, Out Of Stock.' d='Modules.Facetedsearch.Admin'}
 				</p>
 			</div>
 		</div>
