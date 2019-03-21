@@ -104,4 +104,23 @@ describe('CurrencyFormatter', () => {
       });
     });
   });
+
+  describe('replaceSymbols', () => {
+    it('should replace all symbols', () => {
+      currency.numberSpecification.symbol = new NumberSymbol(
+        '-_-',
+        ':)',
+        ';',
+        '%',
+        '-',
+        '+',
+        'E',
+        '×',
+        '‰',
+        '∞',
+        'NaN',
+      );
+      expect(currency.replaceSymbols('¤10,000,000.13')).to.eq('¤10:)000:)000-_-13');
+    });
+  });
 });

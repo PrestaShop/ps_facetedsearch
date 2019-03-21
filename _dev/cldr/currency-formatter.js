@@ -162,13 +162,14 @@ class CurrencyFormatter {
    */
   replaceSymbols(number) {
     const symbols = this.numberSpecification.getSymbol();
+    let num = number;
+    num = num.split(DECIMAL_SEPARATOR_PLACEHOLDER).join(symbols.getDecimal());
+    num = num.split(GROUP_SEPARATOR_PLACEHOLDER).join(symbols.getGroup());
+    num = num.split(MINUS_SIGN_PLACEHOLDER).join(symbols.getMinusSign());
+    num = num.split(PERCENT_SYMBOL_PLACEHOLDER).join(symbols.getPercentSign());
+    num = num.split(PLUS_SIGN_PLACEHOLDER).join(symbols.getPlusSign());
 
-    return number
-      .replace(DECIMAL_SEPARATOR_PLACEHOLDER, symbols.getDecimal())
-      .replace(GROUP_SEPARATOR_PLACEHOLDER, symbols.getGroup())
-      .replace(MINUS_SIGN_PLACEHOLDER, symbols.getMinusSign())
-      .replace(PERCENT_SYMBOL_PLACEHOLDER, symbols.getPercentSign())
-      .replace(PLUS_SIGN_PLACEHOLDER, symbols.getPlusSign());
+    return num;
   }
 
   /**
