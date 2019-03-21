@@ -30,7 +30,7 @@
   },
   "scripts": {
     "test": [
-      "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/phpunit.xml"
+      "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/php/phpunit.xml"
     ]
   }
 }
