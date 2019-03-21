@@ -1,4 +1,5 @@
 import LocalizationException from './exception/localization';
+import NumberSymbol from './number-symbol';
 
 /**
  * Currency display option: symbol notation.
@@ -12,8 +13,7 @@ class PriceSpecification {
    *
    * @param string positivePattern CLDR formatting pattern for positive amounts
    * @param string negativePattern CLDR formatting pattern for negative amounts
-   * @param NumberSymbol symbols List of available number symbols lists (NumberSymbolList objects)
-   *                             Each list is indexed by numbering system
+   * @param NumberSymbol symbol Number symbol
    * @param int maxFractionDigits Maximum number of digits after decimal separator
    * @param int minFractionDigits Minimum number of digits after decimal separator
    * @param bool groupingUsed Is digits grouping used ?
@@ -45,8 +45,8 @@ class PriceSpecification {
 
     this.maxFractionDigits = maxFractionDigits;
     this.minFractionDigits = maxFractionDigits < minFractionDigits
-      ? maxFractionDigits
-      : minFractionDigits;
+                                               ? maxFractionDigits
+                                               : minFractionDigits;
 
     this.groupingUsed = groupingUsed;
     this.primaryGroupSize = primaryGroupSize;
@@ -98,7 +98,7 @@ class PriceSpecification {
       throw new LocalizationException('Invalid negativePattern');
     }
 
-    if (!this.symbol || typeof this.symbol !== 'string') {
+    if (!this.symbol || !(this.symbol instanceof NumberSymbol)) {
       throw new LocalizationException('Invalid symbol');
     }
 

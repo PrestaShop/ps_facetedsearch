@@ -1,7 +1,24 @@
 import {expect} from 'chai';
 import PriceSpecification from '../../../_dev/cldr/price-specification';
+import NumberSymbol from '../../../_dev/cldr/number-symbol';
 
 describe('PriceSpecification', () => {
+  let symbol;
+  beforeEach(() => {
+    symbol = new NumberSymbol(
+      '.',
+      ',',
+      ';',
+      '%',
+      '-',
+      '+',
+      'E',
+      '×',
+      '‰',
+      '∞',
+      'NaN',
+    );
+  });
   describe('validateData', () => {
     it('should throw if invalid positive pattern', () => {
       expect(() => { new PriceSpecification(); }).to.throw('Invalid positivePattern');
@@ -29,7 +46,7 @@ describe('PriceSpecification', () => {
         new PriceSpecification(
           '#,##0.###',
           '-#,##0.###',
-          '$',
+          symbol,
         );
       }).to.throw('Invalid maxFractionDigits');
     });
@@ -39,7 +56,7 @@ describe('PriceSpecification', () => {
         new PriceSpecification(
           '#,##0.###',
           '-#,##0.###',
-          '$',
+          symbol,
           3,
         );
       }).to.throw('Invalid minFractionDigits');
@@ -50,7 +67,7 @@ describe('PriceSpecification', () => {
         new PriceSpecification(
           '#,##0.###',
           '-#,##0.###',
-          '$',
+          symbol,
           3,
           0,
         );
@@ -62,7 +79,7 @@ describe('PriceSpecification', () => {
         new PriceSpecification(
           '#,##0.###',
           '-#,##0.###',
-          '$',
+          symbol,
           3,
           0,
           false,
@@ -75,7 +92,7 @@ describe('PriceSpecification', () => {
         new PriceSpecification(
           '#,##0.###',
           '-#,##0.###',
-          '$',
+          symbol,
           3,
           0,
           true,

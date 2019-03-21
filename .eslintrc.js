@@ -23,6 +23,7 @@ module.exports = {
     translations: true,
   },
   rules: {
-    "no-new": 0,
+    'no-new': 0,
+    'class-methods-use-this': 0,
   },
 };
