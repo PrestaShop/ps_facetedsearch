@@ -20,17 +20,19 @@ describe('CurrencyFormatter', () => {
       'NaN',
     );
     currency = new CurrencyFormatter();
-    currency.numberSpecification = new PriceSpecification(
-      '#,##0.###',
-      '-#,##0.###',
-      symbol,
-      3,
-      0,
-      true,
-      3,
-      3,
-      '$',
-      'USD',
+    currency.setNumberSpecification(
+      new PriceSpecification(
+        '¤#,##0.###',
+        '-¤#,##0.###',
+        symbol,
+        3,
+        0,
+        true,
+        3,
+        3,
+        '$',
+        'USD',
+      ),
     );
   });
 
@@ -50,8 +52,8 @@ describe('CurrencyFormatter', () => {
 
   describe('getCldrPattern', () => {
     const assertions = [
-      [false, '#,##0.###'],
-      [true, '-#,##0.###'],
+      [false, '¤#,##0.###'],
+      [true, '-¤#,##0.###'],
     ];
     assertions.forEach((assertion) => {
       it(`test isNegative ${assertion[0]}`, () => {
@@ -129,6 +131,24 @@ describe('CurrencyFormatter', () => {
   describe('addPlaceholders', () => {
     it('should replace currency symbol', () => {
       expect(currency.performSpecificReplacements('¤10,000,000.13')).to.eq('$10,000,000.13');
+    });
+  });
+
+  describe('format', () => {
+    const assertions = [
+      ['10.3', '$10.300'],
+      ['100.34', '$100.340'],
+      ['1000.345', '$1,000.345'],
+      ['10000.3456', '$10,000.346'],
+      ['100000.512', '$100,000.512'],
+      ['1000000', '$1,000,000.000'],
+      ['10000000', '$10,000,000.000'],
+      ['100000000', '$100,000,000.000'],
+    ];
+    assertions.forEach((assertion) => {
+      it(`test ${assertion[0]}`, () => {
+        expect(currency.format(assertion[0])).to.eq(assertion[1]);
+      });
     });
   });
 });

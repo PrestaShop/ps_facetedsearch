@@ -10,6 +10,12 @@ const PERCENT_SYMBOL_PLACEHOLDER = '%';
 const PLUS_SIGN_PLACEHOLDER = '+';
 
 class CurrencyFormatter {
+  setNumberSpecification(specification) {
+    if (specification !== undefined) {
+      this.numberSpecification = specification;
+    }
+  }
+
   /**
    * Formats the passed number according to specifications.
    *
@@ -22,7 +28,7 @@ class CurrencyFormatter {
    *
    */
   format(number, specification) {
-    this.numberSpecification = specification;
+    this.setNumberSpecification(specification);
 
     /*
      * We need to work on the absolute value first.
