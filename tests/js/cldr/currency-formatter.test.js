@@ -74,7 +74,7 @@ describe('CurrencyFormatter', () => {
       ['100000000', '100,000,000'],
     ];
     assertions.forEach((assertion) => {
-      it(`test ${assertion[0]}`, () => {
+      it(`test ${assertion[0]} should display ${assertion[1]}`, () => {
         expect(currency.splitMajorGroups(assertion[0])).to.eq(assertion[1]);
       });
     });
@@ -90,7 +90,7 @@ describe('CurrencyFormatter', () => {
       ['1270', '127'],
     ];
     assertions.forEach((assertion) => {
-      it(`test ${assertion[0]}`, () => {
+      it(`test ${assertion[0]} should display ${assertion[1]}`, () => {
         currency.numberSpecification.minFractionDigits = 2;
         expect(currency.adjustMinorDigitsZeroes(assertion[0])).to.eq(assertion[1]);
       });
@@ -103,7 +103,7 @@ describe('CurrencyFormatter', () => {
       ['100.13', '¤#,##0.00', '¤100.13'],
     ];
     assertions.forEach((assertion) => {
-      it(`test ${assertion[0]} with pattern ${assertion[1]}`, () => {
+      it(`test ${assertion[0]} with pattern ${assertion[1]} should display ${assertion[2]}`, () => {
         expect(currency.addPlaceholders(assertion[0], assertion[1])).to.eq(assertion[2]);
       });
     });
@@ -146,7 +146,7 @@ describe('CurrencyFormatter', () => {
       ['100000000', '$100,000,000.000'],
     ];
     assertions.forEach((assertion) => {
-      it(`test ${assertion[0]}`, () => {
+      it(`test ${assertion[0]} should display ${assertion[1]}`, () => {
         expect(currency.format(assertion[0])).to.eq(assertion[1]);
       });
     });

@@ -30,6 +30,7 @@ module.exports = {
   entry: {
     front: './_dev/front',
     back: './_dev/back',
+    cldr: './_dev/cldr',
   },
   output: {
     filename: '[name].js',
