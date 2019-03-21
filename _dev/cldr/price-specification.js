@@ -44,9 +44,8 @@ class PriceSpecification {
     this.symbol = symbol;
 
     this.maxFractionDigits = maxFractionDigits;
-    this.minFractionDigits = maxFractionDigits < minFractionDigits
-      ? maxFractionDigits
-      : minFractionDigits;
+    // eslint-disable-next-line
+    this.minFractionDigits = maxFractionDigits < minFractionDigits ? maxFractionDigits : minFractionDigits;
 
     this.groupingUsed = groupingUsed;
     this.primaryGroupSize = primaryGroupSize;
@@ -120,6 +119,14 @@ class PriceSpecification {
 
     if (typeof this.secondaryGroupSize !== 'number') {
       throw new LocalizationException('Invalid secondaryGroupSize');
+    }
+
+    if (!this.currencySymbol || typeof this.currencySymbol !== 'string') {
+      throw new LocalizationException('Invalid currencySymbol');
+    }
+
+    if (!this.currencyCode || typeof this.currencyCode !== 'string') {
+      throw new LocalizationException('Invalid currencyCode');
     }
   }
 

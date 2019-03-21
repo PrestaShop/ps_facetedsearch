@@ -100,5 +100,53 @@ describe('PriceSpecification', () => {
         );
       }).to.throw('Invalid secondaryGroupSize');
     });
+
+    it('should throw if invalid currencySymbol', () => {
+      expect(() => {
+        new PriceSpecification(
+          '#,##0.###',
+          '-#,##0.###',
+          symbol,
+          3,
+          0,
+          true,
+          3,
+          3,
+        );
+      }).to.throw('Invalid currencySymbol');
+    });
+
+    it('should throw if invalid currencyCode', () => {
+      expect(() => {
+        new PriceSpecification(
+          '#,##0.###',
+          '-#,##0.###',
+          symbol,
+          3,
+          0,
+          true,
+          3,
+          3,
+          '$',
+        );
+      }).to.throw('Invalid currencyCode');
+    });
+
+    it('should not throw if everything is ok', () => {
+      expect(() => {
+        new PriceSpecification(
+          '#,##0.###',
+          '-#,##0.###',
+          symbol,
+          3,
+          0,
+          true,
+          3,
+          3,
+          '$',
+          'USD',
+        );
+      }).to.not.throw();
+    });
   });
 });

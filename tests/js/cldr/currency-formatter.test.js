@@ -29,6 +29,8 @@ describe('CurrencyFormatter', () => {
       true,
       3,
       3,
+      '$',
+      'USD',
     );
   });
 
@@ -121,6 +123,12 @@ describe('CurrencyFormatter', () => {
         'NaN',
       );
       expect(currency.replaceSymbols('¤10,000,000.13')).to.eq('¤10:)000:)000-_-13');
+    });
+  });
+
+  describe('addPlaceholders', () => {
+    it('should replace currency symbol', () => {
+      expect(currency.performSpecificReplacements('¤10,000,000.13')).to.eq('$10,000,000.13');
     });
   });
 });

@@ -214,11 +214,10 @@ class CurrencyFormatter {
    *
    * @return mixed
    */
-  performSpecificReplacements(formattedNumber, symbol) {
-    return formattedNumber.replace(
-      CURRENCY_SYMBOL_PLACEHOLDER,
-      symbol,
-    );
+  performSpecificReplacements(formattedNumber) {
+    return formattedNumber
+      .split(CURRENCY_SYMBOL_PLACEHOLDER)
+      .join(this.numberSpecification.getCurrencySymbol());
   }
 }
 
