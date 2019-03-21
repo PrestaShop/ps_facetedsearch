@@ -45,8 +45,8 @@ class PriceSpecification {
 
     this.maxFractionDigits = maxFractionDigits;
     this.minFractionDigits = maxFractionDigits < minFractionDigits
-                                               ? maxFractionDigits
-                                               : minFractionDigits;
+      ? maxFractionDigits
+      : minFractionDigits;
 
     this.groupingUsed = groupingUsed;
     this.primaryGroupSize = primaryGroupSize;

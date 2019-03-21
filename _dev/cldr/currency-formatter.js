@@ -196,7 +196,8 @@ class CurrencyFormatter {
      * #          : literal "#" character. Once.
      * (,#+)*     : any other "#" characters group, separated by ",". Zero to infinity times.
      * 0          : literal "0" character. Once.
-     * (\.[0#]+)* : any combination of "0" and "#" characters groups, separated by '.'. Zero to infinity times.
+     * (\.[0#]+)* : any combination of "0" and "#" characters groups, separated by '.'.
+     *              Zero to infinity times.
      */
     return pattern.replace(/#?(,#+)*0(\.[0#]+)*/, formattedNumber);
   }
