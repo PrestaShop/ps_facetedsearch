@@ -34,10 +34,12 @@ const PERCENT_SYMBOL_PLACEHOLDER = '%';
 const PLUS_SIGN_PLACEHOLDER = '+';
 
 class CurrencyFormatter {
-  setNumberSpecification(specification) {
-    if (specification !== undefined) {
-      this.numberSpecification = specification;
-    }
+  /**
+   * @param NumberSpecification specification Number specification to be used
+   *   (can be a number spec, a price spec, a percentage spec)
+   */
+  constructor(specification) {
+    this.numberSpecification = specification;
   }
 
   /**
@@ -49,10 +51,11 @@ class CurrencyFormatter {
    *
    * @return string The formatted number
    *                You should use this this value for display, without modifying it
-   *
    */
   format(number, specification) {
-    this.setNumberSpecification(specification);
+    if (specification !== undefined) {
+      this.numberSpecification = specification;
+    }
 
     /*
      * We need to work on the absolute value first.

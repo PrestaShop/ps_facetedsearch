@@ -19,8 +19,7 @@ describe('CurrencyFormatter', () => {
       '∞',
       'NaN',
     );
-    currency = new CurrencyFormatter();
-    currency.setNumberSpecification(
+    currency = new CurrencyFormatter(
       new PriceSpecification(
         '¤#,##0.###',
         '-¤#,##0.###',
@@ -112,11 +111,11 @@ describe('CurrencyFormatter', () => {
   describe('replaceSymbols', () => {
     it('should replace all symbols', () => {
       currency.numberSpecification.symbol = new NumberSymbol(
-        '-_-',
+        '_',
         ':)',
         ';',
         '%',
-        '-',
+        'Moins',
         '+',
         'E',
         '×',
@@ -124,7 +123,7 @@ describe('CurrencyFormatter', () => {
         '∞',
         'NaN',
       );
-      expect(currency.replaceSymbols('¤10,000,000.13')).to.eq('¤10:)000:)000-_-13');
+      expect(currency.replaceSymbols('¤-10,000,000.13')).to.eq('¤Moins10:)000:)000_13');
     });
   });
 

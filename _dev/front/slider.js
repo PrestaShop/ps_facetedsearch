@@ -22,8 +22,29 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-function formatter(number) {
-  return number;
+
+import NumberSymbol from '../cldr/number-symbol';
+import CurrencyFormatter from '../cldr/currency-formatter';
+import PriceSpecification from '../cldr/price-specification';
+
+function prepareCurrencyFormatter(specifications) {
+  const symbol = new NumberSymbol(...specifications.symbol);
+  const currency = new CurrencyFormatter(
+    new PriceSpecification(
+      specifications.positivePattern,
+      specifications.negativePattern,
+      symbol,
+      parseInt(specifications.maxFractionDigits, 10),
+      parseInt(specifications.minFractionDigits, 10),
+      specifications.groupingUsed,
+      specifications.primaryGroupSize,
+      specifications.secondaryGroupSize,
+      specifications.currencySymbol,
+      specifications.currencyCode,
+    ),
+  );
+
+  return currency;
 }
 
 /**
@@ -33,6 +54,7 @@ function refreshSliders() {
   $('.faceted-slider').each(function initializeSliders() {
     const $el = $(this);
     const $values = $el.data('slider-values');
+    const formatter = prepareCurrencyFormatter($el.data('slider-specifications'));
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
@@ -59,11 +81,9 @@ function refreshSliders() {
       },
       slide(event, ui) {
         const $displayBlock = $(`#facet_label_${$el.data('slider-id')}`);
+
         $displayBlock.text(
-          $displayBlock.text().replace(
-            /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
-            `$1${formatter(ui.values[0])}$2${formatter(ui.values[1])}$3`,
-          ),
+          `${formatter.format(ui.values[0])} - ${formatter.format(ui.values[1])}`,
         );
       },
     });

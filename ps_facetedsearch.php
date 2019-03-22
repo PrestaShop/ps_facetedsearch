@@ -165,6 +165,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if ($query->getIdCategory()) {
             $this->context->controller->addJS($this->_path . 'views/dist/front.js');
             $this->context->controller->addCSS($this->_path . 'views/dist/front.css');
+            $this->context->controller->addJS($this->_path . 'views/dist/cldr.js');
 
             return new SearchProvider($this);
         }

@@ -106,7 +106,7 @@ class Converter
                         ->setProperty('min', $filterBlock['min'])
                         ->setProperty('max', $filterBlock['max'])
                         ->setProperty('unit', $filterBlock['unit'])
-                        ->setProperty('format', $filterBlock['format'])
+                        ->setProperty('specifications', $filterBlock['specifications'])
                         ->setProperty('values', $filterBlock['values'])
                         ->setMultipleSelectionAllowed(false)
                         ->setProperty('range', true);

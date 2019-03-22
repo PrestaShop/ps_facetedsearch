@@ -25,20 +25,21 @@
  */
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use PrestaShop\Module\FacetedSearch\Product\Search;
-use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
+use Category;
 use Combination;
+use Configuration;
 use Context;
+use Db;
 use Feature;
 use FeatureValue;
-use Manufacturer;
-use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
-use Tools;
-use Configuration;
-use Category;
-use Db;
 use Group;
+use Manufacturer;
+use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
+use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
+use PrestaShop\Module\FacetedSearch\Product\Search;
+use PrestaShop\PrestaShop\Core\Localization\Locale;
 use Shop;
+use Tools;
 
 class Block
 {
@@ -72,7 +73,6 @@ class Block
     ) {
         $context = Context::getContext();
         $idLang = $context->language->id;
-        $currency = $context->currency;
         $idShop = (int) $context->shop->id;
         $idParent = (int) Tools::getValue(
             'id_category',
@@ -93,7 +93,7 @@ class Block
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
-                    $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $currency);
+                    $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $context);
                     break;
                 case 'weight':
                     $filterBlocks[] = $this->getWeightRangeBlock($filter, $selectedFilters, $nbProducts);
@@ -168,15 +168,17 @@ class Block
      * @param array $filter
      * @param array $selectedFilters
      * @param integer $nbProducts
-     * @param Currency $currency
+     * @param Context $context
      *
      * @return array
      */
-    private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $currency)
+    private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts, Context $context)
     {
         if (!$this->showPriceFilter()) {
             return null;
         }
+
+        $priceSpecifications = $this->preparePriceSpecifications($context);
 
         $priceBlock = [
             'type_lite' => 'price',
@@ -185,8 +187,8 @@ class Block
             'name' => Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
             'max' => '0',
             'min' => null,
-            'unit' => $currency->sign,
-            'format' => $currency->format,
+            'unit' => null,
+            'specifications' => $priceSpecifications,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'list_of_values' => [],
@@ -286,7 +288,7 @@ class Block
             'max' => '0',
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
-            'format' => 5, // Ex: xxxxx kg
+            'specifications' => [],
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'list_of_values' => [],
@@ -979,5 +981,38 @@ class Block
         ];
 
         return $categoryBlock;
+    }
+
+    private function preparePriceSpecifications(Context $context)
+    {
+        $currency = $context->currency;
+        $symbol = [
+            '.',
+            ',',
+            ';',
+            '%',
+            '-',
+            '+',
+            'E',
+            '×',
+            '‰',
+            '∞',
+            'NaN',
+        ];
+
+        $priceSpecifications = [
+            'positivePattern' => $currency->format,
+            'negativePattern' => $currency->format,
+            'symbol' => $symbol,
+            'maxFractionDigits' => $currency->precision,
+            'minFractionDigits' => $currency->precision,
+            'groupingUsed' => true,
+            'primaryGroupSize' => 3,
+            'secondaryGroupSize' => 3,
+            'currencyCode' => $currency->iso_code,
+            'currencySymbol' => $currency->sign,
+        ];
+
+        return $priceSpecifications;
     }
 }
