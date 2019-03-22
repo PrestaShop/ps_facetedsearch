@@ -187,7 +187,7 @@ class Block
             'name' => Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
             'max' => '0',
             'min' => null,
-            'unit' => null,
+            'unit' => $context->currency->symbol,
             'specifications' => $priceSpecifications,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,

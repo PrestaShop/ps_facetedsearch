@@ -27,7 +27,9 @@ import NumberSymbol from '../cldr/number-symbol';
 import CurrencyFormatter from '../cldr/currency-formatter';
 import PriceSpecification from '../cldr/price-specification';
 
-function prepareCurrencyFormatter(specifications) {
+let formatter;
+
+const prepareCurrencyFormatter = (specifications) => {
   const symbol = new NumberSymbol(...specifications.symbol);
   const currency = new CurrencyFormatter(
     new PriceSpecification(
@@ -45,28 +47,48 @@ function prepareCurrencyFormatter(specifications) {
   );
 
   return currency;
-}
+};
+
+const displayLabelBlock = (displayBlock, min, max) => {
+  if (formatter === undefined) {
+    displayBlock.text(
+      displayBlock.text().replace(
+        /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
+        `$1${min}$2${max}$3`,
+      ),
+    );
+  } else {
+    displayBlock.text(
+      `${formatter.format(min)} - ${formatter.format(max)}`,
+    );
+  }
+};
 
 /**
  * Refresh facets sliders
  */
-function refreshSliders() {
+const refreshSliders = () => {
   $('.faceted-slider').each(function initializeSliders() {
     const $el = $(this);
-    const $values = $el.data('slider-values');
+    const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
-    let formatter;
     if (specifications.length) {
       formatter = prepareCurrencyFormatter(specifications);
     }
+
+    displayLabelBlock(
+      $(`#facet_label_${$el.data('slider-id')}`),
+      values[0],
+      values[1],
+    );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
       min: $el.data('slider-min'),
       max: $el.data('slider-max'),
       values: [
-        $values[0],
-        $values[1],
+        values[0],
+        values[1],
       ],
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
@@ -84,24 +106,15 @@ function refreshSliders() {
         );
       },
       slide(event, ui) {
-        const $displayBlock = $(`#facet_label_${$el.data('slider-id')}`);
-
-        if (specifications) {
-          $displayBlock.text(
-            $displayBlock.text().replace(
-              /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
-              `$1${ui.values[0]}$2${ui.values[1]}$3`,
-            ),
-          );
-        } else {
-          $displayBlock.text(
-            `${formatter.format(ui.values[0])} - ${formatter.format(ui.values[1])}`,
-          );
-        }
+        displayLabelBlock(
+          $(`#facet_label_${$el.data('slider-id')}`),
+          ui.values[0],
+          ui.values[1],
+        );
       },
     });
   });
-}
+};
 
 $(document).ready(() => {
   prestashop.on('updateProductList', (data) => {
