@@ -54,7 +54,11 @@ function refreshSliders() {
   $('.faceted-slider').each(function initializeSliders() {
     const $el = $(this);
     const $values = $el.data('slider-values');
-    const formatter = prepareCurrencyFormatter($el.data('slider-specifications'));
+    const specifications = $el.data('slider-specifications');
+    let formatter;
+    if (specifications.length) {
+      formatter = prepareCurrencyFormatter(specifications);
+    }
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
@@ -82,9 +86,18 @@ function refreshSliders() {
       slide(event, ui) {
         const $displayBlock = $(`#facet_label_${$el.data('slider-id')}`);
 
-        $displayBlock.text(
-          `${formatter.format(ui.values[0])} - ${formatter.format(ui.values[1])}`,
-        );
+        if (specifications) {
+          $displayBlock.text(
+            $displayBlock.text().replace(
+              /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
+              `$1${ui.values[0]}$2${ui.values[1]}$3`,
+            ),
+          );
+        } else {
+          $displayBlock.text(
+            `${formatter.format(ui.values[0])} - ${formatter.format(ui.values[1])}`,
+          );
+        }
       },
     });
   });
