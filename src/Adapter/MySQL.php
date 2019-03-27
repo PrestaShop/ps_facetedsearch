@@ -292,16 +292,22 @@ class MySQL extends AbstractAdapter
      */
     private function computeOrderByField($filterToTableMapping)
     {
+        $orderField = $this->orderField;
         // do not try to process the orderField if it already has an alias, or if it's a group function
-        if (empty($this->orderField) || strpos($this->orderField, '.') !== false
-            || strpos($this->orderField, '(') !== false) {
-            return $this->orderField;
+        if (empty($orderField) || strpos($orderField, '.') !== false
+            || strpos($orderField, '(') !== false) {
+            return $orderField;
         }
-        if (array_key_exists($this->orderField, $filterToTableMapping)) {
-            $joinMapping = $filterToTableMapping[$this->orderField];
-            $orderField = $joinMapping['tableAlias'] . '.' . $this->orderField;
+
+        if ($orderField === 'price') {
+            $orderField = $this->orderDirection === 'asc' ? 'price_min' : 'price_max';
+        }
+
+        if (array_key_exists($orderField, $filterToTableMapping)) {
+            $joinMapping = $filterToTableMapping[$orderField];
+            $orderField = $joinMapping['tableAlias'] . '.' . $orderField;
         } else {
-            $orderField = 'p.' . $this->orderField;
+            $orderField = 'p.' . $orderField;
         }
 
         return $orderField;
