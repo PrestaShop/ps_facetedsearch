@@ -24,6 +24,13 @@
  */
 #search_filters {
   .facet {
+    .facet-title {
+      width: calc(100% - 30px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .facet-label {
       width: 100%;
       text-align: left;

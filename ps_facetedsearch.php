@@ -39,6 +39,11 @@ use PrestaShop\Module\FacetedSearch\Filters\Converter;
 
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
+    /**
+     * US iso code, used to prevent taxes usage while computing prices
+     */
+    const ISO_CODE_US = 'US';
+
     private $nbrProducts;
     private $psLayeredFullTree;
 
@@ -929,10 +934,10 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             }
 
             if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $taxRatesByCountry = [['rate' => 0, 'id_country' => 0]];
+                $taxRatesByCountry = [['rate' => 0, 'id_country' => 0, 'iso_code' => '']];
             } else {
                 $taxRatesByCountry = Db::getInstance()->executeS(
-                    'SELECT t.rate rate, tr.id_country
+                    'SELECT t.rate rate, tr.id_country, c.iso_code
                     FROM `' . _DB_PREFIX_ . 'product_shop` p
                     LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ')
                     LEFT JOIN `' . _DB_PREFIX_ . 'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
@@ -1070,11 +1075,16 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 foreach ($currencyList as $currency) {
                     $minPriceValue = array_key_exists($idCountry, $minPrice) ? $minPrice[$idCountry][$currency['id_currency']] : 0;
                     $maxPriceValue = array_key_exists($idCountry, $maxPrice) ? $maxPrice[$idCountry][$currency['id_currency']] : 0;
+                    if ($taxRateByCountry['iso_code'] !== self::ISO_CODE_US) {
+                        $minPriceValue = Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, 0);
+                        $maxPriceValue = Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, 0);
+                    }
+
                     $values[] = '(' . (int) $idProduct . ',
                         ' . (int) $currency['id_currency'] . ',
                         ' . $idShop . ',
-                        ' . (int) Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, 0) . ',
-                        ' . (int) Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, 0) . ',
+                        ' . (int) $minPriceValue . ',
+                        ' . (int) $maxPriceValue . ',
                         ' . (int) $idCountry . ')';
                 }
             }
