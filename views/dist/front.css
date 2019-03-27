@@ -62,6 +62,12 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+#search_filters .facet .facet-title {
+  width: calc(100% - 30px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; }
+
 #search_filters .facet .facet-label {
   width: 100%;
   text-align: left; }
