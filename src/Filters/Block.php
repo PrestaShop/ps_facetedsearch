@@ -843,8 +843,12 @@ class Block
             }
 
             $featureValues = $features[$idFeature]['featureValues'];
+            if (!isset($featureValues[$idFeatureValue]['value'])) {
+                continue;
+            }
 
             list($urlName, $metaTitle) = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
+
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
                 'name' => $featureValues[$idFeatureValue]['value'],

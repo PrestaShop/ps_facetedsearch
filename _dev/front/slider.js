@@ -118,7 +118,7 @@ const refreshSliders = () => {
 
 $(document).ready(() => {
   prestashop.on('updateProductList', (data) => {
-    refreshSliders(data);
+    refreshSliders();
   });
 
   refreshSliders();

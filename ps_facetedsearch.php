@@ -690,7 +690,6 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
          */
         if (isset($params['category']) && !$params['category']->active) {
             $this->hookCategoryDeletion($params);
-            $this->invalidateLayeredFilterBlockCache();
         }
     }
 
