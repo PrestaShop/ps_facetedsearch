@@ -43,6 +43,13 @@ use Tools;
 
 class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
+    /**
+     * @var bool
+     */
+    private $isAjax;
+    /**
+     * @Ps_Facetedsearch
+     */
     private $module;
 
     /**
@@ -55,8 +62,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private $facetsSerializer;
 
-    public function __construct(Ps_Facetedsearch $module)
+    public function __construct(Ps_Facetedsearch $module, $isAjax)
     {
+        $this->isAjax = $isAjax;
         $this->module = $module;
         $this->filtersConverter = new Filters\Converter();
         $this->facetsSerializer = new URLSerializer();
@@ -190,7 +198,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             'views/templates/front/catalog/facets.tpl',
             [
                 'facets' => $facetsVar,
-                'js_enabled' => $this->module->isAjax(),
+                'js_enabled' => $this->isAjax,
                 'activeFilters' => $activeFilters,
                 'sort_order' => $result->getCurrentSortOrder()->toString(),
                 'clear_all_link' => $this->updateQueryString(
@@ -451,7 +459,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
         parse_str($paramsFromUri, $params);
 
-        if (null !== $extraParams) {
+        if (null === $extraParams) {
+            $params = [];
+        } else {
             foreach ($extraParams as $key => $value) {
                 if (null === $value) {
                     unset($params[$key]);
@@ -459,16 +469,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     $params[$key] = $value;
                 }
             }
-        }
 
-        if (null !== $extraParams) {
             foreach ($params as $key => $param) {
                 if (null === $param || '' === $param) {
                     unset($params[$key]);
                 }
             }
-        } else {
-            $params = [];
         }
 
         $queryString = str_replace('%2F', '/', http_build_query($params, '', '&'));

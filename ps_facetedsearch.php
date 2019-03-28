@@ -95,28 +95,28 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $installed = parent::install() && $this->registerHook(
             [
-                'categoryAddition',
-                'categoryUpdate',
-                'attributeGroupForm',
-                'afterSaveAttributeGroup',
+                'afterDeleteAttribute',
                 'afterDeleteAttributeGroup',
-                'featureForm',
                 'afterDeleteFeature',
+                'afterDeleteFeatureValue',
+                'afterSaveAttribute',
+                'afterSaveAttributeGroup',
                 'afterSaveFeature',
-                'categoryDeletion',
+                'afterSaveFeatureValue',
                 'afterSaveProduct',
+                'attributeForm',
+                'attributeGroupForm',
+                'categoryAddition',
+                'categoryDeletion',
+                'categoryUpdate',
+                'displayFeatureValueForm',
+                'displayLeftColumn',
+                'featureForm',
+                'postProcessAttribute',
                 'postProcessAttributeGroup',
                 'postProcessFeature',
-                'featureValueForm',
                 'postProcessFeatureValue',
-                'afterDeleteFeatureValue',
-                'afterSaveFeatureValue',
-                'attributeForm',
-                'postProcessAttribute',
-                'afterDeleteAttribute',
-                'afterSaveAttribute',
                 'productSearchProvider',
-                'displayLeftColumn',
             ]
         );
 
@@ -159,23 +159,21 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return true;
     }
 
-    public function hookProductSearchProvider($params)
+    public function invalidateLayeredFilterBlockCache()
     {
-        $query = $params['query'];
-        // do something with query,
-        // e.g. use $query->getIdCategory()
-        // to choose a template for filters.
-        // Query is an instance of:
-        // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
-        if ($query->getIdCategory()) {
-            $this->context->controller->addJS($this->_path . 'views/dist/front.js');
-            $this->context->controller->addCSS($this->_path . 'views/dist/front.css');
-            $this->context->controller->addJS($this->_path . 'views/dist/cldr.js');
+        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+    }
 
-            return new SearchProvider($this);
-        }
+    public function renderWidget($hookName, array $configuration)
+    {
+        $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
 
-        return null;
+        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
+    }
+
+    public function getWidgetVariables($hookName, array $configuration)
+    {
+        return [];
     }
 
     public function uninstall()
@@ -320,413 +318,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         );
     }
 
-    /**
-     * Attributes group
-     */
-    public function hookAfterSaveAttributeGroup($params)
-    {
-        if (!$params['id_attribute_group'] || Tools::getValue('layered_indexable') === false) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        );
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        );
-
-        Db::getInstance()->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group (`id_attribute_group`, `indexable`)
-VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
-        );
-
-        foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
-            }
-
-            Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
-                (`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . (int) $params['id_attribute_group'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
-            );
-        }
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookAfterDeleteAttributeGroup($params)
-    {
-        if (!$params['id_attribute_group']) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        );
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        );
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookPostProcessAttributeGroup($params)
-    {
-        $this->checkLinksRewrite($params);
-    }
-
-    public function hookAttributeGroupForm($params)
-    {
-        $values = [];
-        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-            'SELECT `indexable`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        );
-
-        if ($isIndexable === false) {
-            $isIndexable = true;
-        }
-
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
-            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
-        )) {
-            foreach ($result as $data) {
-                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
-            }
-        }
-
-        $this->context->smarty->assign([
-            'languages' => Language::getLanguages(false),
-            'default_form_language' => (int) $this->context->controller->default_form_language,
-            'values' => $values,
-            'is_indexable' => (bool) $isIndexable,
-        ]);
-
-        return $this->display(__FILE__, 'attribute_group_form.tpl');
-    }
-
-    //ATTRIBUTES
-    public function hookAfterSaveAttribute($params)
-    {
-        if (!$params['id_attribute']) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
-            WHERE `id_attribute` = ' . (int) $params['id_attribute']
-        );
-
-        foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
-            }
-
-            Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
-                (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . (int) $params['id_attribute'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
-            );
-        }
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookAfterDeleteAttribute($params)
-    {
-        if (!$params['id_attribute']) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
-            WHERE `id_attribute` = ' . (int) $params['id_attribute']
-        );
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookPostProcessAttribute($params)
-    {
-        $this->checkLinksRewrite($params);
-    }
-
-    public function hookAttributeForm($params)
-    {
-        $values = [];
-
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `url_name`, `meta_title`, `id_lang`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
-            WHERE `id_attribute` = ' . (int) $params['id_attribute']
-        )) {
-            foreach ($result as $data) {
-                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
-            }
-        }
-
-        $this->context->smarty->assign([
-            'languages' => Language::getLanguages(false),
-            'default_form_language' => (int) $this->context->controller->default_form_language,
-            'values' => $values,
-        ]);
-
-        return $this->display(__FILE__, 'attribute_form.tpl');
-    }
-
-    //FEATURES
-    public function hookAfterSaveFeature($params)
-    {
-        if (!$params['id_feature'] || Tools::getValue('layered_indexable') === false) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-
-        Db::getInstance()->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
-            (`id_feature`, `indexable`)
-            VALUES (' . (int) $params['id_feature'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
-        );
-
-        foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
-            }
-
-            Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-                (`id_feature`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . (int) $params['id_feature'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
-            );
-        }
-
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookAfterDeleteFeature($params)
-    {
-        if (!$params['id_feature']) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookPostProcessFeature($params)
-    {
-        $this->checkLinksRewrite($params);
-    }
-
-    public function hookFeatureForm($params)
-    {
-        $values = [];
-        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
-            'SELECT `indexable`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-
-        if ($isIndexable === false) {
-            $isIndexable = true;
-        }
-
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        )) {
-            foreach ($result as $data) {
-                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
-            }
-        }
-
-        $this->context->smarty->assign([
-            'languages' => Language::getLanguages(false),
-            'default_form_language' => (int) $this->context->controller->default_form_language,
-            'values' => $values,
-            'is_indexable' => (bool) $isIndexable,
-        ]);
-
-        return $this->display(__FILE__, 'feature_form.tpl');
-    }
-
-    //FEATURES VALUE
-    public function hookAfterSaveFeatureValue($params)
-    {
-        if (!$params['id_feature_value']) {
-            return;
-        }
-
-        //Removing all indexed language data for this attribute value id
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
-            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
-        );
-
-        foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
-            }
-
-            Db::getInstance()->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
-                (`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . (int) $params['id_feature_value'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
-            );
-        }
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookAfterDeleteFeatureValue($params)
-    {
-        if (!$params['id_feature_value']) {
-            return;
-        }
-
-        Db::getInstance()->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
-            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
-        );
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookPostProcessFeatureValue($params)
-    {
-        $this->checkLinksRewrite($params);
-    }
-
-    public function hookFeatureValueForm($params)
-    {
-        $values = [];
-
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT `url_name`, `meta_title`, `id_lang`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
-            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
-        )) {
-            foreach ($result as $data) {
-                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
-            }
-        }
-
-        $this->context->smarty->assign([
-            'languages' => Language::getLanguages(false),
-            'default_form_language' => (int) $this->context->controller->default_form_language,
-            'values' => $values,
-        ]);
-
-        return $this->display(__FILE__, 'feature_value_form.tpl');
-    }
-
-    public function hookAfterSaveProduct($params)
-    {
-        if (!$params['id_product']) {
-            return;
-        }
-
-        self::indexProductPrices((int) $params['id_product']);
-        $this->indexAttribute((int) $params['id_product']);
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function invalidateLayeredFilterBlockCache()
-    {
-        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
-    }
-
-    public function renderWidget($hookName, array $configuration)
-    {
-        $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
-
-        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
-    }
-
-    public function getWidgetVariables($hookName, array $configuration)
-    {
-        return [];
-    }
-
-    public function hookCategoryAddition($params)
-    {
-        $this->rebuildLayeredCache([], [(int) $params['category']->id]);
-        $this->invalidateLayeredFilterBlockCache();
-    }
-
-    public function hookCategoryUpdate($params)
-    {
-        /**
-         * The category status might (active, inactive) have changed,
-         * we have to update the layered cache table structure
-         */
-        if (isset($params['category']) && !$params['category']->active) {
-            $this->hookCategoryDeletion($params);
-        }
-    }
-
-    public function hookCategoryDeletion($params)
-    {
-        $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
-        );
-
-        foreach ($layeredFilterList as $layeredFilter) {
-            $data = Tools::unSerialize($layeredFilter['filters']);
-
-            if (in_array((int) $params['category']->id, $data['categories'])) {
-                unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
-                Db::getInstance()->execute(
-                    'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
-                    SET `filters` = \'' . pSQL(serialize($data)) . '\'
-                    WHERE `id_layered_filter` = ' . (int) $layeredFilter['id_layered_filter']
-                );
-            }
-        }
-
-        $this->invalidateLayeredFilterBlockCache();
-        $this->buildLayeredCategories();
-    }
-
     /*
      * Generate data product attribute
+     *
+     * @param int $idProduct
      */
     public function indexAttribute($idProduct = null)
     {
-        if (is_null($idProduct)) {
+        if (null === $idProduct) {
             Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
         } else {
             Db::getInstance()->execute(
@@ -743,15 +342,18 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             INNER JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON pac.id_product_attribute = pa.id_product_attribute
             INNER JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute = pac.id_attribute)
             INNER JOIN ' . _DB_PREFIX_ . 'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
-            ' . (is_null($idProduct) ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
+            ' . ($idProduct === null ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
             GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
         );
 
         return 1;
     }
 
-    /*
-     * $cursor $cursor in order to restart indexing from the last state
+    /**
+     * Full prices index process
+     *
+     * @param int $cursor in order to restart indexing from the last state
+     * @param bool $ajax
      */
     public static function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
     {
@@ -762,14 +364,27 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         return self::indexPrices($cursor, true, $ajax, $smart);
     }
 
-    /*
-     * $cursor $cursor in order to restart indexing from the last state
+    /**
+     * Prices index process
+     *
+     * @param int $cursor in order to restart indexing from the last state
+     * @param bool $ajax
      */
     public static function pricesIndexProcess($cursor = 0, $ajax = false)
     {
         return self::indexPrices($cursor, false, $ajax);
     }
 
+    /**
+     * Index prices
+     *
+     * @param $cursor int last indexed id_product
+     * @param bool $full
+     * @param bool $ajax
+     * @param bool $smart
+     *
+     * @return int
+     */
     private static function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
     {
         if ($full) {
@@ -863,6 +478,8 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
     }
 
     /**
+     * Index prices unbreakable
+     *
      * @param $cursor int last indexed id_product
      * @param bool $full
      * @param bool $smart
@@ -1097,6 +714,9 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         }
     }
 
+    /**
+     * Get page content
+     */
     public function getContent()
     {
         global $cookie;
@@ -1375,21 +995,9 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sqlQuery);
     }
 
-    public function cleanFilterByIdValue($attributes, $idValue)
-    {
-        $selectedFilters = [];
-        if (is_array($attributes)) {
-            foreach ($attributes as $attribute) {
-                $attributeData = explode('_', $attribute);
-                if ($attributeData[0] == $idValue) {
-                    $selectedFilters[] = $attributeData[1];
-                }
-            }
-        }
-
-        return $selectedFilters;
-    }
-
+    /**
+     * Rebuild layered structure
+     */
     public function rebuildLayeredStructure()
     {
         @set_time_limit(0);
@@ -1446,6 +1054,8 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
     }
 
     /**
+     * Build layered cache
+     *
      * @param array $productsIds
      * @param array $categoriesIds
      * @param bool $rebuildLayeredCategories
@@ -1628,6 +1238,9 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
     }
 
+    /**
+     * Build layered categories
+     */
     public function buildLayeredCategories()
     {
         // Get all filter template
@@ -1719,16 +1332,6 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * Is ajax request
-     *
-     * @return boolean
-     */
-    public function isAjax()
-    {
-        return $this->ajax;
-    }
-
-    /**
      * Check for link rewirte
      *
      * @param array $params
@@ -1748,5 +1351,514 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 );
             }
         }
+    }
+
+    /**
+     * Hook project search provider
+     *
+     * @params array $params
+     *
+     * @return SearchProvider|null
+     */
+    public function hookProductSearchProvider(array $params)
+    {
+        $query = $params['query'];
+        // do something with query,
+        // e.g. use $query->getIdCategory()
+        // to choose a template for filters.
+        // Query is an instance of:
+        // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
+        if ($query->getIdCategory()) {
+            $this->context->controller->addJS($this->_path . 'views/dist/front.js');
+            $this->context->controller->addCSS($this->_path . 'views/dist/front.css');
+            $this->context->controller->addJS($this->_path . 'views/dist/cldr.js');
+
+            return new SearchProvider($this, $this->ajax);
+        }
+
+        return null;
+    }
+
+    /**
+     * After save feature value
+     *
+     * @param array $params
+     */
+    public function hookAfterSaveFeatureValue(array $params)
+    {
+        if (empty($params['id_feature_value'])) {
+            return;
+        }
+
+        //Removing all indexed language data for this attribute value id
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
+            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
+        );
+
+        foreach (Language::getLanguages(false) as $language) {
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
+
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+            }
+
+            Db::getInstance()->execute(
+                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
+                (`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                ' . (int) $params['id_feature_value'] . ', ' . (int) $language['id_lang'] . ',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
+                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
+            );
+        }
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * After delete Feature value
+     *
+     * @param array $params
+     */
+    public function hookAfterDeleteFeatureValue(array $params)
+    {
+        if (empty($params['id_feature_value'])) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
+            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
+        );
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Post process feature value
+     *
+     * @param array $params
+     */
+    public function hookPostProcessFeatureValue(array $params)
+    {
+        $this->checkLinksRewrite($params);
+    }
+
+    /**
+     * Display feature value form
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    public function hookDisplayFeatureValueForm(array $params)
+    {
+        $values = [];
+
+        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT `url_name`, `meta_title`, `id_lang`
+            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
+            WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
+        )) {
+            foreach ($result as $data) {
+                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'languages' => Language::getLanguages(false),
+            'default_form_language' => (int) $this->context->controller->default_form_language,
+            'values' => $values,
+        ]);
+
+        return $this->display(__FILE__, 'feature_value_form.tpl');
+    }
+
+    /**
+     * After save product
+     *
+     * @param array $params
+     */
+    public function hookAfterSaveProduct(array $params)
+    {
+        if (empty($params['id_product'])) {
+            return;
+        }
+
+        self::indexProductPrices((int) $params['id_product']);
+        $this->indexAttribute((int) $params['id_product']);
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Category addition
+     *
+     * @param array $params
+     */
+    public function hookCategoryAddition(array $params)
+    {
+        $this->rebuildLayeredCache([], [(int) $params['category']->id]);
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Category update
+     *
+     * @param array $params
+     */
+    public function hookCategoryUpdate(array $params)
+    {
+        /**
+         * The category status might (active, inactive) have changed,
+         * we have to update the layered cache table structure
+         */
+        if (isset($params['category']) && !$params['category']->active) {
+            $this->hookCategoryDeletion($params);
+        }
+    }
+
+    /**
+     * Category deletion
+     *
+     * @param array $params
+     */
+    public function hookCategoryDeletion(array $params)
+    {
+        $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
+        );
+
+        foreach ($layeredFilterList as $layeredFilter) {
+            $data = Tools::unSerialize($layeredFilter['filters']);
+
+            if (in_array((int) $params['category']->id, $data['categories'])) {
+                unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
+                Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
+                    SET `filters` = \'' . pSQL(serialize($data)) . '\'
+                    WHERE `id_layered_filter` = ' . (int) $layeredFilter['id_layered_filter']
+                );
+            }
+        }
+
+        $this->invalidateLayeredFilterBlockCache();
+        $this->buildLayeredCategories();
+    }
+
+    /**
+     * After save Attributes group
+     *
+     * @param array $params
+     */
+    public function hookAfterSaveAttributeGroup(array $params)
+    {
+        if (empty($params['id_attribute_group']) || Tools::getValue('layered_indexable') === false) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        );
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        );
+
+        Db::getInstance()->execute(
+            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group (`id_attribute_group`, `indexable`)
+VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
+        );
+
+        foreach (Language::getLanguages(false) as $language) {
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
+
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+            }
+
+            Db::getInstance()->execute(
+                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
+                (`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                ' . (int) $params['id_attribute_group'] . ', ' . (int) $language['id_lang'] . ',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
+                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
+            );
+        }
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * After delete attribute group
+     *
+     * @param array $params
+     */
+    public function hookAfterDeleteAttributeGroup(array $params)
+    {
+        if (empty($params['id_attribute_group'])) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        );
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        );
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Post process attribute group
+     *
+     * @param array $params
+     */
+    public function hookPostProcessAttributeGroup(array $params)
+    {
+        $this->checkLinksRewrite($params);
+    }
+
+    /**
+     * Attribute group form
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    public function hookAttributeGroupForm(array $params)
+    {
+        $values = [];
+        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+            'SELECT `indexable`
+            FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        );
+
+        if ($isIndexable === false) {
+            $isIndexable = true;
+        }
+
+        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
+            WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
+        )) {
+            foreach ($result as $data) {
+                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'languages' => Language::getLanguages(false),
+            'default_form_language' => (int) $this->context->controller->default_form_language,
+            'values' => $values,
+            'is_indexable' => (bool) $isIndexable,
+        ]);
+
+        return $this->display(__FILE__, 'attribute_group_form.tpl');
+    }
+
+    /**
+     * After save attribute
+     *
+     * @param array $params
+     */
+    public function hookAfterSaveAttribute(array $params)
+    {
+        if (empty($params['id_attribute'])) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
+            WHERE `id_attribute` = ' . (int) $params['id_attribute']
+        );
+
+        foreach (Language::getLanguages(false) as $language) {
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
+
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+            }
+
+            Db::getInstance()->execute(
+                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
+                (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                ' . (int) $params['id_attribute'] . ', ' . (int) $language['id_lang'] . ',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
+                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
+            );
+        }
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * After delete attribute
+     *
+     * @param array $params
+     */
+    public function hookAfterDeleteAttribute(array $params)
+    {
+        if (empty($params['id_attribute'])) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
+            WHERE `id_attribute` = ' . (int) $params['id_attribute']
+        );
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Post process attribute
+     *
+     * @param array $params
+     */
+    public function hookPostProcessAttribute(array $params)
+    {
+        $this->checkLinksRewrite($params);
+    }
+
+    /**
+     * Attribute form
+     *
+     * @param array $params
+     */
+    public function hookAttributeForm(array $params)
+    {
+        $values = [];
+
+        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT `url_name`, `meta_title`, `id_lang`
+            FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
+            WHERE `id_attribute` = ' . (int) $params['id_attribute']
+        )) {
+            foreach ($result as $data) {
+                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'languages' => Language::getLanguages(false),
+            'default_form_language' => (int) $this->context->controller->default_form_language,
+            'values' => $values,
+        ]);
+
+        return $this->display(__FILE__, 'attribute_form.tpl');
+    }
+
+    /**
+     * After save feature
+     *
+     * @param array $params
+     */
+    public function hookAfterSaveFeature(array $params)
+    {
+        if (empty($params['id_feature']) || Tools::getValue('layered_indexable') === false) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
+            WHERE `id_feature` = ' . (int) $params['id_feature']
+        );
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
+            WHERE `id_feature` = ' . (int) $params['id_feature']
+        );
+
+        Db::getInstance()->execute(
+            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
+            (`id_feature`, `indexable`)
+            VALUES (' . (int) $params['id_feature'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
+        );
+
+        foreach (Language::getLanguages(false) as $language) {
+            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
+
+            if (empty($seoUrl)) {
+                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+            }
+
+            Db::getInstance()->execute(
+                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
+                (`id_feature`, `id_lang`, `url_name`, `meta_title`)
+                VALUES (
+                ' . (int) $params['id_feature'] . ', ' . (int) $language['id_lang'] . ',
+                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
+                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
+            );
+        }
+
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Hook after delete a feature
+     *
+     * @param array $params
+     */
+    public function hookAfterDeleteFeature(array $params)
+    {
+        if (empty($params['id_feature'])) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
+            WHERE `id_feature` = ' . (int) $params['id_feature']
+        );
+        $this->invalidateLayeredFilterBlockCache();
+    }
+
+
+    /**
+     * Hook post process feature
+     *
+     * @param array $params
+     */
+    public function hookPostProcessFeature(array $params)
+    {
+        $this->checkLinksRewrite($params);
+    }
+
+    /**
+     * Hook feature form
+     *
+     * @param array $params
+     */
+    public function hookFeatureForm(array $params)
+    {
+        $values = [];
+        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+            'SELECT `indexable`
+            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
+            WHERE `id_feature` = ' . (int) $params['id_feature']
+        );
+
+        if ($isIndexable === false) {
+            $isIndexable = true;
+        }
+
+        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
+            WHERE `id_feature` = ' . (int) $params['id_feature']
+        )) {
+            foreach ($result as $data) {
+                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
+            }
+        }
+
+        $this->context->smarty->assign([
+            'languages' => Language::getLanguages(false),
+            'default_form_language' => (int) $this->context->controller->default_form_language,
+            'values' => $values,
+            'is_indexable' => (bool) $isIndexable,
+        ]);
+
+        return $this->display(__FILE__, 'feature_form.tpl');
     }
 }
