@@ -405,13 +405,19 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     }
 
     /**
-     * Remove the facet when there's only 1 result
+     * Remove the facet when there's only 1 result.
+     * Keep facet status when it's a slider
      *
      * @param array $facets
      */
     private function hideUselessFacets(array $facets)
     {
         foreach ($facets as $facet) {
+            if ($facet->getWidgetType() === 'slider') {
+                // Do not change displayed property
+                continue;
+            }
+
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
                 if ($filter->getMagnitude() > 0) {
@@ -420,8 +426,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             }
 
             $facet->setDisplayed(
-                $facet->getWidgetType() === 'slider' ?
-                $usefulFiltersCount >= 1 :
                 $usefulFiltersCount > 1
             );
         }

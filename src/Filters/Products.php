@@ -33,6 +33,21 @@ use Configuration;
 
 class Products
 {
+    /**
+     * Use price tax filter
+     *
+     * @return boolean
+     */
+    private $psLayeredFilterPriceUsetax = null;
+
+    /**
+     * Use price rounding
+     *
+     * @return boolean
+     */
+    private $psLayeredFilterPriceRounding = null;
+
+
     /** @var AbstractAdapter */
     private $facetedSearchAdapter;
 
@@ -91,10 +106,10 @@ class Products
         $orderWay,
         $selectedFilters = []
     ) {
-        $this->facetedSearchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
         $orderWay = Validate::isOrderWay($orderWay) ? $orderWay : 'ASC';
         $orderBy = Validate::isOrderBy($orderBy) ? $orderBy : 'position';
 
+        $this->facetedSearchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
         $this->facetedSearchAdapter->setOrderField($orderBy);
         $this->facetedSearchAdapter->setOrderDirection($orderWay);
 
@@ -108,8 +123,7 @@ class Products
 
         $matchingProductList = $this->facetedSearchAdapter->execute();
 
-        // @TODO: still usefull ?
-        // $this->pricePostFiltering($matchingProductList, $selectedFilters);
+        $this->pricePostFiltering($matchingProductList, $selectedFilters);
 
         $nbrProducts = $this->facetedSearchAdapter->count();
 
@@ -131,29 +145,28 @@ class Products
      */
     private function pricePostFiltering(&$matchingProductList, $selectedFilters)
     {
-        if (isset($selectedFilters['price'])) {
-            $priceFilter['min'] = (float) ($selectedFilters['price'][0]);
-            $priceFilter['max'] = (float) ($selectedFilters['price'][1]);
+        if (!isset($selectedFilters['price'])) {
+            return;
+        }
 
-            static $psLayeredFilterPriceUsetax = null;
-            static $psLayeredFilterPriceRounding = null;
+        $priceFilter['min'] = (float) ($selectedFilters['price'][0]);
+        $priceFilter['max'] = (float) ($selectedFilters['price'][1]);
 
-            if ($psLayeredFilterPriceUsetax === null) {
-                $psLayeredFilterPriceUsetax = Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX');
-            }
+        if ($this->psLayeredFilterPriceUsetax === null) {
+            $this->psLayeredFilterPriceUsetax = Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX');
+        }
 
-            if ($psLayeredFilterPriceRounding === null) {
-                $psLayeredFilterPriceRounding = Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING');
-            }
+        if ($this->psLayeredFilterPriceRounding === null) {
+            $this->psLayeredFilterPriceRounding = Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING');
+        }
 
-            if ($psLayeredFilterPriceUsetax || $psLayeredFilterPriceRounding) {
-                $this->filterPrice(
-                    $matchingProductList,
-                    $psLayeredFilterPriceUsetax,
-                    $psLayeredFilterPriceRounding,
-                    $priceFilter
-                );
-            }
+        if ($this->psLayeredFilterPriceUsetax || $this->psLayeredFilterPriceRounding) {
+            $this->filterPrice(
+                $matchingProductList,
+                $this->psLayeredFilterPriceUsetax,
+                $this->psLayeredFilterPriceRounding,
+                $priceFilter
+            );
         }
     }
 }
