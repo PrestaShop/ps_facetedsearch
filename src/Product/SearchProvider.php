@@ -47,6 +47,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * @var bool
      */
     private $isAjax;
+
     /**
      * @Ps_Facetedsearch
      */
@@ -160,10 +161,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             )
         );
 
-        $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+        // $filterBlock = $filterBlockSearch->getFromCache($filterHash);
         if (empty($filterBlock)) {
             $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
-            $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+            // $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
         }
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
@@ -422,7 +423,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         foreach ($facets as $facet) {
             if ($facet->getWidgetType() === 'slider') {
-                // Do not change displayed property
+                $facet->setDisplayed(
+                    $facet->getProperty('min') != $facet->getProperty('max')
+                );
                 continue;
             }
 
