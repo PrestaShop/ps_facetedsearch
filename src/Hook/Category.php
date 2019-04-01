@@ -31,9 +31,9 @@ use Tools;
 class Category extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
-        'categoryAddition',
-        'categoryDeletion',
-        'categoryUpdate',
+        'actionCategoryAdd',
+        'actionCategoryDelete',
+        'actionCategoryUpdate',
     ];
 
     /**
@@ -41,7 +41,7 @@ class Category extends AbstractHook
      *
      * @param array $params
      */
-    public function categoryAddition(array $params)
+    public function actionCategoryAdd(array $params)
     {
         $this->module->rebuildLayeredCache([], [(int) $params['category']->id]);
         $this->module->invalidateLayeredFilterBlockCache();
@@ -52,14 +52,14 @@ class Category extends AbstractHook
      *
      * @param array $params
      */
-    public function categoryUpdate(array $params)
+    public function actionCategoryUpdate(array $params)
     {
         /**
          * The category status might (active, inactive) have changed,
          * we have to update the layered cache table structure
          */
         if (isset($params['category']) && !$params['category']->active) {
-            $this->hookCategoryDeletion($params);
+            $this->actionCategoryDelete($params);
         }
     }
 
@@ -68,7 +68,7 @@ class Category extends AbstractHook
      *
      * @param array $params
      */
-    public function categoryDeletion(array $params)
+    public function actionCategoryDelete(array $params)
     {
         $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'

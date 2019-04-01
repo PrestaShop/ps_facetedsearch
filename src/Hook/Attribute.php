@@ -26,15 +26,16 @@
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
 use Db;
+use Language;
 use Tools;
 
 class Attribute extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
-        'afterDeleteAttribute',
-        'afterSaveAttribute',
-        'attributeForm',
-        'postProcessAttribute',
+        'actionAttributeGroupDelete',
+        'actionAttributeSave',
+        'displayAttributeForm',
+        'actionAttributePostProcess',
     ];
 
     /**
@@ -42,7 +43,7 @@ class Attribute extends AbstractHook
      *
      * @param array $params
      */
-    public function afterSaveAttribute(array $params)
+    public function actionAttributeSave(array $params)
     {
         if (empty($params['id_attribute'])) {
             return;
@@ -77,7 +78,7 @@ class Attribute extends AbstractHook
      *
      * @param array $params
      */
-    public function afterDeleteAttribute(array $params)
+    public function actionAttributeGroupDelete(array $params)
     {
         if (empty($params['id_attribute'])) {
             return;
@@ -95,7 +96,7 @@ class Attribute extends AbstractHook
      *
      * @param array $params
      */
-    public function postProcessAttribute(array $params)
+    public function actionAttributePostProcess(array $params)
     {
         $this->module->checkLinksRewrite($params);
     }
@@ -105,7 +106,7 @@ class Attribute extends AbstractHook
      *
      * @param array $params
      */
-    public function attributeForm(array $params)
+    public function displayAttributeForm(array $params)
     {
         $values = [];
 
@@ -125,6 +126,6 @@ class Attribute extends AbstractHook
             'values' => $values,
         ]);
 
-        return $this->module->display(__FILE__, 'attribute_form.tpl');
+        return $this->module->render('attribute_form.tpl');
     }
 }

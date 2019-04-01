@@ -77,11 +77,6 @@ class Ps_Facetedsearch extends Module
         return $this->context;
     }
 
-    public function getPath()
-    {
-        return $this->_path;
-    }
-
     protected function getDefaultFilters()
     {
         return [

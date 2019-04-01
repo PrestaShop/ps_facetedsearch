@@ -32,10 +32,10 @@ use Tools;
 class AttributeGroup extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
-        'afterDeleteAttributeGroup',
-        'afterSaveAttributeGroup',
-        'attributeGroupForm',
-        'postProcessAttributeGroup',
+        'actionAttributeGroupDelete',
+        'actionAttributeGroupSave',
+        'displayAttributeGroupForm',
+        'displayAttributeGroupPostProcess',
     ];
 
     /**
@@ -43,7 +43,7 @@ class AttributeGroup extends AbstractHook
      *
      * @param array $params
      */
-    public function afterSaveAttributeGroup(array $params)
+    public function actionAttributeGroupSave(array $params)
     {
         if (empty($params['id_attribute_group']) || Tools::getValue('layered_indexable') === false) {
             return;
@@ -87,7 +87,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
      *
      * @param array $params
      */
-    public function afterDeleteAttributeGroup(array $params)
+    public function actionAttributeGroupDelete(array $params)
     {
         if (empty($params['id_attribute_group'])) {
             return;
@@ -109,7 +109,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
      *
      * @param array $params
      */
-    public function postProcessAttributeGroup(array $params)
+    public function displayAttributeGroupPostProcess(array $params)
     {
         $this->module->checkLinksRewrite($params);
     }
@@ -121,7 +121,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
      *
      * @return string
      */
-    public function attributeGroupForm(array $params)
+    public function displayAttributeGroupForm(array $params)
     {
         $values = [];
         $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
@@ -150,6 +150,6 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             'is_indexable' => (bool) $isIndexable,
         ]);
 
-        return $this->module->display(__FILE__, 'attribute_group_form.tpl');
+        return $this->module->render('attribute_group_form.tpl');
     }
 }

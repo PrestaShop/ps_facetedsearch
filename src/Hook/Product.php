@@ -28,7 +28,7 @@ namespace PrestaShop\Module\FacetedSearch\Hook;
 class Product extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
-        'afterSaveProduct',
+        'actionProductSave',
     ];
 
     /**
@@ -36,7 +36,7 @@ class Product extends AbstractHook
      *
      * @param array $params
      */
-    public function afterSaveProduct(array $params)
+    public function actionProductSave(array $params)
     {
         if (empty($params['id_product'])) {
             return;

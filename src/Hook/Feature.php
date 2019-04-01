@@ -32,10 +32,10 @@ use Tools;
 class Feature extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
-        'afterDeleteFeature',
-        'afterSaveFeature',
-        'featureForm',
-        'postProcessFeature',
+        'actionFeatureDelete',
+        'actionFeatureValueSave',
+        'displayFeatureForm',
+        'displayFeaturePostProcess',
     ];
 
     /**
@@ -43,7 +43,7 @@ class Feature extends AbstractHook
      *
      * @param array $params
      */
-    public function afterSaveFeature(array $params)
+    public function actionFeatureValueSave(array $params)
     {
         if (empty($params['id_feature']) || Tools::getValue('layered_indexable') === false) {
             return;
@@ -89,7 +89,7 @@ class Feature extends AbstractHook
      *
      * @param array $params
      */
-    public function afterDeleteFeature(array $params)
+    public function actionFeatureDelete(array $params)
     {
         if (empty($params['id_feature'])) {
             return;
@@ -108,7 +108,7 @@ class Feature extends AbstractHook
      *
      * @param array $params
      */
-    public function postProcessFeature(array $params)
+    public function displayFeaturePostProcess(array $params)
     {
         $this->module->checkLinksRewrite($params);
     }
@@ -118,7 +118,7 @@ class Feature extends AbstractHook
      *
      * @param array $params
      */
-    public function featureForm(array $params)
+    public function displayFeatureForm(array $params)
     {
         $values = [];
         $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
@@ -147,6 +147,6 @@ class Feature extends AbstractHook
             'is_indexable' => (bool) $isIndexable,
         ]);
 
-        return $this->module->display(__FILE__, 'feature_form.tpl');
+        return $this->module->render('feature_form.tpl');
     }
 }

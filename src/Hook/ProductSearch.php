@@ -49,9 +49,9 @@ class ProductSearch extends AbstractHook
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            $this->context->controller->addJS($this->module->getPath() . 'views/dist/front.js');
-            $this->context->controller->addCSS($this->module->getPath() . 'views/dist/front.css');
-            $this->context->controller->addJS($this->module->getPath() . 'views/dist/cldr.js');
+            $this->context->controller->addJS($this->module->getPathUri() . 'views/dist/front.js');
+            $this->context->controller->addCSS($this->module->getPathUri() . 'views/dist/front.css');
+            $this->context->controller->addJS($this->module->getPathUri() . 'views/dist/cldr.js');
 
             return new SearchProvider($this->module, $this->module->ajax);
         }

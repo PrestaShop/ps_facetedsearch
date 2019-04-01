@@ -129,6 +129,6 @@ class FeatureValue extends AbstractHook
             'values' => $values,
         ]);
 
-        return $this->module->display(__FILE__, 'feature_value_form.tpl');
+        return $this->module->render('feature_value_form.tpl');
     }
 }
