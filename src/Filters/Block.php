@@ -504,11 +504,15 @@ class Block
 
         $results = $filteredSearchAdapter->valueCount('id_manufacturer');
         foreach ($results as $key => $values) {
-            if (empty($values['id_manufacturer'])) {
+            if (!isset($values['id_manufacturer'])) {
                 continue;
             }
 
             $id_manufacturer = $values['id_manufacturer'];
+            if (empty($manufacturers[$id_manufacturer]['name'])) {
+                continue;
+            }
+
             $count = $values['c'];
             $manufacturersArray[$id_manufacturer] = [
                 'name' => $manufacturers[$id_manufacturer]['name'],

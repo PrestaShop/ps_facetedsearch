@@ -37,10 +37,8 @@ class HookDispatcher
         Hook\Design::class,
         Hook\Feature::class,
         Hook\FeatureValue::class,
-        Hook\Manufacturer::class,
         Hook\Product::class,
         Hook\ProductSearch::class,
-        Hook\Supplier::class,
     ];
 
     private $availableHooks = [];
