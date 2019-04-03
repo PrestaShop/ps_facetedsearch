@@ -81,7 +81,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    public function getQuery()
+    private function getQuery()
     {
         $filterToTableMapping = $this->getFieldMapping();
         $orderField = $this->computeOrderByField($filterToTableMapping);

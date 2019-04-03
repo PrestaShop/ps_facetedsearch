@@ -53,7 +53,7 @@ class ProductSearch extends AbstractHook
             $this->context->controller->addCSS($this->module->getPathUri() . 'views/dist/front.css');
             $this->context->controller->addJS($this->module->getPathUri() . 'views/dist/cldr.js');
 
-            return new SearchProvider($this->module, $this->module->ajax);
+            return new SearchProvider($this->module, $this->module->isAjax());
         }
 
         return null;

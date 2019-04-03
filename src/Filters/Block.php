@@ -133,14 +133,14 @@ class Block
     /**
      * Get the filter block from the cache table
      *
-     * @param $filterHash
+     * @param string $filterHash
      *
      * @return array
      */
     public function getFromCache($filterHash)
     {
         $row = Db::getInstance()->getRow(
-            'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . $filterHash . '"'
+            'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . pSQL($filterHash) . '"'
         );
 
         if (!empty($row)) {

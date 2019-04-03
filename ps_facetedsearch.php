@@ -44,7 +44,14 @@ class Ps_Facetedsearch extends Module
      */
     const ISO_CODE_US = 'US';
 
-    private $nbrProducts;
+    /**
+     * @var bool
+     */
+    private $ajax;
+
+    /**
+     * @var int
+     */
     private $psLayeredFullTree;
 
     /**
@@ -72,6 +79,22 @@ class Ps_Facetedsearch extends Module
         $this->hookDispatcher = new HookDispatcher($this);
     }
 
+    /**
+     * Check if method is an ajax request.
+     * This check is an old behavior and only check for _GET value.
+     *
+     * @return bool
+     */
+    public function isAjax()
+    {
+        return (bool) $this->ajax;
+    }
+
+    /**
+     * Return current context
+     *
+     * @return Context
+     */
     public function getContext()
     {
         return $this->context;
