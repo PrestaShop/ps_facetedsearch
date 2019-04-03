@@ -25,13 +25,22 @@
  */
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Context;
 use Ps_Facetedsearch;
 
 abstract class AbstractHook
 {
     const AVAILABLE_HOOKS = [];
 
+    /**
+     * @var Context
+     */
     protected $context;
+
+    /**
+     * @var Ps_Facetedsearch
+     */
+    protected $module;
 
     public function __construct(Ps_Facetedsearch $module)
     {

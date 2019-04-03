@@ -613,7 +613,7 @@ class Block
      * @param int $idLang
      * @param bool $notNull
      *
-     * @return array|false|\mysqli_result|\PDOStatement|resource|null
+     * @return array|false|\PDOStatement|resource|null
      */
     public static function getAttributes($idLang, $notNull = true)
     {
