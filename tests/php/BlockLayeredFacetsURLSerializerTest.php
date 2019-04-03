@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../src/URLSerializer.php';
+require_once __DIR__ . '/../../src/URLSerializer.php';
 
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
