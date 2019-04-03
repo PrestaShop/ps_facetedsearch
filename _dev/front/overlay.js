@@ -22,6 +22,28 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-import './events';
-import './slider.scss';
-import './facet.scss';
+
+import './overlay.scss';
+
+const template = `<div class="faceted-overlay">
+<div class="overlay__inner">
+<div class="overlay__content"><span class="spinner"></span></div>
+</div>
+</div>`;
+
+function show() {
+  if ($('.faceted-overlay').length === 1) {
+    return;
+  }
+
+  $('body').append(template);
+}
+
+function hide() {
+  $('.faceted-overlay').remove();
+}
+
+export {
+  show as showOverlay,
+  hide as hideOverlay,
+};

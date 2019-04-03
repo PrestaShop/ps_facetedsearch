@@ -991,27 +991,32 @@ class Block
         return $categoryBlock;
     }
 
+    /**
+     * Prepare price specifications to display cldr prices.
+     *
+     * @param Context $context
+     *
+     * @return array
+     */
     private function preparePriceSpecifications(Context $context)
     {
         $currency = $context->currency;
-        $symbol = [
-            '.',
-            ',',
-            ';',
-            '%',
-            '-',
-            '+',
-            'E',
-            '×',
-            '‰',
-            '∞',
-            'NaN',
-        ];
-
-        $priceSpecifications = [
+        return [
             'positivePattern' => $currency->format,
             'negativePattern' => $currency->format,
-            'symbol' => $symbol,
+            'symbol' => [
+                '.',
+                ',',
+                ';',
+                '%',
+                '-',
+                '+',
+                'E',
+                '×',
+                '‰',
+                '∞',
+                'NaN',
+            ],
             'maxFractionDigits' => $currency->precision,
             'minFractionDigits' => $currency->precision,
             'groupingUsed' => true,
@@ -1020,7 +1025,5 @@ class Block
             'currencyCode' => $currency->iso_code,
             'currencySymbol' => $currency->sign,
         ];
-
-        return $priceSpecifications;
     }
 }

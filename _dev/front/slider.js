@@ -116,10 +116,4 @@ const refreshSliders = () => {
   });
 };
 
-$(document).ready(() => {
-  prestashop.on('updateProductList', (data) => {
-    refreshSliders();
-  });
-
-  refreshSliders();
-});
+export default refreshSliders;

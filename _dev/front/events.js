@@ -22,6 +22,18 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-import './events';
-import './slider.scss';
-import './facet.scss';
+import refreshSliders from './slider';
+import {showOverlay, hideOverlay} from './overlay';
+
+$(document).ready(() => {
+  prestashop.on('updateProductList', () => {
+    hideOverlay();
+    refreshSliders();
+  });
+
+  refreshSliders();
+
+  prestashop.on('updateFacets', () => {
+    showOverlay();
+  });
+});
