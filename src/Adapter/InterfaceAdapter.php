@@ -194,7 +194,7 @@ interface InterfaceAdapter
      * Set the filterName to the given array value
      *
      * @param string $filterName
-     * @param array $value
+     * @param mixed $value
      *
      * @return mixed
      */

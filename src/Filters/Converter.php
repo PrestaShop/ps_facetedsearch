@@ -175,7 +175,7 @@ class Converter
         $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
             WHERE id_category = ' . (int) $idParent . '
-            AND id_shop = ' . $idShop . '
+            AND id_shop = ' . (int) $idShop . '
             GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
