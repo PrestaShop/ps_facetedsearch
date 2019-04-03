@@ -206,7 +206,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     [
                         'q' => null,
                         'page' => null,
-                    ],
+                    ]
                 ),
             ]
         );
@@ -231,7 +231,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     [
                         'q' => null,
                         'page' => null,
-                    ],
+                    ]
                 ),
             ]
         );
