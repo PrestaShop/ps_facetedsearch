@@ -222,7 +222,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     public function renderActiveFilters(ProductSearchContext $context, ProductSearchResult $result)
     {
-        list($activeFilters,) = $this->prepareActiveFiltersForRender($context, $result);
+        list($activeFilters, ) = $this->prepareActiveFiltersForRender($context, $result);
         return $this->module->render(
             'views/templates/front/catalog/active-filters.tpl',
             [
