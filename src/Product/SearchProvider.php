@@ -49,7 +49,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private $isAjax;
 
     /**
-     * @Ps_Facetedsearch
+     * @var Ps_Facetedsearch
      */
     private $module;
 
