@@ -1,0 +1,31 @@
+language: php
+
+notifications:
+  email:
+    on_success: never
+
+php:
+  - 7.2
+  - 7.3
+  - 5.6
+
+env:
+  matrix:
+    - NODE_RELEASE=8.x
+    - NOTE_RELEASE=9.x
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+before_install:
+  - sudo rm -rf ~/.nvm - curl -sL "https://deb.nodesource.com/setup_${NODE_RELEASE}" | sudo -E bash -
+  - sudo apt-get install -y nodejs
+
+before_script:
+  - composer install
+  - npm install
+
+script:
+  - composer run test
+  - npm run test
