@@ -63,6 +63,13 @@ interface InterfaceAdapter
     public function execute();
 
     /**
+     * Get the current query
+     *
+     * @return string
+     */
+    public function getQuery();
+
+    /**
      * Get the min & max value of the field filedName associated with the current search
      *
      * @param string $fieldName

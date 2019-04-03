@@ -166,7 +166,7 @@ class Search
             }
         }
 
-        if (!$hasCategory && $parent) {
+        if (!$hasCategory && $parent !== null) {
             $this->facetedSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
             $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
         }

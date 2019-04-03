@@ -58,7 +58,7 @@ class MySQL extends AbstractAdapter
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
         $mysqlAdapter = new self();
-        if ($this->initialPopulation && !$skipInitialPopulation) {
+        if ($this->initialPopulation !== null && !$skipInitialPopulation) {
             $mysqlAdapter->initialPopulation = clone $this->initialPopulation;
             if ($resetFilter) {
                 $mysqlAdapter->initialPopulation->resetFilter($resetFilter);

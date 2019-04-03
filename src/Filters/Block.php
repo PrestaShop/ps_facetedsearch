@@ -135,7 +135,7 @@ class Block
      *
      * @param string $filterHash
      *
-     * @return array
+     * @return array|null
      */
     public function getFromCache($filterHash)
     {
@@ -175,7 +175,7 @@ class Block
     private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts, Context $context)
     {
         if (!$this->showPriceFilter()) {
-            return null;
+            return [];
         }
 
         $priceSpecifications = $this->preparePriceSpecifications($context);
@@ -418,11 +418,11 @@ class Block
         ];
 
         if ($this->psStockManagement === null) {
-            $this->psStockManagement = Configuration::get('PS_STOCK_MANAGEMENT');
+            $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
         }
 
         if ($this->psOrderOutOfStock === null) {
-            $this->psOrderOutOfStock = Configuration::get('PS_ORDER_OUT_OF_STOCK');
+            $this->psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
         $allResults = $filteredSearchAdapter->count();
@@ -449,7 +449,7 @@ class Block
             }
 
             // if $this->psOrderOutOfStock == 1, product with out_of_stock == 2 are available
-            if ($this->psOrderOutOfStock == 1) {
+            if ($this->psOrderOutOfStock === true) {
                 if (array_key_exists(2, $resultsOutOfStock)) {
                     $results[1]['c'] += $resultsOutOfStock[2]['c'];
                     $results[0]['c'] -= $resultsOutOfStock[2]['c'];
