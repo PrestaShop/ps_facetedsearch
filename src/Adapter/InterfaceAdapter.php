@@ -48,7 +48,7 @@ interface InterfaceAdapter
     /**
      * Set the limit and offset associated with the current search
      *
-     * @param int $limit
+     * @param int|null $limit
      * @param int $offset
      *
      * @return self
