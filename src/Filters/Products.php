@@ -36,19 +36,21 @@ class Products
     /**
      * Use price tax filter
      *
-     * @return boolean
+     * @var bool
      */
-    private $psLayeredFilterPriceUsetax = null;
+    private $psLayeredFilterPriceUsetax;
 
     /**
      * Use price rounding
      *
-     * @return boolean
+     * @var bool
      */
-    private $psLayeredFilterPriceRounding = null;
+    private $psLayeredFilterPriceRounding;
 
 
-    /** @var AbstractAdapter */
+    /**
+     * @var AbstractAdapter
+     */
     private $facetedSearchAdapter;
 
     public function __construct(Search $productSearch)
