@@ -40,9 +40,27 @@ use PrestaShop\Module\FacetedSearch\HookDispatcher;
 class Ps_Facetedsearch extends Module
 {
     /**
-     * US iso code, used to prevent taxes usage while computing prices
+     * Lock indexation if too many products
+     *
+     * @var integer
      */
-    const ISO_CODE_US = 'US';
+    const LOCK_TOO_MANY_PRODUCTS = 5000;
+
+     /**
+     * Lock template filter creation if too many products
+     *
+     * @var integer
+     */
+    const LOCK_TEMPLATE_CREATION = 20000;
+
+    /**
+     * US iso code, used to prevent taxes usage while computing prices
+     *
+     * @var array
+     */
+    const ISO_CODE_TAX_FREE = [
+        'US'
+    ];
 
     /**
      * @var bool
@@ -152,7 +170,7 @@ class Ps_Facetedsearch extends Module
 
         $productsCount = Db::getInstance()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
 
-        if ($productsCount < 20000) { // Lock template filter creation if too many products
+        if ($productsCount < static::LOCK_TEMPLATE_CREATION) {
             $this->rebuildLayeredCache();
         }
 
@@ -160,9 +178,7 @@ class Ps_Facetedsearch extends Module
         $this->installIndexableAttributeTable();
         $this->installProductAttributeTable();
 
-        if ($productsCount < 5000) {
-            // Lock indexation if too many products
-
+        if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
             self::fullPricesIndexProcess();
             $this->indexAttribute();
         }
@@ -691,7 +707,7 @@ class Ps_Facetedsearch extends Module
                 foreach ($currencyList as $currency) {
                     $minPriceValue = array_key_exists($idCountry, $minPrice) ? $minPrice[$idCountry][$currency['id_currency']] : 0;
                     $maxPriceValue = array_key_exists($idCountry, $maxPrice) ? $maxPrice[$idCountry][$currency['id_currency']] : 0;
-                    if ($taxRateByCountry['iso_code'] !== self::ISO_CODE_US) {
+                    if (!in_array($taxRateByCountry['iso_code'], self::ISO_CODE_TAX_FREE)) {
                         $minPriceValue = Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, 0);
                         $maxPriceValue = Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, 0);
                     }
@@ -1331,7 +1347,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * Check for link rewirte
+     * Check if link rewrite are availables and corrects
      *
      * @param array $params
      */

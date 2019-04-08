@@ -161,10 +161,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             )
         );
 
-        // $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+        $filterBlock = $filterBlockSearch->getFromCache($filterHash);
         if (empty($filterBlock)) {
             $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
-            // $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+            $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
         }
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
