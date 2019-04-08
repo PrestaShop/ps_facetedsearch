@@ -59,38 +59,6 @@ class Products
     }
 
     /**
-     * Remove products from the product list in case of price postFiltering
-     *
-     * @param array $matchingProductList
-     * @param bool $psLayeredFilterPriceUsetax
-     * @param bool $psLayeredFilterPriceRounding
-     * @param array $priceFilter
-     */
-    private function filterPrice(
-        &$matchingProductList,
-        $psLayeredFilterPriceUsetax,
-        $psLayeredFilterPriceRounding,
-        $priceFilter
-    ) {
-        /* for this case, price could be out of range, so we need to compute the real price */
-        foreach ($matchingProductList as $key => $product) {
-            if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
-                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])
-            ) {
-                $price = Product::getPriceStatic($product['id_product'], $psLayeredFilterPriceUsetax);
-                if ($psLayeredFilterPriceRounding) {
-                    $price = (int) $price;
-                }
-
-                if ($price < $priceFilter['min'] || $price > $priceFilter['max']) {
-                    // out of range price, exclude the product
-                    unset($matchingProductList[$key]);
-                }
-            }
-        }
-    }
-
-    /**
      * Get the products associated with the current filters
      *
      * @param int $productsPerPage
@@ -169,6 +137,38 @@ class Products
                 $this->psLayeredFilterPriceRounding,
                 $priceFilter
             );
+        }
+    }
+
+    /**
+     * Remove products from the product list in case of price postFiltering
+     *
+     * @param array $matchingProductList
+     * @param bool $psLayeredFilterPriceUsetax
+     * @param bool $psLayeredFilterPriceRounding
+     * @param array $priceFilter
+     */
+    private function filterPrice(
+        &$matchingProductList,
+        $psLayeredFilterPriceUsetax,
+        $psLayeredFilterPriceRounding,
+        $priceFilter
+    ) {
+        /* for this case, price could be out of range, so we need to compute the real price */
+        foreach ($matchingProductList as $key => $product) {
+            if (($product['price_min'] < (int) $priceFilter['min'] && $product['price_max'] > (int) $priceFilter['min'])
+                || ($product['price_max'] > (int) $priceFilter['max'] && $product['price_min'] < (int) $priceFilter['max'])
+            ) {
+                $price = Product::getPriceStatic($product['id_product'], $psLayeredFilterPriceUsetax);
+                if ($psLayeredFilterPriceRounding) {
+                    $price = (int) $price;
+                }
+
+                if ($price < $priceFilter['min'] || $price > $priceFilter['max']) {
+                    // out of range price, exclude the product
+                    unset($matchingProductList[$key]);
+                }
+            }
         }
     }
 }

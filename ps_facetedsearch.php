@@ -437,6 +437,7 @@ class Ps_Facetedsearch extends Module
                     break;
                 }
                 $time_elapsed = microtime(true) - $startTime;
+                $indexedProducts += $length;
             } while ($cursor < $nbProducts
                 && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
                 && $time_elapsed < $maxExecutiontime);
@@ -452,13 +453,12 @@ class Ps_Facetedsearch extends Module
                 $indexedProducts += $length;
             } while ($cursor != $lastCursor && $time_elapsed < $maxExecutiontime);
         }
+
         if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
             $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
-            if (Tools::usingSecureMode()) {
-                $domain = Tools::getShopDomainSsl(true);
-            } else {
-                $domain = Tools::getShopDomain(true);
-            }
+            $domain = Tools::usingSecureMode()
+                    ? Tools::getShopDomainSsl(true)
+                    : Tools::getShopDomain(true);
 
             if (!Tools::file_get_contents($domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . $token . '&cursor=' . (int) $cursor . '&full=' . (int) $full)) {
                 self::indexPrices((int) $cursor, (int) $full);
@@ -496,8 +496,8 @@ class Ps_Facetedsearch extends Module
      * Index prices unbreakable
      *
      * @param $cursor int last indexed id_product
-     * @param bool $full
-     * @param bool $smart
+     * @param bool $full All products, otherwise only indexed products
+     * @param bool $smart Delete before reindex
      * @param int $length nb of products to index
      *
      * @return int
@@ -521,7 +521,7 @@ class Ps_Facetedsearch extends Module
                 FROM `' . _DB_PREFIX_ . 'product` p
                 INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
                 ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
+                INNER JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
                 WHERE psi.id_product IS NULL
                 GROUP BY p.`id_product`
                 ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
@@ -540,7 +540,7 @@ class Ps_Facetedsearch extends Module
      * Index product prices
      *
      * @param int $idProduct
-     * @param bool $smart
+     * @param bool $smart Delete before reindex
      */
     public static function indexProductPrices($idProduct, $smart = true)
     {

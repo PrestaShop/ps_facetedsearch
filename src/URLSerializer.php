@@ -27,10 +27,20 @@ namespace PrestaShop\Module\FacetedSearch;
 
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 
 class URLSerializer
 {
-    public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
+    /**
+     * Add filter
+     *
+     * @param array $facetFilters
+     * @param Filter $facetFilter
+     * @param Facet $facet
+     *
+     * @return array
+     */
+    public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, Facet $facet)
     {
         if ($facet->getProperty('range')) {
             $facetValue = $facetFilter->getValue();
@@ -46,6 +56,15 @@ class URLSerializer
         return $facetFilters;
     }
 
+    /**
+     * Remove filter
+     *
+     * @param array $facetFilters
+     * @param Filter $facetFilter
+     * @param Facet $facet
+     *
+     * @return array
+     */
     public function removeFilterFromFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
     {
         if ($facet->getProperty('range')) {
@@ -60,6 +79,11 @@ class URLSerializer
         return $facetFilters;
     }
 
+    /**
+     * Get active facet filters
+     *
+     * @return array
+     */
     public function getActiveFacetFiltersFromFacets(array $facets)
     {
         $facetFilters = [];
@@ -85,6 +109,13 @@ class URLSerializer
         return $facetFilters;
     }
 
+    /**
+     * Serialize facets
+     *
+     * @param array $facets
+     *
+     * @return string
+     */
     public function serialize(array $facets)
     {
         $facetFilters = $this->getActiveFacetFiltersFromFacets($facets);

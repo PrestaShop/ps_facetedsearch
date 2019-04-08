@@ -125,15 +125,6 @@ abstract class AbstractAdapter implements InterfaceAdapter
     public function copyFilters(InterfaceAdapter $facetedSearch)
     {
         $this->filters = $facetedSearch->getFilters();
-        $this->columnFilters = $facetedSearch->getColumnFilters();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getColumnFilters()
-    {
-        return $this->columnFilters;
     }
 
     /**
@@ -142,20 +133,12 @@ abstract class AbstractAdapter implements InterfaceAdapter
     public function addFilter($filterName, $values, $operator = '=')
     {
         $filters = $this->filters->get($filterName);
+        if (!isset($filters[$operator])) {
+            $filters[$operator] = [];
+        }
+
         $filters[$operator][] = $values;
         $this->filters->set($filterName, $filters);
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addColumnFilter($filterName, $columnName, $operator = '=')
-    {
-        if (!in_array($filterName, $this->columnFilters[$filterName][$operator])) {
-            $this->columnFilters[$filterName][$operator][] = $columnName;
-        }
 
         return $this;
     }

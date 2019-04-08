@@ -203,8 +203,8 @@ $(document).ready(() => {
   });
 
 
-  if (typeof filters !== 'undefined') {
-    filters = JSON.parse(filters);
+  if (typeof window.filters !== 'undefined') {
+    const filters = JSON.parse(window.filters);
     let container = null;
     let $el;
     Object.keys(filters).forEach((filter) => {

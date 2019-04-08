@@ -93,13 +93,6 @@ interface InterfaceAdapter
     public function getFilters();
 
     /**
-     * Return all the column filters associated with the current search
-     *
-     * @return mixed
-     */
-    public function getColumnFilters();
-
-    /**
      * Return the number of results associated for the current search
      *
      * @return int
@@ -134,18 +127,6 @@ interface InterfaceAdapter
      * @return self
      */
     public function addFilter($filterName, $values, $operator = '=');
-
-    /**
-     * Add a column filter
-     * E.g. WHERE price_min=price_max
-     *
-     * @param string $filterName
-     * @param string $columnName
-     * @param string $operator
-     *
-     * @return self
-     */
-    public function addColumnFilter($filterName, $columnName, $operator = '=');
 
     /**
      * Add fieldName in the current search result
