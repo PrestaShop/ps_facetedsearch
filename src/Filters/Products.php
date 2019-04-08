@@ -97,7 +97,7 @@ class Products
 
         $nbrProducts = $this->facetedSearchAdapter->count();
 
-        if ($nbrProducts == 0) {
+        if (empty($nbrProducts)) {
             $matchingProductList = [];
         }
 

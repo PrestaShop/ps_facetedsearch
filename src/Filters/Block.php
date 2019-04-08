@@ -41,6 +41,9 @@ use PrestaShop\PrestaShop\Core\Localization\Locale;
 use Shop;
 use Tools;
 
+/**
+ * Display filters block on navigation
+ */
 class Block
 {
     /** @var AbstractAdapter */
@@ -222,7 +225,7 @@ class Block
     }
 
     /**
-     * Price / weight filter block should not apply there own filters
+     * Price / weight filter block should not apply their own filters
      * otherwise they will always disappear if we filter on price / weight
      * because only one choice will remain
      *

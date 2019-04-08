@@ -80,6 +80,7 @@ class Feature extends AbstractHook
             WHERE `id_feature` = ' . (int) $params['id_feature']
         );
 
+        // Request failed, force $isIndexable
         if ($isIndexable === false) {
             $isIndexable = true;
         }

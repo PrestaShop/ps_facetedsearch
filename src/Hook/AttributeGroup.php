@@ -130,6 +130,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
 
+        // Request failed, force $isIndexable
         if ($isIndexable === false) {
             $isIndexable = true;
         }
