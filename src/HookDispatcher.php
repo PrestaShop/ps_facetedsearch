@@ -28,6 +28,11 @@ namespace PrestaShop\Module\FacetedSearch;
 use Ps_Facetedsearch;
 use PrestaShop\Module\FacetedSearch\Hook;
 
+/**
+ * Class works with Hook\AbstractHook instances in order to reduce ps_facetedsearch.php size.
+ *
+ * The dispatch method is called from the __call method in the module class.
+ */
 class HookDispatcher
 {
     const CLASSES = [
@@ -41,7 +46,18 @@ class HookDispatcher
         Hook\ProductSearch::class,
     ];
 
+    /**
+     * List of available hooks
+     *
+     * @var array[string]
+     */
     private $availableHooks = [];
+
+    /**
+     * Hook classes
+     *
+     * @var array[Hook\AbstractHook]
+     */
     private $hooks = [];
 
     /**
