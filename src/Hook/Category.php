@@ -59,7 +59,7 @@ class Category extends AbstractHook
          * we have to update the layered cache table structure
          */
         if (isset($params['category']) && !$params['category']->active) {
-            $this->actionCategoryDelete($params);
+            $this->cleanAndRebuildCategoryFilters($params);
         }
     }
 
@@ -69,6 +69,16 @@ class Category extends AbstractHook
      * @param array $params
      */
     public function actionCategoryDelete(array $params)
+    {
+        $this->cleanAndRebuildCategoryFilters($params);
+    }
+
+    /**
+     * Clean and rebuild category filters
+     *
+     * @param array $params
+     */
+    private function cleanAndRebuildCategoryFilters(array $params)
     {
         $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
             'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
