@@ -72,7 +72,7 @@ class FeatureValue extends AbstractHook
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -90,7 +90,7 @@ class FeatureValue extends AbstractHook
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
             WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
         );
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -176,6 +176,6 @@ class FeatureValue extends AbstractHook
             );
         }
 
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 }

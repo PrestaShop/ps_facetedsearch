@@ -44,7 +44,7 @@ class Category extends AbstractHook
     public function actionCategoryAdd(array $params)
     {
         $this->module->rebuildLayeredCache([], [(int) $params['category']->id]);
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -97,7 +97,7 @@ class Category extends AbstractHook
             }
         }
 
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
         $this->module->buildLayeredCategories();
     }
 }

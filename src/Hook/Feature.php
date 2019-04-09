@@ -52,7 +52,7 @@ class Feature extends AbstractHook
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
             WHERE `id_feature` = ' . (int) $params['id_feature']
         );
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
 

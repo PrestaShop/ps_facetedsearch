@@ -186,11 +186,6 @@ class Ps_Facetedsearch extends Module
         return true;
     }
 
-    public function invalidateLayeredFilterBlockCache()
-    {
-        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
-    }
-
     public function uninstall()
     {
         /* Delete all configurations */

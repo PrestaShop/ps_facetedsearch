@@ -23,31 +23,9 @@
  * International Registered Trademark & Property of PrestaShop SA
  */
 
-import NumberSymbol from '../cldr/number-symbol';
 import CurrencyFormatter from '../cldr/currency-formatter';
-import PriceSpecification from '../cldr/price-specification';
 
 let formatter;
-
-const prepareCurrencyFormatter = (specifications) => {
-  const symbol = new NumberSymbol(...specifications.symbol);
-  const currency = new CurrencyFormatter(
-    new PriceSpecification(
-      specifications.positivePattern,
-      specifications.negativePattern,
-      symbol,
-      parseInt(specifications.maxFractionDigits, 10),
-      parseInt(specifications.minFractionDigits, 10),
-      specifications.groupingUsed,
-      specifications.primaryGroupSize,
-      specifications.secondaryGroupSize,
-      specifications.currencySymbol,
-      specifications.currencyCode,
-    ),
-  );
-
-  return currency;
-};
 
 const displayLabelBlock = (displayBlock, min, max) => {
   if (formatter === undefined) {
@@ -73,7 +51,7 @@ const refreshSliders = () => {
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
     if (specifications.length) {
-      formatter = prepareCurrencyFormatter(specifications);
+      formatter = CurrencyFormatter.build(specifications);
     }
 
     displayLabelBlock(

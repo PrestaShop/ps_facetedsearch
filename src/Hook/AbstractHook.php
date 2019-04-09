@@ -25,6 +25,7 @@
  */
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Db;
 use Context;
 use Ps_Facetedsearch;
 
@@ -54,5 +55,13 @@ abstract class AbstractHook
     public function getAvailableHooks()
     {
         return static::AVAILABLE_HOOKS;
+    }
+
+    /**
+     * Invalid Filter block cache
+     */
+    public function invalidateLayeredFilterBlockCache()
+    {
+        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
     }
 }

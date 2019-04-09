@@ -44,6 +44,6 @@ class Product extends AbstractHook
 
         $this->module->indexProductPrices((int) $params['id_product']);
         $this->module->indexAttribute((int) $params['id_product']);
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 }

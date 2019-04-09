@@ -26,6 +26,9 @@
  * These placeholders are used in CLDR number formatting templates.
  * They are meant to be replaced by the correct localized symbols in the number formatting process.
  */
+import NumberSymbol from './number-symbol';
+import PriceSpecification from './price-specification';
+
 const CURRENCY_SYMBOL_PLACEHOLDER = '¤';
 const DECIMAL_SEPARATOR_PLACEHOLDER = '.';
 const GROUP_SEPARATOR_PLACEHOLDER = ',';
@@ -251,6 +254,26 @@ class CurrencyFormatter {
     return formattedNumber
       .split(CURRENCY_SYMBOL_PLACEHOLDER)
       .join(this.numberSpecification.getCurrencySymbol());
+  }
+
+  static build(specifications) {
+    const symbol = new NumberSymbol(...specifications.symbol);
+    const currency = new CurrencyFormatter(
+      new PriceSpecification(
+        specifications.positivePattern,
+        specifications.negativePattern,
+        symbol,
+        parseInt(specifications.maxFractionDigits, 10),
+        parseInt(specifications.minFractionDigits, 10),
+        specifications.groupingUsed,
+        specifications.primaryGroupSize,
+        specifications.secondaryGroupSize,
+        specifications.currencySymbol,
+        specifications.currencyCode,
+      ),
+    );
+
+    return currency;
   }
 }
 

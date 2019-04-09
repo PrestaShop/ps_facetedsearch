@@ -70,7 +70,7 @@ class Attribute extends AbstractHook
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -88,7 +88,7 @@ class Attribute extends AbstractHook
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
             WHERE `id_attribute` = ' . (int) $params['id_attribute']
         );
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->invalidateLayeredFilterBlockCache();
     }
 
     /**
