@@ -198,12 +198,13 @@ class Block
         ];
 
         $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
-        list($priceMinFilter, $priceMaxFilter) = $this->ignorePriceFilters(
+        list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation()
         );
 
         list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
-        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : $filteredSearchAdapter->getMinMaxPriceValue();
+        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : [$priceBlock['min'], $priceBlock['max']];
+
         if ($priceBlock['min'] !== $priceBlock['max']) {
             $priceBlock['list_of_values'] = [
                 [
@@ -214,40 +215,44 @@ class Block
             ];
         }
 
-        $this->restorePriceFilters(
+        $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
             $priceMinFilter,
-            $priceMaxFilter
+            $priceMaxFilter,
+            $weightFilter
         );
 
         return $priceBlock;
     }
 
     /**
-     * Price filter block should not apply its own filters
-     * otherwise they will always disappear if we filter on price
+     * Price / weight filter block should not apply their own filters
+     * otherwise they will always disappear if we filter on price / weight
      * because only one choice will remain
      *
      * @param InterfaceAdapter $filteredSearchAdapter
      *
      * @return array
      */
-    private function ignorePriceFilters(InterfaceAdapter $filteredSearchAdapter)
+    private function ignorePriceAndWeightFilters(InterfaceAdapter $filteredSearchAdapter)
     {
         // disable the current price and weight filters to compute ranges
         $priceMinFilter = $filteredSearchAdapter->getFilter('price_min');
         $priceMaxFilter = $filteredSearchAdapter->getFilter('price_max');
+        $weightFilter = $filteredSearchAdapter->getFilter('weight');
         $filteredSearchAdapter->resetFilter('price_min');
         $filteredSearchAdapter->resetFilter('price_max');
+        $filteredSearchAdapter->resetFilter('weight');
 
         return [
             $priceMinFilter,
             $priceMaxFilter,
+            $weightFilter,
         ];
     }
 
     /**
-     * Restore price filter
+     * Restore price and weight filters
      *
      * @param InterfaceAdapter $filteredSearchAdapter
      * @param integer $priceMinFilter
@@ -256,14 +261,16 @@ class Block
      *
      * @return array
      */
-    private function restorePriceFilters(
+    private function restorePriceAndWeightFilters(
         $filteredSearchAdapter,
         $priceMinFilter,
-        $priceMaxFilter
+        $priceMaxFilter,
+        $weightFilter
     ) {
         // put back the price and weight filters
         $filteredSearchAdapter->setFilter('price_min', $priceMinFilter);
         $filteredSearchAdapter->setFilter('price_max', $priceMaxFilter);
+        $filteredSearchAdapter->setFilter('weight', $weightFilter);
     }
 
     /**
@@ -291,8 +298,12 @@ class Block
             'list_of_values' => [],
         ];
 
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('weight');
-        list($weightBlock['min'], $weightBlock['max']) = $filteredSearchAdapter->getMinMaxValue('weight');
+        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+        list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
+            $this->facetedSearchAdapter->getInitialPopulation()
+        );
+
+        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxValue('weight');
         if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
             // We don't need to continue, no filter available
             return [];
@@ -308,6 +319,13 @@ class Block
                 ]
             ];
         }
+
+        $this->restorePriceAndWeightFilters(
+            $this->facetedSearchAdapter->getInitialPopulation(),
+            $priceMinFilter,
+            $priceMaxFilter,
+            $weightFilter
+        );
 
         return $weightBlock;
     }
