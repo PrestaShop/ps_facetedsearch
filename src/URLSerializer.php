@@ -89,19 +89,26 @@ class URLSerializer
         $facetFilters = [];
         foreach ($facets as $facet) {
             foreach ($facet->getFilters() as $facetFilter) {
-                if ($facet->getProperty('range')) {
-                    if ($facetFilter->isActive()) {
-                        $facetValue = $facetFilter->getValue();
-                        $facetFilters[$facet->getLabel()] = [
-                            $facetFilter->getProperty('symbol'),
-                            $facetValue['from'],
-                            $facetValue['to'],
-                        ];
+                if (!$facet->getProperty('range')) {
+                    if (!$facetFilter->isActive()) {
+                        // Filter is not active
+                        continue;
                     }
+
+                    $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
                 } else {
-                    if ($facetFilter->isActive()) {
-                        $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
+                    $facetValue = $facet->getProperty('values');
+                    $originalValue = $facetFilter->getValue();
+                    if ($originalValue['from'] == $facetValue[0] && $originalValue['to'] == $facetValue[1]) {
+                        // Value are not changed
+                        continue;
                     }
+
+                    $facetFilters[$facet->getLabel()] = [
+                        $facetFilter->getProperty('symbol'),
+                        $facetValue[0],
+                        $facetValue[1],
+                    ];
                 }
             }
         }

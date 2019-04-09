@@ -89,6 +89,7 @@ class Converter
                         if (array_key_exists('checked', $filterArray)) {
                             $filter->setActive($filterArray['checked']);
                         }
+
                         if (isset($filterArray['color']) && $filterArray['color'] != '') {
                             $filter->setProperty('color', $filterArray['color']);
                         }
