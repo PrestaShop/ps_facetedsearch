@@ -56,8 +56,8 @@ const refreshSliders = () => {
 
     displayLabelBlock(
       $(`#facet_label_${$el.data('slider-id')}`),
-      values[0],
-      values[1],
+      values === null ? $el.data('slider-min') : values[0],
+      values === null ? $el.data('slider-max') : values[1],
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
@@ -65,8 +65,8 @@ const refreshSliders = () => {
       min: $el.data('slider-min'),
       max: $el.data('slider-max'),
       values: [
-        values[0],
-        values[1],
+        values === null ? $el.data('slider-min') : values[0],
+        values === null ? $el.data('slider-max') : values[1],
       ],
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
@@ -77,7 +77,7 @@ const refreshSliders = () => {
           nextEncodedFacetsURL.replace(
             nextEncodedFacets,
             nextEncodedFacets.replace(
-              `${$el.data('slider-min')}-${$el.data('slider-max')}`,
+              /\d+-\d+$/,
               `${ui.values[0]}-${ui.values[1]}`,
             ),
           ),

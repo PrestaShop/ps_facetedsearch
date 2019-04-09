@@ -263,10 +263,12 @@ class Converter
                 case 'weight':
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         $filters = $facetAndFiltersLabels[$filterLabel];
-                        $from = $filters[1];
-                        $to = $filters[2];
-                        $facetedSearchFilters[$filter['type']][0] = $from;
-                        $facetedSearchFilters[$filter['type']][1] = $to;
+                        if (isset($filters[1]) && isset($filters[2])) {
+                            $from = $filters[1];
+                            $to = $filters[2];
+                            $facetedSearchFilters[$filter['type']][0] = $from;
+                            $facetedSearchFilters[$filter['type']][1] = $to;
+                        }
                     }
                     break;
                 case 'category':

@@ -203,7 +203,7 @@ class Block
         );
 
         list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
-        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : [$priceBlock['min'], $priceBlock['max']];
+        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
 
         if ($priceBlock['min'] !== $priceBlock['max']) {
             $priceBlock['list_of_values'] = [
@@ -303,13 +303,13 @@ class Block
             $this->facetedSearchAdapter->getInitialPopulation()
         );
 
-        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxValue('weight');
+        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
         if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
             // We don't need to continue, no filter available
             return [];
         }
 
-        $weightBlock['values'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : [$weightBlock['min'], $weightBlock['max']];
+        $weightBlock['values'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
         if ($weightBlock['min'] !== $weightBlock['max']) {
             $weightBlock['list_of_values'] = [
                 [

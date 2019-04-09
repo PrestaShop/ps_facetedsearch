@@ -373,7 +373,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $facetFilters = $activeFacetFilters;
 
                 // toggle the current filter
-                if ($filter->isActive()) {
+                if ($filter->isActive() && !$facet->getProperty('range')) {
                     $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
                         $facetFilters,
                         $filter,

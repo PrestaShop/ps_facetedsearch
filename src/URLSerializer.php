@@ -43,11 +43,11 @@ class URLSerializer
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, Facet $facet)
     {
         if ($facet->getProperty('range')) {
-            $facetValue = $facetFilter->getValue();
+            $facetValue = $facet->getProperty('values');
             $facetFilters[$facet->getLabel()] = [
                 $facetFilter->getProperty('symbol'),
-                $facetValue['from'],
-                $facetValue['to'],
+                isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
+                isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
             ];
         } else {
             $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
@@ -99,7 +99,7 @@ class URLSerializer
                 } else {
                     $facetValue = $facet->getProperty('values');
                     $originalValue = $facetFilter->getValue();
-                    if ($originalValue['from'] == $facetValue[0] && $originalValue['to'] == $facetValue[1]) {
+                    if ($facetValue === null) {
                         // Value are not changed
                         continue;
                     }
