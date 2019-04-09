@@ -197,7 +197,6 @@ class Block
             'list_of_values' => [],
         ];
 
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation()
         );
@@ -298,7 +297,6 @@ class Block
             'list_of_values' => [],
         ];
 
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation()
         );
