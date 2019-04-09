@@ -77,7 +77,7 @@ const refreshSliders = () => {
           nextEncodedFacetsURL.replace(
             nextEncodedFacets,
             nextEncodedFacets.replace(
-              /\d+-\d+$/,
+              new RegExp(`${escape($el.data('slider-unit'))}-\\d+-\\d+`),
               `${ui.values[0]}-${ui.values[1]}`,
             ),
           ),
