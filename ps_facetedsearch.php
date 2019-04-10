@@ -212,103 +212,6 @@ class Ps_Facetedsearch extends Module
         return parent::uninstall();
     }
 
-    private static function installPriceIndexTable()
-    {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_price_index`');
-
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_price_index` (
-            `id_product` INT  NOT NULL,
-            `id_currency` INT NOT NULL,
-            `id_shop` INT NOT NULL,
-            `price_min` INT NOT NULL,
-            `price_max` INT NOT NULL,
-            `id_country` INT NOT NULL,
-            PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
-            INDEX `id_currency` (`id_currency`),
-            INDEX `price_min` (`price_min`),
-            INDEX `price_max` (`price_max`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-    }
-
-    private function installIndexableAttributeTable()
-    {
-        // Attributes Groups
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` (
-            `id_attribute_group` INT NOT NULL,
-            `indexable` BOOL NOT NULL DEFAULT 0,
-            PRIMARY KEY (`id_attribute_group`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-        Db::getInstance()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`
-            SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group`'
-        );
-
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value` (
-            `id_attribute_group` INT NOT NULL,
-            `id_lang` INT NOT NULL,
-            `url_name` VARCHAR(128),
-            `meta_title` VARCHAR(128),
-            PRIMARY KEY (`id_attribute_group`, `id_lang`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-
-        // Attributes
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` (
-            `id_attribute` INT NOT NULL,
-            `id_lang` INT NOT NULL,
-            `url_name` VARCHAR(128),
-            `meta_title` VARCHAR(128),
-            PRIMARY KEY (`id_attribute`, `id_lang`)
-           )  ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-
-        // Features
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature` (
-            `id_feature` INT NOT NULL,
-            `indexable` BOOL NOT NULL DEFAULT 0,
-            PRIMARY KEY (`id_feature`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-
-        Db::getInstance()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature`
-            SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
-        );
-
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` (
-            `id_feature` INT NOT NULL,
-            `id_lang` INT NOT NULL,
-            `url_name` VARCHAR(128) NOT NULL,
-            `meta_title` VARCHAR(128),
-            PRIMARY KEY (`id_feature`, `id_lang`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-
-        // Features values
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` (
-            `id_feature_value` INT NOT NULL,
-            `id_lang` INT NOT NULL,
-            `url_name` VARCHAR(128),
-            `meta_title` VARCHAR(128),
-            PRIMARY KEY (`id_feature_value`, `id_lang`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-    }
 
     /**
      * create table product attribute.
@@ -383,152 +286,6 @@ class Ps_Facetedsearch extends Module
     public static function pricesIndexProcess($cursor = 0, $ajax = false)
     {
         return self::indexPrices($cursor, false, $ajax);
-    }
-
-    /**
-     * Index prices
-     *
-     * @param $cursor int last indexed id_product
-     * @param bool $full
-     * @param bool $ajax
-     * @param bool $smart
-     *
-     * @return int
-     */
-    private static function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
-    {
-        if ($full) {
-            $nbProducts = (int) Db::getInstance()->getValue(
-                'SELECT count(DISTINCT p.`id_product`)
-                FROM ' . _DB_PREFIX_ . 'product p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
-            );
-        } else {
-            $nbProducts = (int) Db::getInstance()->getValue(
-                'SELECT COUNT(DISTINCT p.`id_product`) FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
-                WHERE psi.id_product IS NULL'
-            );
-        }
-
-        $maxExecutiontime = @ini_get('max_execution_time');
-        if ($maxExecutiontime > 5 || $maxExecutiontime <= 0) {
-            $maxExecutiontime = 5;
-        }
-
-        $startTime = microtime(true);
-
-        $indexedProducts = 0;
-        $length = 100;
-        if (function_exists('memory_get_peak_usage')) {
-            do {
-                $lastCursor = $cursor;
-                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
-                if ($cursor == 0) {
-                    $lastCursor = $cursor;
-                    break;
-                }
-                $time_elapsed = microtime(true) - $startTime;
-                $indexedProducts += $length;
-            } while ($cursor < $nbProducts
-                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
-                && $time_elapsed < $maxExecutiontime);
-        } else {
-            do {
-                $lastCursor = $cursor;
-                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
-                if ($cursor == 0) {
-                    $lastCursor = $cursor;
-                    break;
-                }
-                $time_elapsed = microtime(true) - $startTime;
-                $indexedProducts += $length;
-            } while ($cursor != $lastCursor && $time_elapsed < $maxExecutiontime);
-        }
-
-        if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
-            $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
-            $domain = Tools::usingSecureMode()
-                    ? Tools::getShopDomainSsl(true)
-                    : Tools::getShopDomain(true);
-
-            if (!Tools::file_get_contents($domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . $token . '&cursor=' . (int) $cursor . '&full=' . (int) $full)) {
-                self::indexPrices((int) $cursor, (int) $full);
-            }
-
-            return $cursor;
-        }
-
-        if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
-            return json_encode([
-                'cursor' => $cursor,
-                'count' => $indexedProducts,
-            ]);
-        }
-
-        if ($ajax && $nbProducts > 0 && !$full) {
-            return json_encode([
-                'cursor' => $cursor,
-                'count' => $nbProducts,
-            ]);
-        }
-
-        Configuration::updateGlobalValue('PS_LAYERED_INDEXED', 1);
-
-        if ($ajax) {
-            return json_encode([
-                'result' => 'ok',
-            ]);
-        }
-
-        return -1;
-    }
-
-    /**
-     * Index prices unbreakable
-     *
-     * @param $cursor int last indexed id_product
-     * @param bool $full All products, otherwise only indexed products
-     * @param bool $smart Delete before reindex
-     * @param int $length nb of products to index
-     *
-     * @return int
-     */
-    private static function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
-    {
-        if (null === $cursor) {
-            $cursor = 0;
-        }
-
-        if ($full) {
-            $query = 'SELECT p.`id_product`
-                FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                WHERE p.id_product > ' . (int) $cursor . '
-                GROUP BY p.`id_product`
-                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
-        } else {
-            $query = 'SELECT p.`id_product`
-                FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                INNER JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
-                WHERE psi.id_product IS NULL
-                GROUP BY p.`id_product`
-                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
-        }
-
-        $lastIdProduct = 0;
-        foreach (Db::getInstance()->executeS($query) as $product) {
-            self::indexProductPrices((int) $product['id_product'], ($smart && $full));
-            $lastIdProduct = $product['id_product'];
-        }
-
-        return (int) $lastIdProduct;
     }
 
     /**
@@ -1378,5 +1135,263 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $methodName,
             !empty($arguments[0]) ? $arguments[0] : []
         );
+    }
+
+    /**
+     * Invalid filter block cache
+     */
+    public function invalidateLayeredFilterBlockCache()
+    {
+        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+    }
+
+    /**
+     * Install price indexes table
+     */
+    private static function installPriceIndexTable()
+    {
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_price_index`');
+
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_price_index` (
+            `id_product` INT  NOT NULL,
+            `id_currency` INT NOT NULL,
+            `id_shop` INT NOT NULL,
+            `price_min` INT NOT NULL,
+            `price_max` INT NOT NULL,
+            `id_country` INT NOT NULL,
+            PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
+            INDEX `id_currency` (`id_currency`),
+            INDEX `price_min` (`price_min`),
+            INDEX `price_max` (`price_max`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+    }
+
+    /**
+     * Install indexable attribute table
+     */
+    private function installIndexableAttributeTable()
+    {
+        // Attributes Groups
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` (
+            `id_attribute_group` INT NOT NULL,
+            `indexable` BOOL NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id_attribute_group`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+        Db::getInstance()->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`
+            SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group`'
+        );
+
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value` (
+            `id_attribute_group` INT NOT NULL,
+            `id_lang` INT NOT NULL,
+            `url_name` VARCHAR(128),
+            `meta_title` VARCHAR(128),
+            PRIMARY KEY (`id_attribute_group`, `id_lang`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+
+        // Attributes
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` (
+            `id_attribute` INT NOT NULL,
+            `id_lang` INT NOT NULL,
+            `url_name` VARCHAR(128),
+            `meta_title` VARCHAR(128),
+            PRIMARY KEY (`id_attribute`, `id_lang`)
+           )  ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+
+        // Features
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature` (
+            `id_feature` INT NOT NULL,
+            `indexable` BOOL NOT NULL DEFAULT 0,
+            PRIMARY KEY (`id_feature`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+
+        Db::getInstance()->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature`
+            SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
+        );
+
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` (
+            `id_feature` INT NOT NULL,
+            `id_lang` INT NOT NULL,
+            `url_name` VARCHAR(128) NOT NULL,
+            `meta_title` VARCHAR(128),
+            PRIMARY KEY (`id_feature`, `id_lang`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+
+        // Features values
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` (
+            `id_feature_value` INT NOT NULL,
+            `id_lang` INT NOT NULL,
+            `url_name` VARCHAR(128),
+            `meta_title` VARCHAR(128),
+            PRIMARY KEY (`id_feature_value`, `id_lang`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+    }
+
+    /**
+     * Index prices
+     *
+     * @param $cursor int last indexed id_product
+     * @param bool $full
+     * @param bool $ajax
+     * @param bool $smart
+     *
+     * @return int
+     */
+    private static function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
+    {
+        if ($full) {
+            $nbProducts = (int) Db::getInstance()->getValue(
+                'SELECT count(DISTINCT p.`id_product`)
+                FROM ' . _DB_PREFIX_ . 'product p
+                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
+                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
+            );
+        } else {
+            $nbProducts = (int) Db::getInstance()->getValue(
+                'SELECT COUNT(DISTINCT p.`id_product`) FROM `' . _DB_PREFIX_ . 'product` p
+                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
+                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
+                WHERE psi.id_product IS NULL'
+            );
+        }
+
+        $maxExecutiontime = @ini_get('max_execution_time');
+        if ($maxExecutiontime > 5 || $maxExecutiontime <= 0) {
+            $maxExecutiontime = 5;
+        }
+
+        $startTime = microtime(true);
+
+        $indexedProducts = 0;
+        $length = 100;
+        if (function_exists('memory_get_peak_usage')) {
+            do {
+                $lastCursor = $cursor;
+                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                if ($cursor == 0) {
+                    $lastCursor = $cursor;
+                    break;
+                }
+                $time_elapsed = microtime(true) - $startTime;
+                $indexedProducts += $length;
+            } while ($cursor < $nbProducts
+                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+                && $time_elapsed < $maxExecutiontime);
+        } else {
+            do {
+                $lastCursor = $cursor;
+                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                if ($cursor == 0) {
+                    $lastCursor = $cursor;
+                    break;
+                }
+                $time_elapsed = microtime(true) - $startTime;
+                $indexedProducts += $length;
+            } while ($cursor != $lastCursor && $time_elapsed < $maxExecutiontime);
+        }
+
+        if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
+            $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
+            $domain = Tools::usingSecureMode()
+                    ? Tools::getShopDomainSsl(true)
+                    : Tools::getShopDomain(true);
+
+            if (!Tools::file_get_contents($domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . $token . '&cursor=' . (int) $cursor . '&full=' . (int) $full)) {
+                self::indexPrices((int) $cursor, (int) $full);
+            }
+
+            return $cursor;
+        }
+
+        if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
+            return json_encode([
+                'cursor' => $cursor,
+                'count' => $indexedProducts,
+            ]);
+        }
+
+        if ($ajax && $nbProducts > 0 && !$full) {
+            return json_encode([
+                'cursor' => $cursor,
+                'count' => $nbProducts,
+            ]);
+        }
+
+        Configuration::updateGlobalValue('PS_LAYERED_INDEXED', 1);
+
+        if ($ajax) {
+            return json_encode([
+                'result' => 'ok',
+            ]);
+        }
+
+        return -1;
+    }
+
+    /**
+     * Index prices unbreakable
+     *
+     * @param $cursor int last indexed id_product
+     * @param bool $full All products, otherwise only indexed products
+     * @param bool $smart Delete before reindex
+     * @param int $length nb of products to index
+     *
+     * @return int
+     */
+    private static function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
+    {
+        if (null === $cursor) {
+            $cursor = 0;
+        }
+
+        if ($full) {
+            $query = 'SELECT p.`id_product`
+                FROM `' . _DB_PREFIX_ . 'product` p
+                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
+                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                WHERE p.id_product > ' . (int) $cursor . '
+                GROUP BY p.`id_product`
+                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
+        } else {
+            $query = 'SELECT p.`id_product`
+                FROM `' . _DB_PREFIX_ . 'product` p
+                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
+                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
+                INNER JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
+                WHERE psi.id_product IS NULL
+                GROUP BY p.`id_product`
+                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
+        }
+
+        $lastIdProduct = 0;
+        foreach (Db::getInstance()->executeS($query) as $product) {
+            self::indexProductPrices((int) $product['id_product'], ($smart && $full));
+            $lastIdProduct = $product['id_product'];
+        }
+
+        return (int) $lastIdProduct;
     }
 }

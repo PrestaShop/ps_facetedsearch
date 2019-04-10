@@ -7,4 +7,5 @@ if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('
     die('Bad token');
 }
 
-Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+$psFacetedsearch = new Ps_Facetedsearch();
+echo $psFacetedsearch->invalidateLayeredFilterBlockCache();

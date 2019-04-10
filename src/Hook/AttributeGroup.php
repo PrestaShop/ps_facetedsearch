@@ -79,7 +79,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
-        $this->invalidateLayeredFilterBlockCache();
+        $this->module->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -101,7 +101,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
-        $this->invalidateLayeredFilterBlockCache();
+        $this->module->invalidateLayeredFilterBlockCache();
     }
 
     /**
