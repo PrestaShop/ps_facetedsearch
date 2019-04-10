@@ -4,8 +4,8 @@ require_once __DIR__ . '/../../src/URLSerializer.php';
 
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
+use PrestaShop\Module\FacetedSearch\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
-use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
 class URLSerializerTest extends TestCase
 {
@@ -34,10 +34,10 @@ class URLSerializerTest extends TestCase
             ->setProperty('range', true)
             ->addFilter(
                 (new Filter())
-                    ->setLabel('Doesn\'t matter')
-                    ->setActive(true)
-                    ->setProperty('symbol', '€')
-                    ->setValue(['from' => 7, 'to' => 9])
+                ->setLabel('Doesn\'t matter')
+                ->setActive(true)
+                ->setProperty('symbol', '€')
+                ->setValue([7, 9])
             )
         ;
 

@@ -78,7 +78,7 @@ const refreshSliders = () => {
             nextEncodedFacets,
             nextEncodedFacets.replace(
               new RegExp(`${escape($el.data('slider-unit'))}-\\d+-\\d+`),
-              `${ui.values[0]}-${ui.values[1]}`,
+              `${escape($el.data('slider-unit'))}-${ui.values[0]}-${ui.values[1]}`,
             ),
           ),
         );

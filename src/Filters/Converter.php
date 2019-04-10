@@ -33,8 +33,8 @@ use Db;
 use Feature;
 use FeatureValue;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
-use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use Tools;
@@ -108,23 +108,18 @@ class Converter
                         ->setProperty('max', $filterBlock['max'])
                         ->setProperty('unit', $filterBlock['unit'])
                         ->setProperty('specifications', $filterBlock['specifications'])
-                        ->setProperty('values', $filterBlock['values'])
                         ->setMultipleSelectionAllowed(false)
                         ->setProperty('range', true);
 
-                    foreach ($filterBlock['list_of_values'] as $value) {
-                        $filter = new Filter();
-                        $filter
-                            ->setType($filterBlock['type'])
-                            ->setMagnitude($value['nbr'])
-                            ->setProperty('symbol', $filterBlock['unit'])
-                            ->setValue([
-                                'from' => $value['range_start'],
-                                'to' => $value['range_end'],
-                            ]);
+                    $filter = new Filter();
+                    $filter
+                        ->setActive($filterBlock['value'] !== null)
+                        ->setType($filterBlock['type'])
+                        ->setMagnitude($filterBlock['nbr'])
+                        ->setProperty('symbol', $filterBlock['unit'])
+                        ->setValue($filterBlock['value']);
 
-                        $facet->addFilter($filter);
-                    }
+                    $facet->addFilter($filter);
 
                     break;
             }

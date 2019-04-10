@@ -286,6 +286,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetsArray = $facet->toArray();
         foreach ($facetsArray['filters'] as &$filter) {
             $filter['facetLabel'] = $facet->getLabel();
+            $filter['encodedFacetsURL'] = $this->updateQueryString([
+                'q' => $filter['encodedFacets'],
+                'page' => null,
+            ]);
+
             if ($filter['nextEncodedFacets']) {
                 $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
                     'q' => $filter['nextEncodedFacets'],
@@ -314,12 +319,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $unit = Configuration::get('PS_WEIGHT_UNIT');
                 foreach ($facet->getFilters() as $filter) {
                     $filterValue = $filter->getValue();
+                    $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
+                    $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
                     $filter->setLabel(
                         sprintf(
                             '%1$s%2$s - %3$s%4$s',
-                            Tools::displayNumber($filterValue['from']),
+                            Tools::displayNumber($min),
                             $unit,
-                            Tools::displayNumber($filterValue['to']),
+                            Tools::displayNumber($max),
                             $unit
                         )
                     );
@@ -327,11 +334,13 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             } elseif ($facet->getType() === 'price') {
                 foreach ($facet->getFilters() as $filter) {
                     $filterValue = $filter->getValue();
+                    $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
+                    $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
                     $filter->setLabel(
                         sprintf(
                             '%1$s - %2$s',
-                            Tools::displayPrice($filterValue['from']),
-                            Tools::displayPrice($filterValue['to'])
+                            Tools::displayPrice($min),
+                            Tools::displayPrice($max)
                         )
                     );
                 }
@@ -355,7 +364,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
-            if (!$facet->isMultipleSelectionAllowed()) {
+            if (!$facet->isMultipleSelectionAllowed() && !$facet->getProperty('range')) {
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
@@ -373,7 +382,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $facetFilters = $activeFacetFilters;
 
                 // toggle the current filter
-                if ($filter->isActive() && !$facet->getProperty('range')) {
+                if ($filter->isActive()) {
                     $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
                         $facetFilters,
                         $filter,
@@ -392,6 +401,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 // the filter.
                 $filter->setNextEncodedFacets(
                     $urlSerializer->serialize($facetFilters)
+                );
+
+                // We set the current encoded facets
+                $filter->setEncodedFacets(
+                    $urlSerializer->serialize($activeFacetFilters)
                 );
             }
         }

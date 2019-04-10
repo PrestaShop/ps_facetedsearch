@@ -166,14 +166,14 @@
             {foreach from=$facet.filters item="filter"}
               <ul id="facet_{$_expand_id}"
                 class="faceted-slider"
-                data-slider-min="{$filter.value.from}"
-                data-slider-max="{$filter.value.to}"
+                data-slider-min="{$facet.properties.min}"
+                data-slider-max="{$facet.properties.max}"
                 data-slider-id="{$_expand_id}"
-                data-slider-values="{$facet.properties.values|@json_encode}"
+                data-slider-values="{$filter.value|@json_encode}"
                 data-slider-unit="{$facet.properties.unit}"
                 data-slider-specifications="{$facet.properties.specifications|@json_encode}"
-                data-slider-encoded-facets="{$filter.nextEncodedFacets}"
-                data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
+                data-slider-encoded-facets="{if $filter.active}{$filter.encodedFacets}{else}{$filter.nextEncodedFacets}{/if}"
+                data-slider-encoded-url="{if $filter.active}{$filter.nextEncodedFacetsURL}{else}{$filter.nextEncodedFacetsURL}{/if}"
               >
                 <li>
                   <p id="facet_label_{$_expand_id}">

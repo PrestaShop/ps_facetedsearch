@@ -194,7 +194,7 @@ class Block
             'specifications' => $priceSpecifications,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
-            'list_of_values' => [],
+            'nbr' => $nbProducts,
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
@@ -202,17 +202,8 @@ class Block
         );
 
         list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
-        $priceBlock['values'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
+        $priceBlock['value'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
 
-        if ($priceBlock['min'] !== $priceBlock['max']) {
-            $priceBlock['list_of_values'] = [
-                [
-                    'range_start' => $priceBlock['min'],
-                    'range_end' => $priceBlock['max'],
-                    'nbr' => $nbProducts
-                ]
-            ];
-        }
 
         $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
@@ -294,7 +285,8 @@ class Block
             'specifications' => [],
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
-            'list_of_values' => [],
+            'value' => null,
+            'nbr' => $nbProducts,
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
@@ -307,16 +299,7 @@ class Block
             return [];
         }
 
-        $weightBlock['values'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
-        if ($weightBlock['min'] !== $weightBlock['max']) {
-            $weightBlock['list_of_values'] = [
-                [
-                    'range_start' => $weightBlock['min'],
-                    'range_end' => $weightBlock['max'],
-                    'nbr' => $nbProducts
-                ]
-            ];
-        }
+        $weightBlock['value'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
 
         $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
