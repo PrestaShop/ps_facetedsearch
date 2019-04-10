@@ -116,6 +116,11 @@ class MySQL extends AbstractAdapter
                 }
             }
 
+            if ($this->initialPopulation === null) {
+                // We want to select only activated products
+                $whereConditions[] = 'p.active = TRUE';
+            }
+
             if (!empty($whereConditions)) {
                 $query .= ' WHERE ' . implode(' AND ', $whereConditions);
             }
