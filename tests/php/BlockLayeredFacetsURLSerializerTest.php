@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../src/URLSerializer.php';
 
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
-use PrestaShop\Module\FacetedSearch\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 
 class URLSerializerTest extends TestCase

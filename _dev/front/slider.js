@@ -75,20 +75,22 @@ const refreshSliders = () => {
       ],
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
-        // because spaces are replaces with %20, and sometimes by +, we want to keep the + sign
-        const nextEncodedFacets = $el.data('slider-encoded-facets').replace(/%20/g, '+');
-        const replacePattern = new RegExp(`${regExpEscape($el.data('slider-unit'))}-\\d+-\\d+`);
-        const replaceValue = `${$el.data('slider-unit')}-${ui.values[0]}-${ui.values[1]}`;
+        const requestUrl = [
+          nextEncodedFacetsURL,
+          nextEncodedFacetsURL.indexOf('?') >= 0 ? '' : '?q=',
+          '/',
+          $el.data('slider-label'),
+          '-',
+          $el.data('slider-unit'),
+          '-',
+          ui.values[0],
+          '-',
+          ui.values[1],
+        ].join('');
 
         prestashop.emit(
           'updateFacets',
-          nextEncodedFacetsURL.replace(
-            encodeURIComponent(nextEncodedFacets).replace('%2F', '/'),
-            nextEncodedFacets.replace(
-              replacePattern,
-              replaceValue,
-            ),
-          ),
+          requestUrl,
         );
       },
       slide(event, ui) {

@@ -287,11 +287,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetsArray = $facet->toArray();
         foreach ($facetsArray['filters'] as &$filter) {
             $filter['facetLabel'] = $facet->getLabel();
-            $filter['encodedFacetsURL'] = $this->updateQueryString([
-                'q' => $filter['encodedFacets'],
-                'page' => null,
-            ]);
-
             if ($filter['nextEncodedFacets']) {
                 $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
                     'q' => $filter['nextEncodedFacets'],
@@ -402,11 +397,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 // the filter.
                 $filter->setNextEncodedFacets(
                     $urlSerializer->serialize($facetFilters)
-                );
-
-                // We set the current encoded facets
-                $filter->setEncodedFacets(
-                    $urlSerializer->serialize($activeFacetFilters)
                 );
             }
         }

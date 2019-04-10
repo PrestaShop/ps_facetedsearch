@@ -171,9 +171,9 @@
                 data-slider-id="{$_expand_id}"
                 data-slider-values="{$filter.value|@json_encode}"
                 data-slider-unit="{$facet.properties.unit}"
+                data-slider-label="{$facet.label}"
                 data-slider-specifications="{$facet.properties.specifications|@json_encode}"
-                data-slider-encoded-facets="{if $filter.active}{$filter.encodedFacets}{else}{$filter.nextEncodedFacets}{/if}"
-                data-slider-encoded-url="{if $filter.active}{$filter.encodedFacetsURL}{else}{$filter.nextEncodedFacetsURL}{/if}"
+                data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
               >
                 <li>
                   <p id="facet_label_{$_expand_id}">
