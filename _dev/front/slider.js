@@ -42,6 +42,11 @@ const displayLabelBlock = (displayBlock, min, max) => {
   }
 };
 
+const regExpEscape = (literalString) => {
+  return literalString.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, '\\$&');
+};
+
+
 /**
  * Refresh facets sliders
  */
@@ -71,14 +76,17 @@ const refreshSliders = () => {
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
         // because spaces are replaces with %20, and sometimes by +, we want to keep the + sign
-        const nextEncodedFacets = escape($el.data('slider-encoded-facets')).replace(/%20/g, '+');
+        const nextEncodedFacets = $el.data('slider-encoded-facets').replace(/%20/g, '+');
+        const replacePattern = new RegExp(`${regExpEscape($el.data('slider-unit'))}-\\d+-\\d+`);
+        const replaceValue = `${$el.data('slider-unit')}-${ui.values[0]}-${ui.values[1]}`;
+
         prestashop.emit(
           'updateFacets',
           nextEncodedFacetsURL.replace(
-            nextEncodedFacets,
+            encodeURIComponent(nextEncodedFacets),
             nextEncodedFacets.replace(
-              new RegExp(`${escape($el.data('slider-unit'))}-\\d+-\\d+`),
-              `${escape($el.data('slider-unit'))}-${ui.values[0]}-${ui.values[1]}`,
+              replacePattern,
+              replaceValue,
             ),
           ),
         );
