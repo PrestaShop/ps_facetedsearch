@@ -716,11 +716,13 @@ class Ps_Facetedsearch extends Module
                 }
             }
 
-            Db::getInstance()->execute(
-                'INSERT INTO `' . _DB_PREFIX_ . 'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max, id_country)
+            if (!empty($values)) {
+                Db::getInstance()->execute(
+                    'INSERT INTO `' . _DB_PREFIX_ . 'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max, id_country)
                 VALUES ' . implode(',', $values) . '
                 ON DUPLICATE KEY UPDATE id_product = id_product' // Avoid duplicate keys
-            );
+                );
+            }
         }
     }
 
