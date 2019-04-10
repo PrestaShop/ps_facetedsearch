@@ -81,9 +81,14 @@ class Search
         $idCurrency = (int) $context->currency->id;
         $idShop = (int) $context->shop->id;
 
+        $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
+        if (!$psLayeredFullTree) {
+            $this->addFilter('id_category_default', $parent->id);
+        }
+
         $this->addSearchFilters(
             $facetedSearchFilters,
-            $parent,
+            $psLayeredFullTree ? $parent : null,
             $idShop
         );
     }
@@ -112,6 +117,7 @@ class Search
 
                 case 'category':
                     $this->addFilter('id_category', $filterValues);
+                    $this->facetedSearchAdapter->resetFilter('id_category_default');
                     $hasCategory = true;
                     break;
 
