@@ -83,7 +83,7 @@ const refreshSliders = () => {
         prestashop.emit(
           'updateFacets',
           nextEncodedFacetsURL.replace(
-            encodeURIComponent(nextEncodedFacets),
+            encodeURIComponent(nextEncodedFacets).replace('%2F', '/'),
             nextEncodedFacets.replace(
               replacePattern,
               replaceValue,
