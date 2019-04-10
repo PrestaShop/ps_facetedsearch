@@ -68,6 +68,33 @@ class Filter extends CoreFilter
     }
 
     /**
+     * @param string $name the filter property name
+     * @param mixed $value the filter property value
+     *
+     * @return $this
+     */
+    public function setProperty($name, $value)
+    {
+        $this->properties[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * @param string $name the filter property name
+     *
+     * @return mixed|null
+     */
+    public function getProperty($name)
+    {
+        if (!array_key_exists($name, $this->properties)) {
+            return null;
+        }
+
+        return $this->properties[$name];
+    }
+
+    /**
      * @return array an array representation of the filter
      */
     public function toArray()
