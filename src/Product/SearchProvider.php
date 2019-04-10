@@ -198,6 +198,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         return $this->module->render(
             'views/templates/front/catalog/facets.tpl',
             [
+                'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
                 'js_enabled' => $this->isAjax,
                 'activeFilters' => $activeFilters,

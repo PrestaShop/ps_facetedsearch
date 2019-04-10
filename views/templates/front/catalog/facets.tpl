@@ -107,7 +107,7 @@
                       rel="nofollow"
                     >
                       {$filter.label}
-                      {if $filter.magnitude}
+                      {if $filter.magnitude and $show_quantities}
                         <span class="magnitude">({$filter.magnitude})</span>
                       {/if}
                     </a>
@@ -128,7 +128,7 @@
                       {foreach from=$facet.filters item="filter"}
                         {if $filter.active}
                           {$filter.label}
-                          {if $filter.magnitude}
+                          {if $filter.magnitude and $show_quantities}
                             ({$filter.magnitude})
                           {/if}
                           {$active_found = true}
@@ -149,7 +149,7 @@
                           class="select-list"
                         >
                           {$filter.label}
-                          {if $filter.magnitude}
+                          {if $filter.magnitude and $show_quantities}
                             ({$filter.magnitude})
                           {/if}
                         </a>
