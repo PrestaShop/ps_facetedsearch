@@ -129,8 +129,10 @@
 #search_filters .facet .facet-label {
   width: 100%;
   text-align: left; }
-  #search_filters .facet .facet-label .custom-checkbox {
-    top: -7px; }
+  #search_filters .facet .facet-label .custom-checkbox,
+  #search_filters .facet .facet-label .custom-radio {
+    top: -7px;
+    margin-right: 0; }
   #search_filters .facet .facet-label .color {
     margin-left: 0; }
   #search_filters .facet .facet-label a {
