@@ -42,7 +42,7 @@ $constantsToDefine = [
   '_PS_OS_COD_VALIDATION_',
 ];
 foreach ($constantsToDefine as $constant) {
-  if (!defined($constant)) {
-    define($constant, 'DUMMY_VALUE');
-  }
+    if (!defined($constant)) {
+        define($constant, 'DUMMY_VALUE');
+    }
 }

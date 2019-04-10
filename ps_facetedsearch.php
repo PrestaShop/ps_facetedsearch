@@ -46,11 +46,11 @@ class Ps_Facetedsearch extends Module
      */
     const LOCK_TOO_MANY_PRODUCTS = 5000;
 
-     /**
-     * Lock template filter creation if too many products
-     *
-     * @var integer
-     */
+    /**
+    * Lock template filter creation if too many products
+    *
+    * @var integer
+    */
     const LOCK_TEMPLATE_CREATION = 20000;
 
     /**
