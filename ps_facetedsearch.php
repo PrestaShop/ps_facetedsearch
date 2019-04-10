@@ -848,12 +848,12 @@ class Ps_Facetedsearch extends Module
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int) Tools::getValue('ps_layered_show_qties'));
-            Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('psLayeredFullTree'));
+            Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('ps_layered_full_tree'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
 
-            $this->psLayeredFullTree = (int) Tools::getValue('psLayeredFullTree');
+            $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
         } elseif (Tools::getValue('deleteFilterTemplate')) {
