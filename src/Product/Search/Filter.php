@@ -35,12 +35,12 @@ class Filter extends CoreFilter
     private $properties = [];
 
     /**
-     * @var array the filter next encoded facets
+     * @var string the filter with encoded facets
      */
-    private $encodedFacets = [];
+    private $encodedFacets = '';
 
     /**
-     * @param $encodedFacets
+     * @param string $encodedFacets
      *
      * @return $this
      */
