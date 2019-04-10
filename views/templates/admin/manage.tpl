@@ -34,6 +34,7 @@
 			<a class="ajaxcall-recurcive btn btn-default" href="{$price_indexer_url}">{l s='Index all missing prices' d='Modules.Facetedsearch.Admin'}</a>
 			<a class="ajaxcall-recurcive btn btn-default" href="{$full_price_indexer_url}">{l s='Rebuild entire price index' d='Modules.Facetedsearch.Admin'}</a>
 			<a class="ajaxcall btn btn-default" id="attribute-indexer" rel="attribute" href="{$attribute_indexer_url}">{l s='Build attribute index' d='Modules.Facetedsearch.Admin'}</a>
+			<a class="ajaxcall btn btn-default" href="{$clear_cache_url}">{l s='Clear cache' d='Modules.Facetedsearch.Admin'}</a>
 		</p>
 	</div>
 	<div class="row">

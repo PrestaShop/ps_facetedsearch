@@ -973,6 +973,7 @@ class Ps_Facetedsearch extends Module
             'price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
             'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'full_tree' => $this->psLayeredFullTree,
