@@ -49,14 +49,14 @@ class HookDispatcher
     /**
      * List of available hooks
      *
-     * @var array[string]
+     * @var string[]
      */
     private $availableHooks = [];
 
     /**
      * Hook classes
      *
-     * @var array[Hook\AbstractHook]
+     * @var Hook\AbstractHook[]
      */
     private $hooks = [];
 
@@ -77,7 +77,7 @@ class HookDispatcher
     /**
      * Get available hooks
      *
-     * @return array
+     * @return string[]
      */
     public function getAvailableHooks()
     {
