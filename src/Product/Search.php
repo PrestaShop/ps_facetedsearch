@@ -81,11 +81,9 @@ class Search
         $idCurrency = (int) $context->currency->id;
         $idShop = (int) $context->shop->id;
 
-        $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
-
         $this->addSearchFilters(
             $facetedSearchFilters,
-            $psLayeredFullTree ? $parent : null,
+            $parent,
             $idShop
         );
     }
