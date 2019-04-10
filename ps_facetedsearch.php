@@ -615,6 +615,7 @@ class Ps_Facetedsearch extends Module
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
+            $this->invalidateLayeredFilterBlockCache();
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
                 'SELECT filters
@@ -1016,6 +1017,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         // Get all filter template
         $res = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
         $categories = [];
+        // Clear cache
+        $this->invalidateLayeredFilterBlockCache();
         // Remove all from layered_category
         Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
 
