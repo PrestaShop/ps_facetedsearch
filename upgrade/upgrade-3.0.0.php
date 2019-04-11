@@ -62,7 +62,11 @@ function upgrade_module_3_0_0(Ps_Facetedsearch $object)
         $object->unregisterHook($hookName);
     }
 
-    return $object->registerHook($object->getHookDispatcher()->getAvailableHooks())
-        && $object->rebuildLayeredStructure()
-        && $object->fullPricesIndexProcess();
+    // These methods have no return value
+    // If something failed an exception will be raised and
+    // the upgrade will stop
+    $object->rebuildLayeredStructure();
+    $object->fullPricesIndexProcess();
+
+    return $object->registerHook($object->getHookDispatcher()->getAvailableHooks());
 }
