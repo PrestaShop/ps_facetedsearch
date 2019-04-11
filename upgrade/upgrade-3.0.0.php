@@ -60,10 +60,6 @@ function upgrade_module_3_0_0($object)
 
     $hookDispatcher = new HookDispatcher($object);
     return $object->registerHook($hookDispatcher->getAvailableHooks())
-        && Db::getInstance()->execute(
-            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
-            `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
-            `data` TEXT NULL
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
+        && $object->rebuildLayeredStructure()
+        && $object->fullPricesIndexProcess();
 }

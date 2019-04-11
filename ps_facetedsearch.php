@@ -212,25 +212,6 @@ class Ps_Facetedsearch extends Module
         return parent::uninstall();
     }
 
-
-    /**
-     * create table product attribute.
-     */
-    public function installProductAttributeTable()
-    {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
-        Db::getInstance()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
-            `id_attribute` int(10) unsigned NOT NULL,
-            `id_product` int(10) unsigned NOT NULL,
-            `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
-            `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
-            PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
-            UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-    }
-
     /*
      * Generate data product attribute
      *
@@ -1153,6 +1134,24 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function invalidateLayeredFilterBlockCache()
     {
         Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+    }
+
+    /**
+     * create table product attribute.
+     */
+    private function installProductAttributeTable()
+    {
+        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
+        Db::getInstance()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
+            `id_attribute` int(10) unsigned NOT NULL,
+            `id_product` int(10) unsigned NOT NULL,
+            `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
+            `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
+            PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
+            UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
     }
 
     /**
