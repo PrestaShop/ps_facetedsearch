@@ -342,29 +342,10 @@ class Ps_Facetedsearch extends Module
             foreach ($countries as $country) {
                 $idCountry = $country['id_country'];
 
-                // Get price by currency & country, without reduction!
+                // Initialize country and currencies
                 foreach ($currencyList as $currency) {
-                    $price = Product::priceCalculation(
-                        $idShop,
-                        (int) $idProduct,
-                        null,
-                        $idCountry,
-                        null,
-                        null,
-                        $currency['id_currency'],
-                        null,
-                        null,
-                        false,
-                        6, // Decimals
-                        false,
-                        false,
-                        true,
-                        $specificPriceOutput,
-                        true
-                    );
-
-                    $minPrice[$idCountry][$currency['id_currency']] = $price;
-                    $maxPrice[$idCountry][$currency['id_currency']] = $price;
+                    $minPrice[$idCountry][$currency['id_currency']] = null;
+                    $maxPrice[$idCountry][$currency['id_currency']] = null;
                 }
 
                 foreach ($productMinPrices as $specificPrice) {
@@ -437,16 +418,16 @@ class Ps_Facetedsearch extends Module
                             $minPrice[$idCountry][$currency['id_currency']] = null;
                         }
 
-                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
-                            $maxPrice[$idCountry][$currency['id_currency']] = $price;
-                        }
-
                         if ($price == 0) {
                             continue;
                         }
 
                         if (null === $minPrice[$idCountry][$currency['id_currency']] || $price < $minPrice[$idCountry][$currency['id_currency']]) {
                             $minPrice[$idCountry][$currency['id_currency']] = $price;
+                        }
+
+                        if ($minPrice > $maxPrice[$idCountry][$currency['id_currency']]) {
+                            $maxPrice[$idCountry][$currency['id_currency']] = $minPrice;
                         }
                     }
                 }

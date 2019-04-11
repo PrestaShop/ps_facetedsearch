@@ -144,12 +144,12 @@ class Search
                     if (!empty($selectedFilters['weight'][0]) || !empty($selectedFilters['weight'][1])) {
                         $this->facetedSearchAdapter->addFilter(
                             'weight',
-                            [(float) ($selectedFilters['weight'][0] - 0.001)],
+                            [(float) $selectedFilters['weight'][0]],
                             '>='
                         );
                         $this->facetedSearchAdapter->addFilter(
                             'weight',
-                            [(float) ($selectedFilters['weight'][1] + 0.001)],
+                            [(float) $selectedFilters['weight'][1]],
                             '<='
                         );
                     }
@@ -163,7 +163,7 @@ class Search
                     ) {
                         $this->addPriceFilter(
                             (float) $selectedFilters['price'][0],
-                            (float) $selectedFilters['price'][1] + 0.001
+                            (float) $selectedFilters['price'][1]
                         );
                     }
                     break;
@@ -216,7 +216,7 @@ class Search
      */
     private function addPriceFilter($minPrice, $maxPrice)
     {
-        $this->facetedSearchAdapter->addFilter('price_min', [$minPrice - 0.001], '>=');
-        $this->facetedSearchAdapter->addFilter('price_max', [$maxPrice + 0.001], '<=');
+        $this->facetedSearchAdapter->addFilter('price_min', [$minPrice], '>=');
+        $this->facetedSearchAdapter->addFilter('price_max', [$maxPrice], '<=');
     }
 }
