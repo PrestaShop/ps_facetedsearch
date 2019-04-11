@@ -195,6 +195,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         list($activeFilters, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
 
+        // No need to render without facets
+        if (empty($facetsVar)) {
+            return '';
+        }
+
         return $this->module->render(
             'views/templates/front/catalog/facets.tpl',
             [
