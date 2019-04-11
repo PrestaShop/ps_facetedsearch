@@ -23,6 +23,7 @@
  * International Registered Trademark & Property of PrestaShop SA
  */
 
+import getQueryParameters from './urlparser';
 import CurrencyFormatter from '../cldr/currency-formatter';
 
 let formatter;
@@ -75,17 +76,34 @@ const refreshSliders = () => {
       ],
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
+        const urlsSplitted = nextEncodedFacetsURL.split('?');
+        let queryParams = {};
+
+        // Retrieve parameters if exists
+        if (urlsSplitted.length > 1) {
+          queryParams = getQueryParameters(urlsSplitted[1]);
+        }
+
+        // Update query parameter
+        queryParams.forEach((query) => {
+          if (query.name === 'q') {
+            query.value += [
+              query.value.length > 0 ? '/' : '',
+              $el.data('slider-label'),
+              '-',
+              $el.data('slider-unit'),
+              '-',
+              ui.values[0],
+              '-',
+              ui.values[1],
+            ].join('');
+          }
+        });
+
         const requestUrl = [
-          nextEncodedFacetsURL,
-          nextEncodedFacetsURL.indexOf('?') >= 0 ? '' : '?q=',
-          '/',
-          $el.data('slider-label'),
-          '-',
-          $el.data('slider-unit'),
-          '-',
-          ui.values[0],
-          '-',
-          ui.values[1],
+          urlsSplitted[0],
+          '?',
+          $.param(queryParams),
         ].join('');
 
         prestashop.emit(
