@@ -342,11 +342,37 @@ class Ps_Facetedsearch extends Module
             foreach ($countries as $country) {
                 $idCountry = $country['id_country'];
 
-                // Initialize country and currencies
+                // Get price by currency & country, without reduction!
                 foreach ($currencyList as $currency) {
-                    $minPrice[$idCountry][$currency['id_currency']] = null;
-                    $maxPrice[$idCountry][$currency['id_currency']] = null;
+                    if (!empty($productMinPrices)) {
+                        $minPrice[$idCountry][$currency['id_currency']] = null;
+                        $maxPrice[$idCountry][$currency['id_currency']] = null;
+                        continue;
+                    }
+
+                    $price = Product::priceCalculation(
+                        $idShop,
+                        (int) $idProduct,
+                        null,
+                        $idCountry,
+                        null,
+                        null,
+                        $currency['id_currency'],
+                        null,
+                        null,
+                        false,
+                        6, // Decimals
+                        false,
+                        false,
+                        true,
+                        $specificPriceOutput,
+                        true
+                    );
+
+                    $minPrice[$idCountry][$currency['id_currency']] = $price;
+                    $maxPrice[$idCountry][$currency['id_currency']] = $price;
                 }
+
 
                 foreach ($productMinPrices as $specificPrice) {
                     foreach ($currencyList as $currency) {
