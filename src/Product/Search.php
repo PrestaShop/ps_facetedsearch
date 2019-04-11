@@ -199,7 +199,7 @@ class Search
                     $values[] = (int) $subFilterValue;
                 }
             } else {
-                $values[] = (int) $filterValue;
+                $values[] = $filterValue;
             }
         }
 

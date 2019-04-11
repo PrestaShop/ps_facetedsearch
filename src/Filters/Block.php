@@ -354,7 +354,9 @@ class Block
             $count = $values['c'];
 
             $conditionArray[$condition]['nbr'] = $count;
-            if (isset($selectedFilters['condition']) && in_array($condition, $selectedFilters['condition'])) {
+            if (isset($selectedFilters['condition'])
+                && in_array($condition, $selectedFilters['condition'])
+            ) {
                 $conditionArray[$condition]['checked'] = true;
             }
         }

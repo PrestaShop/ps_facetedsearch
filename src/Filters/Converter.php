@@ -78,6 +78,7 @@ class Converter
                         $type = 'feature';
                         $facet->setProperty('id_feature', $filterBlock['id_key']);
                     }
+
                     $facet->setType($type);
                     foreach ($filterBlock['values'] as $id => $filterArray) {
                         $filter = new Filter();
@@ -218,6 +219,37 @@ class Converter
                     foreach ($quantityArray as $quantityName => $quantityId) {
                         if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($quantityName, $facetAndFiltersLabels[$filterLabel])) {
                             $facetedSearchFilters[$filter['type']][] = $quantityId;
+                        }
+                    }
+                    break;
+                case 'condition':
+                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                        // No need to filter if no information
+                        continue 2;
+                    }
+
+                    $conditionArray = [
+                        Context::getContext()->getTranslator()->trans(
+                            'New',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'new',
+                        Context::getContext()->getTranslator()->trans(
+                            'Used',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'used',
+                        Context::getContext()->getTranslator()->trans(
+                            'Refurbished',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'refurbished'
+                    ];
+
+                    $facetedSearchFilters[$filter['type']] = [];
+                    foreach ($conditionArray as $conditionName => $conditionId) {
+                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($conditionName, $facetAndFiltersLabels[$filterLabel])) {
+                            $facetedSearchFilters[$filter['type']][] = $conditionId;
                         }
                     }
                     break;
