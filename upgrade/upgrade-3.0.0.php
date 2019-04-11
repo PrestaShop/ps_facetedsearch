@@ -59,12 +59,11 @@ function upgrade_module_3_0_0($object)
     ]);
 
     $hookDispatcher = new HookDispatcher($object);
-    $object->registerHook($hookDispatcher->getAvailableHooks());
-
-    return Db::getInstance()->execute(
-        'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
-        `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
-        `data` TEXT NULL
-        ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-    );
+    return $object->registerHook($hookDispatcher->getAvailableHooks())
+        && Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
+            `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
+            `data` TEXT NULL
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
 }
