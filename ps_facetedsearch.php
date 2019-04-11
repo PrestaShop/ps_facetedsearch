@@ -147,7 +147,7 @@ class Ps_Facetedsearch extends Module
     public function install()
     {
         $installed = parent::install()
-                   && $this->registerHook($this->hookDispatcher->getAvailableHooks());
+                   && $this->registerHook($this->getHookDispatcher()->getAvailableHooks());
 
         // Installation failed (or hook registration) => uninstall the module
         if (!$installed) {
@@ -210,6 +210,14 @@ class Ps_Facetedsearch extends Module
         Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_product_attribute');
 
         return parent::uninstall();
+    }
+
+    /**
+     * @return HookDispatcher
+     */
+    public function getHookDispatcher()
+    {
+        return $this->hookDispatcher;
     }
 
     /*
@@ -1122,7 +1130,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function __call($methodName, array $arguments)
     {
-        return $this->hookDispatcher->dispatch(
+        return $this->getHookDispatcher()->dispatch(
             $methodName,
             !empty($arguments[0]) ? $arguments[0] : []
         );

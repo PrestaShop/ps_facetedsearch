@@ -30,10 +30,10 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_0_0($object)
+function upgrade_module_3_0_0(Ps_Facetedsearch $object)
 {
     // Clear legacy hook names
-    $object->unregisterHook([
+    $oldHooks = [
         'categoryAddition',
         'categoryUpdate',
         'attributeGroupForm',
@@ -56,10 +56,13 @@ function upgrade_module_3_0_0($object)
         'afterSaveAttribute',
         'productSearchProvider',
         'displayLeftColumn',
-    ]);
+    ];
 
-    $hookDispatcher = new HookDispatcher($object);
-    return $object->registerHook($hookDispatcher->getAvailableHooks())
+    foreach ($oldHooks as $hookName) {
+        $object->unregisterHook($hookName);
+    }
+
+    return $object->registerHook($object->getHookDispatcher()->getAvailableHooks())
         && $object->rebuildLayeredStructure()
         && $object->fullPricesIndexProcess();
 }
