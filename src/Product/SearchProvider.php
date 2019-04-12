@@ -193,7 +193,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     public function renderFacets(ProductSearchContext $context, ProductSearchResult $result)
     {
-        list($activeFilters, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
+        list($activeFilters, $displayedFacets, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
 
         // No need to render without facets
         if (empty($facetsVar)) {
@@ -206,6 +206,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
                 'js_enabled' => $this->isAjax,
+                'displayedFacets' => $displayedFacets,
                 'activeFilters' => $activeFilters,
                 'sort_order' => $result->getCurrentSortOrder()->toString(),
                 'clear_all_link' => $this->updateQueryString(
@@ -264,8 +265,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $facetCollection->getFacets()
         );
 
+        $displayedFacets = [];
         $activeFilters = [];
         foreach ($facetsVar as $idx => $facet) {
+            // Remove undisplayed facets
+            if (!empty($facet['displayed'])) {
+                $displayedFacets[] = $facet;
+            }
+
             // Check if a filter is active
             foreach ($facet['filters'] as $filter) {
                 if ($filter['active']) {
@@ -276,6 +283,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         return [
             $activeFilters,
+            $displayedFacets,
             $facetsVar,
         ];
     }

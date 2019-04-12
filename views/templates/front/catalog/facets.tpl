@@ -22,7 +22,7 @@
   * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
   * International Registered Trademark & Property of PrestaShop SA
   *}
-{if $facets|count}
+{if $displayedFacets|count}
   <div id="search_filters">
     {block name='facets_title'}
       <p class="text-uppercase h6 hidden-sm-down">{l s='Filter By' d='Shop.Theme.Actions'}</p>
@@ -39,11 +39,7 @@
       {/if}
     {/block}
 
-    {foreach from=$facets item="facet"}
-      {if !$facet.displayed}
-        {continue}
-      {/if}
-
+    {foreach from=$displayedFacets item="facet"}
       <section class="facet clearfix">
         <p class="h6 facet-title hidden-sm-down">{$facet.label}</p>
         {assign var=_expand_id value=10|mt_rand:100000}
