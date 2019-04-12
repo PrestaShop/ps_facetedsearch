@@ -93,6 +93,13 @@ interface InterfaceAdapter
     public function getFilters();
 
     /**
+     * Return all the operations filters associated with the current search
+     *
+     * @return mixed
+     */
+    public function getOperationsFilters();
+
+    /**
      * Return the number of results associated for the current search
      *
      * @return int
@@ -129,6 +136,16 @@ interface InterfaceAdapter
     public function addFilter($filterName, $values, $operator = '=');
 
     /**
+     * Add a stack of operations with filterName. Operations must contains filterName, values and to the current search
+     *
+     * @param string $filterName
+     * @param array $operations
+     *
+     * @return self
+     */
+    public function addOperationsFilter($filterName, array $operations);
+
+    /**
      * Add fieldName in the current search result
      *
      * @param string $fieldName
@@ -147,11 +164,11 @@ interface InterfaceAdapter
     public function valueCount($fieldName);
 
     /**
-     * Reset the column filters
+     * Reset the operations filters
      *
      * @return self
      */
-    public function resetColumnFilters();
+    public function resetOperationsFilters();
 
     /**
      * Reset the filter for the given filterName
@@ -196,7 +213,7 @@ interface InterfaceAdapter
     public function resetAll();
 
     /**
-     * Copy all the filters & columnFilters from facetedSearch to the current search
+     * Copy all the filters & operationsFilters from facetedSearch to the current search
      *
      * @param InterfaceAdapter $facetedSearch
      */

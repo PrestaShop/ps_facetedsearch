@@ -149,19 +149,28 @@ class Search
                         break;
                     }
 
-                    $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] && !$this->psOrderOutOfStock ? '<=' : '>='));
+                    $operationsFilter = [];
                     if ($filterValues[0]) {
                         // Filter for available quantity, we must be able to request
                         // product with out_of_stock at 1 or 2
                         // which mean we can buy out of stock products
-                        $value = $this->psOrderOutOfStock ? [1, 2] : [1];
+                        $operationsFilter[] = [
+                            ['quantity', [0], '>='],
+                            ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
+                        ];
+                        $operationsFilter[] = [
+                            ['quantity', [0], '>'],
+                        ];
                     } else {
-                        $value = [0];
+                        $operationsFilter[] = [
+                            ['quantity', [0], '<='],
+                            ['out_of_stock', !$this->psOrderOutOfStock ? [0, 2] : [0], '='],
+                        ];
                     }
 
-                    $this->facetedSearchAdapter->addFilter(
-                        'out_of_stock',
-                        $value
+                    $this->facetedSearchAdapter->addOperationsFilter(
+                        'with_stock_management',
+                        $operationsFilter
                     );
                     break;
 

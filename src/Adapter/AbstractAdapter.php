@@ -29,9 +29,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 abstract class AbstractAdapter implements InterfaceAdapter
 {
+    /**
+     * @var ArrayCollection
+     */
     protected $filters;
 
-    protected $columnFilters = [];
+    /**
+     * @var ArrayCollection
+     */
+    protected $operationsFilters;
 
     protected $orderField = 'id_product';
 
@@ -51,6 +57,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     public function __construct()
     {
         $this->filters = new ArrayCollection();
+        $this->operationsFilters = new ArrayCollection();
     }
 
     public function __clone()
@@ -79,9 +86,9 @@ abstract class AbstractAdapter implements InterfaceAdapter
     /**
      * {@inheritdoc}
      */
-    public function resetColumnFilters()
+    public function resetOperationsFilters()
     {
-        $this->columnFilters = [];
+        $this->operationsFilters = [];
 
         return $this;
     }
@@ -94,7 +101,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
         $this->selectFields = [];
         $this->groupFields = [];
         $this->filters = [];
-        $this->columnFilters = [];
+        $this->operationsFilters = [];
 
         return $this;
     }
@@ -122,6 +129,14 @@ abstract class AbstractAdapter implements InterfaceAdapter
     /**
      * {@inheritdoc}
      */
+    public function getOperationsFilters()
+    {
+        return $this->filters;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function copyFilters(InterfaceAdapter $facetedSearch)
     {
         $this->filters = $facetedSearch->getFilters();
@@ -139,6 +154,16 @@ abstract class AbstractAdapter implements InterfaceAdapter
 
         $filters[$operator][] = $values;
         $this->filters->set($filterName, $filters);
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function addOperationsFilter($filterName, array $operations = [])
+    {
+        $this->operationsFilters->set($filterName, $operations);
 
         return $this;
     }

@@ -354,18 +354,36 @@ class MySQL extends AbstractAdapter
     private function computeWhereConditions($filterToTableMapping)
     {
         $whereConditions = [];
-        foreach ($this->columnFilters as $filterName => $filterContent) {
-            foreach ($filterContent as $operator => $columnNames) {
-                foreach ($columnNames as $columnName) {
+        foreach ($this->operationsFilters as $filterName => $filterOperations) {
+            $operationsConditions = [];
+            foreach ($filterOperations as $operations) {
+                $conditions = [];
+                foreach ($operations as $operation) {
                     $selectAlias = 'p';
-                    if (array_key_exists($filterName, $filterToTableMapping)) {
-                        $joinMapping = $filterToTableMapping[$filterName];
+                    $values = $operation[1];
+                    $operator = '=';
+                    if (array_key_exists($operation[0], $filterToTableMapping)) {
+                        $joinMapping = $filterToTableMapping[$operation[0]];
                         $selectAlias = $joinMapping['tableAlias'];
                     }
 
-                    $whereConditions[] = $selectAlias . '.' . $filterName . $operator . $columnName;
+                    if (count($values) == 1) {
+                        if (!empty($operation[2])) {
+                            $operator = $operation[2];
+                        }
+
+                        $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
+                    } else {
+                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN ('  . implode(', ', array_map(function ($value) {
+                            return pSQL($value);
+                        }, $values)) . ')';
+                    }
                 }
+
+                $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
             }
+
+            $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
         }
 
         foreach ($this->filters as $filterName => $filterContent) {
@@ -386,7 +404,7 @@ class MySQL extends AbstractAdapter
                         } else {
                             $whereConditions[] =
                                 $selectAlias . '.' . $filterName . ' IN (' . implode(', ', array_map(function ($value) {
-                                    return "'" . $value . "'";
+                                    return pSQL($value);
                                 }, $values)) . ')';
                         }
                     } else {
