@@ -35,6 +35,16 @@ use Context;
 class Search
 {
     /**
+     * @var boolean
+     */
+    private $psStockManagement;
+
+    /**
+     * @var boolean
+     */
+    private $psOrderOutOfStock;
+
+    /**
      * @var AbstractAdapter
      */
     private $facetedSearchAdapter;
@@ -50,6 +60,14 @@ class Search
             case 'MySQL':
             default:
                 $this->facetedSearchAdapter = new MySQLAdapter();
+        }
+
+        if ($this->psStockManagement === null) {
+            $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
+        }
+
+        if ($this->psOrderOutOfStock === null) {
+            $this->psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
     }
 
@@ -126,7 +144,25 @@ class Search
                         break;
                     }
 
-                    $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
+                    if (!$this->psStockManagement) {
+                        $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
+                        break;
+                    }
+
+                    $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] && !$this->psOrderOutOfStock ? '<=' : '>='));
+                    if ($filterValues[0]) {
+                        // Filter for available quantity, we must be able to request
+                        // product with out_of_stock at 1 or 2
+                        // which mean we can buy out of stock products
+                        $value = $this->psOrderOutOfStock ? [1, 2] : [1];
+                    } else {
+                        $value = [0];
+                    }
+
+                    $this->facetedSearchAdapter->addFilter(
+                        'out_of_stock',
+                        $value
+                    );
                     break;
 
                 case 'manufacturer':
