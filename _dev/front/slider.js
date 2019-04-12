@@ -77,7 +77,7 @@ const refreshSliders = () => {
       change(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
         const urlsSplitted = nextEncodedFacetsURL.split('?');
-        let queryParams = {};
+        let queryParams = [{name: 'q', value: ''}];
 
         // Retrieve parameters if exists
         if (urlsSplitted.length > 1) {
