@@ -266,12 +266,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $activeFilters = [];
         foreach ($facetsVar as $idx => $facet) {
-            // Remove undisplayed facets
-            if (empty($facet['displayed'])) {
-                unset($facetsVar[$idx]);
-                continue;
-            }
-
             // Check if a filter is active
             foreach ($facet['filters'] as $filter) {
                 if ($filter['active']) {
@@ -390,7 +384,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $facetFilters = $activeFacetFilters;
 
                 // toggle the current filter
-                if ($filter->isActive()) {
+                if ($filter->isActive() || $facet->getProperty('range')) {
                     $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
                         $facetFilters,
                         $filter,
