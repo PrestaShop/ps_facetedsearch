@@ -441,7 +441,7 @@ class Block
                     continue;
                 }
 
-               // search count of products always available when out of stock (out_of_stock == 1)
+                // search count of products always available when out of stock (out_of_stock == 1)
                 if (isset($resultOutOfStock['out_of_stock']) && (int) $resultOutOfStock['out_of_stock'] === 1) {
                     $results[1]['c'] += (int) $resultOutOfStock['c'];
                     continue;
