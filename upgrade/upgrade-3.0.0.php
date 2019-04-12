@@ -67,6 +67,7 @@ function upgrade_module_3_0_0(Ps_Facetedsearch $object)
     // the upgrade will stop
     $object->rebuildLayeredStructure();
     $object->fullPricesIndexProcess();
+    $object->invalidateLayeredFilterBlockCache();
 
     return $object->registerHook($object->getHookDispatcher()->getAvailableHooks());
 }
