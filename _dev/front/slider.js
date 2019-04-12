@@ -43,11 +43,6 @@ const displayLabelBlock = (displayBlock, min, max) => {
   }
 };
 
-const regExpEscape = (literalString) => {
-  return literalString.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, '\\$&');
-};
-
-
 /**
  * Refresh facets sliders
  */
@@ -98,6 +93,7 @@ const refreshSliders = () => {
         // Update query parameter
         queryParams.forEach((query) => {
           if (query.name === 'q') {
+            // eslint-disable-next-line
             query.value += [
               query.value.length > 0 ? '/' : '',
               $el.data('slider-label'),
