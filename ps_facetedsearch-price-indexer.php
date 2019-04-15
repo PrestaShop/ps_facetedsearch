@@ -1,7 +1,7 @@
 <?php
 
-include dirname(__FILE__).'/../../config/config.inc.php';
-include dirname(__FILE__).'/ps_facetedsearch.php';
+require_once __DIR__ . '/../../config/config.inc.php';
+require_once __DIR__ . '/ps_facetedsearch.php';
 
 if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
     die('Bad token');
@@ -20,7 +20,7 @@ if (!Tools::getValue('ajax')) {
         $domain = Tools::getShopDomain(true);
     }
     // Return a content without waiting the end of index execution
-    header('Location: '.$domain.__PS_BASE_URI__.'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token='.Tools::getValue('token').'&return_message='.(int) Tools::getValue('cursor'));
+    header('Location: ' . $domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . Tools::getValue('token') . '&return_message=' . (int) Tools::getValue('cursor'));
     flush();
 }
 
