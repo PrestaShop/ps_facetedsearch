@@ -88,7 +88,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetOperationsFilters()
     {
-        $this->operationsFilters = [];
+        $this->operationsFilters = new ArrayCollection();
 
         return $this;
     }
@@ -100,8 +100,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
     {
         $this->selectFields = [];
         $this->groupFields = [];
-        $this->filters = [];
-        $this->operationsFilters = [];
+        $this->filters = new ArrayCollection();
+        $this->operationsFilters = new ArrayCollection();
 
         return $this;
     }

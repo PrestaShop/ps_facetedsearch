@@ -190,7 +190,7 @@ class Block
             'name' => Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
             'max' => '0',
             'min' => null,
-            'unit' => $context->currency->symbol,
+            'unit' => $context->currency->sign,
             'specifications' => $priceSpecifications,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
@@ -1001,6 +1001,8 @@ class Block
     private function preparePriceSpecifications(Context $context)
     {
         $currency = $context->currency;
+        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices had 2 decimals
+        $precision = isset($currency->precision) ? $currency->precision : 2;
         return [
             'positivePattern' => $currency->format,
             'negativePattern' => $currency->format,
@@ -1017,8 +1019,8 @@ class Block
                 '∞',
                 'NaN',
             ],
-            'maxFractionDigits' => $currency->precision,
-            'minFractionDigits' => $currency->precision,
+            'maxFractionDigits' => $precision,
+            'minFractionDigits' => $precision,
             'groupingUsed' => true,
             'primaryGroupSize' => 3,
             'secondaryGroupSize' => 3,
