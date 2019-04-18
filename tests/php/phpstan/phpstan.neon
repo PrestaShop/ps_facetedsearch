@@ -1,4 +1,5 @@
 parameters:
+  reportUnmatchedIgnoredErrors: false
   bootstrap: /web/module/tests/php/phpstan/bootstrap.php
   paths:
     - /web/module/src

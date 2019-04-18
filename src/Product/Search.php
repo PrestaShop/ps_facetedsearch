@@ -101,7 +101,7 @@ class Search
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
-            $this->addFilter('id_category_default', $parent->id);
+            $this->addFilter('id_category_default', [$parent->id]);
         }
 
         $this->addSearchFilters(
@@ -231,12 +231,8 @@ class Search
      * @param string $filterName
      * @param array $filterValues
      */
-    public function addFilter($filterName, $filterValues)
+    public function addFilter($filterName, array $filterValues)
     {
-        if (!is_array($filterValues)) {
-            $filterValues = [$filterValues];
-        }
-
         $values = [];
         foreach ($filterValues as $filterValue) {
             if (is_array($filterValue)) {
