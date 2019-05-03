@@ -290,9 +290,7 @@ class NumberFormatter {
       );
     }
 
-    const currency = new NumberFormatter(specification);
-
-    return currency;
+    return new NumberFormatter(specification);
   }
 }
 
