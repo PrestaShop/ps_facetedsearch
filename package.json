@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require @babel/register --reporter spec tests/js/**/*.test.js",
+    "test": "./node_modules/.bin/mocha --require @babel/register --reporter spec \"./tests/**/*.spec.js\"",
     "lint": "eslint --ext .js,.vue .",
     "build": "webpack-cli --mode production",
     "dev": "webpack-cli --mode development --watch"

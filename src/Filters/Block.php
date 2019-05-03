@@ -1002,9 +1002,6 @@ class Block
     {
         /** @var Currency **/
         $currency = $context->currency;
-        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
-        $precision = isset($currency->precision) ? $currency->precision : 2;
-
         // New method since PS 1.7.6
         if (method_exists($context->currentLocale, 'getPriceSpecification')) {
             /** @var PriceSpecification **/
@@ -1035,6 +1032,9 @@ class Block
                 'currencySymbol' => $priceSpecification->getCurrencySymbol(),
             ];
         }
+
+        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
+        $precision = isset($currency->precision) ? $currency->precision : 2;
 
         return [
             'positivePattern' => $currency->format,

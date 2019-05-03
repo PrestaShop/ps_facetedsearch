@@ -22,18 +22,12 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-import LocalizationException from './exception/localization';
-import NumberSymbol from './number-symbol';
+import LocalizationException from '../exception/localization';
+import NumberSymbol from '../number-symbol';
 
-/**
- * Currency display option: symbol notation.
- */
-const CURRENCY_DISPLAY_SYMBOL = 'symbol';
-
-
-class PriceSpecification {
+class NumberSpecification {
   /**
-   * Price specification constructor.
+   * Number specification constructor.
    *
    * @param string positivePattern CLDR formatting pattern for positive amounts
    * @param string negativePattern CLDR formatting pattern for negative amounts
@@ -43,8 +37,6 @@ class PriceSpecification {
    * @param bool groupingUsed Is digits grouping used ?
    * @param int primaryGroupSize Size of primary digits group in the number
    * @param int secondaryGroupSize Size of secondary digits group in the number
-   * @param string currencySymbol Currency symbol of this price (eg. : €)
-   * @param currencyCode Currency code of this price (e.g.: EUR)
    *
    * @throws LocalizationException
    */
@@ -57,12 +49,7 @@ class PriceSpecification {
     groupingUsed,
     primaryGroupSize,
     secondaryGroupSize,
-    currencySymbol,
-    currencyCode,
   ) {
-    this.currencySymbol = currencySymbol;
-    this.currencyCode = currencyCode;
-
     this.positivePattern = positivePattern;
     this.negativePattern = negativePattern;
     this.symbol = symbol;
@@ -75,44 +62,6 @@ class PriceSpecification {
     this.primaryGroupSize = primaryGroupSize;
     this.secondaryGroupSize = secondaryGroupSize;
 
-    this.validateData();
-  }
-
-  /**
-   * Get type of display for currency symbol.
-   *
-   * @return string
-   */
-  static getCurrencyDisplay() {
-    return CURRENCY_DISPLAY_SYMBOL;
-  }
-
-  /**
-   * Get the currency symbol
-   * e.g.: €.
-   *
-   * @return string
-   */
-  getCurrencySymbol() {
-    return this.currencySymbol;
-  }
-
-  /**
-   * Get the currency ISO code
-   * e.g.: EUR.
-   *
-   * @return string
-   */
-  getCurrencyCode() {
-    return this.currencyCode;
-  }
-
-  /**
-   * Data (attributes) validation.
-   *
-   * @throws LocalizationException
-   */
-  validateData() {
     if (!this.positivePattern || typeof this.positivePattern !== 'string') {
       throw new LocalizationException('Invalid positivePattern');
     }
@@ -143,14 +92,6 @@ class PriceSpecification {
 
     if (typeof this.secondaryGroupSize !== 'number') {
       throw new LocalizationException('Invalid secondaryGroupSize');
-    }
-
-    if (!this.currencySymbol || typeof this.currencySymbol !== 'string') {
-      throw new LocalizationException('Invalid currencySymbol');
-    }
-
-    if (!this.currencyCode || typeof this.currencyCode !== 'string') {
-      throw new LocalizationException('Invalid currencyCode');
     }
   }
 
@@ -232,4 +173,4 @@ class PriceSpecification {
   }
 }
 
-export default PriceSpecification;
+export default NumberSpecification;
