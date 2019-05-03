@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use Category;
@@ -37,7 +38,6 @@ use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use PrestaShop\Module\FacetedSearch\Product\Search;
-use PrestaShop\PrestaShop\Core\Localization\Locale;
 use Shop;
 use Tools;
 
@@ -46,16 +46,18 @@ use Tools;
  */
 class Block
 {
-    /** @var AbstractAdapter */
+    /**
+     * @var AbstractAdapter
+     */
     private $facetedSearchAdapter;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $psStockManagement;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $psOrderOutOfStock;
 
@@ -170,7 +172,7 @@ class Block
     /**
      * @param array $filter
      * @param array $selectedFilters
-     * @param integer $nbProducts
+     * @param int $nbProducts
      * @param Context $context
      *
      * @return array
@@ -203,7 +205,6 @@ class Block
 
         list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
         $priceBlock['value'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
-
 
         $this->restorePriceAndWeightFilters(
             $this->facetedSearchAdapter->getInitialPopulation(),
@@ -245,9 +246,9 @@ class Block
      * Restore price and weight filters
      *
      * @param InterfaceAdapter $filteredSearchAdapter
-     * @param integer $priceMinFilter
-     * @param integer $priceMaxFilter
-     * @param integer $weightFilter
+     * @param int $priceMinFilter
+     * @param int $priceMaxFilter
+     * @param int $weightFilter
      *
      * @return array
      */
@@ -328,7 +329,7 @@ class Block
                     [],
                     'Modules.Facetedsearch.Shop'
                 ),
-                'nbr' => 0
+                'nbr' => 0,
             ],
             'used' => [
                 'name' => Context::getContext()->getTranslator()->trans(
@@ -336,7 +337,7 @@ class Block
                     [],
                     'Modules.Facetedsearch.Shop'
                 ),
-                'nbr' => 0
+                'nbr' => 0,
             ],
             'refurbished' => [
                 'name' => Context::getContext()->getTranslator()->trans(
@@ -392,7 +393,7 @@ class Block
                     [],
                     'Modules.Facetedsearch.Shop'
                 ),
-                'nbr' => 0
+                'nbr' => 0,
             ],
             1 => [
                 'name' => Context::getContext()->getTranslator()->trans(
@@ -400,7 +401,7 @@ class Block
                     [],
                     'Modules.Facetedsearch.Shop'
                 ),
-                'nbr' => 0
+                'nbr' => 0,
             ],
         ];
 
@@ -418,7 +419,7 @@ class Block
 
         $results = [
             [
-                'c' => !empty($noMoreQuantityResults) ? (int) $noMoreQuantityResults[0]['c'] : 0
+                'c' => !empty($noMoreQuantityResults) ? (int) $noMoreQuantityResults[0]['c'] : 0,
             ],
         ];
         $results[1]['c'] = (int) ($allResults - $results[0]['c']);
@@ -1000,11 +1001,11 @@ class Block
      */
     private function preparePriceSpecifications(Context $context)
     {
-        /** @var Currency **/
+        /* @var Currency */
         $currency = $context->currency;
         // New method since PS 1.7.6
         if (method_exists($context->currentLocale, 'getPriceSpecification')) {
-            /** @var PriceSpecification **/
+            /* @var PriceSpecification */
             $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
 
             return [

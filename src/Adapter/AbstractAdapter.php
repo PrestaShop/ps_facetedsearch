@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -159,7 +160,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function addOperationsFilter($filterName, array $operations = [])
     {

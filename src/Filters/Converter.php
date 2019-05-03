@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use AttributeGroup;
@@ -243,7 +244,7 @@ class Converter
                             'Refurbished',
                             [],
                             'Modules.Facetedsearch.Shop'
-                        ) => 'refurbished'
+                        ) => 'refurbished',
                     ];
 
                     $facetedSearchFilters[$filter['type']] = [];

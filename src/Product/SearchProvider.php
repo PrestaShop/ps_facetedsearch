@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use Configuration;
@@ -183,11 +184,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         return $result;
     }
+
     /**
      * Renders an product search result.
      *
      * @param ProductSearchContext $context
-     * @param ProductSearchResult  $result
+     * @param ProductSearchResult $result
      *
      * @return string the HTML of the facets
      */
@@ -223,13 +225,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Renders an product search result of active filters.
      *
      * @param ProductSearchContext $context
-     * @param ProductSearchResult  $result
+     * @param ProductSearchResult $result
      *
      * @return string the HTML of the facets
      */
     public function renderActiveFilters(ProductSearchContext $context, ProductSearchResult $result)
     {
-        list($activeFilters, ) = $this->prepareActiveFiltersForRender($context, $result);
+        list($activeFilters) = $this->prepareActiveFiltersForRender($context, $result);
+
         return $this->module->render(
             'views/templates/front/catalog/active-filters.tpl',
             [
@@ -248,7 +251,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Prepare active filters for renderer.
      *
      * @param ProductSearchContext $context
-     * @param ProductSearchResult  $result
+     * @param ProductSearchResult $result
      *
      * @return array|null
      */

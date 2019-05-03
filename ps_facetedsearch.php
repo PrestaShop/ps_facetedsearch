@@ -23,7 +23,6 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -33,7 +32,6 @@ if (file_exists($autoloadPath)) {
     require_once $autoloadPath;
 }
 
-use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 
@@ -42,15 +40,15 @@ class Ps_Facetedsearch extends Module
     /**
      * Lock indexation if too many products
      *
-     * @var integer
+     * @var int
      */
     const LOCK_TOO_MANY_PRODUCTS = 5000;
 
     /**
-    * Lock template filter creation if too many products
-    *
-    * @var integer
-    */
+     * Lock template filter creation if too many products
+     *
+     * @var int
+     */
     const LOCK_TEMPLATE_CREATION = 20000;
 
     /**
@@ -59,7 +57,7 @@ class Ps_Facetedsearch extends Module
      * @var array
      */
     const ISO_CODE_TAX_FREE = [
-        'US'
+        'US',
     ];
 
     /**
@@ -361,7 +359,6 @@ class Ps_Facetedsearch extends Module
                     $minPrice[$idCountry][$currency['id_currency']] = $price;
                     $maxPrice[$idCountry][$currency['id_currency']] = $price;
                 }
-
 
                 foreach ($productMinPrices as $specificPrice) {
                     foreach ($currencyList as $currency) {
@@ -1089,7 +1086,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      * Render template
      *
      * @param string $template
-     * @param array  $params
+     * @param array $params
      *
      * @return string
      */

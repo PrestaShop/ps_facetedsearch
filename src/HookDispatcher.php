@@ -23,10 +23,10 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch;
 
 use Ps_Facetedsearch;
-use PrestaShop\Module\FacetedSearch\Hook;
 
 /**
  * Class works with Hook\AbstractHook instances in order to reduce ps_facetedsearch.php size.
