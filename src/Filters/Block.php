@@ -1000,9 +1000,42 @@ class Block
      */
     private function preparePriceSpecifications(Context $context)
     {
+        /** @var Currency **/
         $currency = $context->currency;
-        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices had 2 decimals
+        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
         $precision = isset($currency->precision) ? $currency->precision : 2;
+
+        // New method since PS 1.7.6
+        if (method_exists($context->currentLocale, 'getPriceSpecification')) {
+            /** @var PriceSpecification **/
+            $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
+
+            return [
+                'positivePattern' => $priceSpecification->getPositivePattern(),
+                'negativePattern' => $priceSpecification->getNegativePattern(),
+                'symbol' => [
+                    '.',
+                    ',',
+                    ';',
+                    '%',
+                    '-',
+                    '+',
+                    'E',
+                    '×',
+                    '‰',
+                    '∞',
+                    'NaN',
+                ],
+                'maxFractionDigits' => $priceSpecification->getMaxFractionDigits(),
+                'minFractionDigits' => $priceSpecification->getMinFractionDigits(),
+                'groupingUsed' => $priceSpecification->isGroupingUsed(),
+                'primaryGroupSize' => $priceSpecification->getPrimaryGroupSize(),
+                'secondaryGroupSize' => $priceSpecification->getSecondaryGroupSize(),
+                'currencyCode' => $priceSpecification->getCurrencyCode(),
+                'currencySymbol' => $priceSpecification->getCurrencySymbol(),
+            ];
+        }
+
         return [
             'positivePattern' => $currency->format,
             'negativePattern' => $currency->format,
