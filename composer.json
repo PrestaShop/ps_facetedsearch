@@ -27,7 +27,8 @@
   "autoload": {
     "psr-4": {
       "PrestaShop\\Module\\FacetedSearch\\Controller\\": "src/Controller/",
-      "PrestaShop\\Module\\FacetedSearch\\": "src/"
+      "PrestaShop\\Module\\FacetedSearch\\": "src/",
+      "PrestaShop\\Module\\FacetedSearch\\Tests\\": "tests/php/FacetedSearch"
     },
     "classmap": ["ps_facetedsearch.php"]
   },

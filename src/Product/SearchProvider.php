@@ -140,14 +140,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ->setTotalProductsCount($productsAndCount['count'])
             ->setAvailableSortOrders($this->getAvailableSortOrders());
 
+        $context = $this->module->getContext();
         // now get the filter blocks associated with the current search
-        $filterBlockSearch = new Filters\Block($facetedSearch);
+        $filterBlockSearch = new Filters\Block(
+            $facetedSearch->getFacetedSearchAdapter(),
+            $context
+        );
 
-        $currentContext = Context::getContext();
-        $idShop = (int) $currentContext->shop->id;
-        $idLang = (int) $currentContext->language->id;
-        $idCurrency = (int) $currentContext->currency->id;
-        $idCountry = (int) $currentContext->country->id;
+        $idShop = (int) $context->shop->id;
+        $idLang = (int) $context->language->id;
+        $idCurrency = (int) $context->currency->id;
+        $idCountry = (int) $context->country->id;
         $idCategory = (int) $query->getIdCategory();
 
         $filterHash = md5(

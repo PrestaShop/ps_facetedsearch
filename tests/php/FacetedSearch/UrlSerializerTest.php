@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../src/URLSerializer.php';
+namespace PrestaShop\Module\FacetedSearch\Tests;
 
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
@@ -11,12 +11,12 @@ class URLSerializerTest extends TestCase
 {
     private $serializer;
 
-    protected function setup()
+    protected function setUp()
     {
         $this->serializer = new URLSerializer();
     }
 
-    public function test_serialize_one_facet()
+    public function testSerializeOneFacet()
     {
         $facet = (new Facet())
             ->setLabel('Categories')
@@ -27,7 +27,7 @@ class URLSerializerTest extends TestCase
         $this->assertEquals('Categories-Tops-Robes', $this->serializer->serialize([$facet]));
     }
 
-    public function test_serialize_price_facet()
+    public function testSerializePriceFacet()
     {
         $facet = (new Facet())
             ->setLabel('Price')
