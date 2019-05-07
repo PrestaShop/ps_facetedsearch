@@ -19,7 +19,7 @@ class HookDispatcherTest extends TestCase
                      ->getMock();
 
         $module = $this->getMockBuilder(Ps_FacetedSearch::class)
-                ->setMethods(['getContext'])
+                ->setMethods(['getContext', 'getDatabase'])
                 ->disableOriginalConstructor()
                 ->getMock();
 

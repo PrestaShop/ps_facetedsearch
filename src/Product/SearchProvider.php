@@ -68,7 +68,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         $this->isAjax = $isAjax;
         $this->module = $module;
-        $this->filtersConverter = new Filters\Converter();
+        $this->filtersConverter = new Filters\Converter(
+            $module->getContext(),
+            $module->getDatabase()
+        );
         $this->facetsSerializer = new URLSerializer();
     }
 
@@ -144,7 +147,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Filters\Block(
             $facetedSearch->getFacetedSearchAdapter(),
-            $context
+            $context,
+            $this->module->getDatabase()
         );
 
         $idShop = (int) $context->shop->id;

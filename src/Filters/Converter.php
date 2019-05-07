@@ -47,6 +47,22 @@ class Converter
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
 
+    /**
+     * @var Context
+     */
+    protected $context;
+
+    /**
+     * @var Db
+     */
+    protected $database;
+
+    public function __construct(Context $context, Db $database)
+    {
+        $this->context = $context;
+        $this->database = $database;
+    }
+
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
         $facets = [];
@@ -158,9 +174,8 @@ class Converter
      */
     public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query)
     {
-        $context = Context::getContext();
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
+        $idShop = (int) $this->context->shop->id;
+        $idLang = (int) $this->context->language->id;
 
         $idParent = $query->getIdCategory();
         if (empty($idParent)) {
@@ -170,7 +185,7 @@ class Converter
         $facetedSearchFilters = [];
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
             WHERE id_category = ' . (int) $idParent . '
             AND id_shop = ' . (int) $idShop . '
@@ -204,12 +219,12 @@ class Converter
                     }
 
                     $quantityArray = [
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Not available',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 0,
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'In stock',
                             [],
                             'Modules.Facetedsearch.Shop'
@@ -230,17 +245,17 @@ class Converter
                     }
 
                     $conditionArray = [
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'New',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'new',
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Used',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'used',
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Refurbished',
                             [],
                             'Modules.Facetedsearch.Shop'
@@ -342,17 +357,17 @@ class Converter
     {
         switch ($filterType) {
             case 'price':
-                return Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
             case 'weight':
-                return Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
             case 'condition':
-                return Context::getContext()->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
             case 'quantity':
-                return Context::getContext()->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
             case 'manufacturer':
-                return Context::getContext()->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
             case 'category':
-                return Context::getContext()->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
             case 'id_feature':
             case 'id_attribute_group':
             default:

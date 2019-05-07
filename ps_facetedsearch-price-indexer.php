@@ -24,8 +24,9 @@ if (!Tools::getValue('ajax')) {
     flush();
 }
 
+$module = new Ps_Facetedsearch();
 if (Tools::getValue('full')) {
-    echo Ps_Facetedsearch::fullPricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'), true);
+    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'), true);
 } else {
-    echo Ps_Facetedsearch::pricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'));
+    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'));
 }

@@ -74,7 +74,7 @@ class MySQL extends AbstractAdapter
      */
     public function execute()
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
+        return Db::getInstance()->executeS($this->getQuery());
     }
 
     /**

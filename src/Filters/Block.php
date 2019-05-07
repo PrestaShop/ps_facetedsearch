@@ -64,10 +64,16 @@ class Block
      */
     private $context;
 
-    public function __construct(InterfaceAdapter $facetedSearchAdapter, Context $context)
+    /**
+     * @var Db
+     */
+    private $database;
+
+    public function __construct(InterfaceAdapter $facetedSearchAdapter, Context $context, Db $database)
     {
         $this->facetedSearchAdapter = $facetedSearchAdapter;
         $this->context = $context;
+        $this->database = $database;
     }
 
     /**
@@ -89,7 +95,7 @@ class Block
         $parent = new Category((int) $idParent, $idLang);
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
             WHERE id_category = ' . (int) $idParent . '
             AND id_shop = ' . $idShop . '
@@ -147,7 +153,7 @@ class Block
      */
     public function getFromCache($filterHash)
     {
-        $row = Db::getInstance()->getRow(
+        $row = $this->database->getRow(
             'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . pSQL($filterHash) . '"'
         );
 
@@ -166,7 +172,7 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
-        Db::getInstance()->execute(
+        $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
             VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
         );
@@ -554,7 +560,7 @@ class Block
      */
     private function getAttributeGroupLayeredInfos($idAttributeGroup, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value WHERE id_attribute_group=' .
             (int) $idAttributeGroup . ' AND id_lang=' . (int) $idLang
@@ -571,7 +577,7 @@ class Block
      */
     private function getAttributeLayeredInfos($idAttribute, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
             (int) $idAttribute . ' AND id_lang=' . (int) $idLang
@@ -588,7 +594,7 @@ class Block
      */
     private function getFeatureLayeredInfos($idFeatureValue, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
             (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang
@@ -605,7 +611,7 @@ class Block
      */
     private function getFeatureValueLayeredInfos($idFeature, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
             (int) $idFeature . ' AND id_lang=' . (int) $idLang
@@ -618,13 +624,13 @@ class Block
      *
      * @return array|false|\PDOStatement|resource|null
      */
-    public static function getAttributes($idLang, $notNull = true)
+    public function getAttributes($idLang, $notNull = true)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
-        return Db::getInstance()->executeS(
+        return $this->database->executeS(
             'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
             FROM `' . _DB_PREFIX_ . 'attribute_group` ag
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
@@ -651,13 +657,13 @@ class Block
      *
      * @return array Attributes groups
      */
-    public static function getAttributesGroups($idLang)
+    public function getAttributesGroups($idLang)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
-        return Db::getInstance()->executeS(
+        return $this->database->executeS(
             'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
             FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
             Shop::addSqlAssociation('attribute_group', 'ag') . '
@@ -694,7 +700,7 @@ class Block
             $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempAttributesGroup = self::getAttributesGroups($idLang);
+        $tempAttributesGroup = $this->getAttributesGroups($idLang);
         if ($tempAttributesGroup === []) {
             return $attributesBlock;
         }
@@ -703,7 +709,7 @@ class Block
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
 
-        $tempAttributes = self::getAttributes($idLang, true);
+        $tempAttributes = $this->getAttributes($idLang, true);
         foreach ($tempAttributes as $key => $attribute) {
             $attributes[$attribute['id_attribute']] = $attribute;
         }

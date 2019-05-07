@@ -50,16 +50,16 @@ class AttributeGroup extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group (`id_attribute_group`, `indexable`)
 VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
         );
@@ -71,7 +71,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
                 $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
-            Db::getInstance()->execute(
+            $this->database->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
                 (`id_attribute_group`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
@@ -94,11 +94,11 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         );
@@ -125,7 +125,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
     public function displayAttributeGroupForm(array $params)
     {
         $values = [];
-        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+        $isIndexable = $this->database->getValue(
             'SELECT `indexable`
             FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
@@ -136,7 +136,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             $isIndexable = true;
         }
 
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        if ($result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value
             WHERE `id_attribute_group` = ' . (int) $params['id_attribute_group']
         )) {
