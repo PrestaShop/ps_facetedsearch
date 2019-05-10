@@ -74,7 +74,7 @@ class MySQL extends AbstractAdapter
      */
     public function execute()
     {
-        return Db::getInstance()->executeS($this->getQuery());
+        return $this->getDatabase()->executeS($this->getQuery());
     }
 
     /**
@@ -186,7 +186,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
                 'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                Context::getContext()->shop->id . ')',
+                $this->getContext()->shop->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_feature_value' => [
@@ -211,7 +211,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_lang',
                 'tableAlias' => 'pl',
                 'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
-                Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
+                $this->getContext()->shop->id . ' AND pl.id_lang = ' . $this->getContext()->language->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'nleft' => [
@@ -253,28 +253,28 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_group' => [
@@ -581,7 +581,7 @@ class MySQL extends AbstractAdapter
 
         $result = $mysqlAdapter->execute();
 
-        return $result[0]['c'];
+        return isset($result[0]['c']) ? $result[0]['c'] : 0;
     }
 
     /**
@@ -595,9 +595,8 @@ class MySQL extends AbstractAdapter
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
         $this->setLimit(null);
         $this->setOrderField('');
-        $results = $this->execute();
 
-        return $results;
+        return $this->execute();
     }
 
     /**
@@ -611,5 +610,21 @@ class MySQL extends AbstractAdapter
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');
+    }
+
+    /**
+     * @return Context
+     */
+    protected function getContext()
+    {
+        return Context::getContext();
+    }
+
+    /**
+     * @return Db
+     */
+    protected function getDatabase()
+    {
+        return Db::getInstance();
     }
 }
