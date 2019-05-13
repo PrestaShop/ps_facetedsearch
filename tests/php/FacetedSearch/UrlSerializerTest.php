@@ -19,10 +19,9 @@ class URLSerializerTest extends TestCase
     public function testSerializeOneFacet()
     {
         $facet = (new Facet())
-            ->setLabel('Categories')
-            ->addFilter((new Filter())->setLabel('Tops')->setActive(true))
-            ->addFilter((new Filter())->setLabel('Robes')->setActive(true))
-        ;
+               ->setLabel('Categories')
+               ->addFilter((new Filter())->setLabel('Tops')->setActive(true))
+               ->addFilter((new Filter())->setLabel('Robes')->setActive(true));
 
         $this->assertEquals('Categories-Tops-Robes', $this->serializer->serialize([$facet]));
     }
@@ -30,17 +29,70 @@ class URLSerializerTest extends TestCase
     public function testSerializePriceFacet()
     {
         $facet = (new Facet())
-            ->setLabel('Price')
-            ->setProperty('range', true)
-            ->addFilter(
-                (new Filter())
+               ->setLabel('Price')
+               ->setProperty('range', true)
+               ->addFilter(
+                   (new Filter())
+                   ->setLabel('Doesn\'t matter')
+                   ->setActive(true)
+                   ->setProperty('symbol', '€')
+                   ->setValue([7, 9])
+               );
+
+        $this->assertEquals('Price-€-7-9', $this->serializer->serialize([$facet]));
+    }
+
+    public function testAddFilterToFacetFilters()
+    {
+        $filter = (new Filter())
                 ->setLabel('Doesn\'t matter')
                 ->setActive(true)
                 ->setProperty('symbol', '€')
-                ->setValue([7, 9])
-            )
-        ;
+                ->setValue([7, 9]);
+        $facet = (new Facet())
+               ->setLabel('Price')
+               ->addFilter($filter);
 
-        $this->assertEquals('Price-€-7-9', $this->serializer->serialize([$facet]));
+        $facetFilters = $this->serializer->addFilterToFacetFilters([], $filter, $facet);
+        $this->assertEquals(
+            [
+                'Price' => [
+                    "Doesn't matter" => "Doesn't matter",
+                ],
+            ],
+            $facetFilters
+        );
+        $facetFilters = $this->serializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
+        $this->assertEmpty($facetFilters);
+    }
+
+    public function testAddFilterToFacetFiltersWithRangeProperty()
+    {
+        $filter = (new Filter())
+                ->setLabel('Doesn\'t matter')
+                ->setActive(true)
+                ->setProperty('symbol', '€')
+                ->setValue([7, 9]);
+        $facet = (new Facet())
+               ->setLabel('Price')
+               ->setProperty('range', true)
+                ->setProperty('min', 0)
+                ->setProperty('max', 100)
+               ->addFilter($filter);
+
+        $facetFilters = $this->serializer->addFilterToFacetFilters([], $filter, $facet);
+        $this->assertEquals(
+            [
+                'Price' => [
+                    '€',
+                    '0',
+                    '100',
+                ],
+            ],
+            $facetFilters
+        );
+        // Test Remove
+        $facetFilters = $this->serializer->removeFilterFromFacetFilters($facetFilters, $filter, $facet);
+        $this->assertEmpty($facetFilters);
     }
 }
