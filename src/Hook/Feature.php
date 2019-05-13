@@ -26,7 +26,6 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Language;
 
 class Feature extends AbstractHook

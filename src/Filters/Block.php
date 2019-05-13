@@ -181,7 +181,7 @@ class Block
     /**
      * @param array $filter
      * @param array $selectedFilters
-     * @param integer $nbProducts
+     * @param int $nbProducts
      *
      * @return array
      */

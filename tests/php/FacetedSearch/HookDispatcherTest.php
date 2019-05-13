@@ -54,7 +54,7 @@ class HookDispatcherTest extends TestCase
                 'displayFeatureValueForm',
                 'postProcessFeatureValue',
                 'actionProductSave',
-                'productSearchProvider'
+                'productSearchProvider',
             ],
             $this->dispatcher->getAvailableHooks()
         );

@@ -428,7 +428,6 @@ class MySQL extends AbstractAdapter
                     continue;
                 }
 
-
                 $idTmpFilteredProducts = [];
                 $mysqlAdapter = $this->getFilteredSearchAdapter();
                 $mysqlAdapter->addSelectField('id_product');

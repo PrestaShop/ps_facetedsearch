@@ -2,7 +2,7 @@
 
 class MockProxy
 {
-    static protected $mock;
+    protected static $mock;
 
     /**
      * Set static expectations
@@ -31,17 +31,20 @@ class MockProxy
     }
 }
 
-class StockAvailable extends MockProxy {
+class StockAvailable extends MockProxy
+{
     // Redeclare to use this instead MockProxy::mock
-    static protected $mock;
+    protected static $mock;
 }
 
-class Context extends MockProxy {
+class Context extends MockProxy
+{
     // Redeclare to use this instead MockProxy::mock
-    static protected $mock;
+    protected static $mock;
 }
 
-class Db extends MockProxy {
+class Db extends MockProxy
+{
     // Redeclare to use this instead MockProxy::mock
-    static protected $mock;
+    protected static $mock;
 }

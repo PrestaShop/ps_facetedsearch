@@ -8,7 +8,6 @@ use Context;
 use StockAvailable;
 use PHPUnit\Framework\TestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
-use Ps_FacetedSearch;
 
 class MySQLTest extends TestCase
 {
@@ -85,7 +84,7 @@ class MySQLTest extends TestCase
                             'price_min' => '11',
                             'min' => '11',
                             'max' => '35',
-                        ]
+                        ],
                     ]
                 )
             );
@@ -119,7 +118,7 @@ class MySQLTest extends TestCase
                         [
                             'min' => '10',
                             'max' => '42',
-                        ]
+                        ],
                     ]
                 )
             );
@@ -152,7 +151,7 @@ class MySQLTest extends TestCase
                     [
                         [
                             'c' => '100',
-                        ]
+                        ],
                     ]
                 )
             );
@@ -186,7 +185,7 @@ class MySQLTest extends TestCase
                         [
                             'weight' => '10',
                             'c' => '100',
-                        ]
+                        ],
                     ]
                 )
             );
@@ -205,7 +204,7 @@ class MySQLTest extends TestCase
                 0 => [
                     'weight' => '10',
                     'c' => '100',
-                ]
+                ],
             ],
             $this->adapter->valueCount('weight')
         );
@@ -290,7 +289,7 @@ class MySQLTest extends TestCase
             [
                 ['quantity', [0], '>'],
                 ['out_of_stock', [1], '='],
-            ]
+            ],
         ];
 
         $this->adapter->addOperationsFilter(
