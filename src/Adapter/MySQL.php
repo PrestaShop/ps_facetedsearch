@@ -93,7 +93,7 @@ class MySQL extends AbstractAdapter
         }
 
         if (empty($this->selectFields)
-            && empty($this->filters)
+            && empty($this->getFilters())
             && empty($this->groupFields)
             && empty($this->orderField)
         ) {
@@ -355,7 +355,7 @@ class MySQL extends AbstractAdapter
     private function computeWhereConditions($filterToTableMapping)
     {
         $whereConditions = [];
-        foreach ($this->operationsFilters as $filterName => $filterOperations) {
+        foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
                 $conditions = [];
@@ -387,7 +387,7 @@ class MySQL extends AbstractAdapter
             $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
         }
 
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             $selectAlias = 'p';
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
@@ -422,7 +422,7 @@ class MySQL extends AbstractAdapter
         // if we have several "groups" of the same filter, we need to use the intersect of the matching products
         // e.g. : mix of id_feature like Composition & Styles
         $idFilteredProducts = null;
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $filterValues) {
                 if (count($filterValues) <= 1) {
                     continue;
@@ -476,7 +476,7 @@ class MySQL extends AbstractAdapter
             }
         }
 
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);

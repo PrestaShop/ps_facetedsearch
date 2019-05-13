@@ -132,7 +132,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function getOperationsFilters()
     {
-        return $this->filters;
+        return $this->operationsFilters;
     }
 
     /**
