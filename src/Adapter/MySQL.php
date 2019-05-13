@@ -421,13 +421,13 @@ class MySQL extends AbstractAdapter
 
         // if we have several "groups" of the same filter, we need to use the intersect of the matching products
         // e.g. : mix of id_feature like Composition & Styles
-
         $idFilteredProducts = null;
         foreach ($this->filters as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $filterValues) {
                 if (count($filterValues) <= 1) {
                     continue;
                 }
+
 
                 $idTmpFilteredProducts = [];
                 $mysqlAdapter = $this->getFilteredSearchAdapter();
