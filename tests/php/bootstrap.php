@@ -7,3 +7,9 @@ require __DIR__ . '/../../../../vendor/autoload.php';
 require __DIR__ . '/../../vendor/autoload.php';
 
 define('_DB_PREFIX_', 'ps_');
+
+// Fake pSQL function
+function pSQL($string, $htmlOK = false)
+{
+    return $string;
+}

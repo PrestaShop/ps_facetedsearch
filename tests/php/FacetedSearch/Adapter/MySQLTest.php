@@ -142,33 +142,58 @@ class MySQLTest extends TestCase
         $this->adapter->setSelectFields(
             [
                 'id_product',
-                'id_product_attribute',
-                'id_attribute',
-                'id_attribute_group',
-                'id_feature',
-                'id_shop',
-                'id_feature_çvalue',
-                'id_category',
-                'name',
-                'nleft',
-                'nright',
-                'level_depth',
                 'out_of_stock',
                 'quantity',
                 'price_min',
                 'price_max',
                 'range_start',
                 'range_end',
-                'id_group',
             ]
         );
 
-        $this->adapter->addFilter('weight', [10], '<=');
+        $this->adapter->addFilter('weight', [10], '=');
         $this->adapter->addFilter('price_min', [10], '>=');
         $this->adapter->addFilter('price_min', [100], '<=');
+        $this->adapter->addFilter('id_product', [2, 20, 200], '=');
 
         $this->assertEquals(
-            'SELECT p.id_product, pa.id_product_attribute, pac.id_attribute, a.id_attribute_group, fp.id_feature, ps.id_shop, p.id_feature_çvalue, cp.id_category, pl.name, c.nleft, c.nright, c.level_depth, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end, cg.id_group FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) WHERE p.weight<=10 AND psi.price_min>=10 AND psi.price_min<=100 AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.weight=\'10\' AND psi.price_min>=10 AND psi.price_min<=100 AND p.id_product IN (2, 20, 200) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithManyOperationsFilters()
+    {
+        $this->adapter->setSelectFields(
+            [
+                'id_product',
+                'out_of_stock',
+                'quantity',
+                'price_min',
+                'price_max',
+                'range_start',
+                'range_end',
+            ]
+        );
+
+        $operationsFilter = [
+            [
+                ['quantity', [0], '>='],
+                ['out_of_stock', [1, 3, 4], '='],
+            ],
+            [
+                ['quantity', [0], '>'],
+                ['out_of_stock', [1], '='],
+            ]
+        ];
+
+        $this->adapter->addOperationsFilter(
+            'out_of_stock_filter',
+            $operationsFilter
+        );
+
+        $this->assertEquals(
+            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE ((sa.quantity>=0 AND sa.out_of_stock IN (1, 3, 4)) OR (sa.quantity>0 AND sa.out_of_stock=1)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
