@@ -40,3 +40,8 @@ class Context extends MockProxy {
     // Redeclare to use this instead MockProxy::mock
     static protected $mock;
 }
+
+class Db extends MockProxy {
+    // Redeclare to use this instead MockProxy::mock
+    static protected $mock;
+}

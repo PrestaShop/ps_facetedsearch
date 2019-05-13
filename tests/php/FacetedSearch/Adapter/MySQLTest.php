@@ -3,6 +3,7 @@
 namespace PrestaShop\Module\FacetedSearch\Tests\Adapter;
 
 use stdClass;
+use Db;
 use Context;
 use StockAvailable;
 use PHPUnit\Framework\TestCase;
@@ -66,6 +67,41 @@ class MySQLTest extends TestCase
         $this->assertEquals(
             $expected,
             $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetMinMaxPriceValue()
+    {
+        $dbInstanceMock = $this->getMockBuilder('Db')
+                ->setMethods(['executeS'])
+                ->getMock();
+        $dbInstanceMock->expects($this->once())
+            ->method('executeS')
+            ->with('SELECT psi.price_min, MIN(price_min) as min, MAX(price_max) as max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE')
+            ->will(
+                $this->returnValue(
+                    [
+                        [
+                            'price_min' => '11',
+                            'min' => '11',
+                            'max' => '35',
+                        ]
+                    ]
+                )
+            );
+
+        $dbMock = $this->getMockBuilder('Db')
+                ->setMethods(['getInstance'])
+                ->getMock();
+
+        $dbMock->expects($this->any())
+            ->method('getInstance')
+            ->will($this->returnValue($dbInstanceMock));
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertEquals(
+            [11.0, 35.0],
+            $this->adapter->getMinMaxPriceValue()
         );
     }
 
