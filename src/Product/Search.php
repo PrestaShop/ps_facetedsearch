@@ -51,6 +51,11 @@ class Search
     private $searchAdapter;
 
     /**
+     * @var Context
+     */
+    private $context;
+
+    /**
      * Search constructor.
      *
      * @param Context $context
