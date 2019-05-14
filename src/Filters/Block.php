@@ -86,7 +86,7 @@ class Block
         $nbProducts,
         $selectedFilters
     ) {
-        $idLang = $this->context->language->id;
+        $idLang = (int) $this->context->language->id;
         $idShop = (int) $this->context->shop->id;
         $idParent = (int) Tools::getValue(
             'id_category',
@@ -96,10 +96,10 @@ class Block
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . (int) $idParent . '
-            AND id_shop = ' . $idShop . '
-            GROUP BY `type`, id_value ORDER BY position ASC'
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category ' .
+            'WHERE id_category = ' . (int) $idParent . ' ' .
+            'AND id_shop = ' . $idShop . ' ' .
+            'GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
         $filterBlocks = [];
@@ -192,7 +192,6 @@ class Block
         }
 
         $priceSpecifications = $this->preparePriceSpecifications();
-
         $priceBlock = [
             'type_lite' => 'price',
             'type' => 'price',

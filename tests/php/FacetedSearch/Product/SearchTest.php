@@ -19,8 +19,6 @@ class SearchTest extends TestCase
 
     protected function setUp()
     {
-        require_once __DIR__ . '/../MockProxy.php';
-
         $mock = $this->getMockBuilder(Configuration::class)
               ->setMethods(['get'])
               ->getMock();

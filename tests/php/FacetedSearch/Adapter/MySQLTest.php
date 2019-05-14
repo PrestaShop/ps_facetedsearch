@@ -15,8 +15,6 @@ class MySQLTest extends TestCase
 
     protected function setUp()
     {
-        require_once __DIR__ . '/../MockProxy.php';
-
         $this->adapter = new MySQL();
 
         $mock = $this->getMockBuilder(StockAvailable::class)
