@@ -283,7 +283,7 @@ class Block
             'max' => '0',
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
-            'specifications' => [],
+            'specifications' => null,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'value' => null,
@@ -1001,37 +1001,29 @@ class Block
      */
     private function preparePriceSpecifications(Context $context)
     {
+        $symbol = [
+            '.',
+            ',',
+            ';',
+            '%',
+            '-',
+            '+',
+            'E',
+            '×',
+            '‰',
+            '∞',
+            'NaN',
+        ];
         /* @var Currency */
         $currency = $context->currency;
         // New method since PS 1.7.6
         if (method_exists($context->currentLocale, 'getPriceSpecification')) {
             /* @var PriceSpecification */
             $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
-
-            return [
-                'positivePattern' => $priceSpecification->getPositivePattern(),
-                'negativePattern' => $priceSpecification->getNegativePattern(),
-                'symbol' => [
-                    '.',
-                    ',',
-                    ';',
-                    '%',
-                    '-',
-                    '+',
-                    'E',
-                    '×',
-                    '‰',
-                    '∞',
-                    'NaN',
-                ],
-                'maxFractionDigits' => $priceSpecification->getMaxFractionDigits(),
-                'minFractionDigits' => $priceSpecification->getMinFractionDigits(),
-                'groupingUsed' => $priceSpecification->isGroupingUsed(),
-                'primaryGroupSize' => $priceSpecification->getPrimaryGroupSize(),
-                'secondaryGroupSize' => $priceSpecification->getSecondaryGroupSize(),
-                'currencyCode' => $priceSpecification->getCurrencyCode(),
-                'currencySymbol' => $priceSpecification->getCurrencySymbol(),
-            ];
+            return array_merge(
+                ['symbol' => $symbol],
+                $priceSpecification->toArray()
+            );
         }
 
         // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
@@ -1040,19 +1032,7 @@ class Block
         return [
             'positivePattern' => $currency->format,
             'negativePattern' => $currency->format,
-            'symbol' => [
-                '.',
-                ',',
-                ';',
-                '%',
-                '-',
-                '+',
-                'E',
-                '×',
-                '‰',
-                '∞',
-                'NaN',
-            ],
+            'symbol' => $symbol,
             'maxFractionDigits' => $precision,
             'minFractionDigits' => $precision,
             'groupingUsed' => true,
