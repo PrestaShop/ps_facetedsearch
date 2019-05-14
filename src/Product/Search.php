@@ -48,19 +48,22 @@ class Search
     /**
      * @var AbstractAdapter
      */
-    private $facetedSearchAdapter;
+    private $searchAdapter;
 
     /**
      * Search constructor.
      *
+     * @param Context $context
      * @param string $adapterType
      */
-    public function __construct($adapterType = 'MySQL')
+    public function __construct(Context $context, $adapterType = MySQLAdapter::TYPE)
     {
+        $this->context = $context;
+
         switch ($adapterType) {
-            case 'MySQL':
+            case MySQLAdapter::TYPE:
             default:
-                $this->facetedSearchAdapter = new MySQLAdapter();
+                $this->searchAdapter = new MySQLAdapter();
         }
 
         if ($this->psStockManagement === null) {
@@ -75,17 +78,17 @@ class Search
     /**
      * @return AbstractAdapter
      */
-    public function getFacetedSearchAdapter()
+    public function getSearchAdapter()
     {
-        return $this->facetedSearchAdapter;
+        return $this->searchAdapter;
     }
 
     /**
      * Init the initial population of the search filter
      *
-     * @param array $facetedSearchFilters
+     * @param array $selectedFilters
      */
-    public function initSearch($facetedSearchFilters)
+    public function initSearch($selectedFilters)
     {
         $homeCategory = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
@@ -96,19 +99,15 @@ class Search
 
         $parent = new Category((int) $idParent);
 
-        $context = Context::getContext();
-        $idCurrency = (int) $context->currency->id;
-        $idShop = (int) $context->shop->id;
-
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
             $this->addFilter('id_category_default', [$parent->id]);
         }
 
         $this->addSearchFilters(
-            $facetedSearchFilters,
+            $selectedFilters,
             $psLayeredFullTree ? $parent : null,
-            $idShop
+            (int) $this->context->shop->id
         );
     }
 
@@ -136,7 +135,7 @@ class Search
 
                 case 'category':
                     $this->addFilter('id_category', $filterValues);
-                    $this->facetedSearchAdapter->resetFilter('id_category_default');
+                    $this->getSearchAdapter()->resetFilter('id_category_default');
                     $hasCategory = true;
                     break;
 
@@ -146,7 +145,7 @@ class Search
                     }
 
                     if (!$this->psStockManagement) {
-                        $this->facetedSearchAdapter->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
+                        $this->getSearchAdapter()->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
                         break;
                     }
 
@@ -169,7 +168,7 @@ class Search
                         ];
                     }
 
-                    $this->facetedSearchAdapter->addOperationsFilter(
+                    $this->getSearchAdapter()->addOperationsFilter(
                         'with_stock_management',
                         $operationsFilter
                     );
@@ -188,12 +187,12 @@ class Search
 
                 case 'weight':
                     if (!empty($selectedFilters['weight'][0]) || !empty($selectedFilters['weight'][1])) {
-                        $this->facetedSearchAdapter->addFilter(
+                        $this->getSearchAdapter()->addFilter(
                             'weight',
                             [(float) $selectedFilters['weight'][0]],
                             '>='
                         );
-                        $this->facetedSearchAdapter->addFilter(
+                        $this->getSearchAdapter()->addFilter(
                             'weight',
                             [(float) $selectedFilters['weight'][1]],
                             '<='
@@ -217,13 +216,14 @@ class Search
         }
 
         if (!$hasCategory && $parent !== null) {
-            $this->facetedSearchAdapter->addFilter('nleft', [$parent->nleft], '>=');
-            $this->facetedSearchAdapter->addFilter('nright', [$parent->nright], '<=');
+            $this->getSearchAdapter()->addFilter('nleft', [$parent->nleft], '>=');
+            $this->getSearchAdapter()->addFilter('nright', [$parent->nright], '<=');
         }
 
-        $this->facetedSearchAdapter->addFilter('id_shop', [$idShop]);
-        $this->facetedSearchAdapter->addGroupBy('id_product');
-        $this->facetedSearchAdapter->useFiltersAsInitialPopulation();
+        $this->getSearchAdapter()->addFilter('id_shop', [$idShop]);
+        $this->getSearchAdapter()->addGroupBy('id_product');
+
+        $this->getSearchAdapter()->useFiltersAsInitialPopulation();
     }
 
     /**
@@ -246,7 +246,7 @@ class Search
         }
 
         if (!empty($values)) {
-            $this->facetedSearchAdapter->addFilter($filterName, $values);
+            $this->getSearchAdapter()->addFilter($filterName, $values);
         }
     }
 
@@ -258,7 +258,7 @@ class Search
      */
     private function addPriceFilter($minPrice, $maxPrice)
     {
-        $this->facetedSearchAdapter->addFilter('price_min', [$minPrice], '>=');
-        $this->facetedSearchAdapter->addFilter('price_max', [$maxPrice], '<=');
+        $this->getSearchAdapter()->addFilter('price_min', [$minPrice], '>=');
+        $this->getSearchAdapter()->addFilter('price_max', [$maxPrice], '<=');
     }
 }

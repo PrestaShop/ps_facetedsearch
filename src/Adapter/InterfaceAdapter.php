@@ -214,11 +214,11 @@ interface InterfaceAdapter
     public function resetAll();
 
     /**
-     * Copy all the filters & operationsFilters from facetedSearch to the current search
+     * Copy all the filters & operationsFilters from adapter to the current search
      *
-     * @param InterfaceAdapter $facetedSearch
+     * @param InterfaceAdapter $adapter
      */
-    public function copyFilters(InterfaceAdapter $facetedSearch);
+    public function copyFilters(InterfaceAdapter $adapter);
 
     /**
      * Set all the select fields

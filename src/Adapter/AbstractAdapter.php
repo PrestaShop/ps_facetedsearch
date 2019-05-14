@@ -138,9 +138,9 @@ abstract class AbstractAdapter implements InterfaceAdapter
     /**
      * {@inheritdoc}
      */
-    public function copyFilters(InterfaceAdapter $facetedSearch)
+    public function copyFilters(InterfaceAdapter $adapter)
     {
-        $this->filters = $facetedSearch->getFilters();
+        $this->filters = $adapter->getFilters();
     }
 
     /**

@@ -33,8 +33,24 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 class MySQL extends AbstractAdapter
 {
+    /**
+     * @var string
+     */
+    const TYPE = 'MySQL';
+
+    /**
+     * @var string
+     */
     const LEFT_JOIN = 'LEFT JOIN';
+
+    /**
+     * @var string
+     */
     const INNER_JOIN = 'INNER JOIN';
+
+    /**
+     * @var string
+     */
     const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
 
     /**

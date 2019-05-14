@@ -120,7 +120,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         // extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
-        $facetedSearch = new Search();
+        $context = $this->module->getContext();
+        $facetedSearch = new Search($context);
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
@@ -143,10 +144,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ->setTotalProductsCount($productsAndCount['count'])
             ->setAvailableSortOrders($this->getAvailableSortOrders());
 
-        $context = $this->module->getContext();
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Filters\Block(
-            $facetedSearch->getFacetedSearchAdapter(),
+            $facetedSearch->getsearchAdapter(),
             $context,
             $this->module->getDatabase()
         );

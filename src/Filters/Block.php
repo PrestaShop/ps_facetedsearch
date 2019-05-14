@@ -47,7 +47,7 @@ class Block
     /**
      * @var InterfaceAdapter
      */
-    private $facetedSearchAdapter;
+    private $searchAdapter;
 
     /**
      * @var bool
@@ -69,9 +69,9 @@ class Block
      */
     private $database;
 
-    public function __construct(InterfaceAdapter $facetedSearchAdapter, Context $context, Db $database)
+    public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database)
     {
-        $this->facetedSearchAdapter = $facetedSearchAdapter;
+        $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
     }
@@ -208,14 +208,14 @@ class Block
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation()
+            $this->searchAdapter->getInitialPopulation()
         );
 
-        list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
+        list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxPriceValue();
         $priceBlock['value'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
 
         $this->restorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation(),
+            $this->searchAdapter->getInitialPopulation(),
             $priceMinFilter,
             $priceMaxFilter,
             $weightFilter
@@ -299,10 +299,10 @@ class Block
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation()
+            $this->searchAdapter->getInitialPopulation()
         );
 
-        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
+        list($weightBlock['min'], $weightBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
         if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
             // We don't need to continue, no filter available
             return [];
@@ -311,7 +311,7 @@ class Block
         $weightBlock['value'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
 
         $this->restorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation(),
+            $this->searchAdapter->getInitialPopulation(),
             $priceMinFilter,
             $priceMaxFilter,
             $weightFilter
@@ -356,7 +356,7 @@ class Block
                 'nbr' => 0,
             ],
         ];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('condition');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('condition');
         $results = $filteredSearchAdapter->valueCount('condition');
         foreach ($results as $key => $values) {
             $condition = $values['condition'];
@@ -393,7 +393,7 @@ class Block
      */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('quantity');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('quantity');
         $quantityArray = [
             0 => [
                 'name' => $this->context->getTranslator()->trans(
@@ -500,7 +500,7 @@ class Block
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = $manufacturers = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
         $tempManufacturers = Manufacturer::getManufacturers(false, $idLang);
         if (empty($tempManufacturers)) {
@@ -691,13 +691,13 @@ class Block
         if (!empty($selectedFilters['id_attribute_group'])) {
             foreach ($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
                 if ($key == $idAttributeGroup) {
-                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_attribute');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_attribute');
                     break;
                 }
             }
         }
         if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
         $tempAttributesGroup = $this->getAttributesGroups($idLang);
@@ -809,13 +809,13 @@ class Block
         if (!empty($selectedFilters['id_feature'])) {
             foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
                 if ($key == $idFeature) {
-                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_feature_value');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_feature_value');
                     break;
                 }
             }
         }
         if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
         $tempFeatures = Feature::getFeatures($idLang);
@@ -953,7 +953,7 @@ class Block
      */
     private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_category');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_category');
         $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
         $categoryArray = [];

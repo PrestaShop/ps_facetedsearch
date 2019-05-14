@@ -19,7 +19,7 @@ class MySQLTest extends TestCase
 
         $this->adapter = new MySQL();
 
-        $mock = $this->getMockBuilder('StockAvailable')
+        $mock = $this->getMockBuilder(StockAvailable::class)
               ->setMethods(['addSqlShopRestriction'])
               ->getMock();
         $mock->expects($this->any())
@@ -39,7 +39,7 @@ class MySQLTest extends TestCase
         $stdClass->currency = new stdClass();
         $stdClass->currency->id = 4;
 
-        $contextMock = $this->getMockBuilder('Context')
+        $contextMock = $this->getMockBuilder(Context::class)
               ->setMethods(['getContext'])
               ->getMock();
         $contextMock->expects($this->any())
@@ -71,7 +71,7 @@ class MySQLTest extends TestCase
 
     public function testGetMinMaxPriceValue()
     {
-        $dbInstanceMock = $this->getMockBuilder('Db')
+        $dbInstanceMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['executeS'])
                 ->getMock();
         $dbInstanceMock->expects($this->once())
@@ -89,7 +89,7 @@ class MySQLTest extends TestCase
                 )
             );
 
-        $dbMock = $this->getMockBuilder('Db')
+        $dbMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['getInstance'])
                 ->getMock();
 
@@ -106,7 +106,7 @@ class MySQLTest extends TestCase
 
     public function testGetMinMaxValueForWeight()
     {
-        $dbInstanceMock = $this->getMockBuilder('Db')
+        $dbInstanceMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['executeS'])
                 ->getMock();
         $dbInstanceMock->expects($this->once())
@@ -123,7 +123,7 @@ class MySQLTest extends TestCase
                 )
             );
 
-        $dbMock = $this->getMockBuilder('Db')
+        $dbMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['getInstance'])
                 ->getMock();
 
@@ -140,7 +140,7 @@ class MySQLTest extends TestCase
 
     public function testCount()
     {
-        $dbInstanceMock = $this->getMockBuilder('Db')
+        $dbInstanceMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['executeS'])
                 ->getMock();
         $dbInstanceMock->expects($this->once())
@@ -156,7 +156,7 @@ class MySQLTest extends TestCase
                 )
             );
 
-        $dbMock = $this->getMockBuilder('Db')
+        $dbMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['getInstance'])
                 ->getMock();
 
@@ -173,7 +173,7 @@ class MySQLTest extends TestCase
 
     public function testValueCount()
     {
-        $dbInstanceMock = $this->getMockBuilder('Db')
+        $dbInstanceMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['executeS'])
                 ->getMock();
         $dbInstanceMock->expects($this->once())
@@ -190,7 +190,7 @@ class MySQLTest extends TestCase
                 )
             );
 
-        $dbMock = $this->getMockBuilder('Db')
+        $dbMock = $this->getMockBuilder(Db::class)
                 ->setMethods(['getInstance'])
                 ->getMock();
 

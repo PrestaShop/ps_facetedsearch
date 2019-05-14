@@ -48,3 +48,23 @@ class Db extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Configuration extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}
+
+class Tools extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}
+
+class Category extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+
+    public $id = null;
+}
