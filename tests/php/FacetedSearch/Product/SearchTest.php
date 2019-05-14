@@ -222,7 +222,7 @@ class SearchTest extends TestCase
                 'with_stock_management' => [
                     [
                         [
-                            0 => 'quantity',
+                            'quantity',
                             [
                                 0,
                             ],
