@@ -370,6 +370,89 @@ class BlockTest extends TestCase
         );
     }
 
+    public function testGetFiltersBlockWithQuantities()
+    {
+        $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
+                        ->disableOriginalConstructor()
+                        ->setMethods(['trans'])
+                        ->getMock();
+
+        $valueMap = [
+            ['Availability', [], 'Modules.Facetedsearch.Shop', null, 'Quantity'],
+            ['Not available', [], 'Modules.Facetedsearch.Shop', null, 'Not available'],
+            ['In stock', [], 'Modules.Facetedsearch.Shop', null, 'In stock'],
+        ];
+
+        $translatorMock->method('trans')
+            ->will($this->returnValueMap($valueMap));
+
+        $this->contextMock->expects($this->any())
+            ->method('getTranslator')
+            ->will($this->returnValue($translatorMock));
+
+        $this->dbMock->expects($this->once())
+            ->method('executeS')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 0 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->will(
+                $this->returnValue(
+                    [
+                        ['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1],
+                    ]
+                )
+            );
+
+        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
+                            ->setMethods(['count', 'valueCOunt'])
+                            ->getMock();
+        $adapterInitialMock->expects($this->once())
+            ->method('count')
+            ->will($this->returnValue(100));
+
+        $valueMap = [
+            ['quantity', [['c' => 100]]],
+            ['out_of_stock', [['c' => 1000]]],
+        ];
+        $adapterInitialMock->method('valueCount')
+            ->will($this->returnValueMap($valueMap));
+
+        $this->adapterMock->method('getFilteredSearchAdapter')
+            ->with('quantity')
+            ->will($this->returnValue($adapterInitialMock));
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [
+                        'type_lite' => 'quantity',
+                        'type' => 'quantity',
+                        'id_key' => 0,
+                        'name' => 'Quantity',
+                        'values' => [
+                            [
+                                'name' => 'Not available',
+                                'nbr' => 100,
+                            ],
+                            [
+                                'name' => 'In stock',
+                                'nbr' => 0,
+                            ],
+                        ],
+                        'filter_show_limit' => false,
+                        'filter_type' => 1,
+                    ],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'condition' => [
+                        'new',
+                    ],
+                ]
+            )
+        );
+    }
+
     public function testGetFiltersBlockWithCondition()
     {
         $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
@@ -378,9 +461,9 @@ class BlockTest extends TestCase
                         ->getMock();
 
         $valueMap = [
-            ['New', [], 'Modules.Facetedsearch.Shop', 'New'],
-            ['Used', [], 'Modules.Facetedsearch.Shop', 'New'],
-            ['Refurbished', [], 'Modules.Facetedsearch.Shop', 'New'],
+            ['New', [], 'Modules.Facetedsearch.Shop', null, 'New'],
+            ['Used', [], 'Modules.Facetedsearch.Shop', null, 'Used'],
+            ['Refurbished', [], 'Modules.Facetedsearch.Shop', null, 'Refurbished'],
         ];
 
         $translatorMock->method('trans')
@@ -421,16 +504,16 @@ class BlockTest extends TestCase
                         'name' => null,
                         'values' => [
                             'new' => [
-                                'name' => null,
+                                'name' => 'New',
                                 'nbr' => 100,
                                 'checked' => true,
                             ],
                             'used' => [
-                                'name' => null,
+                                'name' => 'Used',
                                 'nbr' => 0,
                             ],
                             'refurbished' => [
-                                'name' => null,
+                                'name' => 'Refurbished',
                                 'nbr' => 0,
                             ],
                         ],
