@@ -254,13 +254,14 @@ class MySQLTest extends TestCase
             ]
         );
 
+        $this->adapter->addFilter('condition', ['new', 'used'], '=');
         $this->adapter->addFilter('weight', [10], '=');
         $this->adapter->addFilter('price_min', [10], '>=');
         $this->adapter->addFilter('price_min', [100], '<=');
         $this->adapter->addFilter('id_product', [2, 20, 200], '=');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.weight=\'10\' AND psi.price_min>=10 AND psi.price_min<=100 AND p.id_product IN (2, 20, 200) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.condition IN (\'new\', \'used\') AND p.weight=\'10\' AND psi.price_min>=10 AND psi.price_min<=100 AND p.id_product IN (2, 20, 200) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }

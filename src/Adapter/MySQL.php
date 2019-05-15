@@ -392,7 +392,7 @@ class MySQL extends AbstractAdapter
                         $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
                     } else {
                         $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . implode(', ', array_map(function ($value) {
-                            return pSQL($value);
+                            return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
                         }, $values)) . ')';
                     }
                 }
@@ -421,7 +421,7 @@ class MySQL extends AbstractAdapter
                         } else {
                             $whereConditions[] =
                                 $selectAlias . '.' . $filterName . ' IN (' . implode(', ', array_map(function ($value) {
-                                    return pSQL($value);
+                                    return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
                                 }, $values)) . ')';
                         }
                     } else {

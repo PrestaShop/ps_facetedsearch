@@ -45,7 +45,7 @@ class BlockTest extends TestCase
 
         $this->contextMock = $this->getMockBuilder(Context::class)
                            ->setMethods(['getTranslator'])
-              ->getMock();
+                           ->getMock();
         $this->contextMock->shop = new stdClass();
         $this->contextMock->shop->id = 1;
         $this->contextMock->language = new stdClass();
@@ -59,8 +59,8 @@ class BlockTest extends TestCase
         $this->contextMock->currency->id = 4;
 
         $this->dbMock = $this->getMockBuilder(Db::class)
-                        ->setMethods(['executeS'])
-                        ->getMock();
+                      ->setMethods(['executeS'])
+                      ->getMock();
 
         $toolsMock = $this->getMockBuilder(Tools::class)
                    ->setMethods(['getValue'])
@@ -74,13 +74,13 @@ class BlockTest extends TestCase
         Tools::setStaticExpectations($toolsMock);
 
         $this->adapterMock = $this->getMockBuilder(MySQL::class)
-                 ->setMethods(['getInitialPopulation'])
-                 ->getMock();
+                           ->setMethods(['getInitialPopulation', 'getFilteredSearchAdapter'])
+                           ->getMock();
 
         $this->block = new Block($this->adapterMock, $this->contextMock, $this->dbMock);
     }
 
-    public function testGetEmptyFiltersBLock()
+    public function testGetEmptyFiltersBlock()
     {
         $this->dbMock->expects($this->once())
             ->method('executeS')
@@ -95,14 +95,14 @@ class BlockTest extends TestCase
         );
     }
 
-    public function testGetFiltersBLockWithPriceDeactivated()
+    public function testGetFiltersBlockWithPriceDeactivated()
     {
         $group = new stdClass();
         $group->show_prices = false;
 
         $groupMock = $this->getMockBuilder(Group::class)
-               ->setMethods(['getCurrent'])
-               ->getMock();
+                   ->setMethods(['getCurrent'])
+                   ->getMock();
         $groupMock->expects($this->once())
             ->method('getCurrent')
             ->will($this->returnValue($group));
@@ -115,7 +115,7 @@ class BlockTest extends TestCase
             ->will(
                 $this->returnValue(
                     [
-                        ['type' => 'price']
+                        ['type' => 'price'],
                     ]
                 )
             );
@@ -137,14 +137,14 @@ class BlockTest extends TestCase
         );
     }
 
-    public function testGetFiltersBLockWithPrice()
+    public function testGetFiltersBlockWithPrice()
     {
         $group = new stdClass();
         $group->show_prices = true;
 
         $groupMock = $this->getMockBuilder(Group::class)
-               ->setMethods(['getCurrent'])
-               ->getMock();
+                   ->setMethods(['getCurrent'])
+                   ->getMock();
         $groupMock->expects($this->once())
             ->method('getCurrent')
             ->will($this->returnValue($group));
@@ -153,8 +153,8 @@ class BlockTest extends TestCase
 
         $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
                         ->disableOriginalConstructor()
-            ->setMethods(['trans'])
-            ->getMock();
+                        ->setMethods(['trans'])
+                        ->getMock();
 
         $translatorMock->expects($this->once())
             ->method('trans')
@@ -171,14 +171,14 @@ class BlockTest extends TestCase
             ->will(
                 $this->returnValue(
                     [
-                        ['type' => 'price', 'filter_show_limit' => false]
+                        ['type' => 'price', 'filter_show_limit' => false],
                     ]
                 )
             );
 
-        $adapterInitialMock =  $this->getMockBuilder(MySQL::class)
-                 ->setMethods(['getMinMaxPriceValue'])
-                 ->getMock();
+        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
+                            ->setMethods(['getMinMaxPriceValue'])
+                            ->getMock();
         $adapterInitialMock->method('getMinMaxPriceValue')
             ->will($this->returnValue([10.0, 100.0]));
         $this->adapterMock->method('getInitialPopulation')
@@ -222,8 +222,8 @@ class BlockTest extends TestCase
                         'filter_type' => 3,
                         'nbr' => 10,
                         'value' => [
-                            0 => '24',
-                            1 => '42',
+                            '24',
+                            '42',
                         ],
                     ],
                 ],
@@ -238,6 +238,211 @@ class BlockTest extends TestCase
                     'price' => [
                         '24',
                         '42',
+                    ],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithWeight()
+    {
+        $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
+                        ->disableOriginalConstructor()
+                        ->setMethods(['trans'])
+                        ->getMock();
+
+        $translatorMock->expects($this->once())
+            ->method('trans')
+            ->with('Weight', [], 'Modules.Facetedsearch.Shop')
+            ->will($this->returnValue('Weight'));
+
+        $this->contextMock->expects($this->once())
+            ->method('getTranslator')
+            ->will($this->returnValue($translatorMock));
+
+        $this->dbMock->expects($this->once())
+            ->method('executeS')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 0 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->will(
+                $this->returnValue(
+                    [
+                        ['type' => 'weight', 'filter_show_limit' => false],
+                    ]
+                )
+            );
+
+        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
+                            ->setMethods(['getMinMaxValue'])
+                            ->getMock();
+        $adapterInitialMock->method('getMinMaxValue')
+            ->with('p.weight')
+            ->will($this->returnValue([10.0, 100.0]));
+        $this->adapterMock->method('getInitialPopulation')
+            ->will($this->returnValue($adapterInitialMock));
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [
+                        'type_lite' => 'weight',
+                        'type' => 'weight',
+                        'id_key' => 0,
+                        'name' => 'Weight',
+                        'max' => 100.0,
+                        'min' => 10.0,
+                        'unit' => 'kg',
+                        'specifications' => [],
+                        'filter_show_limit' => false,
+                        'filter_type' => 3,
+                        'nbr' => 10,
+                        'value' => [
+                            '14',
+                            '40',
+                        ],
+                    ],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'weight' => [
+                        '14',
+                        '40',
+                    ],
+                    'price' => [
+                        '24',
+                        '42',
+                    ],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithoutWeight()
+    {
+        $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
+                        ->disableOriginalConstructor()
+                        ->setMethods(['trans'])
+                        ->getMock();
+
+        $translatorMock->expects($this->once())
+            ->method('trans')
+            ->with('Weight', [], 'Modules.Facetedsearch.Shop')
+            ->will($this->returnValue('Weight'));
+
+        $this->contextMock->expects($this->once())
+            ->method('getTranslator')
+            ->will($this->returnValue($translatorMock));
+
+        $this->dbMock->expects($this->once())
+            ->method('executeS')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 0 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->will(
+                $this->returnValue(
+                    [
+                        ['type' => 'weight', 'filter_show_limit' => false],
+                    ]
+                )
+            );
+
+        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
+                            ->setMethods(['getMinMaxValue'])
+                            ->getMock();
+        $adapterInitialMock->method('getMinMaxValue')
+            ->with('p.weight')
+            ->will($this->returnValue([0, 0]));
+        $this->adapterMock->method('getInitialPopulation')
+            ->will($this->returnValue($adapterInitialMock));
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'weight' => [
+                        '14',
+                        '40',
+                    ],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithCondition()
+    {
+        $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
+                        ->disableOriginalConstructor()
+                        ->setMethods(['trans'])
+                        ->getMock();
+
+        $valueMap = [
+            ['New', [], 'Modules.Facetedsearch.Shop', 'New'],
+            ['Used', [], 'Modules.Facetedsearch.Shop', 'New'],
+            ['Refurbished', [], 'Modules.Facetedsearch.Shop', 'New'],
+        ];
+
+        $translatorMock->method('trans')
+            ->will($this->returnValueMap($valueMap));
+
+        $this->contextMock->expects($this->any())
+            ->method('getTranslator')
+            ->will($this->returnValue($translatorMock));
+
+        $this->dbMock->expects($this->once())
+            ->method('executeS')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 0 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->will(
+                $this->returnValue(
+                    [
+                        ['type' => 'condition', 'filter_show_limit' => false, 'filter_type' => 1],
+                    ]
+                )
+            );
+
+        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
+                            ->setMethods(['valueCount'])
+                            ->getMock();
+        $adapterInitialMock->method('valueCount')
+            ->with('condition')
+            ->will($this->returnValue([['c' => 100, 'condition' => 'new']]));
+        $this->adapterMock->method('getFilteredSearchAdapter')
+            ->with('condition')
+            ->will($this->returnValue($adapterInitialMock));
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [
+                        'type_lite' => 'condition',
+                        'type' => 'condition',
+                        'id_key' => 0,
+                        'name' => null,
+                        'values' => [
+                            'new' => [
+                                'name' => null,
+                                'nbr' => 100,
+                            ],
+                            'used' => [
+                                'name' => null,
+                                'nbr' => 0,
+                            ],
+                            'refurbished' => [
+                                'name' => null,
+                                'nbr' => 0,
+                            ],
+                        ],
+                        'filter_show_limit' => false,
+                        'filter_type' => 1,
+                    ],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'condition' => [
+                        '1',
                     ],
                 ]
             )
