@@ -423,6 +423,7 @@ class BlockTest extends TestCase
                             'new' => [
                                 'name' => null,
                                 'nbr' => 100,
+                                'checked' => true,
                             ],
                             'used' => [
                                 'name' => null,
@@ -442,7 +443,7 @@ class BlockTest extends TestCase
                 10,
                 [
                     'condition' => [
-                        '1',
+                        'new',
                     ],
                 ]
             )
