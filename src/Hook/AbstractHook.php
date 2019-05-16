@@ -26,6 +26,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Db;
 use Context;
 use Ps_Facetedsearch;
 
