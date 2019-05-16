@@ -1025,6 +1025,7 @@ class Block
         if (method_exists($context->currentLocale, 'getPriceSpecification')) {
             /* @var PriceSpecification */
             $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
+
             return array_merge(
                 ['symbol' => $symbol],
                 $priceSpecification->toArray()
