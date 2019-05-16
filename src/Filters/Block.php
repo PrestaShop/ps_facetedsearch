@@ -1020,11 +1020,11 @@ class Block
             'NaN',
         ];
         /* @var Currency */
-        $currency = $context->currency;
+        $currency = $this->context->currency;
         // New method since PS 1.7.6
-        if (method_exists($context->currentLocale, 'getPriceSpecification')) {
+        if (isset($this->context->currentLocale) && method_exists($this->context->currentLocale, 'getPriceSpecification')) {
             /* @var PriceSpecification */
-            $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
+            $priceSpecification = $this->context->currentLocale->getPriceSpecification($currency->iso_code);
 
             return array_merge(
                 ['symbol' => $symbol],

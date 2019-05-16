@@ -314,7 +314,7 @@ class BlockTest extends TestCase
                         'max' => 100.0,
                         'min' => 10.0,
                         'unit' => 'kg',
-                        'specifications' => [],
+                        'specifications' => null,
                         'filter_show_limit' => false,
                         'filter_type' => 3,
                         'nbr' => 10,
