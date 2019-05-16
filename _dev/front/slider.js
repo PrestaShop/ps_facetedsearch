@@ -24,7 +24,7 @@
  */
 
 import getQueryParameters from './urlparser';
-import CurrencyFormatter from '../cldr/currency-formatter';
+import NumberFormatter from '../cldr/number-formatter';
 
 let formatter;
 
@@ -51,8 +51,8 @@ const refreshSliders = () => {
     const $el = $(this);
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
-    if (specifications.length) {
-      formatter = CurrencyFormatter.build(specifications);
+    if (specifications !== null && specifications !== undefined) {
+      formatter = NumberFormatter.build(specifications);
     }
 
     displayLabelBlock(

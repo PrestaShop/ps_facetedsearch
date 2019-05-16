@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
@@ -35,12 +36,12 @@ use Context;
 class Search
 {
     /**
-     * @var boolean
+     * @var bool
      */
     private $psStockManagement;
 
     /**
-     * @var boolean
+     * @var bool
      */
     private $psOrderOutOfStock;
 

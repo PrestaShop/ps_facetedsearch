@@ -27,7 +27,8 @@
  * They are meant to be replaced by the correct localized symbols in the number formatting process.
  */
 import NumberSymbol from './number-symbol';
-import PriceSpecification from './price-specification';
+import PriceSpecification from './specifications/price';
+import NumberSpecification from './specifications/number';
 
 const CURRENCY_SYMBOL_PLACEHOLDER = '¤';
 const DECIMAL_SEPARATOR_PLACEHOLDER = '.';
@@ -36,7 +37,7 @@ const MINUS_SIGN_PLACEHOLDER = '-';
 const PERCENT_SYMBOL_PLACEHOLDER = '%';
 const PLUS_SIGN_PLACEHOLDER = '+';
 
-class CurrencyFormatter {
+class NumberFormatter {
   /**
    * @param NumberSpecification specification Number specification to be used
    *   (can be a number spec, a price spec, a percentage spec)
@@ -251,15 +252,20 @@ class CurrencyFormatter {
    * @return mixed
    */
   performSpecificReplacements(formattedNumber) {
-    return formattedNumber
-      .split(CURRENCY_SYMBOL_PLACEHOLDER)
-      .join(this.numberSpecification.getCurrencySymbol());
+    if (this.numberSpecification instanceof PriceSpecification) {
+      return formattedNumber
+        .split(CURRENCY_SYMBOL_PLACEHOLDER)
+        .join(this.numberSpecification.getCurrencySymbol());
+    }
+
+    return formattedNumber;
   }
 
   static build(specifications) {
     const symbol = new NumberSymbol(...specifications.symbol);
-    const currency = new CurrencyFormatter(
-      new PriceSpecification(
+    let specification;
+    if (specifications.currencySymbol) {
+      specification = new PriceSpecification(
         specifications.positivePattern,
         specifications.negativePattern,
         symbol,
@@ -270,11 +276,22 @@ class CurrencyFormatter {
         specifications.secondaryGroupSize,
         specifications.currencySymbol,
         specifications.currencyCode,
-      ),
-    );
+      );
+    } else {
+      specification = new NumberSpecification(
+        specifications.positivePattern,
+        specifications.negativePattern,
+        symbol,
+        parseInt(specifications.maxFractionDigits, 10),
+        parseInt(specifications.minFractionDigits, 10),
+        specifications.groupingUsed,
+        specifications.primaryGroupSize,
+        specifications.secondaryGroupSize,
+      );
+    }
 
-    return currency;
+    return new NumberFormatter(specification);
   }
 }
 
-export default CurrencyFormatter;
+export default NumberFormatter;

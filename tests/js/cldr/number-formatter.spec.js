@@ -1,9 +1,9 @@
 import {expect} from 'chai';
-import CurrencyFormatter from '../../../_dev/cldr/currency-formatter';
-import PriceSpecification from '../../../_dev/cldr/price-specification';
+import NumberFormatter from '../../../_dev/cldr/number-formatter';
+import PriceSpecification from '../../../_dev/cldr/specifications/price';
 import NumberSymbol from '../../../_dev/cldr/number-symbol';
 
-describe('CurrencyFormatter', () => {
+describe('NumberFormatter', () => {
   let currency;
   beforeEach(() => {
     const symbol = new NumberSymbol(
@@ -19,7 +19,7 @@ describe('CurrencyFormatter', () => {
       '∞',
       'NaN',
     );
-    currency = new CurrencyFormatter(
+    currency = new NumberFormatter(
       new PriceSpecification(
         '¤#,##0.###',
         '-¤#,##0.###',

@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
 use Db;
@@ -54,7 +55,7 @@ class Category extends AbstractHook
      */
     public function actionCategoryUpdate(array $params)
     {
-        /**
+        /*
          * The category status might (active, inactive) have changed,
          * we have to update the layered cache table structure
          */

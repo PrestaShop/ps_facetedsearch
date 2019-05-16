@@ -22,4 +22,14 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-import './currency-formatter';
+import NumberFormatter from './number-formatter';
+import NumberSymbol from './number-symbol';
+import PriceSpecification from './specifications/price';
+import NumberSpecification from './specifications/number';
+
+export {
+  PriceSpecification,
+  NumberSpecification,
+  NumberFormatter,
+  NumberSymbol,
+};

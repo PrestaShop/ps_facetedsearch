@@ -1,8 +1,8 @@
 import {expect} from 'chai';
-import PriceSpecification from '../../../_dev/cldr/price-specification';
-import NumberSymbol from '../../../_dev/cldr/number-symbol';
+import NumberSpecification from '../../../../_dev/cldr/specifications/number';
+import NumberSymbol from '../../../../_dev/cldr/number-symbol';
 
-describe('PriceSpecification', () => {
+describe('NumberSpecification', () => {
   let symbol;
   beforeEach(() => {
     symbol = new NumberSymbol(
@@ -21,12 +21,14 @@ describe('PriceSpecification', () => {
   });
   describe('validateData', () => {
     it('should throw if invalid positive pattern', () => {
-      expect(() => { new PriceSpecification(); }).to.throw('Invalid positivePattern');
+      expect(() => {
+        new NumberSpecification();
+      }).to.throw('Invalid positivePattern');
     });
 
     it('should throw if invalid negative pattern', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
         );
       }).to.throw('Invalid negativePattern');
@@ -34,7 +36,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid symbol', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
         );
@@ -43,7 +45,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid maxFractionDigits', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -53,7 +55,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid minFractionDigits', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -64,7 +66,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid groupingUsed', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -76,7 +78,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid primaryGroupSize', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -89,7 +91,7 @@ describe('PriceSpecification', () => {
 
     it('should throw if invalid secondaryGroupSize', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -101,40 +103,9 @@ describe('PriceSpecification', () => {
       }).to.throw('Invalid secondaryGroupSize');
     });
 
-    it('should throw if invalid currencySymbol', () => {
-      expect(() => {
-        new PriceSpecification(
-          '#,##0.###',
-          '-#,##0.###',
-          symbol,
-          3,
-          0,
-          true,
-          3,
-          3,
-        );
-      }).to.throw('Invalid currencySymbol');
-    });
-
-    it('should throw if invalid currencyCode', () => {
-      expect(() => {
-        new PriceSpecification(
-          '#,##0.###',
-          '-#,##0.###',
-          symbol,
-          3,
-          0,
-          true,
-          3,
-          3,
-          '$',
-        );
-      }).to.throw('Invalid currencyCode');
-    });
-
     it('should not throw if everything is ok', () => {
       expect(() => {
-        new PriceSpecification(
+        new NumberSpecification(
           '#,##0.###',
           '-#,##0.###',
           symbol,
@@ -143,8 +114,6 @@ describe('PriceSpecification', () => {
           true,
           3,
           3,
-          '$',
-          'USD',
         );
       }).to.not.throw();
     });

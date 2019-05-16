@@ -23,6 +23,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Db;
@@ -374,7 +375,7 @@ class MySQL extends AbstractAdapter
 
                         $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
                     } else {
-                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN ('  . implode(', ', array_map(function ($value) {
+                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . implode(', ', array_map(function ($value) {
                             return pSQL($value);
                         }, $values)) . ')';
                     }

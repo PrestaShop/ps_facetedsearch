@@ -6,7 +6,7 @@ notifications:
 
 
 
-jobs:  
+jobs:
   include:
     - stage: "JS"
       node_js: 8
@@ -24,7 +24,7 @@ jobs:
         # PHP Unit
         #- vendor/bin/phpunit tests/php
         # PHP Stan
-        - docker run -tid --rm -v ps-volume:/var/www/html --name temp-ps prestashop/prestashop
+        - docker run -tid --rm -v ps-volume:/var/www/html --name temp-ps prestashop/prestashop:nightly
         - docker run --rm --volumes-from temp-ps -v $PWD:/web/module -e _PS_ROOT_DIR_=/var/www/html quetzacoalt/phpstan analyse --configuration=/web/module/tests/php/phpstan/phpstan.neon
 
 script:
