@@ -230,7 +230,7 @@ interface InterfaceAdapter
     /**
      * Return the current initialPopulation
      *
-     * @return self
+     * @return self|null
      */
     public function getInitialPopulation();
 
