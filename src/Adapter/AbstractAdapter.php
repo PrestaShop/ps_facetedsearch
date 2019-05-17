@@ -40,13 +40,19 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     protected $operationsFilters;
 
+    /**
+     * @var ArrayCollection
+     */
+    protected $selectFields;
+
+    /**
+     * @var ArrayCollection
+     */
+    protected $groupFields;
+
     protected $orderField = 'id_product';
 
     protected $orderDirection = 'DESC';
-
-    protected $selectFields = [];
-
-    protected $groupFields = [];
 
     protected $limit = 20;
 
@@ -57,6 +63,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
 
     public function __construct()
     {
+        $this->groupFields = new ArrayCollection();
+        $this->selectFields = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->operationsFilters = new ArrayCollection();
     }
@@ -99,8 +107,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetAll()
     {
-        $this->selectFields = [];
-        $this->groupFields = [];
+        $this->selectFields = new ArrayCollection();
+        $this->groupFields = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->operationsFilters = new ArrayCollection();
 
@@ -117,6 +125,38 @@ abstract class AbstractAdapter implements InterfaceAdapter
         }
 
         return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getOrderDirection()
+    {
+        return $this->orderDirection;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getOrderField()
+    {
+        return $this->orderField;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getGroupFields()
+    {
+        return $this->groupFields;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSelectFields()
+    {
+        return $this->selectFields;
     }
 
     /**
@@ -174,8 +214,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function addSelectField($fieldName)
     {
-        if (!in_array($fieldName, $this->selectFields)) {
-            $this->selectFields[] = $fieldName;
+        if (!$this->selectFields->contains($fieldName)) {
+            $this->selectFields->add($fieldName);
         }
 
         return $this;
@@ -186,7 +226,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function setSelectFields($selectFields)
     {
-        $this->selectFields = $selectFields;
+        $this->selectFields = new ArrayCollection($selectFields);
 
         return $this;
     }
@@ -196,7 +236,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetSelectField()
     {
-        $this->selectFields = [];
+        $this->selectFields = new ArrayCollection();
 
         return $this;
     }
@@ -206,7 +246,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function addGroupBy($groupField)
     {
-        $this->groupFields[] = $groupField;
+        $this->groupFields->add($groupField);
 
         return $this;
     }
@@ -216,7 +256,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function setGroupFields($groupFields)
     {
-        $this->groupFields = $groupFields;
+        $this->groupFields = new ArrayCollection($groupFields);
 
         return $this;
     }
@@ -226,7 +266,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetGroupBy()
     {
-        $this->groupFields = [];
+        $this->groupFields = new ArrayCollection();
 
         return $this;
     }
@@ -237,7 +277,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     public function setFilter($filterName, $value)
     {
         if ($value !== null) {
-            $this->filters[$filterName] = $value;
+            $this->filters->set($filterName, $value);
         }
 
         return $this;

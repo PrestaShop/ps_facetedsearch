@@ -109,14 +109,14 @@ class MySQL extends AbstractAdapter
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
 
-        if (empty($this->selectFields)
+        if (empty($this->getSelectFields())
             && empty($this->getFilters())
-            && empty($this->groupFields)
-            && empty($this->orderField)
+            && empty($this->getGroupFields())
+            && empty($this->getOrderField())
         ) {
             // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
             $query = $referenceTable;
-            $this->orderField = '';
+            $this->setOrderField('');
         } else {
             $query = 'SELECT ';
 
@@ -149,7 +149,7 @@ class MySQL extends AbstractAdapter
         }
 
         if ($orderField) {
-            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->orderDirection);
+            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->getOrderDirection());
         }
 
         if ($this->limit !== null) {
@@ -322,7 +322,7 @@ class MySQL extends AbstractAdapter
      */
     private function computeOrderByField($filterToTableMapping)
     {
-        $orderField = $this->orderField;
+        $orderField = $this->getOrderField();
         if ($this->getInitialPopulation() !== null && !empty($orderField)) {
             $this->getInitialPopulation()->addSelectField($orderField);
         }
@@ -334,10 +334,18 @@ class MySQL extends AbstractAdapter
         }
 
         if ($orderField === 'price') {
-            $orderField = $this->orderDirection === 'asc' ? 'price_min' : 'price_max';
+            $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
-        if (array_key_exists($orderField, $filterToTableMapping)) {
+        if (array_key_exists($orderField, $filterToTableMapping)
+            && (
+                // If the requested order field is in the result, no need to change tableAlias
+                // unless a fieldName key exists
+                isset($filterToTableMapping[$orderField]['fieldName'])
+                || $this->getInitialPopulation() === null
+                || !$this->getInitialPopulation()->getSelectFields()->contains($orderField)
+            )
+        ) {
             $joinMapping = $filterToTableMapping[$orderField];
             $orderField = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $orderField);
         } else {
@@ -357,7 +365,7 @@ class MySQL extends AbstractAdapter
     private function computeSelectFields($filterToTableMapping)
     {
         $selectFields = [];
-        foreach ($this->selectFields as $key => $selectField) {
+        foreach ($this->getSelectFields() as $key => $selectField) {
             $selectAlias = 'p';
             if (array_key_exists($selectField, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$selectField];
@@ -503,7 +511,7 @@ class MySQL extends AbstractAdapter
     {
         $joinList = new ArrayCollection();
 
-        foreach ($this->selectFields as $key => $selectField) {
+        foreach ($this->getSelectFields() as $key => $selectField) {
             if (array_key_exists($selectField, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$selectField];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
@@ -517,15 +525,15 @@ class MySQL extends AbstractAdapter
             }
         }
 
-        foreach ($this->groupFields as $groupFields => $filterContent) {
+        foreach ($this->getGroupFields() as $groupFields => $filterContent) {
             if (array_key_exists($groupFields, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$groupFields];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
             }
         }
 
-        if (array_key_exists($this->orderField, $filterToTableMapping)) {
-            $joinMapping = $filterToTableMapping[$this->orderField];
+        if (array_key_exists($this->getOrderField(), $filterToTableMapping)) {
+            $joinMapping = $filterToTableMapping[$this->getOrderField()];
             $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
         }
 
@@ -563,11 +571,11 @@ class MySQL extends AbstractAdapter
     private function computeGroupByFields($filterToTableMapping)
     {
         $groupFields = [];
-        if (empty($this->groupFields)) {
+        if (empty($this->getGroupFields())) {
             return $groupFields;
         }
 
-        foreach ($this->groupFields as $key => $values) {
+        foreach ($this->getGroupFields() as $key => $values) {
             if (strpos($values, '.') !== false
                 || strpos($values, '(') !== false) {
                 $groupFields[$key] = $values;

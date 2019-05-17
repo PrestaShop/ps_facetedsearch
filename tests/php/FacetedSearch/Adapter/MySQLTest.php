@@ -376,6 +376,19 @@ class MySQLTest extends TestCase
         );
     }
 
+    public function testGetQueryWithPositionOrderFieldInAscWithInitialPopulation()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('desc');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, cp.position FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) WHERE p.active = TRUE) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
     public function oneSelectFieldDataProvider()
     {
         return [
