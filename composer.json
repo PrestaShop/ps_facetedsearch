@@ -37,6 +37,9 @@
   "scripts": {
     "test": [
       "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/php/phpunit.xml"
+    ],
+    "lint": [
+      "php-cs-fixer fix --no-interaction --dry-run --diff"
     ]
   }
 }

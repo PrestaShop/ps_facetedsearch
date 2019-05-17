@@ -20,9 +20,9 @@ jobs:
         # PHP syntax check
         - bash -c '! (find . -name "*.php" ! -path "./vendor/*" -print0 | xargs -0 -n1 -P4 php -l | grep "Parse error")'
         # PHP cs fixer
-        - vendor/bin/php-cs-fixer fix --no-interaction --dry-run --diff --rules=@PSR2 src
+        - composer run lint
         # PHP Unit
-        #- vendor/bin/phpunit tests/php
+        - composer run test
         # PHP Stan
         - docker run -tid --rm -v ps-volume:/var/www/html --name temp-ps prestashop/prestashop:nightly
         - docker run --rm --volumes-from temp-ps -v $PWD:/web/module -e _PS_ROOT_DIR_=/var/www/html quetzacoalt/phpstan analyse --configuration=/web/module/tests/php/phpstan/phpstan.neon
