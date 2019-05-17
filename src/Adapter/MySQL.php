@@ -75,8 +75,8 @@ class MySQL extends AbstractAdapter
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
         $mysqlAdapter = new self();
-        if ($this->initialPopulation !== null && !$skipInitialPopulation) {
-            $mysqlAdapter->initialPopulation = clone $this->initialPopulation;
+        if ($this->getInitialPopulation() !== null && !$skipInitialPopulation) {
+            $mysqlAdapter->initialPopulation = clone $this->getInitialPopulation();
             if ($resetFilter) {
                 $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
             }
@@ -102,10 +102,11 @@ class MySQL extends AbstractAdapter
     {
         $filterToTableMapping = $this->getFieldMapping();
         $orderField = $this->computeOrderByField($filterToTableMapping);
-        if ($this->initialPopulation === null) {
+
+        if ($this->getInitialPopulation() === null) {
             $referenceTable = _DB_PREFIX_ . 'product';
         } else {
-            $referenceTable = '(' . $this->initialPopulation->getQuery() . ')';
+            $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
 
         if (empty($this->selectFields)
@@ -148,7 +149,7 @@ class MySQL extends AbstractAdapter
         }
 
         if ($orderField) {
-            $query .= ' ORDER BY ' . $orderField . ' ' . $this->orderDirection;
+            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->orderDirection);
         }
 
         if ($this->limit !== null) {
@@ -221,6 +222,13 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'category_product',
                 'tableAlias' => 'cp',
                 'joinCondition' => '(p.id_product = cp.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
+            'manufacturer_name' => [
+                'tableName' => 'manufacturer',
+                'tableAlias' => 'm',
+                'fieldName' => 'name',
+                'joinCondition' => '(p.id_manufacturer = m.id_manufacturer)',
                 'joinType' => self::INNER_JOIN,
             ],
             'name' => [
@@ -315,6 +323,10 @@ class MySQL extends AbstractAdapter
     private function computeOrderByField($filterToTableMapping)
     {
         $orderField = $this->orderField;
+        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
+            $this->getInitialPopulation()->addSelectField($orderField);
+        }
+
         // do not try to process the orderField if it already has an alias, or if it's a group function
         if (empty($orderField) || strpos($orderField, '.') !== false
             || strpos($orderField, '(') !== false) {
@@ -327,7 +339,7 @@ class MySQL extends AbstractAdapter
 
         if (array_key_exists($orderField, $filterToTableMapping)) {
             $joinMapping = $filterToTableMapping[$orderField];
-            $orderField = $joinMapping['tableAlias'] . '.' . $orderField;
+            $orderField = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $orderField);
         } else {
             $orderField = 'p.' . $orderField;
         }
@@ -350,7 +362,11 @@ class MySQL extends AbstractAdapter
             if (array_key_exists($selectField, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$selectField];
                 $selectAlias = $joinMapping['tableAlias'];
+                if (isset($joinMapping['fieldName'])) {
+                    $selectField = $joinMapping['fieldName'];
+                }
             }
+
             if (strpos($selectField, '(') !== false) {
                 $selectFields[] = $selectField;
             } else {
@@ -382,6 +398,7 @@ class MySQL extends AbstractAdapter
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         $selectAlias = $joinMapping['tableAlias'];
+                        $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
                     if (count($values) == 1) {
@@ -408,6 +425,7 @@ class MySQL extends AbstractAdapter
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
                 $selectAlias = $joinMapping['tableAlias'];
+                $filterName = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $filterName;
             }
 
             foreach ($filterContent as $operator => $values) {
@@ -621,7 +639,16 @@ class MySQL extends AbstractAdapter
     {
         $this->setLimit(null);
         $this->setOrderField('');
-        $this->setSelectFields(['id_product', 'id_manufacturer', 'quantity', 'condition', 'weight', 'price']);
+        $this->setSelectFields(
+            [
+                'id_product',
+                'id_manufacturer',
+                'quantity',
+                'condition',
+                'weight',
+                'price',
+            ]
+        );
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');
