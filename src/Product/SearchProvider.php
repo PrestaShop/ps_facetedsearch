@@ -68,7 +68,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         $this->isAjax = $isAjax;
         $this->module = $module;
-        $this->filtersConverter = new Filters\Converter();
+        $this->filtersConverter = new Filters\Converter(
+            $module->getContext(),
+            $module->getDatabase()
+        );
         $this->facetsSerializer = new URLSerializer();
     }
 
@@ -117,7 +120,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         // extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
-        $facetedSearch = new Search();
+        $context = $this->module->getContext();
+        $facetedSearch = new Search($context);
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
@@ -141,13 +145,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ->setAvailableSortOrders($this->getAvailableSortOrders());
 
         // now get the filter blocks associated with the current search
-        $filterBlockSearch = new Filters\Block($facetedSearch);
+        $filterBlockSearch = new Filters\Block(
+            $facetedSearch->getsearchAdapter(),
+            $context,
+            $this->module->getDatabase()
+        );
 
-        $currentContext = Context::getContext();
-        $idShop = (int) $currentContext->shop->id;
-        $idLang = (int) $currentContext->language->id;
-        $idCurrency = (int) $currentContext->currency->id;
-        $idCountry = (int) $currentContext->country->id;
+        $idShop = (int) $context->shop->id;
+        $idLang = (int) $context->language->id;
+        $idCurrency = (int) $context->currency->id;
+        $idCountry = (int) $context->country->id;
         $idCategory = (int) $query->getIdCategory();
 
         $filterHash = md5(

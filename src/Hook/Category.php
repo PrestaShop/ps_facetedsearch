@@ -26,7 +26,6 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Tools;
 
 class Category extends AbstractHook
@@ -81,7 +80,7 @@ class Category extends AbstractHook
      */
     private function cleanAndRebuildCategoryFilters(array $params)
     {
-        $layeredFilterList = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $layeredFilterList = $this->database->executeS(
             'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
         );
 
@@ -90,7 +89,7 @@ class Category extends AbstractHook
 
             if (in_array((int) $params['category']->id, $data['categories'])) {
                 unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
-                Db::getInstance()->execute(
+                $this->database->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
                     SET `filters` = \'' . pSQL(serialize($data)) . '\'
                     WHERE `id_layered_filter` = ' . (int) $layeredFilter['id_layered_filter']

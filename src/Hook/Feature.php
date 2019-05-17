@@ -26,7 +26,6 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Language;
 
 class Feature extends AbstractHook
@@ -48,7 +47,7 @@ class Feature extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
             WHERE `id_feature` = ' . (int) $params['id_feature']
         );
@@ -73,7 +72,7 @@ class Feature extends AbstractHook
     public function displayFeatureForm(array $params)
     {
         $values = [];
-        $isIndexable = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+        $isIndexable = $this->database->getValue(
             'SELECT `indexable`
             FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
             WHERE `id_feature` = ' . (int) $params['id_feature']
@@ -84,7 +83,7 @@ class Feature extends AbstractHook
             $isIndexable = true;
         }
 
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        if ($result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
             WHERE `id_feature` = ' . (int) $params['id_feature']
         )) {

@@ -47,6 +47,22 @@ class Converter
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
 
+    /**
+     * @var Context
+     */
+    protected $context;
+
+    /**
+     * @var Db
+     */
+    protected $database;
+
+    public function __construct(Context $context, Db $database)
+    {
+        $this->context = $context;
+        $this->database = $database;
+    }
+
     public function getFacetsFromFilterBlocks(array $filterBlocks)
     {
         $facets = [];
@@ -158,19 +174,18 @@ class Converter
      */
     public function createFacetedSearchFiltersFromQuery(ProductSearchQuery $query)
     {
-        $context = Context::getContext();
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
+        $idShop = (int) $this->context->shop->id;
+        $idLang = (int) $this->context->language->id;
 
         $idParent = $query->getIdCategory();
         if (empty($idParent)) {
             $idParent = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
         }
 
-        $facetedSearchFilters = [];
+        $searchFilters = [];
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
             WHERE id_category = ' . (int) $idParent . '
             AND id_shop = ' . (int) $idShop . '
@@ -190,10 +205,10 @@ class Converter
                     }
 
                     $manufacturers = Manufacturer::getManufacturers(false, $idLang);
-                    $facetedSearchFilters[$filter['type']] = [];
+                    $searchFilters[$filter['type']] = [];
                     foreach ($manufacturers as $manufacturer) {
                         if (in_array($manufacturer['name'], $facetAndFiltersLabels[$filterLabel])) {
-                            $facetedSearchFilters[$filter['type']][$manufacturer['name']] = $manufacturer['id_manufacturer'];
+                            $searchFilters[$filter['type']][$manufacturer['name']] = $manufacturer['id_manufacturer'];
                         }
                     }
                     break;
@@ -204,22 +219,22 @@ class Converter
                     }
 
                     $quantityArray = [
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Not available',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 0,
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'In stock',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 1,
                     ];
 
-                    $facetedSearchFilters[$filter['type']] = [];
+                    $searchFilters[$filter['type']] = [];
                     foreach ($quantityArray as $quantityName => $quantityId) {
                         if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($quantityName, $facetAndFiltersLabels[$filterLabel])) {
-                            $facetedSearchFilters[$filter['type']][] = $quantityId;
+                            $searchFilters[$filter['type']][] = $quantityId;
                         }
                     }
                     break;
@@ -230,27 +245,27 @@ class Converter
                     }
 
                     $conditionArray = [
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'New',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'new',
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Used',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'used',
-                        Context::getContext()->getTranslator()->trans(
+                        $this->context->getTranslator()->trans(
                             'Refurbished',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'refurbished',
                     ];
 
-                    $facetedSearchFilters[$filter['type']] = [];
+                    $searchFilters[$filter['type']] = [];
                     foreach ($conditionArray as $conditionName => $conditionId) {
                         if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($conditionName, $facetAndFiltersLabels[$filterLabel])) {
-                            $facetedSearchFilters[$filter['type']][] = $conditionId;
+                            $searchFilters[$filter['type']][] = $conditionId;
                         }
                     }
                     break;
@@ -264,7 +279,7 @@ class Converter
                             $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['value'], $featureValueLabels)) {
-                                    $facetedSearchFilters['id_feature'][$feature['id_feature']][] =
+                                    $searchFilters['id_feature'][$feature['id_feature']][] =
                                         $featureValue['id_feature_value'];
                                 }
                             }
@@ -281,7 +296,7 @@ class Converter
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
-                                    $facetedSearchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
+                                    $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
                                 }
                             }
                         }
@@ -294,8 +309,8 @@ class Converter
                         if (isset($filters[1]) && isset($filters[2])) {
                             $from = $filters[1];
                             $to = $filters[2];
-                            $facetedSearchFilters[$filter['type']][0] = $from;
-                            $facetedSearchFilters[$filter['type']][1] = $to;
+                            $searchFilters[$filter['type']][0] = $from;
+                            $searchFilters[$filter['type']][1] = $to;
                         }
                     }
                     break;
@@ -304,7 +319,7 @@ class Converter
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
                             $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
                             if ($categories) {
-                                $facetedSearchFilters[$filter['type']][] = $categories['id_category'];
+                                $searchFilters[$filter['type']][] = $categories['id_category'];
                             }
                         }
                     }
@@ -312,47 +327,47 @@ class Converter
                 default:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $facetedSearchFilters[$filter['type']][] = $queryFilter;
+                            $searchFilters[$filter['type']][] = $queryFilter;
                         }
                     }
             }
         }
 
         // Remove all empty selected filters
-        foreach ($facetedSearchFilters as $key => $value) {
+        foreach ($searchFilters as $key => $value) {
             switch ($key) {
                 case 'price':
                 case 'weight':
                     if ($value[0] === '' && $value[1] === '') {
-                        unset($facetedSearchFilters[$key]);
+                        unset($searchFilters[$key]);
                     }
                     break;
                 default:
                     if ($value == '' || $value == []) {
-                        unset($facetedSearchFilters[$key]);
+                        unset($searchFilters[$key]);
                     }
                     break;
             }
         }
 
-        return $facetedSearchFilters;
+        return $searchFilters;
     }
 
     private function convertFilterTypeToLabel($filterType)
     {
         switch ($filterType) {
             case 'price':
-                return Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
             case 'weight':
-                return Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
             case 'condition':
-                return Context::getContext()->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
             case 'quantity':
-                return Context::getContext()->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
             case 'manufacturer':
-                return Context::getContext()->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
             case 'category':
-                return Context::getContext()->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
+                return $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
             case 'id_feature':
             case 'id_attribute_group':
             default:

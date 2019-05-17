@@ -33,8 +33,24 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 class MySQL extends AbstractAdapter
 {
+    /**
+     * @var string
+     */
+    const TYPE = 'MySQL';
+
+    /**
+     * @var string
+     */
     const LEFT_JOIN = 'LEFT JOIN';
+
+    /**
+     * @var string
+     */
     const INNER_JOIN = 'INNER JOIN';
+
+    /**
+     * @var string
+     */
     const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
 
     /**
@@ -74,7 +90,7 @@ class MySQL extends AbstractAdapter
      */
     public function execute()
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->getQuery());
+        return $this->getDatabase()->executeS($this->getQuery());
     }
 
     /**
@@ -93,7 +109,7 @@ class MySQL extends AbstractAdapter
         }
 
         if (empty($this->selectFields)
-            && empty($this->filters)
+            && empty($this->getFilters())
             && empty($this->groupFields)
             && empty($this->orderField)
         ) {
@@ -186,7 +202,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
                 'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                Context::getContext()->shop->id . ')',
+                $this->getContext()->shop->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_feature_value' => [
@@ -211,7 +227,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_lang',
                 'tableAlias' => 'pl',
                 'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
-                Context::getContext()->shop->id . ' AND pl.id_lang = ' . Context::getContext()->language->id . ')',
+                $this->getContext()->shop->id . ' AND pl.id_lang = ' . $this->getContext()->language->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'nleft' => [
@@ -253,28 +269,28 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
-                Context::getContext()->currency->id . ' AND psi.id_country = ' . Context::getContext()->country->id . ')',
+                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_group' => [
@@ -355,7 +371,7 @@ class MySQL extends AbstractAdapter
     private function computeWhereConditions($filterToTableMapping)
     {
         $whereConditions = [];
-        foreach ($this->operationsFilters as $filterName => $filterOperations) {
+        foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
                 $conditions = [];
@@ -376,7 +392,7 @@ class MySQL extends AbstractAdapter
                         $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
                     } else {
                         $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . implode(', ', array_map(function ($value) {
-                            return pSQL($value);
+                            return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
                         }, $values)) . ')';
                     }
                 }
@@ -387,7 +403,7 @@ class MySQL extends AbstractAdapter
             $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
         }
 
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             $selectAlias = 'p';
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
@@ -405,7 +421,7 @@ class MySQL extends AbstractAdapter
                         } else {
                             $whereConditions[] =
                                 $selectAlias . '.' . $filterName . ' IN (' . implode(', ', array_map(function ($value) {
-                                    return pSQL($value);
+                                    return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
                                 }, $values)) . ')';
                         }
                     } else {
@@ -421,9 +437,8 @@ class MySQL extends AbstractAdapter
 
         // if we have several "groups" of the same filter, we need to use the intersect of the matching products
         // e.g. : mix of id_feature like Composition & Styles
-
         $idFilteredProducts = null;
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             foreach ($filterContent as $operator => $filterValues) {
                 if (count($filterValues) <= 1) {
                     continue;
@@ -477,7 +492,7 @@ class MySQL extends AbstractAdapter
             }
         }
 
-        foreach ($this->filters as $filterName => $filterContent) {
+        foreach ($this->getFilters() as $filterName => $filterContent) {
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
@@ -581,7 +596,7 @@ class MySQL extends AbstractAdapter
 
         $result = $mysqlAdapter->execute();
 
-        return $result[0]['c'];
+        return isset($result[0]['c']) ? $result[0]['c'] : 0;
     }
 
     /**
@@ -595,9 +610,8 @@ class MySQL extends AbstractAdapter
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
         $this->setLimit(null);
         $this->setOrderField('');
-        $results = $this->execute();
 
-        return $results;
+        return $this->execute();
     }
 
     /**
@@ -611,5 +625,21 @@ class MySQL extends AbstractAdapter
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');
+    }
+
+    /**
+     * @return Context
+     */
+    protected function getContext()
+    {
+        return Context::getContext();
+    }
+
+    /**
+     * @return Db
+     */
+    protected function getDatabase()
+    {
+        return Db::getInstance();
     }
 }

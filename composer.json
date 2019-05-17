@@ -10,11 +10,13 @@
     }
   ],
   "require": {
-    "php": ">=5.6"
+    "php": ">=5.6",
+    "doctrine/collections": "^1.4"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.14",
-    "phpunit/phpunit": "~5.7"
+    "phpunit/phpunit": "~5.7",
+    "prestashop/php-coding-standards": "dev-master"
   },
   "config": {
     "platform": {
@@ -27,13 +29,17 @@
   "autoload": {
     "psr-4": {
       "PrestaShop\\Module\\FacetedSearch\\Controller\\": "src/Controller/",
-      "PrestaShop\\Module\\FacetedSearch\\": "src/"
+      "PrestaShop\\Module\\FacetedSearch\\": "src/",
+      "PrestaShop\\Module\\FacetedSearch\\Tests\\": "tests/php/FacetedSearch"
     },
     "classmap": ["ps_facetedsearch.php"]
   },
   "scripts": {
     "test": [
       "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/php/phpunit.xml"
+    ],
+    "lint": [
+      "php-cs-fixer fix --no-interaction --dry-run --diff"
     ]
   }
 }

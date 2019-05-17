@@ -26,6 +26,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Db;
 use Context;
 use Ps_Facetedsearch;
 
@@ -43,10 +44,16 @@ abstract class AbstractHook
      */
     protected $module;
 
+    /**
+     * @var Db
+     */
+    protected $database;
+
     public function __construct(Ps_Facetedsearch $module)
     {
-        $this->context = $module->getContext();
         $this->module = $module;
+        $this->context = $module->getContext();
+        $this->database = $module->getDatabase();
     }
 
     /**

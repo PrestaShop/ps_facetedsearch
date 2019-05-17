@@ -26,7 +26,6 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Language;
 use Tools;
 
@@ -52,7 +51,7 @@ class FeatureValue extends AbstractHook
         }
 
         //Removing all indexed language data for this attribute value id
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
             WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
         );
@@ -64,7 +63,7 @@ class FeatureValue extends AbstractHook
                 $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
-            Db::getInstance()->execute(
+            $this->database->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
                 (`id_feature_value`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
@@ -87,7 +86,7 @@ class FeatureValue extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
             WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
         );
@@ -115,7 +114,7 @@ class FeatureValue extends AbstractHook
     {
         $values = [];
 
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        if ($result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
             FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
             WHERE `id_feature_value` = ' . (int) $params['id_feature_value']
@@ -145,16 +144,16 @@ class FeatureValue extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
             WHERE `id_feature` = ' . (int) $params['id_feature']
         );
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
             WHERE `id_feature` = ' . (int) $params['id_feature']
         );
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
             (`id_feature`, `indexable`)
             VALUES (' . (int) $params['id_feature'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
@@ -167,7 +166,7 @@ class FeatureValue extends AbstractHook
                 $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
-            Db::getInstance()->execute(
+            $this->database->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
                 (`id_feature`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (

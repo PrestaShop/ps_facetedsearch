@@ -35,9 +35,7 @@ use Feature;
 use FeatureValue;
 use Group;
 use Manufacturer;
-use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
-use PrestaShop\Module\FacetedSearch\Product\Search;
 use Shop;
 use Tools;
 
@@ -47,9 +45,9 @@ use Tools;
 class Block
 {
     /**
-     * @var AbstractAdapter
+     * @var InterfaceAdapter
      */
-    private $facetedSearchAdapter;
+    private $searchAdapter;
 
     /**
      * @var bool
@@ -61,9 +59,21 @@ class Block
      */
     private $psOrderOutOfStock;
 
-    public function __construct(Search $productSearch)
+    /**
+     * @var Context
+     */
+    private $context;
+
+    /**
+     * @var Db
+     */
+    private $database;
+
+    public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database)
     {
-        $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
+        $this->searchAdapter = $searchAdapter;
+        $this->context = $context;
+        $this->database = $database;
     }
 
     /**
@@ -76,9 +86,8 @@ class Block
         $nbProducts,
         $selectedFilters
     ) {
-        $context = Context::getContext();
-        $idLang = $context->language->id;
-        $idShop = (int) $context->shop->id;
+        $idLang = (int) $this->context->language->id;
+        $idShop = (int) $this->context->shop->id;
         $idParent = (int) Tools::getValue(
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
@@ -86,11 +95,11 @@ class Block
         $parent = new Category((int) $idParent, $idLang);
 
         /* Get the filters for the current category */
-        $filters = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . (int) $idParent . '
-            AND id_shop = ' . $idShop . '
-            GROUP BY `type`, id_value ORDER BY position ASC'
+        $filters = $this->database->executeS(
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category ' .
+            'WHERE id_category = ' . (int) $idParent . ' ' .
+            'AND id_shop = ' . $idShop . ' ' .
+            'GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
         $filterBlocks = [];
@@ -98,7 +107,7 @@ class Block
         foreach ($filters as $filter) {
             switch ($filter['type']) {
                 case 'price':
-                    $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts, $context);
+                    $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts);
                     break;
                 case 'weight':
                     $filterBlocks[] = $this->getWeightRangeBlock($filter, $selectedFilters, $nbProducts);
@@ -144,7 +153,7 @@ class Block
      */
     public function getFromCache($filterHash)
     {
-        $row = Db::getInstance()->getRow(
+        $row = $this->database->getRow(
             'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . pSQL($filterHash) . '"'
         );
 
@@ -163,7 +172,7 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
-        Db::getInstance()->execute(
+        $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
             VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
         );
@@ -173,26 +182,24 @@ class Block
      * @param array $filter
      * @param array $selectedFilters
      * @param int $nbProducts
-     * @param Context $context
      *
      * @return array
      */
-    private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts, Context $context)
+    private function getPriceRangeBlock($filter, $selectedFilters, $nbProducts)
     {
         if (!$this->showPriceFilter()) {
             return [];
         }
 
-        $priceSpecifications = $this->preparePriceSpecifications($context);
-
+        $priceSpecifications = $this->preparePriceSpecifications();
         $priceBlock = [
             'type_lite' => 'price',
             'type' => 'price',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop'),
             'max' => '0',
             'min' => null,
-            'unit' => $context->currency->sign,
+            'unit' => $this->context->currency->sign,
             'specifications' => $priceSpecifications,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
@@ -200,14 +207,14 @@ class Block
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation()
+            $this->searchAdapter->getInitialPopulation()
         );
 
-        list($priceBlock['min'], $priceBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxPriceValue();
+        list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxPriceValue();
         $priceBlock['value'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
 
         $this->restorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation(),
+            $this->searchAdapter->getInitialPopulation(),
             $priceMinFilter,
             $priceMaxFilter,
             $weightFilter
@@ -279,7 +286,7 @@ class Block
             'type_lite' => 'weight',
             'type' => 'weight',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop'),
             'max' => '0',
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
@@ -291,10 +298,10 @@ class Block
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation()
+            $this->searchAdapter->getInitialPopulation()
         );
 
-        list($weightBlock['min'], $weightBlock['max']) = $this->facetedSearchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
+        list($weightBlock['min'], $weightBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
         if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
             // We don't need to continue, no filter available
             return [];
@@ -303,7 +310,7 @@ class Block
         $weightBlock['value'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
 
         $this->restorePriceAndWeightFilters(
-            $this->facetedSearchAdapter->getInitialPopulation(),
+            $this->searchAdapter->getInitialPopulation(),
             $priceMinFilter,
             $priceMaxFilter,
             $weightFilter
@@ -324,7 +331,7 @@ class Block
     {
         $conditionArray = [
             'new' => [
-                'name' => Context::getContext()->getTranslator()->trans(
+                'name' => $this->context->getTranslator()->trans(
                     'New',
                     [],
                     'Modules.Facetedsearch.Shop'
@@ -332,7 +339,7 @@ class Block
                 'nbr' => 0,
             ],
             'used' => [
-                'name' => Context::getContext()->getTranslator()->trans(
+                'name' => $this->context->getTranslator()->trans(
                     'Used',
                     [],
                     'Modules.Facetedsearch.Shop'
@@ -340,7 +347,7 @@ class Block
                 'nbr' => 0,
             ],
             'refurbished' => [
-                'name' => Context::getContext()->getTranslator()->trans(
+                'name' => $this->context->getTranslator()->trans(
                     'Refurbished',
                     [],
                     'Modules.Facetedsearch.Shop'
@@ -348,7 +355,7 @@ class Block
                 'nbr' => 0,
             ],
         ];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('condition');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('condition');
         $results = $filteredSearchAdapter->valueCount('condition');
         foreach ($results as $key => $values) {
             $condition = $values['condition'];
@@ -366,7 +373,7 @@ class Block
             'type_lite' => 'condition',
             'type' => 'condition',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop'),
             'values' => $conditionArray,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
@@ -385,10 +392,10 @@ class Block
      */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('quantity');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('quantity');
         $quantityArray = [
             0 => [
-                'name' => Context::getContext()->getTranslator()->trans(
+                'name' => $this->context->getTranslator()->trans(
                     'Not available',
                     [],
                     'Modules.Facetedsearch.Shop'
@@ -396,7 +403,7 @@ class Block
                 'nbr' => 0,
             ],
             1 => [
-                'name' => Context::getContext()->getTranslator()->trans(
+                'name' => $this->context->getTranslator()->trans(
                     'In stock',
                     [],
                     'Modules.Facetedsearch.Shop'
@@ -471,7 +478,7 @@ class Block
             'type_lite' => 'quantity',
             'type' => 'quantity',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop'),
             'values' => $quantityArray,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
@@ -492,7 +499,7 @@ class Block
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = $manufacturers = [];
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_manufacturer');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_manufacturer');
 
         $tempManufacturers = Manufacturer::getManufacturers(false, $idLang);
         if (empty($tempManufacturers)) {
@@ -533,7 +540,7 @@ class Block
             'type_lite' => 'manufacturer',
             'type' => 'manufacturer',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop'),
             'values' => $manufacturersArray,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
@@ -552,7 +559,7 @@ class Block
      */
     private function getAttributeGroupLayeredInfos($idAttributeGroup, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value WHERE id_attribute_group=' .
             (int) $idAttributeGroup . ' AND id_lang=' . (int) $idLang
@@ -569,7 +576,7 @@ class Block
      */
     private function getAttributeLayeredInfos($idAttribute, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
             (int) $idAttribute . ' AND id_lang=' . (int) $idLang
@@ -586,7 +593,7 @@ class Block
      */
     private function getFeatureLayeredInfos($idFeatureValue, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
             (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang
@@ -603,7 +610,7 @@ class Block
      */
     private function getFeatureValueLayeredInfos($idFeature, $idLang)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow(
+        return $this->database->getRow(
             'SELECT url_name, meta_title FROM ' .
             _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
             (int) $idFeature . ' AND id_lang=' . (int) $idLang
@@ -616,13 +623,13 @@ class Block
      *
      * @return array|false|\PDOStatement|resource|null
      */
-    public static function getAttributes($idLang, $notNull = true)
+    public function getAttributes($idLang, $notNull = true)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
-        return Db::getInstance()->executeS(
+        return $this->database->executeS(
             'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
             FROM `' . _DB_PREFIX_ . 'attribute_group` ag
             LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
@@ -649,13 +656,13 @@ class Block
      *
      * @return array Attributes groups
      */
-    public static function getAttributesGroups($idLang)
+    public function getAttributesGroups($idLang)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
-        return Db::getInstance()->executeS(
+        return $this->database->executeS(
             'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
             FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
             Shop::addSqlAssociation('attribute_group', 'ag') . '
@@ -683,16 +690,16 @@ class Block
         if (!empty($selectedFilters['id_attribute_group'])) {
             foreach ($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
                 if ($key == $idAttributeGroup) {
-                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_attribute');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_attribute');
                     break;
                 }
             }
         }
         if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempAttributesGroup = self::getAttributesGroups($idLang);
+        $tempAttributesGroup = $this->getAttributesGroups($idLang);
         if ($tempAttributesGroup === []) {
             return $attributesBlock;
         }
@@ -701,7 +708,7 @@ class Block
             $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
         }
 
-        $tempAttributes = self::getAttributes($idLang, true);
+        $tempAttributes = $this->getAttributes($idLang, true);
         foreach ($tempAttributes as $key => $attribute) {
             $attributes[$attribute['id_attribute']] = $attribute;
         }
@@ -801,13 +808,13 @@ class Block
         if (!empty($selectedFilters['id_feature'])) {
             foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
                 if ($key == $idFeature) {
-                    $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_feature_value');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_feature_value');
                     break;
                 }
             }
         }
         if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter();
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
         $tempFeatures = Feature::getFeatures($idLang);
@@ -913,7 +920,7 @@ class Block
     private function addCategoriesBlockFilters(InterfaceAdapter $filteredSearchAdapter, $parent)
     {
         if (Group::isFeatureActive()) {
-            $userGroups = (Context::getContext()->customer->isLogged() ? Context::getContext()->customer->getGroups() : [
+            $userGroups = ($this->context->customer->isLogged() ? $this->context->customer->getGroups() : [
                 Configuration::get(
                     'PS_UNIDENTIFIED_GROUP'
                 ),
@@ -945,7 +952,7 @@ class Block
      */
     private function getCategoriesBlock($filter, $selectedFilters, $idLang, $parent)
     {
-        $filteredSearchAdapter = $this->facetedSearchAdapter->getFilteredSearchAdapter('id_category');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_category');
         $this->addCategoriesBlockFilters($filteredSearchAdapter, $parent);
 
         $categoryArray = [];
@@ -983,7 +990,7 @@ class Block
             'type_lite' => 'category',
             'type' => 'category',
             'id_key' => 0,
-            'name' => Context::getContext()->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop'),
+            'name' => $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop'),
             'values' => $categoryArray,
             'filter_show_limit' => $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
@@ -995,11 +1002,9 @@ class Block
     /**
      * Prepare price specifications to display cldr prices.
      *
-     * @param Context $context
-     *
      * @return array
      */
-    private function preparePriceSpecifications(Context $context)
+    private function preparePriceSpecifications()
     {
         $symbol = [
             '.',
@@ -1015,11 +1020,12 @@ class Block
             'NaN',
         ];
         /* @var Currency */
-        $currency = $context->currency;
+        $currency = $this->context->currency;
         // New method since PS 1.7.6
-        if (method_exists($context->currentLocale, 'getPriceSpecification')) {
+        if (isset($this->context->currentLocale) && method_exists($this->context->currentLocale, 'getPriceSpecification')) {
             /* @var PriceSpecification */
-            $priceSpecification = $context->currentLocale->getPriceSpecification($currency->iso_code);
+            $priceSpecification = $this->context->currentLocale->getPriceSpecification($currency->iso_code);
+
             return array_merge(
                 ['symbol' => $symbol],
                 $priceSpecification->toArray()

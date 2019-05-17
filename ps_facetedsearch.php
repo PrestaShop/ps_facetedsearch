@@ -71,6 +71,11 @@ class Ps_Facetedsearch extends Module
     private $psLayeredFullTree;
 
     /**
+     * @var Db
+     */
+    private $database;
+
+    /**
      * @var HookDispatcher
      */
     private $hookDispatcher;
@@ -104,6 +109,20 @@ class Ps_Facetedsearch extends Module
     public function isAjax()
     {
         return (bool) $this->ajax;
+    }
+
+    /**
+     * Return the current database instance
+     *
+     * @return Db
+     */
+    public function getDatabase()
+    {
+        if ($this->database === null) {
+            $this->database = Db::getInstance();
+        }
+
+        return $this->database;
     }
 
     /**
@@ -166,18 +185,18 @@ class Ps_Facetedsearch extends Module
         $this->rebuildLayeredStructure();
         $this->buildLayeredCategories();
 
-        $productsCount = Db::getInstance()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
+        $productsCount = $this->getDatabase()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
 
         if ($productsCount < static::LOCK_TEMPLATE_CREATION) {
             $this->rebuildLayeredCache();
         }
 
-        self::installPriceIndexTable();
+        $this->installPriceIndexTable();
         $this->installIndexableAttributeTable();
         $this->installProductAttributeTable();
 
         if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
-            self::fullPricesIndexProcess();
+            $this->fullPricesIndexProcess();
             $this->indexAttribute();
         }
 
@@ -194,18 +213,18 @@ class Ps_Facetedsearch extends Module
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
 
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_price_index');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_block');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_shop');
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_product_attribute');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_price_index');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_block');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_shop');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_product_attribute');
 
         return parent::uninstall();
     }
@@ -226,15 +245,15 @@ class Ps_Facetedsearch extends Module
     public function indexAttribute($idProduct = null)
     {
         if (null === $idProduct) {
-            Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
+            $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
         } else {
-            Db::getInstance()->execute(
+            $this->getDatabase()->execute(
                 'DELETE FROM ' . _DB_PREFIX_ . 'layered_product_attribute
                 WHERE id_product = ' . (int) $idProduct
             );
         }
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
             SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
             FROM ' . _DB_PREFIX_ . 'product_attribute pa' .
@@ -255,13 +274,13 @@ class Ps_Facetedsearch extends Module
      * @param int $cursor in order to restart indexing from the last state
      * @param bool $ajax
      */
-    public static function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
+    public function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
     {
         if ($cursor == 0 && !$smart) {
-            self::installPriceIndexTable();
+            $this->installPriceIndexTable();
         }
 
-        return self::indexPrices($cursor, true, $ajax, $smart);
+        return $this->indexPrices($cursor, true, $ajax, $smart);
     }
 
     /**
@@ -270,9 +289,9 @@ class Ps_Facetedsearch extends Module
      * @param int $cursor in order to restart indexing from the last state
      * @param bool $ajax
      */
-    public static function pricesIndexProcess($cursor = 0, $ajax = false)
+    public function pricesIndexProcess($cursor = 0, $ajax = false)
     {
-        return self::indexPrices($cursor, false, $ajax);
+        return $this->indexPrices($cursor, false, $ajax);
     }
 
     /**
@@ -281,12 +300,12 @@ class Ps_Facetedsearch extends Module
      * @param int $idProduct
      * @param bool $smart Delete before reindex
      */
-    public static function indexProductPrices($idProduct, $smart = true)
+    public function indexProductPrices($idProduct, $smart = true)
     {
         static $groups = null;
 
         if ($groups === null) {
-            $groups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT id_group FROM `' . _DB_PREFIX_ . 'group_reduction`');
+            $groups = $this->getDatabase()->executeS('SELECT id_group FROM `' . _DB_PREFIX_ . 'group_reduction`');
             if (!$groups) {
                 $groups = [];
             }
@@ -301,13 +320,13 @@ class Ps_Facetedsearch extends Module
             $maxPrice = [];
 
             if ($smart) {
-                Db::getInstance()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
+                $this->getDatabase()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
             }
 
             if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
                 $taxRatesByCountry = [['rate' => 0, 'id_country' => 0, 'iso_code' => '']];
             } else {
-                $taxRatesByCountry = Db::getInstance()->executeS(
+                $taxRatesByCountry = $this->getDatabase()->executeS(
                     'SELECT t.rate rate, tr.id_country, c.iso_code
                     FROM `' . _DB_PREFIX_ . 'product_shop` p
                     LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ')
@@ -319,13 +338,13 @@ class Ps_Facetedsearch extends Module
                 );
             }
 
-            $productMinPrices = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+            $productMinPrices = $this->getDatabase()->executeS(
                 'SELECT id_shop, id_currency, id_country, id_group, from_quantity
                 FROM `' . _DB_PREFIX_ . 'specific_price`
                 WHERE id_product = ' . (int) $idProduct . ' AND id_shop IN (0,' . (int) $idShop . ')'
             );
 
-            $countries = Country::getCountries(Context::getContext()->language->id, true, false, false);
+            $countries = Country::getCountries($this->getContext()->language->id, true, false, false);
             foreach ($countries as $country) {
                 $idCountry = $country['id_country'];
 
@@ -467,7 +486,7 @@ class Ps_Facetedsearch extends Module
             }
 
             if (!empty($values)) {
-                Db::getInstance()->execute(
+                $this->getDatabase()->execute(
                     'INSERT INTO `' . _DB_PREFIX_ . 'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max, id_country)
                 VALUES ' . implode(',', $values) . '
                 ON DUPLICATE KEY UPDATE id_product = id_product' // Avoid duplicate keys
@@ -491,7 +510,7 @@ class Ps_Facetedsearch extends Module
                 $message = $this->displayError($this->trans('You must select at least one category.', [], 'Modules.Facetedsearch.Admin'));
             } else {
                 if (Tools::getValue('id_layered_filter')) {
-                    Db::getInstance()->execute(
+                    $this->getDatabase()->execute(
                         'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter
                         WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
                     );
@@ -499,8 +518,8 @@ class Ps_Facetedsearch extends Module
                 }
 
                 if (Tools::getValue('scope') == 1) {
-                    Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter');
-                    $categories = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+                    $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter');
+                    $categories = $this->getDatabase()->executeS(
                         'SELECT id_category FROM ' . _DB_PREFIX_ . 'category'
                     );
 
@@ -512,7 +531,7 @@ class Ps_Facetedsearch extends Module
                 $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
 
                 if (!$idLayeredFilter) {
-                    $idLayeredFilter = (int) Db::getInstance()->Insert_ID();
+                    $idLayeredFilter = (int) $this->getDatabase()->Insert_ID();
                 }
 
                 $shopList = [];
@@ -523,10 +542,10 @@ class Ps_Facetedsearch extends Module
                         $shopList[] = (int) $idShop;
                     }
                 } else {
-                    $shopList = [Context::getContext()->shop->id];
+                    $shopList = [$this->getContext()->shop->id];
                 }
 
-                Db::getInstance()->execute(
+                $this->getDatabase()->execute(
                     'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . (int) $idLayeredFilter
                 );
 
@@ -581,12 +600,12 @@ class Ps_Facetedsearch extends Module
 
                     $idLayeredFilter = isset($valuesToInsert['id_layered_filter']) ? (int) $valuesToInsert['id_layered_filter'] : 'NULL';
                     $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter (name, filters, n_categories, date_add, id_layered_filter) VALUES ("' . pSQL($valuesToInsert['name']) . '", "' . $valuesToInsert['filters'] . '",' . (int) $valuesToInsert['n_categories'] . ',"' . pSQL($valuesToInsert['date_add']) . '",' . $idLayeredFilter . ')';
-                    Db::getInstance()->execute($sql);
-                    $idLayeredFilter = (int) Db::getInstance()->Insert_ID();
+                    $this->getDatabase()->execute($sql);
+                    $idLayeredFilter = (int) $this->getDatabase()->Insert_ID();
 
                     if (isset($assos)) {
                         foreach ($assos as $asso) {
-                            Db::getInstance()->execute(
+                            $this->getDatabase()->execute(
                                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
     VALUES(' . $idLayeredFilter . ', ' . (int) $asso['id_shop'] . ')'
                             );
@@ -610,14 +629,14 @@ class Ps_Facetedsearch extends Module
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
             $this->invalidateLayeredFilterBlockCache();
         } elseif (Tools::getValue('deleteFilterTemplate')) {
-            $layered_values = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
+            $layered_values = $this->getDatabase()->getValue(
                 'SELECT filters
                 FROM ' . _DB_PREFIX_ . 'layered_filter
                 WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
             );
 
             if ($layered_values) {
-                Db::getInstance()->execute(
+                $this->getDatabase()->execute(
                     'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter
                     WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter') . ' LIMIT 1'
                 );
@@ -629,7 +648,7 @@ class Ps_Facetedsearch extends Module
         }
 
         $categoryBox = [];
-        $attributeGroups = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $attributeGroups = $this->getDatabase()->executeS(
             'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
             FROM ' . _DB_PREFIX_ . 'attribute_group ag
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
@@ -638,7 +657,7 @@ class Ps_Facetedsearch extends Module
             GROUP BY ag.id_attribute_group'
         );
 
-        $features = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        $features = $this->getDatabase()->executeS(
             'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
             FROM ' . _DB_PREFIX_ . 'feature_lang fl
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_value fv ON (fv.id_feature = fl.id_feature)
@@ -684,7 +703,7 @@ class Ps_Facetedsearch extends Module
         }
 
         if (Tools::getValue('edit_filters_template')) {
-            $template = Db::getInstance()->getRow(
+            $template = $this->getDatabase()->getRow(
                 'SELECT *
                 FROM `' . _DB_PREFIX_ . 'layered_filter`
                 WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
@@ -718,14 +737,14 @@ class Ps_Facetedsearch extends Module
             'uri' => $this->getPathUri(),
             'PS_LAYERED_INDEXED' => (int) Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
             'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
-            'id_lang' => Context::getContext()->cookie->id_lang,
+            'id_lang' => $this->getContext()->cookie->id_lang,
             'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'base_folder' => urlencode(_PS_ADMIN_DIR_),
             'price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
             'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-            'filters_templates' => Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
+            'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'full_tree' => $this->psLayeredFullTree,
             'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
@@ -754,9 +773,9 @@ class Ps_Facetedsearch extends Module
         return $return;
     }
 
-    private static function query($sqlQuery)
+    private function query($sqlQuery)
     {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sqlQuery);
+        return $this->getDatabase()->query($sqlQuery);
     }
 
     /**
@@ -773,9 +792,9 @@ class Ps_Facetedsearch extends Module
         }
 
         /* Delete and re-create the layered categories table */
-        Db::getInstance()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_category` (
             `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `id_shop` INT(11) UNSIGNED NOT NULL,
@@ -790,7 +809,7 @@ class Ps_Facetedsearch extends Module
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter` (
             `id_layered_filter` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `name` VARCHAR(64) NOT NULL,
@@ -800,14 +819,14 @@ class Ps_Facetedsearch extends Module
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
             `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
             `data` TEXT NULL
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_shop` (
             `id_layered_filter` INT(10) UNSIGNED NOT NULL,
             `id_shop` INT(11) UNSIGNED NOT NULL,
@@ -836,7 +855,7 @@ class Ps_Facetedsearch extends Module
             @ini_set('memory_limit', '128M');
         }
 
-        $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
+        $db = $this->getDatabase();
         $nCategories = [];
         $doneCategories = [];
 
@@ -844,7 +863,7 @@ class Ps_Facetedsearch extends Module
         $joinProduct = Shop::addSqlAssociation('product', 'p');
         $joinProductAttribute = Shop::addSqlAssociation('product_attribute', 'pa');
 
-        $attributeGroups = self::query(
+        $attributeGroups = $this->query(
             'SELECT a.id_attribute, a.id_attribute_group
             FROM ' . _DB_PREFIX_ . 'attribute a
             LEFT JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON (pac.id_attribute = a.id_attribute)
@@ -864,7 +883,7 @@ class Ps_Facetedsearch extends Module
             $attributeGroupsById[(int) $row['id_attribute']] = (int) $row['id_attribute_group'];
         }
 
-        $features = self::query(
+        $features = $this->query(
             'SELECT fv.id_feature_value, fv.id_feature
             FROM ' . _DB_PREFIX_ . 'feature_value fv
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_product fp ON (fp.id_feature_value = fv.id_feature_value)
@@ -882,7 +901,7 @@ class Ps_Facetedsearch extends Module
             $featuresById[(int) $row['id_feature_value']] = (int) $row['id_feature'];
         }
 
-        $result = self::query(
+        $result = $this->query(
             'SELECT p.id_product,
             GROUP_CONCAT(DISTINCT fv.id_feature_value) features,
             GROUP_CONCAT(DISTINCT cp.id_category) categories,
@@ -986,13 +1005,13 @@ class Ps_Facetedsearch extends Module
         }
 
         if ($toInsert) {
-            Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter(name, filters, n_categories, date_add)
+            $this->getDatabase()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter(name, filters, n_categories, date_add)
 VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filterData)) . '\', ' . count($filterData['categories']) . ', NOW())');
 
-            $last_id = Db::getInstance()->Insert_ID();
-            Db::getInstance()->execute('DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . $last_id);
+            $last_id = $this->getDatabase()->Insert_ID();
+            $this->getDatabase()->execute('DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . $last_id);
             foreach ($shopList as $idShop) {
-                Db::getInstance()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
+                $this->getDatabase()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
 VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             }
 
@@ -1008,12 +1027,12 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function buildLayeredCategories()
     {
         // Get all filter template
-        $res = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
+        $res = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
         $categories = [];
         // Clear cache
         $this->invalidateLayeredFilterBlockCache();
         // Remove all from layered_category
-        Db::getInstance()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
+        $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
 
         if (!count($res)) { // No filters templates defined, nothing else to do
             return true;
@@ -1067,7 +1086,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
                             ++$nbSqlValuesToInsert;
                             if ($nbSqlValuesToInsert >= 100) {
-                                Db::getInstance()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
+                                $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
                                 $sqlInsert = '';
                                 $nbSqlValuesToInsert = 0;
                             }
@@ -1078,7 +1097,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
 
         if ($nbSqlValuesToInsert) {
-            Db::getInstance()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
+            $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
         }
     }
 
@@ -1138,7 +1157,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function invalidateLayeredFilterBlockCache()
     {
-        Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+        $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
     }
 
     /**
@@ -1146,8 +1165,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     private function installProductAttributeTable()
     {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
             `id_attribute` int(10) unsigned NOT NULL,
             `id_product` int(10) unsigned NOT NULL,
@@ -1162,11 +1181,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     /**
      * Install price indexes table
      */
-    private static function installPriceIndexTable()
+    private function installPriceIndexTable()
     {
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_price_index`');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_price_index`');
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_price_index` (
             `id_product` INT  NOT NULL,
             `id_currency` INT NOT NULL,
@@ -1188,21 +1207,21 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     private function installIndexableAttributeTable()
     {
         // Attributes Groups
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` (
             `id_attribute_group` INT NOT NULL,
             `indexable` BOOL NOT NULL DEFAULT 0,
             PRIMARY KEY (`id_attribute_group`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`
             SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group`'
         );
 
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value` (
             `id_attribute_group` INT NOT NULL,
             `id_lang` INT NOT NULL,
@@ -1213,8 +1232,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         // Attributes
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` (
             `id_attribute` INT NOT NULL,
             `id_lang` INT NOT NULL,
@@ -1225,8 +1244,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         // Features
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature` (
             `id_feature` INT NOT NULL,
             `indexable` BOOL NOT NULL DEFAULT 0,
@@ -1234,13 +1253,13 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature`
             SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
         );
 
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` (
             `id_feature` INT NOT NULL,
             `id_lang` INT NOT NULL,
@@ -1251,8 +1270,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         // Features values
-        Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value`');
-        Db::getInstance()->execute(
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value`');
+        $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` (
             `id_feature_value` INT NOT NULL,
             `id_lang` INT NOT NULL,
@@ -1273,17 +1292,17 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      *
      * @return int
      */
-    private static function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
+    private function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
     {
         if ($full) {
-            $nbProducts = (int) Db::getInstance()->getValue(
+            $nbProducts = (int) $this->getDatabase()->getValue(
                 'SELECT count(DISTINCT p.`id_product`)
                 FROM ' . _DB_PREFIX_ . 'product p
                 INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
                 ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
             );
         } else {
-            $nbProducts = (int) Db::getInstance()->getValue(
+            $nbProducts = (int) $this->getDatabase()->getValue(
                 'SELECT COUNT(DISTINCT p.`id_product`) FROM `' . _DB_PREFIX_ . 'product` p
                 INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
                 ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
@@ -1304,7 +1323,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         if (function_exists('memory_get_peak_usage')) {
             do {
                 $lastCursor = $cursor;
-                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                $cursor = (int) $this->indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
                 if ($cursor == 0) {
                     $lastCursor = $cursor;
                     break;
@@ -1317,7 +1336,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         } else {
             do {
                 $lastCursor = $cursor;
-                $cursor = (int) self::indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+                $cursor = (int) $this->indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
                 if ($cursor == 0) {
                     $lastCursor = $cursor;
                     break;
@@ -1334,7 +1353,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                     : Tools::getShopDomain(true);
 
             if (!Tools::file_get_contents($domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . $token . '&cursor=' . (int) $cursor . '&full=' . (int) $full)) {
-                self::indexPrices((int) $cursor, (int) $full);
+                $this->indexPrices((int) $cursor, (int) $full);
             }
 
             return $cursor;
@@ -1375,7 +1394,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      *
      * @return int
      */
-    private static function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
+    private function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
     {
         if (null === $cursor) {
             $cursor = 0;
@@ -1401,8 +1420,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
 
         $lastIdProduct = 0;
-        foreach (Db::getInstance()->executeS($query) as $product) {
-            self::indexProductPrices((int) $product['id_product'], ($smart && $full));
+        foreach ($this->getDatabase()->executeS($query) as $product) {
+            $this->indexProductPrices((int) $product['id_product'], ($smart && $full));
             $lastIdProduct = $product['id_product'];
         }
 

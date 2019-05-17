@@ -26,7 +26,6 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Language;
 use Tools;
 
@@ -50,7 +49,7 @@ class Attribute extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
             WHERE `id_attribute` = ' . (int) $params['id_attribute']
         );
@@ -62,7 +61,7 @@ class Attribute extends AbstractHook
                 $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
             }
 
-            Db::getInstance()->execute(
+            $this->database->execute(
                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
                 (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
@@ -85,7 +84,7 @@ class Attribute extends AbstractHook
             return;
         }
 
-        Db::getInstance()->execute(
+        $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
             WHERE `id_attribute` = ' . (int) $params['id_attribute']
         );
@@ -111,7 +110,7 @@ class Attribute extends AbstractHook
     {
         $values = [];
 
-        if ($result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS(
+        if ($result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang`
             FROM ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value
             WHERE `id_attribute` = ' . (int) $params['id_attribute']

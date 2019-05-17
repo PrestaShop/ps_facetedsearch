@@ -51,11 +51,11 @@ class Products
     /**
      * @var AbstractAdapter
      */
-    private $facetedSearchAdapter;
+    private $searchAdapter;
 
     public function __construct(Search $productSearch)
     {
-        $this->facetedSearchAdapter = $productSearch->getFacetedSearchAdapter();
+        $this->searchAdapter = $productSearch->getSearchAdapter();
     }
 
     /**
@@ -79,23 +79,23 @@ class Products
         $orderWay = Validate::isOrderWay($orderWay) ? $orderWay : 'ASC';
         $orderBy = Validate::isOrderBy($orderBy) ? $orderBy : 'position';
 
-        $this->facetedSearchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
-        $this->facetedSearchAdapter->setOrderField($orderBy);
-        $this->facetedSearchAdapter->setOrderDirection($orderWay);
+        $this->searchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
+        $this->searchAdapter->setOrderField($orderBy);
+        $this->searchAdapter->setOrderDirection($orderWay);
 
-        $this->facetedSearchAdapter->addGroupBy('id_product');
+        $this->searchAdapter->addGroupBy('id_product');
         if (isset($selectedFilters['price']) || $orderBy === 'price') {
-            $this->facetedSearchAdapter->addSelectField('id_product');
-            $this->facetedSearchAdapter->addSelectField('price');
-            $this->facetedSearchAdapter->addSelectField('price_min');
-            $this->facetedSearchAdapter->addSelectField('price_max');
+            $this->searchAdapter->addSelectField('id_product');
+            $this->searchAdapter->addSelectField('price');
+            $this->searchAdapter->addSelectField('price_min');
+            $this->searchAdapter->addSelectField('price_max');
         }
 
-        $matchingProductList = $this->facetedSearchAdapter->execute();
+        $matchingProductList = $this->searchAdapter->execute();
 
         $this->pricePostFiltering($matchingProductList, $selectedFilters);
 
-        $nbrProducts = $this->facetedSearchAdapter->count();
+        $nbrProducts = $this->searchAdapter->count();
 
         if (empty($nbrProducts)) {
             $matchingProductList = [];
