@@ -402,9 +402,9 @@ class BlockTest extends TestCase
                         ->getMock();
 
         $valueMap = [
-            ['Availability', [], 'Modules.Facetedsearch.Shop', null, 'Quantity'],
-            ['Not available', [], 'Modules.Facetedsearch.Shop', null, 'Not available'],
-            ['In stock', [], 'Modules.Facetedsearch.Shop', null, 'In stock'],
+            ['Availability', [], 'Modules.Facetedsearch.Shop', 'Quantity'],
+            ['Not available', [], 'Modules.Facetedsearch.Shop','Not available'],
+            ['In stock', [], 'Modules.Facetedsearch.Shop', 'In stock'],
         ];
 
         $translatorMock->method('trans')
@@ -485,9 +485,10 @@ class BlockTest extends TestCase
                         ->getMock();
 
         $valueMap = [
-            ['New', [], 'Modules.Facetedsearch.Shop', null, 'New'],
-            ['Used', [], 'Modules.Facetedsearch.Shop', null, 'Used'],
-            ['Refurbished', [], 'Modules.Facetedsearch.Shop', null, 'Refurbished'],
+            ['New', [], 'Modules.Facetedsearch.Shop', 'New'],
+            ['Used', [], 'Modules.Facetedsearch.Shop', 'Used'],
+            ['Refurbished', [], 'Modules.Facetedsearch.Shop', 'Refurbished'],
+            ['Condition', [], 'Modules.Facetedsearch.Shop', 'Condition'],
         ];
 
         $translatorMock->method('trans')
@@ -525,7 +526,7 @@ class BlockTest extends TestCase
                         'type_lite' => 'condition',
                         'type' => 'condition',
                         'id_key' => 0,
-                        'name' => null,
+                        'name' => 'Condition',
                         'values' => [
                             'new' => [
                                 'name' => 'New',
