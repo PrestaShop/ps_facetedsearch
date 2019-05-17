@@ -403,7 +403,7 @@ class BlockTest extends TestCase
 
         $valueMap = [
             ['Availability', [], 'Modules.Facetedsearch.Shop', 'Quantity'],
-            ['Not available', [], 'Modules.Facetedsearch.Shop','Not available'],
+            ['Not available', [], 'Modules.Facetedsearch.Shop', 'Not available'],
             ['In stock', [], 'Modules.Facetedsearch.Shop', 'In stock'],
         ];
 
