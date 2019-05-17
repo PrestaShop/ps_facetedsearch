@@ -98,7 +98,6 @@ class Ps_Facetedsearch extends Module
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
 
         $this->hookDispatcher = new HookDispatcher($this);
-        $this->database = Db::getInstance();
     }
 
     /**
@@ -119,6 +118,10 @@ class Ps_Facetedsearch extends Module
      */
     public function getDatabase()
     {
+        if ($this->database === null) {
+            $this->database = Db::getInstance();
+        }
+
         return $this->database;
     }
 
@@ -852,7 +855,7 @@ class Ps_Facetedsearch extends Module
             @ini_set('memory_limit', '128M');
         }
 
-        $db = $this->database;
+        $db = $this->getDatabase();
         $nCategories = [];
         $doneCategories = [];
 
