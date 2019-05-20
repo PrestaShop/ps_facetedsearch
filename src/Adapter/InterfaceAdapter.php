@@ -87,6 +87,34 @@ interface InterfaceAdapter
     public function getMinMaxPriceValue();
 
     /**
+     * Return order direction associated with the current search
+     *
+     * @return mixed
+     */
+    public function getOrderDirection();
+
+    /**
+     * Return order field associated with the current search
+     *
+     * @return mixed
+     */
+    public function getOrderField();
+
+    /**
+     * Return all group fields associated with the current search
+     *
+     * @return mixed
+     */
+    public function getGroupFields();
+
+    /**
+     * Return all selected fields associated with the current search
+     *
+     * @return mixed
+     */
+    public function getSelectFields();
+
+    /**
      * Return all the filters associated with the current search
      *
      * @return mixed
@@ -202,7 +230,7 @@ interface InterfaceAdapter
     /**
      * Return the current initialPopulation
      *
-     * @return self
+     * @return self|null
      */
     public function getInitialPopulation();
 

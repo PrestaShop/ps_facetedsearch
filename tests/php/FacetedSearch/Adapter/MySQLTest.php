@@ -255,11 +255,12 @@ class MySQLTest extends TestCase
                 'range_start',
                 'range_end',
                 'id_group',
+                'manufacturer_name',
             ]
         );
 
         $this->assertEquals(
-            'SELECT p.id_product, pa.id_product_attribute, pac.id_attribute, a.id_attribute_group, fp.id_feature, ps.id_shop, p.id_feature_çvalue, cp.id_category, pl.name, c.nleft, c.nright, c.level_depth, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end, cg.id_group FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product, pa.id_product_attribute, pac.id_attribute, a.id_attribute_group, fp.id_feature, ps.id_shop, p.id_feature_çvalue, cp.id_category, pl.name, c.nleft, c.nright, c.level_depth, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end, cg.id_group, m.name FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -339,6 +340,55 @@ class MySQLTest extends TestCase
         );
     }
 
+    public function testGetQueryWithPriceOrderFieldInDesc()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->setOrderField('price');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE ORDER BY psi.price_max DESC LIMIT 0, 20',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithPriceOrderFieldInAsc()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->setOrderField('price');
+        $this->adapter->setOrderDirection('asc');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE ORDER BY psi.price_min ASC LIMIT 0, 20',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithPriceOrderFieldInAscWithInitialPopulation()
+    {
+        $this->adapter->addSelectField('manufacturer_name');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('manufacturer_name');
+        $this->adapter->setOrderDirection('asc');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, m.name FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE) p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithPositionOrderFieldInAscWithInitialPopulation()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('desc');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, cp.position FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product=sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) WHERE p.active = TRUE) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
     public function oneSelectFieldDataProvider()
     {
         return [
@@ -362,6 +412,7 @@ class MySQLTest extends TestCase
             ['range_start', 'SELECT psi.range_start FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
             ['range_end', 'SELECT psi.range_end FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
             ['id_group', 'SELECT cg.id_group FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['manufacturer_name', 'SELECT m.name FROM ps_product p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
         ];
     }
 }
