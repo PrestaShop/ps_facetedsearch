@@ -1296,18 +1296,18 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     {
         if ($full) {
             $nbProducts = (int) $this->getDatabase()->getValue(
-                'SELECT count(DISTINCT p.`id_product`)
-                FROM ' . _DB_PREFIX_ . 'product p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
+                'SELECT count(DISTINCT p.`id_product`) ' .
+                'FROM ' . _DB_PREFIX_ . 'product p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ' .
+                'ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
             );
         } else {
             $nbProducts = (int) $this->getDatabase()->getValue(
-                'SELECT COUNT(DISTINCT p.`id_product`) FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
-                WHERE psi.id_product IS NULL'
+                'SELECT COUNT(DISTINCT p.`id_product`) ' .
+                'FROM `' . _DB_PREFIX_ . 'product` p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
+                'LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product) ' .
+                'WHERE psi.id_product IS NULL'
             );
         }
 
@@ -1320,31 +1320,20 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         $indexedProducts = 0;
         $length = 100;
-        if (function_exists('memory_get_peak_usage')) {
-            do {
+        do {
+            $lastCursor = $cursor;
+            $cursor = (int) $this->indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
+            if ($cursor == 0) {
                 $lastCursor = $cursor;
-                $cursor = (int) $this->indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
-                if ($cursor == 0) {
-                    $lastCursor = $cursor;
-                    break;
-                }
-                $time_elapsed = microtime(true) - $startTime;
-                $indexedProducts += $length;
-            } while ($cursor < $nbProducts
-                && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
-                && $time_elapsed < $maxExecutiontime);
-        } else {
-            do {
-                $lastCursor = $cursor;
-                $cursor = (int) $this->indexPricesUnbreakable((int) $cursor, $full, $smart, $length);
-                if ($cursor == 0) {
-                    $lastCursor = $cursor;
-                    break;
-                }
-                $time_elapsed = microtime(true) - $startTime;
-                $indexedProducts += $length;
-            } while ($cursor != $lastCursor && $time_elapsed < $maxExecutiontime);
-        }
+                break;
+            }
+            $time_elapsed = microtime(true) - $startTime;
+            $indexedProducts += $length;
+        } while (
+            $cursor < $nbProducts
+            && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
+            && $time_elapsed < $maxExecutiontime
+        );
 
         if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
             $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
@@ -1401,22 +1390,22 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
 
         if ($full) {
-            $query = 'SELECT p.`id_product`
-                FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                WHERE p.id_product > ' . (int) $cursor . '
-                GROUP BY p.`id_product`
-                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
+            $query = 'SELECT p.`id_product` ' .
+                'FROM `' . _DB_PREFIX_ . 'product` p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ' .
+                'ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
+                'WHERE p.id_product > ' . (int) $cursor . ' ' .
+                'GROUP BY p.`id_product` ' .
+                'ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
         } else {
-            $query = 'SELECT p.`id_product`
-                FROM `' . _DB_PREFIX_ . 'product` p
-                INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps
-                ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))
-                INNER JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product)
-                WHERE psi.id_product IS NULL
-                GROUP BY p.`id_product`
-                ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
+            $query = 'SELECT p.`id_product` ' .
+                'FROM `' . _DB_PREFIX_ . 'product` p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ' .
+                'ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
+                'LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product) ' .
+                'WHERE psi.id_product IS NULL ' .
+                'GROUP BY p.`id_product` ' .
+                'ORDER BY p.`id_product` LIMIT 0,' . (int) $length;
         }
 
         $lastIdProduct = 0;

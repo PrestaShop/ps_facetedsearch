@@ -27,7 +27,7 @@ const getQueryParameters = params => params.split('&').map((str) => {
   const [key, val] = str.split('=');
   return {
     name: key,
-    value: decodeURIComponent(val),
+    value: decodeURIComponent(val).replace(/\+/g, ' '),
   };
 });
 

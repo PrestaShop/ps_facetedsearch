@@ -11,18 +11,18 @@ describe('getQueryParameters', () => {
       }],
     ],
     [
-      'q=Prix-%E2%82%AC-22-42/Composition-Carton+recycl%C3%A9',
+      'q=Prix-%E2%82%AC-22-42/Composition-Carton recycl%C3%A9',
       [{
         name: 'q',
-        value: 'Prix-€-22-42/Composition-Carton+recyclé',
+        value: 'Prix-€-22-42/Composition-Carton recyclé',
       }],
     ],
     [
-      'q=Prix-%E2%82%AC-22-42/Composition-Carton+recycl%C3%A9&something=thisIsSparta',
+      'q=Prix-%E2%82%AC-22-42/Composition-Carton recycl%C3%A9&something=thisIsSparta',
       [
         {
           name: 'q',
-          value: 'Prix-€-22-42/Composition-Carton+recyclé',
+          value: 'Prix-€-22-42/Composition-Carton recyclé',
         },
         {
           name: 'something',
