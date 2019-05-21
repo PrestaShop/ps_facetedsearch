@@ -3,5 +3,5 @@
 {/if}
 
 {if isset($rendered_facets)}
-    {$rendered_facets nofilter}
+  {$rendered_facets nofilter}
 {/if}

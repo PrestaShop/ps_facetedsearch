@@ -1,0 +1,56 @@
+/**
+ * 2007-2019 PrestaShop.
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2019 PrestaShop SA
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ * International Registered Trademark & Property of PrestaShop SA
+ */
+.bootstrap {
+  .filter_list .filter_list_item {
+	  display: table;
+	  width: 100%;
+	  padding: 5px 0;
+	  margin-bottom: 4px;
+	  background-color: white;
+	  -webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 0 3px, rgba(0, 0, 0, 0.1) 0 -2px 0 inset;
+	  box-shadow: rgba(0, 0, 0, 0.3) 0 0 3px, rgba(0, 0, 0, 0.1) 0 -2px 0 inset;
+	  -webkit-border-radius: 3px;
+	  -moz-border-radius: 3px;
+	  -ms-border-radius: 3px;
+	  -o-border-radius: 3px;
+	  border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .filter_panel {
+	  min-height: 20px;
+	  padding: 7px 7px 0px 7px;
+	  margin-bottom: 20px;
+	  background-color: #ebebeb;
+	  border: 1px solid #d9d9d9;
+	  border-radius: 3px;
+	  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+
+    header {
+	    margin-bottom: 7px;
+    }
+  }
+}
