@@ -109,6 +109,9 @@ class Search
             $this->addFilter('id_category_default', [$parent->id]);
         }
 
+        // Visibility of a product must be in catalog or both (search & catalog)
+        $this->addFilter('visibility', ['both', 'catalog']);
+
         $this->addSearchFilters(
             $selectedFilters,
             $psLayeredFullTree ? $parent : null,
