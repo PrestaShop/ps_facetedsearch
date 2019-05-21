@@ -110,6 +110,14 @@ class SearchTest extends TestCase
                         ],
                     ],
                 ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -232,6 +240,14 @@ class SearchTest extends TestCase
                     '=' => [
                         [
                             1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
                         ],
                     ],
                 ],
