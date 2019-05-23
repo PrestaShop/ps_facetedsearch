@@ -34,8 +34,9 @@ if (file_exists($autoloadPath)) {
 
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
-class Ps_Facetedsearch extends Module
+class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     /**
      * Lock indexation if too many products
@@ -84,7 +85,7 @@ class Ps_Facetedsearch extends Module
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.0.1';
+        $this->version = '3.0.2';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -191,7 +192,7 @@ class Ps_Facetedsearch extends Module
             $this->rebuildLayeredCache();
         }
 
-        $this->installPriceIndexTable();
+        $this->rebuildPriceIndexTable();
         $this->installIndexableAttributeTable();
         $this->installProductAttributeTable();
 
@@ -277,7 +278,7 @@ class Ps_Facetedsearch extends Module
     public function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
     {
         if ($cursor == 0 && !$smart) {
-            $this->installPriceIndexTable();
+            $this->rebuildPriceIndexTable();
         }
 
         return $this->indexPrices($cursor, true, $ajax, $smart);
@@ -1161,27 +1162,9 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * create table product attribute.
-     */
-    private function installProductAttributeTable()
-    {
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
-        $this->getDatabase()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
-            `id_attribute` int(10) unsigned NOT NULL,
-            `id_product` int(10) unsigned NOT NULL,
-            `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
-            `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
-            PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
-            UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-    }
-
-    /**
      * Install price indexes table
      */
-    private function installPriceIndexTable()
+    public function rebuildPriceIndexTable()
     {
         $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_price_index`');
 
@@ -1197,6 +1180,24 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             INDEX `id_currency` (`id_currency`),
             INDEX `price_min` (`price_min`),
             INDEX `price_max` (`price_max`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+    }
+
+    /**
+     * create table product attribute.
+     */
+    private function installProductAttributeTable()
+    {
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
+        $this->getDatabase()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
+            `id_attribute` int(10) unsigned NOT NULL,
+            `id_product` int(10) unsigned NOT NULL,
+            `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
+            `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
+            PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
+            UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
     }
@@ -1415,5 +1416,23 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
 
         return (int) $lastIdProduct;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function renderWidget($hookName, array $configuration)
+    {
+        $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+
+        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getWidgetVariables($hookName, array $configuration)
+    {
+        return [];
     }
 }
