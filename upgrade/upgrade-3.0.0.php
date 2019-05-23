@@ -63,7 +63,7 @@ function upgrade_module_3_0_0(Ps_Facetedsearch $object)
     // If something failed an exception will be raised and
     // the upgrade will stop
     $object->rebuildLayeredStructure();
-    $object->fullPricesIndexProcess();
+    $object->rebuildPriceIndexTable();
     $object->invalidateLayeredFilterBlockCache();
 
     return $object->registerHook($object->getHookDispatcher()->getAvailableHooks());
