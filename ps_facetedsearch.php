@@ -34,8 +34,9 @@ if (file_exists($autoloadPath)) {
 
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
+use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
-class Ps_Facetedsearch extends Module
+class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     /**
      * Lock indexation if too many products
@@ -1415,5 +1416,23 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         }
 
         return (int) $lastIdProduct;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function renderWidget($hookName, array $configuration)
+    {
+        $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+
+        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getWidgetVariables($hookName, array $configuration)
+    {
+        return [];
     }
 }
