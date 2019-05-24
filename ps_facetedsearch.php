@@ -264,7 +264,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             INNER JOIN ' . _DB_PREFIX_ . 'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
             ' . ($idProduct === null ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
             GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
-
         );
     }
 
