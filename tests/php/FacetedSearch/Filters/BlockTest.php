@@ -327,7 +327,7 @@ class BlockTest extends TestCase
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
         $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCOunt'])
+                            ->setMethods(['count', 'valueCount'])
                             ->getMock();
         $adapterInitialMock->expects($this->once())
             ->method('count')
@@ -390,7 +390,7 @@ class BlockTest extends TestCase
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
         $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCOunt'])
+                            ->setMethods(['count', 'valueCount'])
                             ->getMock();
         $adapterInitialMock->expects($this->once())
             ->method('count')
@@ -452,7 +452,7 @@ class BlockTest extends TestCase
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
         $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCOunt'])
+                            ->setMethods(['count', 'valueCount'])
                             ->getMock();
         $adapterInitialMock->expects($this->once())
             ->method('count')
