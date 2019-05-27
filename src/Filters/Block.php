@@ -96,7 +96,8 @@ class Block
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category ' .
+            'SELECT type, id_value, filter_show_limit, filter_type ' .
+            'FROM ' . _DB_PREFIX_ . 'layered_category ' .
             'WHERE id_category = ' . (int) $idParent . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
@@ -961,12 +962,18 @@ class Block
         foreach ($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }
+
         $results = $filteredSearchAdapter->valueCount('id_category');
 
         foreach ($results as $key => $values) {
             $idCategory = $values['id_category'];
-            $count = $values['c'];
+            if (!isset($categories[$idCategory])) {
+                // Category can sometimes not be found in case of multistore
+                // plus waiting for indexation
+                continue;
+            }
 
+            $count = $values['c'];
             $categoryArray[$idCategory] = [
                 'name' => $categories[$idCategory]['name'],
                 'nbr' => $count,
