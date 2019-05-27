@@ -97,3 +97,9 @@ class Group extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Manufacturer extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}

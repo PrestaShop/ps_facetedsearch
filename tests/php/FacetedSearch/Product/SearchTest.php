@@ -146,7 +146,7 @@ class SearchTest extends TestCase
                 'id_attribute_group' => [
                     [4, 5],
                 ],
-                'cateogry' => [
+                'category' => [
                     [6],
                 ],
                 'quantity' => [
@@ -173,13 +173,6 @@ class SearchTest extends TestCase
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
         $this->assertEquals(
             [
-                'id_category_default' => [
-                    '=' => [
-                        [
-                            null,
-                        ],
-                    ],
-                ],
                 'id_feature_value' => [
                     '=' => [
                         [
@@ -248,6 +241,13 @@ class SearchTest extends TestCase
                         [
                             'both',
                             'catalog',
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            6,
                         ],
                     ],
                 ],
