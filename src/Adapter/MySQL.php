@@ -127,10 +127,10 @@ class MySQL extends AbstractAdapter
 
             $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
-            foreach ($joinConditions as $tableName => $joinAliasConditionInfos) {
-                foreach ($joinAliasConditionInfos as $tableAlias => $joinConditionInfos) {
-                    $query .= ' ' . $joinConditionInfos['joinType'] . ' ' . _DB_PREFIX_ . $tableName . ' ' .
-                        $tableAlias . ' ON ' . $joinConditionInfos['joinCondition'];
+            foreach ($joinConditions as $joinAliasInfos) {
+                foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
+                    $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
+                        $tableAlias . ' ON ' . $joinInfos['joinCondition'];
                 }
             }
 
@@ -262,14 +262,14 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product=sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
@@ -399,13 +399,13 @@ class MySQL extends AbstractAdapter
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
                 $conditions = [];
-                foreach ($operations as $operation) {
+                foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
                     $operator = '=';
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
-                        $selectAlias = $joinMapping['tableAlias'];
+                        $selectAlias = $joinMapping['tableAlias'] . ($idx === 0 ? '' : $idx);
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
@@ -511,7 +511,7 @@ class MySQL extends AbstractAdapter
     {
         $joinList = new ArrayCollection();
 
-        foreach ($this->getSelectFields() as $key => $selectField) {
+        foreach ($this->getSelectFields() as $selectField) {
             if (array_key_exists($selectField, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$selectField];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
@@ -522,6 +522,26 @@ class MySQL extends AbstractAdapter
             if (array_key_exists($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
+            }
+        }
+
+        foreach ($this->getOperationsFilters() as $filterOperations) {
+            foreach ($filterOperations as $operations) {
+                foreach ($operations as $idx => $operation) {
+                    if (array_key_exists($operation[0], $filterToTableMapping)) {
+                        $joinMapping = $filterToTableMapping[$operation[0]];
+                        if ($idx !== 0) {
+                            $joinMapping['joinCondition'] = preg_replace(
+                                '~([\(\s=]' . $joinMapping['tableAlias'] . ')\.~',
+                                '${1}' . $idx . '.',
+                                $joinMapping['joinCondition']
+                            );
+                            $joinMapping['tableAlias'] .= $idx;
+                        }
+
+                        $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
+                    }
+                }
             }
         }
 
@@ -554,11 +574,12 @@ class MySQL extends AbstractAdapter
             $this->addJoinConditions($joinList, $dependencyJoinMapping, $filterToTableMapping);
         }
         $joinInfos[$joinMapping['tableAlias']] = [
+            'tableName' => $joinMapping['tableName'],
             'joinCondition' => $joinMapping['joinCondition'],
             'joinType' => $joinMapping['joinType'],
         ];
 
-        $joinList->set($joinMapping['tableName'], $joinInfos);
+        $joinList->set($joinMapping['tableAlias'] . $joinMapping['tableName'], $joinInfos);
     }
 
     /**
