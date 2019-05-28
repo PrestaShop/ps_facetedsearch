@@ -33,6 +33,7 @@ use Ps_FacetedSearch;
 
 class HookDispatcherTest extends TestCase
 {
+    private $module;
     private $dispatcher;
 
     protected function setUp()
@@ -42,14 +43,14 @@ class HookDispatcherTest extends TestCase
                      ->disableOriginalConstructor()
                      ->getMock();
 
-        $module = $this->getMockBuilder(Ps_FacetedSearch::class)
-                ->setMethods(['getContext', 'getDatabase'])
+        $this->module = $this->getMockBuilder(Ps_FacetedSearch::class)
+                ->setMethods(['getContext', 'getDatabase', 'renderWidget'])
                 ->disableOriginalConstructor()
                 ->getMock();
 
-        $module->method('getContext')
+        $this->module->method('getContext')
             ->willReturn($contextMock);
-        $this->dispatcher = new HookDispatcher($module);
+        $this->dispatcher = new HookDispatcher($this->module);
     }
 
     public function testGetAvailableHooks()
@@ -86,6 +87,10 @@ class HookDispatcherTest extends TestCase
 
     public function testDispatchUnfoundHook()
     {
-        $this->assertNull($this->dispatcher->dispatch('ThisHookDoesNotExists'));
+        $this->module->expects($this->once())
+            ->method('renderWidget')
+            ->with('ThisHookDoesNotExists', [])
+            ->willReturn('');
+        $this->assertEquals('', $this->dispatcher->dispatch('ThisHookDoesNotExists'));
     }
 }

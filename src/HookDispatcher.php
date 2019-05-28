@@ -61,14 +61,23 @@ class HookDispatcher
     private $hooks = [];
 
     /**
+     * Module
+     *
+     * @var Ps_Facetedsearch
+     */
+    private $module;
+
+    /**
      * Init hooks
      *
      * @param Ps_Facetedsearch $module
      */
     public function __construct(Ps_Facetedsearch $module)
     {
+        $this->module = $module;
+
         foreach (self::CLASSES as $hookClass) {
-            $hook = new $hookClass($module);
+            $hook = new $hookClass($this->module);
             $this->availableHooks = array_merge($this->availableHooks, $hook->getAvailableHooks());
             $this->hooks[] = $hook;
         }
@@ -101,5 +110,8 @@ class HookDispatcher
                 return call_user_func([$hook, $hookName], $params);
             }
         }
+
+        // No hook found, render it as a widget
+        return $this->module->renderWidget($hookName, $params);
     }
 }
