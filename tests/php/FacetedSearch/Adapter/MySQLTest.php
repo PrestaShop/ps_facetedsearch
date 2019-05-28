@@ -413,6 +413,24 @@ class MySQLTest extends TestCase
                 ],
                 'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute=4) OR (sa.quantity>0 AND sa1.out_of_stock=1)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
+            [
+                'fields' => [
+                    'id_product',
+                    'quantity',
+                ],
+                'operationsFilter' => [
+                    [
+                        ['id_attribute', [2]],
+                        ['id_attribute', [4, 5, 6]],
+                        ['id_attribute', [7, 8, 9]],
+                    ],
+                    [
+                        ['quantity', [0], '>'],
+                        ['out_of_stock', [0], '='],
+                    ],
+                ],
+                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac2 ON (pa.id_product_attribute = pac2.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute IN (4, 5, 6) AND pac2.id_attribute IN (7, 8, 9)) OR (sa.quantity>0 AND sa1.out_of_stock=0)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            ],
         ];
     }
 
