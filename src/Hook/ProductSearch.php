@@ -50,6 +50,7 @@ class ProductSearch extends AbstractHook
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
+            $this->context->controller->addJqueryUi('slider');
             $this->context->controller->registerStylesheet(
                 'facetedsearch_front',
                 $this->module->getPathUri() . 'views/dist/front.css'
