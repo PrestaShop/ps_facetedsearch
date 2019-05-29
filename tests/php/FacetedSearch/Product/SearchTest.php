@@ -188,14 +188,6 @@ class SearchTest extends TestCase
                         ],
                     ],
                 ],
-                'id_attribute' => [
-                    '=' => [
-                        [
-                            4,
-                            5,
-                        ],
-                    ],
-                ],
                 'weight' => [
                     '>=' => [
                         [
@@ -272,6 +264,17 @@ class SearchTest extends TestCase
                                 0,
                             ],
                             '=',
+                        ],
+                    ],
+                ],
+                'with_attributes' => [
+                    [
+                        [
+                            'id_attribute',
+                            [
+                                4,
+                                5,
+                            ],
                         ],
                     ],
                 ],
