@@ -8,4 +8,4 @@ if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('
 }
 
 $psFacetedsearch = new Ps_Facetedsearch();
-echo $psFacetedsearch->indexAttribute();
+echo $psFacetedsearch->indexAttributes();

@@ -725,7 +725,12 @@ class Block
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
-                list($urlName, $metaTitle) = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
+                $attributeGroup = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
+                if (empty($attributeGroup)) {
+                    continue;
+                }
+
+                list($urlName, $metaTitle) = $attributeGroup;
 
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
@@ -741,7 +746,12 @@ class Block
                 ];
             }
 
-            list($urlName, $metaTitle) = $this->getAttributeLayeredInfos($idAttribute, $idLang);
+            $attributeLayeredInfos = $this->getAttributeLayeredInfos($idAttribute, $idLang);
+            if (empty($attributeLayeredInfos)) {
+                continue;
+            }
+
+            list($urlName, $metaTitle) = $attributeLayeredInfos;
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'color' => $attribute['color'],
                 'name' => $attribute['name'],
@@ -839,7 +849,12 @@ class Block
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }
 
-                list($urlName, $metaTitle) = $this->getFeatureLayeredInfos($idFeature, $idLang);
+                $layeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
+                if (empty($layeredInfos)) {
+                    continue;
+                }
+
+                list($urlName, $metaTitle) = $layeredInfos;
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',

@@ -198,7 +198,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
             $this->fullPricesIndexProcess();
-            $this->indexAttribute();
+            $this->indexAttributes();
         }
 
         return true;
@@ -243,7 +243,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      *
      * @param int $idProduct
      */
-    public function indexAttribute($idProduct = null)
+    public function indexAttributes($idProduct = null)
     {
         if (null === $idProduct) {
             $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
