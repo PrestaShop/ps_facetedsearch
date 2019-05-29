@@ -320,7 +320,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    private function computeOrderByField($filterToTableMapping)
+    private function computeOrderByField(array $filterToTableMapping)
     {
         $orderField = $this->getOrderField();
         if ($this->getInitialPopulation() !== null && !empty($orderField)) {
@@ -362,7 +362,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeSelectFields($filterToTableMapping)
+    private function computeSelectFields(array $filterToTableMapping)
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
@@ -392,7 +392,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeWhereConditions($filterToTableMapping)
+    private function computeWhereConditions(array $filterToTableMapping)
     {
         $whereConditions = [];
         foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
@@ -402,18 +402,16 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
-                    $operator = '=';
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
+                        // If index is not the first, append to the table alias for
+                        // multi join
                         $selectAlias = $joinMapping['tableAlias'] . ($idx === 0 ? '' : $idx);
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
-                    if (count($values) == 1) {
-                        if (!empty($operation[2])) {
-                            $operator = $operation[2];
-                        }
-
+                    if (count($values) === 1) {
+                        $operator = !empty($operation[2]) ? $operation[2] : '=';
                         $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
                     } else {
                         $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . implode(', ', array_map(function ($value) {
@@ -507,23 +505,12 @@ class MySQL extends AbstractAdapter
      *
      * @return ArrayCollection
      */
-    private function computeJoinConditions($filterToTableMapping)
+    private function computeJoinConditions(array $filterToTableMapping)
     {
         $joinList = new ArrayCollection();
 
-        foreach ($this->getSelectFields() as $selectField) {
-            if (array_key_exists($selectField, $filterToTableMapping)) {
-                $joinMapping = $filterToTableMapping[$selectField];
-                $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
-            }
-        }
-
-        foreach ($this->getFilters() as $filterName => $filterContent) {
-            if (array_key_exists($filterName, $filterToTableMapping)) {
-                $joinMapping = $filterToTableMapping[$filterName];
-                $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
-            }
-        }
+        $this->addJoinList($joinList, $this->getSelectFields(), $filterToTableMapping);
+        $this->addJoinList($joinList, $this->getFilters()->getKeys(), $filterToTableMapping);
 
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
@@ -531,6 +518,7 @@ class MySQL extends AbstractAdapter
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         if ($idx !== 0) {
+                            // Index is not the first, append index to tableAlias on joinCondition
                             $joinMapping['joinCondition'] = preg_replace(
                                 '~([\(\s=]' . $joinMapping['tableAlias'] . ')\.~',
                                 '${1}' . $idx . '.',
@@ -545,12 +533,7 @@ class MySQL extends AbstractAdapter
             }
         }
 
-        foreach ($this->getGroupFields() as $groupFields => $filterContent) {
-            if (array_key_exists($groupFields, $filterToTableMapping)) {
-                $joinMapping = $filterToTableMapping[$groupFields];
-                $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
-            }
-        }
+        $this->addJoinList($joinList, $this->getGroupFields()->getKeys(), $filterToTableMapping);
 
         if (array_key_exists($this->getOrderField(), $filterToTableMapping)) {
             $joinMapping = $filterToTableMapping[$this->getOrderField()];
@@ -561,13 +544,30 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * Helper to add tables infos to the join list.
+     *
+     * @param ArrayCollection $joinList
+     * @param array|ArrayCollection $list
+     * @param array $filterToTableMapping
+     */
+    private function addJoinList(ArrayCollection $joinList, $list, array $filterToTableMapping)
+    {
+        foreach ($list as $field) {
+            if (array_key_exists($field, $filterToTableMapping)) {
+                $joinMapping = $filterToTableMapping[$field];
+                $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
+            }
+        }
+    }
+
+    /**
      * Add the required table infos to the join list, taking care of the dependent tables
      *
      * @param ArrayCollection $joinList
      * @param array $joinMapping
      * @param array $filterToTableMapping
      */
-    private function addJoinConditions(ArrayCollection $joinList, $joinMapping, $filterToTableMapping)
+    private function addJoinConditions(ArrayCollection $joinList, array $joinMapping, array $filterToTableMapping)
     {
         if (array_key_exists('dependencyField', $joinMapping)) {
             $dependencyJoinMapping = $filterToTableMapping[$joinMapping['dependencyField']];
@@ -589,7 +589,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeGroupByFields($filterToTableMapping)
+    private function computeGroupByFields(array $filterToTableMapping)
     {
         $groupFields = [];
         if (empty($this->getGroupFields())) {
