@@ -725,12 +725,12 @@ class Block
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
-                $attributeGroup = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
-                if (empty($attributeGroup)) {
+                $attributeGroupLayeredInfos = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
+                if (empty($attributeGroupLayeredInfos)) {
                     continue;
                 }
 
-                list($urlName, $metaTitle) = $attributeGroup;
+                list($urlName, $metaTitle) = $attributeGroupLayeredInfos;
 
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
@@ -849,12 +849,12 @@ class Block
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }
 
-                $layeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
-                if (empty($layeredInfos)) {
+                $featureLayeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
+                if (empty($featureLayeredInfos)) {
                     continue;
                 }
 
-                list($urlName, $metaTitle) = $layeredInfos;
+                list($urlName, $metaTitle) = $featureLayeredInfos;
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
@@ -874,7 +874,12 @@ class Block
                 continue;
             }
 
-            list($urlName, $metaTitle) = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
+            $featureValueLayeredInfos = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
+            if (empty($featureValueLayeredInfos)) {
+                continue;
+            }
+
+            list($urlName, $metaTitle) = $featureValueLayeredInfos;
 
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
