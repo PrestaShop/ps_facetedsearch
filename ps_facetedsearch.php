@@ -1424,6 +1424,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function renderWidget($hookName, array $configuration)
     {
         $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
+
         return $this->fetch(
             'module:ps_facetedsearch/ps_facetedsearch.tpl',
             false,
