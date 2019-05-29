@@ -1425,7 +1425,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     {
         $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
 
-        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
+        return $this->fetch(
+            'module:ps_facetedsearch/ps_facetedsearch.tpl',
+            false,
+            false
+        );
     }
 
     /**
