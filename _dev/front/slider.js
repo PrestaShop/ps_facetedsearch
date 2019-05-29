@@ -69,7 +69,7 @@ const refreshSliders = () => {
         values === null ? $el.data('slider-min') : values[0],
         values === null ? $el.data('slider-max') : values[1],
       ],
-      change(event, ui) {
+      stop(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
         const urlsSplitted = nextEncodedFacetsURL.split('?');
         let queryParams = [];
