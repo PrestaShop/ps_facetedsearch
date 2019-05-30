@@ -26,10 +26,10 @@
 import getQueryParameters from './urlparser';
 import NumberFormatter from '../cldr/number-formatter';
 
-let formatter;
+const formatters = {};
 
-const displayLabelBlock = (displayBlock, min, max) => {
-  if (formatter === undefined) {
+const displayLabelBlock = (formatterId, displayBlock, min, max) => {
+  if (formatters[formatterId] === undefined) {
     displayBlock.text(
       displayBlock.text().replace(
         /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
@@ -38,7 +38,7 @@ const displayLabelBlock = (displayBlock, min, max) => {
     );
   } else {
     displayBlock.text(
-      `${formatter.format(min)} - ${formatter.format(max)}`,
+      `${formatters[formatterId].format(min)} - ${formatters[formatterId].format(max)}`,
     );
   }
 };
@@ -52,10 +52,11 @@ const refreshSliders = () => {
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
     if (specifications !== null && specifications !== undefined) {
-      formatter = NumberFormatter.build(specifications);
+      formatters[$el.data('slider-id')] = NumberFormatter.build(specifications);
     }
 
     displayLabelBlock(
+      $el.data('slider-id'),
       $(`#facet_label_${$el.data('slider-id')}`),
       values === null ? $el.data('slider-min') : values[0],
       values === null ? $el.data('slider-max') : values[1],
@@ -120,6 +121,7 @@ const refreshSliders = () => {
       },
       slide(event, ui) {
         displayLabelBlock(
+          $el.data('slider-id'),
           $(`#facet_label_${$el.data('slider-id')}`),
           ui.values[0],
           ui.values[1],
