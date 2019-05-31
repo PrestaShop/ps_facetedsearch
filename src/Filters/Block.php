@@ -180,38 +180,6 @@ class Block
     }
 
     /**
-     * @param int $idLang
-     * @param bool $notNull
-     *
-     * @return array|false|\PDOStatement|resource|null
-     */
-    public function getAttributes($idLang, $notNull = true)
-    {
-        if (!Combination::isFeatureActive()) {
-            return [];
-        }
-
-        return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
-            ON a.`id_attribute_group` = ag.`id_attribute_group`
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
-            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            Shop::addSqlAssociation('attribute', 'a') . ' ' .
-            (
-                $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
-                'AND agl.`id_attribute_group` IS NOT NULL ' :
-                ''
-            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
-        );
-    }
-
-    /**
      * @param array $filter
      * @param array $selectedFilters
      * @param int $nbProducts
@@ -474,7 +442,14 @@ class Block
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
                 // search count of products always available when out of stock (out_of_stock == 1)
-                if (isset($resultOutOfStock['out_of_stock']) && in_array((int) $resultOutOfStock['out_of_stock'], [0, 1])) {
+                if (isset($resultOutOfStock['out_of_stock']) && (int) $resultOutOfStock['out_of_stock'] === 0) {
+                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
+                    $results[1]['c'] += (int) $resultOutOfStock['c'];
+                    continue;
+                }
+
+                // search count of products always available when out of stock (out_of_stock == 1)
+                if (isset($resultOutOfStock['out_of_stock']) && (int) $resultOutOfStock['out_of_stock'] === 1) {
                     $results[0]['c'] -= (int) $resultOutOfStock['c'];
                     $results[1]['c'] += (int) $resultOutOfStock['c'];
                     continue;
@@ -494,7 +469,7 @@ class Block
                 $count = $values['c'];
 
                 $quantityArray[$key]['nbr'] = $count;
-                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'], true)) {
+                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'])) {
                     $quantityArray[$key]['checked'] = true;
                 }
             }
@@ -644,13 +619,45 @@ class Block
     }
 
     /**
+     * @param int $idLang
+     * @param bool $notNull
+     *
+     * @return array|false|\PDOStatement|resource|null
+     */
+    public function getAttributes($idLang, $notNull = true)
+    {
+        if (!Combination::isFeatureActive()) {
+            return [];
+        }
+
+        return $this->database->executeS(
+            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
+            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
+            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
+            ON a.`id_attribute_group` = ag.`id_attribute_group`
+            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
+            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            Shop::addSqlAssociation('attribute', 'a') . ' ' .
+            (
+                $notNull ?
+                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
+                'AND agl.`id_attribute_group` IS NOT NULL ' :
+                ''
+            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
+        );
+    }
+
+    /**
      * Get all attributes groups for a given language
      *
      * @param int $idLang Language id
      *
      * @return array Attributes groups
      */
-    private function getAttributesGroups($idLang)
+    public function getAttributesGroups($idLang)
     {
         if (!Combination::isFeatureActive()) {
             return [];
