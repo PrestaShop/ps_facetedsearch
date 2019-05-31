@@ -33,10 +33,9 @@ class FeatureValue extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
         'actionFeatureValueSave',
-        'afterDeleteFeatureValue',
-        'afterSaveFeatureValue',
+        'actionFeatureValueDelete',
         'displayFeatureValueForm',
-        'postProcessFeatureValue',
+        'displayFeatureValuePostProcess',
     ];
 
     /**
@@ -44,7 +43,7 @@ class FeatureValue extends AbstractHook
      *
      * @param array $params
      */
-    public function afterSaveFeatureValue(array $params)
+    public function actionFeatureValueSave(array $params)
     {
         if (empty($params['id_feature_value'])) {
             return;
@@ -72,6 +71,7 @@ class FeatureValue extends AbstractHook
                 \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
             );
         }
+
         $this->module->invalidateLayeredFilterBlockCache();
     }
 
@@ -80,7 +80,7 @@ class FeatureValue extends AbstractHook
      *
      * @param array $params
      */
-    public function afterDeleteFeatureValue(array $params)
+    public function actionFeatureValueDelete(array $params)
     {
         if (empty($params['id_feature_value'])) {
             return;
@@ -98,7 +98,7 @@ class FeatureValue extends AbstractHook
      *
      * @param array $params
      */
-    public function postProcessFeatureValue(array $params)
+    public function displayFeatureValuePostProcess(array $params)
     {
         $this->module->checkLinksRewrite($params);
     }
@@ -131,51 +131,5 @@ class FeatureValue extends AbstractHook
         ]);
 
         return $this->module->render('feature_value_form.tpl');
-    }
-
-    /**
-     * After save feature
-     *
-     * @param array $params
-     */
-    public function actionFeatureValueSave(array $params)
-    {
-        if (empty($params['id_feature']) || Tools::getValue('layered_indexable') === false) {
-            return;
-        }
-
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-
-        $this->database->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
-            (`id_feature`, `indexable`)
-            VALUES (' . (int) $params['id_feature'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
-        );
-
-        foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
-            }
-
-            $this->database->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-                (`id_feature`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . (int) $params['id_feature'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
-            );
-        }
-
-        $this->module->invalidateLayeredFilterBlockCache();
     }
 }
