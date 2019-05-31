@@ -27,29 +27,24 @@
 namespace PrestaShop\Module\FacetedSearch\Tests;
 
 use Context;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 use Ps_FacetedSearch;
 
-class HookDispatcherTest extends TestCase
+class HookDispatcherTest extends MockeryTestCase
 {
     private $module;
     private $dispatcher;
 
     protected function setUp()
     {
-        $contextMock = $this->getMockBuilder(Context::class)
-                     ->setMethods(['getTranslator', 'getContext'])
-                     ->disableOriginalConstructor()
-                     ->getMock();
+        $contextMock = Mockery::mock(Context::class);
+        $this->module = Mockery::mock(Ps_FacetedSearch::class);
+        $this->module->shouldReceive('getDatabase');
+        $this->module->shouldReceive('getContext')
+            ->andReturn($contextMock);
 
-        $this->module = $this->getMockBuilder(Ps_FacetedSearch::class)
-                ->setMethods(['getContext', 'getDatabase', 'renderWidget'])
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $this->module->method('getContext')
-            ->willReturn($contextMock);
         $this->dispatcher = new HookDispatcher($this->module);
     }
 
@@ -87,10 +82,10 @@ class HookDispatcherTest extends TestCase
 
     public function testDispatchUnfoundHook()
     {
-        $this->module->expects($this->once())
-            ->method('renderWidget')
+        $this->module->shouldReceive('renderWidget')
+            ->once()
             ->with('ThisHookDoesNotExists', [])
-            ->willReturn('');
+            ->andReturn('');
         $this->assertEquals('', $this->dispatcher->dispatch('ThisHookDoesNotExists'));
     }
 }

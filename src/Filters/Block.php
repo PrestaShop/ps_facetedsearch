@@ -657,12 +657,12 @@ class Block
         }
 
         return $this->database->executeS(
-            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . '
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ')
-            GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
+            'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
         );
     }
 

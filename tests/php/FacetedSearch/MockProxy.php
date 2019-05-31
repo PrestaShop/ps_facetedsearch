@@ -103,3 +103,15 @@ class Manufacturer extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Combination extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}
+
+class Shop extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}

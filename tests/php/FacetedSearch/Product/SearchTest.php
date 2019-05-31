@@ -28,13 +28,14 @@ namespace PrestaShop\Module\FacetedSearch\Tests\Product;
 
 use Configuration;
 use Context;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use Tools;
 use stdClass;
 
-class SearchTest extends TestCase
+class SearchTest extends MockeryTestCase
 {
     /**
      * @var Search
@@ -43,23 +44,22 @@ class SearchTest extends TestCase
 
     protected function setUp()
     {
-        $mock = $this->getMockBuilder(Configuration::class)
-              ->setMethods(['get'])
-              ->getMock();
+        $mock = Mockery::mock(Configuration::class);
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_STOCK_MANAGEMENT' => true,
+                    'PS_ORDER_OUT_OF_STOCK' => true,
+                    'PS_HOME_CATEGORY' => true,
+                    'PS_LAYERED_FULL_TREE' => false,
+                ];
 
-        $valueMap = [
-            ['PS_STOCK_MANAGEMENT', true],
-            ['PS_ORDER_OUT_OF_STOCK', true],
-            ['PS_HOME_CATEGORY', true],
-        ];
-        $mock->method('get')
-            ->will($this->returnValueMap($valueMap));
+                return $valueMap[$arg];
+            });
 
         Configuration::setStaticExpectations($mock);
 
-        $contextMock = $this->getMockBuilder(Context::class)
-              ->getMock();
-
+        $contextMock = Mockery::mock(Context::class);
         $contextMock->shop = new stdClass();
         $contextMock->shop->id = 1;
 
@@ -78,15 +78,16 @@ class SearchTest extends TestCase
 
     public function testInitSearchWithEmptyFilters()
     {
-        $toolsMock = $this->getMockBuilder(Tools::class)
-                   ->setMethods(['getValue'])
-                   ->getMock();
-        $valueMap = [
-            ['id_category', 12],
-            ['id_category_layered', 11],
-        ];
-        $toolsMock->method('getValue')
-            ->will($this->returnValueMap($valueMap));
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
 
         Tools::setStaticExpectations($toolsMock);
 
@@ -126,15 +127,16 @@ class SearchTest extends TestCase
 
     public function testInitSearchWithAllFilters()
     {
-        $toolsMock = $this->getMockBuilder(Tools::class)
-                   ->setMethods(['getValue'])
-                   ->getMock();
-        $valueMap = [
-            ['id_category', 12],
-            ['id_category_layered', 11],
-        ];
-        $toolsMock->method('getValue')
-            ->will($this->returnValueMap($valueMap));
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
 
         Tools::setStaticExpectations($toolsMock);
 

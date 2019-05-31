@@ -33,12 +33,15 @@ use Db;
 use Context;
 use Configuration;
 use Manufacturer;
-use PHPUnit\Framework\TestCase;
+use Combination;
+use Shop;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShopBundle\Translation\TranslatorComponent;
 
-class BlockTest extends TestCase
+class BlockTest extends MockeryTestCase
 {
     /** @var Context */
     private $contextMock;
@@ -51,26 +54,25 @@ class BlockTest extends TestCase
 
     protected function setUp()
     {
-        $mock = $this->getMockBuilder(Configuration::class)
-              ->setMethods(['get'])
-              ->getMock();
+        $mock = Mockery::mock(Configuration::class);
 
-        $valueMap = [
-            ['PS_HOME_CATEGORY', 1],
-            ['PS_WEIGHT_UNIT', 'kg'],
-            ['PS_STOCK_MANAGEMENT', '1'],
-            ['PS_ORDER_OUT_OF_STOCK', '0'],
-            ['PS_UNIDENTIFIED_GROUP', '1'],
-            ['PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1, 3],
-        ];
-        $mock->method('get')
-            ->will($this->returnValueMap($valueMap));
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_HOME_CATEGORY' => 1,
+                    'PS_WEIGHT_UNIT' => 'kg',
+                    'PS_STOCK_MANAGEMENT' => '1',
+                    'PS_ORDER_OUT_OF_STOCK' => '0',
+                    'PS_UNIDENTIFIED_GROUP' => '1',
+                    'PS_LAYERED_FILTER_CATEGORY_DEPTH' => 3,
+                ];
+
+                return $valueMap[$arg];
+            });
 
         Configuration::setStaticExpectations($mock);
 
-        $this->contextMock = $this->getMockBuilder(Context::class)
-                           ->setMethods(['getTranslator'])
-                           ->getMock();
+        $this->contextMock = Mockery::mock(Context::class);
         $this->contextMock->shop = new stdClass();
         $this->contextMock->shop->id = 1;
         $this->contextMock->language = new stdClass();
@@ -83,24 +85,20 @@ class BlockTest extends TestCase
         $this->contextMock->currency->sign = '€';
         $this->contextMock->currency->id = 4;
 
-        $this->dbMock = $this->getMockBuilder(Db::class)
-                      ->setMethods(['executeS'])
-                      ->getMock();
+        $this->dbMock = Mockery::mock(Db::class);
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
 
-        $toolsMock = $this->getMockBuilder(Tools::class)
-                   ->setMethods(['getValue'])
-                   ->getMock();
-        $valueMap = [
-            ['id_category', 12],
-            ['id_category_layered', 11],
-        ];
-        $toolsMock->method('getValue')
-            ->will($this->returnValueMap($valueMap));
+                return $valueMap[$arg];
+            });
         Tools::setStaticExpectations($toolsMock);
 
-        $this->adapterMock = $this->getMockBuilder(MySQL::class)
-                           ->setMethods(['getInitialPopulation', 'getFilteredSearchAdapter'])
-                           ->getMock();
+        $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
 
         $this->block = new Block($this->adapterMock, $this->contextMock, $this->dbMock);
     }
@@ -122,12 +120,10 @@ class BlockTest extends TestCase
         $group = new stdClass();
         $group->show_prices = false;
 
-        $groupMock = $this->getMockBuilder(Group::class)
-                   ->setMethods(['getCurrent'])
-                   ->getMock();
-        $groupMock->expects($this->once())
-            ->method('getCurrent')
-            ->will($this->returnValue($group));
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('getCurrent')
+            ->once()
+            ->andReturn($group);
 
         Group::setStaticExpectations($groupMock);
 
@@ -155,25 +151,21 @@ class BlockTest extends TestCase
         $group = new stdClass();
         $group->show_prices = true;
 
-        $groupMock = $this->getMockBuilder(Group::class)
-                   ->setMethods(['getCurrent'])
-                   ->getMock();
-        $groupMock->expects($this->once())
-            ->method('getCurrent')
-            ->will($this->returnValue($group));
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('getCurrent')
+            ->once()
+            ->andReturn($group);
 
         Group::setStaticExpectations($groupMock);
 
         $this->mockTranslator('Price', [], 'Modules.Facetedsearch.Shop', 'Price');
         $this->mockLayeredCategory([['type' => 'price', 'filter_show_limit' => false]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['getMinMaxPriceValue'])
-                            ->getMock();
-        $adapterInitialMock->method('getMinMaxPriceValue')
-            ->will($this->returnValue([10.0, 100.0]));
-        $this->adapterMock->method('getInitialPopulation')
-            ->will($this->returnValue($adapterInitialMock));
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->shouldReceive('getMinMaxPriceValue')
+            ->andReturn([10.0, 100.0]);
+        $this->adapterMock->shouldReceive('getInitialPopulation')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -240,14 +232,12 @@ class BlockTest extends TestCase
         $this->mockTranslator('Weight', [], 'Modules.Facetedsearch.Shop', 'Weight');
         $this->mockLayeredCategory([['type' => 'weight', 'filter_show_limit' => false]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['getMinMaxValue'])
-                            ->getMock();
-        $adapterInitialMock->method('getMinMaxValue')
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
-            ->will($this->returnValue([10.0, 100.0]));
-        $this->adapterMock->method('getInitialPopulation')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn([10.0, 100.0]);
+        $this->adapterMock->shouldReceive('getInitialPopulation')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -291,14 +281,12 @@ class BlockTest extends TestCase
         $this->mockTranslator('Weight', [], 'Modules.Facetedsearch.Shop', 'Weight');
         $this->mockLayeredCategory([['type' => 'weight', 'filter_show_limit' => false]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['getMinMaxValue'])
-                            ->getMock();
-        $adapterInitialMock->method('getMinMaxValue')
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
-            ->will($this->returnValue([0, 0]));
-        $this->adapterMock->method('getInitialPopulation')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn([0, 0]);
+        $this->adapterMock->shouldReceive('getInitialPopulation')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -320,29 +308,32 @@ class BlockTest extends TestCase
     public function testGetFiltersBlockWithQuantities()
     {
         $this->mockTranslator([
-            ['Availability', [], 'Modules.Facetedsearch.Shop', 'Quantity'],
-            ['Not available', [], 'Modules.Facetedsearch.Shop', 'Not available'],
-            ['In stock', [], 'Modules.Facetedsearch.Shop', 'In stock'],
+            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
+            [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
+            [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCount'])
-                            ->getMock();
-        $adapterInitialMock->expects($this->once())
-            ->method('count')
-            ->will($this->returnValue(100));
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
+        $adapterInitialMock->shouldReceive('count')
+            ->once()
+            ->andReturn(100);
 
-        $valueMap = [
-            ['quantity', [['c' => 100]]],
-            ['out_of_stock', [['out_of_stock' => 0, 'c' => 10]]],
-        ];
-        $adapterInitialMock->method('valueCount')
-            ->will($this->returnValueMap($valueMap));
+        $adapterInitialMock
+            ->shouldReceive('valueCount')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'quantity' => [['c' => 100]],
+                    'out_of_stock' => [['out_of_stock' => 0, 'c' => 10]],
+                ];
 
-        $this->adapterMock->method('getFilteredSearchAdapter')
+                return $valueMap[$arg];
+            });
+
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('quantity')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn($adapterInitialMock);
 
         $this->assertEquals(
             [
@@ -382,30 +373,33 @@ class BlockTest extends TestCase
     public function testGetFiltersBlockWithQuantitiesWithOufOfStockOneData()
     {
         $this->mockTranslator([
-            ['Availability', [], 'Modules.Facetedsearch.Shop', 'Quantity'],
-            ['Not available', [], 'Modules.Facetedsearch.Shop', 'Not available'],
-            ['In stock', [], 'Modules.Facetedsearch.Shop', 'In stock'],
+            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
+            [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
+            [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
 
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCount'])
-                            ->getMock();
-        $adapterInitialMock->expects($this->once())
-            ->method('count')
-            ->will($this->returnValue(100));
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
+        $adapterInitialMock->shouldReceive('count')
+            ->once()
+            ->andReturn(100);
 
-        $valueMap = [
-            ['quantity', [['c' => 100]]],
-            ['out_of_stock', [['out_of_stock' => 1, 'c' => 10]]],
-        ];
-        $adapterInitialMock->method('valueCount')
-            ->will($this->returnValueMap($valueMap));
+        $adapterInitialMock
+            ->shouldReceive('valueCount')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'quantity' => [['c' => 100]],
+                    'out_of_stock' => [['out_of_stock' => 1, 'c' => 10]],
+                ];
 
-        $this->adapterMock->method('getFilteredSearchAdapter')
+                return $valueMap[$arg];
+            });
+
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('quantity')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn($adapterInitialMock);
 
         $this->assertEquals(
             [
@@ -445,29 +439,32 @@ class BlockTest extends TestCase
     public function testGetFiltersBlockWithQuantitiesWithOufOfStockTwoData()
     {
         $this->mockTranslator([
-            ['Availability', [], 'Modules.Facetedsearch.Shop', 'Quantity'],
-            ['Not available', [], 'Modules.Facetedsearch.Shop', 'Not available'],
-            ['In stock', [], 'Modules.Facetedsearch.Shop', 'In stock'],
+            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
+            [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
+            [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['count', 'valueCount'])
-                            ->getMock();
-        $adapterInitialMock->expects($this->once())
-            ->method('count')
-            ->will($this->returnValue(100));
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
+        $adapterInitialMock->shouldReceive('count')
+            ->once()
+            ->andReturn(100);
 
-        $valueMap = [
-            ['quantity', [['c' => 100]]],
-            ['out_of_stock', [['out_of_stock' => 2, 'c' => 10]]],
-        ];
-        $adapterInitialMock->method('valueCount')
-            ->will($this->returnValueMap($valueMap));
+        $adapterInitialMock
+            ->shouldReceive('valueCount')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'quantity' => [['c' => 100]],
+                    'out_of_stock' => [['out_of_stock' => 2, 'c' => 10]],
+                ];
 
-        $this->adapterMock->method('getFilteredSearchAdapter')
+                return $valueMap[$arg];
+            });
+
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('quantity')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn($adapterInitialMock);
 
         $this->assertEquals(
             [
@@ -507,22 +504,20 @@ class BlockTest extends TestCase
     public function testGetFiltersBlockWithCondition()
     {
         $this->mockTranslator([
-            ['New', [], 'Modules.Facetedsearch.Shop', 'New'],
-            ['Used', [], 'Modules.Facetedsearch.Shop', 'Used'],
-            ['Refurbished', [], 'Modules.Facetedsearch.Shop', 'Refurbished'],
-            ['Condition', [], 'Modules.Facetedsearch.Shop', 'Condition'],
+            [['New', [], 'Modules.Facetedsearch.Shop'], 'New'],
+            [['Used', [], 'Modules.Facetedsearch.Shop'], 'Used'],
+            [['Refurbished', [], 'Modules.Facetedsearch.Shop'], 'Refurbished'],
+            [['Condition', [], 'Modules.Facetedsearch.Shop'], 'Condition'],
         ]);
         $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['valueCount'])
-                            ->getMock();
-        $adapterInitialMock->method('valueCount')
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->shouldReceive('valueCount')
             ->with('condition')
-            ->will($this->returnValue([['c' => 100, 'condition' => 'new']]));
-        $this->adapterMock->method('getFilteredSearchAdapter')
+            ->andReturn([['c' => 100, 'condition' => 'new']]);
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('condition')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn($adapterInitialMock);
 
         $this->assertEquals(
             [
@@ -565,16 +560,12 @@ class BlockTest extends TestCase
 
     public function testGetFiltersBlockWithoutManufacturer()
     {
-        $mock = $this->getMockBuilder(Manufacturer::class)
-              ->setMethods(['getManufacturers'])
-              ->getMock();
+        $mock = Mockery::mock(Manufacturer::class);
 
-        $mock->expects($this->once())
-            ->method('getManufacturers')
+        $mock->shouldReceive('getManufacturers')
+            ->once()
             ->with(false, 2)
-            ->will(
-                $this->returnValue([])
-            );
+            ->andReturn([]);
 
         Manufacturer::setStaticExpectations($mock);
 
@@ -597,26 +588,22 @@ class BlockTest extends TestCase
 
     public function testGetFiltersBlockWithManufacturer()
     {
-        $mock = $this->getMockBuilder(Manufacturer::class)
-              ->setMethods(['getManufacturers'])
-              ->getMock();
+        $mock = Mockery::mock(Manufacturer::class);
 
-        $mock->expects($this->once())
-            ->method('getManufacturers')
+        $mock->shouldReceive('getManufacturers')
+            ->once()
             ->with(false, 2)
-            ->will(
-                $this->returnValue(
+            ->andReturn(
+                [
                     [
-                        [
-                            'id_manufacturer' => '2',
-                            'name' => 'Graphic Corner',
-                        ],
-                        [
-                            'id_manufacturer' => '1',
-                            'name' => 'Studio Design',
-                        ],
-                    ]
-                )
+                        'id_manufacturer' => '2',
+                        'name' => 'Graphic Corner',
+                    ],
+                    [
+                        'id_manufacturer' => '1',
+                        'name' => 'Studio Design',
+                    ],
+                ]
             );
 
         Manufacturer::setStaticExpectations($mock);
@@ -624,22 +611,20 @@ class BlockTest extends TestCase
 
         $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
-        $adapterInitialMock = $this->getMockBuilder(MySQL::class)
-                            ->setMethods(['valueCount'])
-                            ->getMock();
-        $adapterInitialMock->method('valueCount')
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->shouldReceive('valueCount')
             ->with('id_manufacturer')
-            ->will($this->returnValue(
+            ->andReturn(
                 [
                     ['id_manufacturer' => 1, 'c' => 100],
                     ['id_manufacturer' => 2, 'c' => 10],
                     ['id_manufacturer' => 3, 'c' => 100],
                     ['c' => 0],
                 ]
-            ));
-        $this->adapterMock->method('getFilteredSearchAdapter')
+            );
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('id_manufacturer')
-            ->will($this->returnValue($adapterInitialMock));
+            ->andReturn($adapterInitialMock);
 
         $this->assertEquals(
             [
@@ -674,6 +659,111 @@ class BlockTest extends TestCase
         );
     }
 
+    public function testGetFiltersBlockWithoutAttributes()
+    {
+        $this->mockCombination();
+        $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->with('id_attribute')
+            ->andReturn($adapterInitialMock);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'id_attribute_group' => [1 => 'Something'],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithoutAttributesAndSelectedFilters()
+    {
+        $this->mockCombination();
+        $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithAttributesWithoutAttributesGroups()
+    {
+        $this->mockCombination(true);
+        $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                ]
+            )
+        );
+    }
+
+    private function mockCombination($isActive = false)
+    {
+        $mock = Mockery::mock(Combination::class);
+
+        $mock->shouldReceive('isFeatureActive')
+            ->once()
+            ->andReturn($isActive);
+
+        Combination::setStaticExpectations($mock);
+
+        if ($isActive) {
+            $mock = Mockery::mock(Shop::class);
+            $mock->shouldReceive('addSqlAssociation')
+                ->once()
+                ->with('attribute_group', 'ag')
+                ->andReturn(
+                    'INNER JOIN ps_attribute_group_shop attribute_group_shop ON ' .
+                    '(attribute_group_shop.id_attribute_group = ag.id_attribute_group ' .
+                    'AND attribute_group_shop.id_shop = 1)'
+                );
+
+            Shop::setStaticExpectations($mock);
+
+            $this->dbMock->shouldReceive('executeS')
+                ->once()
+                ->with(
+                    'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+                    'FROM `ps_attribute_group` ag INNER JOIN ps_attribute_group_shop attribute_group_shop ' .
+                    'ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND ' .
+                    'attribute_group_shop.id_shop = 1) LEFT JOIN `ps_attribute_group_lang` agl ON ' .
+                    '(ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = 2) ' .
+                    'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+                )
+                ->andReturn([]);
+        }
+    }
+
     /**
      * Mock translator
      *
@@ -684,24 +774,25 @@ class BlockTest extends TestCase
      */
     private function mockTranslator($value, $params = [], $domain = '', $returnValue = null)
     {
-        $translatorMock = $this->getMockBuilder(TranslatorComponent::class)
-                        ->disableOriginalConstructor()
-                        ->setMethods(['trans'])
-                        ->getMock();
+        $translatorMock = Mockery::mock(TranslatorComponent::class);
 
         if (is_array($value)) {
-            $translatorMock->method('trans')
-                ->will($this->returnValueMap($value));
+            foreach ($value as $val) {
+                $translatorMock->shouldReceive('trans')
+                    ->once()
+                    ->with($val[0][0], $val[0][1], $val[0][2])
+                    ->andReturn($val[1]);
+            }
         } else {
-            $translatorMock->expects($this->once())
-                ->method('trans')
+            $translatorMock->shouldReceive('trans')
+                ->once()
                 ->with($value, $params, $domain)
-                ->will($this->returnValue($returnValue));
+                ->andReturn($returnValue);
         }
 
         $this->contextMock
-            ->method('getTranslator')
-            ->will($this->returnValue($translatorMock));
+            ->shouldReceive('getTranslator')
+            ->andReturn($translatorMock);
     }
 
     /**
@@ -709,11 +800,9 @@ class BlockTest extends TestCase
      */
     private function mockLayeredCategory($result)
     {
-        $this->dbMock->expects($this->once())
-            ->method('executeS')
-            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 0 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
-            ->will(
-                $this->returnValue($result)
-            );
+        $this->dbMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 12 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->andReturn($result);
     }
 }
