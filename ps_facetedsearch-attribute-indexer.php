@@ -7,9 +7,5 @@ if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('
     die('Bad token');
 }
 
-Shop::setContext(Shop::CONTEXT_ALL);
-
 $psFacetedsearch = new Ps_Facetedsearch();
-$psFacetedsearch->indexAttribute();
-
-echo 1;
+echo $psFacetedsearch->indexAttribute();

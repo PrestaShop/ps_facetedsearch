@@ -24,8 +24,6 @@ if (!Tools::getValue('ajax')) {
     flush();
 }
 
-Shop::setContext(Shop::CONTEXT_ALL);
-
 $module = new Ps_Facetedsearch();
 if (Tools::getValue('full')) {
     echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'), true);
