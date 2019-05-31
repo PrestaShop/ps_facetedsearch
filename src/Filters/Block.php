@@ -727,7 +727,6 @@ class Block
                     $metaTitle = null;
                 }
 
-
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
                     'type' => 'id_attribute_group',
