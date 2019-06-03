@@ -46,6 +46,9 @@ class BlockTest extends MockeryTestCase
     /** @var Context */
     private $contextMock;
 
+    /** @var Shop */
+    private $shopMock;
+
     /** @var Db */
     private $dbMock;
 
@@ -97,6 +100,9 @@ class BlockTest extends MockeryTestCase
                 return $valueMap[$arg];
             });
         Tools::setStaticExpectations($toolsMock);
+
+        $this->shopMock = Mockery::mock(Shop::class);
+        Shop::setStaticExpectations($this->shopMock);
 
         $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
 
@@ -727,28 +733,155 @@ class BlockTest extends MockeryTestCase
         );
     }
 
-    private function mockCombination($isActive = false)
+    public function testGetFiltersBlockWithAttributesWithAttributesGroupsWithoutFeatureActive()
+    {
+        $this->mockCombination(
+            true,
+            [
+                [
+                    'id_attribute_group' => '1',
+                    'attribute_group_name' => 'Size',
+                    'is_color_group' => '0',
+                ],
+                [
+                    'id_attribute_group' => '2',
+                    'attribute_group_name' => 'Color',
+                    'is_color_group' => '1',
+                ],
+                [
+                    'id_attribute_group' => '3',
+                    'attribute_group_name' => 'Dimension',
+                    'is_color_group' => '0',
+                ],
+                [
+                    'id_attribute_group' => '4',
+                    'attribute_group_name' => 'Paper Type',
+                    'is_color_group' => '0',
+                ],
+                [
+                    'id_attribute_group' => '5',
+                    'attribute_group_name' => 'azdazd',
+                    'is_color_group' => '0',
+                ],
+            ]
+        );
+        $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1, 'filter_show_limit' => true, 'filter_type' => 1]]);
+        $this->shopMock->shouldReceive('addSqlAssociation')
+            ->with('attribute', 'a')
+            ->andReturn(
+                'INNER JOIN ps_attribute_shop attribute_shop ' .
+                'ON (attribute_shop.id_attribute = a.id_attribute AND attribute_shop.id_shop = 1)'
+            );
+
+        $attributes = [
+            [
+                'id_attribute' => '2',
+                'color' => '#AAB2BD',
+                'name' => 'Grey',
+                'id_attribute_group' => '2',
+            ],
+            [
+                'id_attribute' => '2',
+                'color' => '#CFC4A6',
+                'name' => 'Taupe',
+                'id_attribute_group' => '2',
+            ],
+        ];
+        $this->dbMock->shouldReceive('executeS')
+            ->with(
+                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` FROM `ps_attribute_group` ag LEFT JOIN `ps_attribute_group_lang` agl ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = 2) LEFT JOIN `ps_attribute` a ON a.`id_attribute_group` = ag.`id_attribute_group` LEFT JOIN `ps_attribute_lang` al ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = 2)INNER JOIN ps_attribute_group_shop attribute_group_shop ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND attribute_group_shop.id_shop = 1) INNER JOIN ps_attribute_shop attribute_shop ON (attribute_shop.id_attribute = a.id_attribute AND attribute_shop.id_shop = 1) WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ORDER BY agl.`name` ASC, a.`position` ASC'
+            )
+            ->andReturn($attributes);
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
+        $adapterInitialMock->shouldReceive('valueCount')
+            ->with('id_attribute')
+            ->andReturn(
+                [
+                    [
+                        'id_attribute' => '1',
+                        'c' => '2',
+                    ],
+                    [
+                        'id_attribute' => '2',
+                        'c' => '2',
+                    ],
+                    [
+                        'id_attribute' => '3',
+                        'c' => '2',
+                    ],
+                    [
+                        'id_attribute' => '4',
+                        'c' => '2',
+                    ],
+                ]
+            );
+
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
+
+        $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_attribute_group_lang_value WHERE id_attribute_group=2 AND id_lang=2')
+            ->andReturn([]);
+
+        $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_attribute_lang_value WHERE id_attribute=2 AND id_lang=2')
+            ->andReturn([]);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [
+                        'type_lite' => 'id_attribute_group',
+                        'type' => 'id_attribute_group',
+                        'id_key' => '2',
+                        'name' => 'Color',
+                        'is_color_group' => true,
+                        'values' => [
+                            2 => [
+                                'color' => '#CFC4A6',
+                                'name' => 'Taupe',
+                                'nbr' => '2',
+                                'url_name' => null,
+                                'meta_title' => null,
+                                'checked' => true,
+                            ],
+                        ],
+                        'url_name' => null,
+                        'meta_title' => null,
+                        'filter_show_limit' => true,
+                        'filter_type' => 1,
+                    ],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'id_attribute_group' => [
+                        [2],
+                    ],
+                ]
+            )
+        );
+    }
+
+    private function mockCombination($isActive = false, $attributeGroups = [])
     {
         $mock = Mockery::mock(Combination::class);
 
         $mock->shouldReceive('isFeatureActive')
-            ->once()
             ->andReturn($isActive);
 
         Combination::setStaticExpectations($mock);
 
         if ($isActive) {
-            $mock = Mockery::mock(Shop::class);
-            $mock->shouldReceive('addSqlAssociation')
-                ->once()
+            $this->shopMock->shouldReceive('addSqlAssociation')
                 ->with('attribute_group', 'ag')
                 ->andReturn(
                     'INNER JOIN ps_attribute_group_shop attribute_group_shop ON ' .
                     '(attribute_group_shop.id_attribute_group = ag.id_attribute_group ' .
                     'AND attribute_group_shop.id_shop = 1)'
                 );
-
-            Shop::setStaticExpectations($mock);
 
             $this->dbMock->shouldReceive('executeS')
                 ->once()
@@ -760,7 +893,7 @@ class BlockTest extends MockeryTestCase
                     '(ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = 2) ' .
                     'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
                 )
-                ->andReturn([]);
+                ->andReturn($attributeGroups);
         }
     }
 

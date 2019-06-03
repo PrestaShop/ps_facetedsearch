@@ -192,20 +192,19 @@ class Block
         }
 
         return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
-            ON a.`id_attribute_group` = ag.`id_attribute_group`
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
-            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+            'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+            'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
             Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
             Shop::addSqlAssociation('attribute', 'a') . ' ' .
             (
                 $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
-                'AND agl.`id_attribute_group` IS NOT NULL ' :
+                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
                 ''
             ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
         );
@@ -712,8 +711,11 @@ class Block
 
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
-            $count = $values['c'];
+            if (!isset($attributes[$idAttribute])) {
+                continue;
+            }
 
+            $count = $values['c'];
             $attribute = $attributes[$idAttribute];
             $idAttributeGroup = $attribute['id_attribute_group'];
             if (!isset($attributesBlock[$idAttributeGroup])) {
