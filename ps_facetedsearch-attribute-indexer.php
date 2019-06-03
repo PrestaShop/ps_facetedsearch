@@ -12,5 +12,6 @@ Shop::setContext(Shop::CONTEXT_ALL);
 $psFacetedsearch = new Ps_Facetedsearch();
 $psFacetedsearch->indexAttributes();
 $psFacetedsearch->indexFeatures();
+$psFacetedsearch->indexAttributeGroup();
 
 echo 1;

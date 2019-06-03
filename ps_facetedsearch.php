@@ -270,32 +270,32 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     }
 
     /*
-     * Generate data product attribute
-     *
-     * @param int $idProduct
+     * Generate data for product features
      *
      * @return boolean
      */
     public function indexFeatures()
     {
-        $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_indexable_feature');
-        $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value');
-        $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value');
-
-        $this->getDatabase()->execute(
+        return $this->getDatabase()->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature` ' .
-            'SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
+            'SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature` ' .
+            'WHERE id_feature NOT IN (SELECT id_feature FROM ' .
+            '`' . _DB_PREFIX_ . 'layered_indexable_feature`)'
         );
+    }
 
-        $this->getDatabase()->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value ' .
-            '(`id_feature`, `id_lang`, `url_name`, `meta_title`) ' .
-            'SELECT id_feature, id_lang, \'\', \'\' FROM  `' . _DB_PREFIX_ . 'feature_lang`'
-        );
-        $this->getDatabase()->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value ' .
-            '(`id_feature_value`, `id_lang`, `url_name`, `meta_title`) ' .
-            'SELECT id_feature_value, id_lang, \'\', \'\' FROM  `' . _DB_PREFIX_ . 'feature_value_lang`'
+    /*
+     * Generate data for product attribute group
+     *
+     * @return boolean
+     */
+    public function indexAttributeGroup()
+    {
+        return $this->getDatabase()->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` ' .
+            'SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group` ' .
+            'WHERE id_attribute_group NOT IN (SELECT id_attribute_group FROM ' .
+            '`' . _DB_PREFIX_ . 'layered_indexable_attribute_group`)'
         );
     }
 
