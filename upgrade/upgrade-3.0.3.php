@@ -27,7 +27,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_0_1(Ps_Facetedsearch $object)
+function upgrade_module_3_0_3(Ps_Facetedsearch $module)
 {
     // Clear legacy hook names
     $oldHooks = [
@@ -36,7 +36,7 @@ function upgrade_module_3_0_1(Ps_Facetedsearch $object)
         'postProcessFeatureValue',
     ];
     foreach ($oldHooks as $hookName) {
-        $object->unregisterHook($hookName);
+        $module->unregisterHook($hookName);
     }
 
     $newHooks = [
@@ -45,5 +45,5 @@ function upgrade_module_3_0_1(Ps_Facetedsearch $object)
         'displayFeatureValuePostProcess',
     ];
 
-    return $object->registerHook($newHooks);
+    return $module->registerHook($newHooks);
 }

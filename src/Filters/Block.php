@@ -725,8 +725,7 @@ class Block
                 if (!empty($attributeGroupLayeredInfos)) {
                     list($urlName, $metaTitle) = array_values($attributeGroupLayeredInfos);
                 } else {
-                    $urlName = null;
-                    $metaTitle = null;
+                    $urlName = $metaTitle = null;
                 }
 
                 $attributesBlock[$idAttributeGroup] = [
@@ -747,8 +746,7 @@ class Block
             if (!empty($attributeLayeredInfos)) {
                 list($urlName, $metaTitle) = array_values($attributeLayeredInfos);
             } else {
-                $urlName = null;
-                $metaTitle = null;
+                $urlName = $metaTitle = null;
             }
 
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
@@ -855,8 +853,7 @@ class Block
                 if (!empty($featureLayeredInfos)) {
                     list($urlName, $metaTitle) = array_values($featureLayeredInfos);
                 } else {
-                    $urlName = null;
-                    $metaTitle = null;
+                    $urlName = $metaTitle = null;
                 }
 
                 $featureBlock[$idFeature] = [
@@ -881,8 +878,7 @@ class Block
             if (!empty($featureValueLayeredInfos)) {
                 list($urlName, $metaTitle) = array_values($featureValueLayeredInfos);
             } else {
-                $urlName = null;
-                $metaTitle = null;
+                $urlName = $metaTitle = null;
             }
 
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [

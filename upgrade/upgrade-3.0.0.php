@@ -27,7 +27,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_0_0(Ps_Facetedsearch $object)
+function upgrade_module_3_0_0(Ps_Facetedsearch $module)
 {
     // Clear legacy hook names
     $oldHooks = [
@@ -56,15 +56,15 @@ function upgrade_module_3_0_0(Ps_Facetedsearch $object)
     ];
 
     foreach ($oldHooks as $hookName) {
-        $object->unregisterHook($hookName);
+        $module->unregisterHook($hookName);
     }
 
     // These methods have no return value
     // If something failed an exception will be raised and
     // the upgrade will stop
-    $object->rebuildLayeredStructure();
-    $object->rebuildPriceIndexTable();
-    $object->invalidateLayeredFilterBlockCache();
+    $module->rebuildLayeredStructure();
+    $module->rebuildPriceIndexTable();
+    $module->invalidateLayeredFilterBlockCache();
 
-    return $object->registerHook($object->getHookDispatcher()->getAvailableHooks());
+    return $module->registerHook($module->getHookDispatcher()->getAvailableHooks());
 }
