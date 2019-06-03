@@ -827,6 +827,10 @@ class Block
         }
 
         $tempFeatures = Feature::getFeatures($idLang);
+        if (empty($tempFeatures)) {
+            return [];
+        }
+
         foreach ($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
@@ -843,7 +847,6 @@ class Block
 
             if (!isset($featureBlock[$idFeature])) {
                 $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
-
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }

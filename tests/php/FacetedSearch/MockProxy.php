@@ -115,3 +115,15 @@ class Shop extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Feature extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}
+
+class FeatureValue extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}

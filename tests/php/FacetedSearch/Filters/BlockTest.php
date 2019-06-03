@@ -26,20 +26,22 @@
 
 namespace PrestaShop\Module\FacetedSearch\Tests\Filters;
 
-use stdClass;
-use Group;
-use Tools;
-use Db;
-use Context;
-use Configuration;
-use Manufacturer;
 use Combination;
-use Shop;
+use Configuration;
+use Context;
+use Db;
+use Feature;
+use FeatureValue;
+use Group;
+use Manufacturer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use PrestaShop\Module\FacetedSearch\Filters\Block;
-use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShopBundle\Translation\TranslatorComponent;
+use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
+use PrestaShop\Module\FacetedSearch\Filters\Block;
+use Shop;
+use Tools;
+use stdClass;
 
 class BlockTest extends MockeryTestCase
 {
@@ -860,6 +862,228 @@ class BlockTest extends MockeryTestCase
                     'id_attribute_group' => [
                         [2],
                     ],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithoutFeatures()
+    {
+        $this->mockCombination();
+        $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->with('id_feature_value')
+            ->once()
+            ->andReturn($adapterInitialMock);
+
+        $featureMock = Mockery::mock(Feature::class);
+        $featureMock->shouldReceive('getFeatures')
+            ->with(2)
+            ->andReturn([]);
+        Feature::setStaticExpectations($featureMock);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'id_feature' => [1 => 'Something'],
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithoutFeaturesWithoutSearchFilter()
+    {
+        $this->mockCombination();
+        $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->once()
+            ->andReturn($adapterInitialMock);
+
+        $featureMock = Mockery::mock(Feature::class);
+        $featureMock->shouldReceive('getFeatures')
+            ->with(2)
+            ->andReturn([]);
+        Feature::setStaticExpectations($featureMock);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                ]
+            )
+        );
+    }
+
+    public function testGetFiltersBlockWithoutFeaturesWithoutSearchFilterAndFeatures()
+    {
+        $this->mockCombination();
+        $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1, 'filter_show_limit' => 2, 'filter_type' => 2]]);
+
+        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
+        $adapterInitialMock->shouldReceive('valueCount')
+            ->with('id_feature_value')
+            ->andReturn(
+                [
+                    [
+                        'id_feature' => '1',
+                        'id_feature_value' => '4',
+                        'c' => '2',
+                    ],
+                ]
+            );
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->once()
+            ->andReturn($adapterInitialMock);
+
+        $featureMock = Mockery::mock(Feature::class);
+        $featureMock->shouldReceive('getFeatures')
+            ->with(2)
+            ->andReturn(
+                [
+                    [
+                        'id_feature' => '1',
+                        'position' => '0',
+                        'id_lang' => '1',
+                        'name' => 'Composition',
+                    ],
+                    [
+                        'id_feature' => '2',
+                        'position' => '1',
+                        'id_lang' => '1',
+                        'name' => 'Property',
+                    ],
+                    [
+                        'id_feature' => '9',
+                        'position' => '2',
+                        'id_lang' => '1',
+                        'name' => 'FeatureExample',
+                    ],
+                ]
+            );
+        Feature::setStaticExpectations($featureMock);
+
+        $featureMock = Mockery::mock(FeatureValue::class);
+        $featureMock->shouldReceive('getFeatureValuesWithLang')
+            ->with(2, 1)
+            ->andReturn(
+                [
+                    [
+                        'id_feature_value' => '14',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'azdazd',
+                    ],
+                    [
+                        'id_feature_value' => '13',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'azdazd',
+                    ],
+                    [
+                        'id_feature_value' => '16',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'CeciEstUneFutureValue',
+                    ],
+                    [
+                        'id_feature_value' => '3',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Ceramic',
+                    ],
+                    [
+                        'id_feature_value' => '4',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Cotton',
+                    ],
+                    [
+                        'id_feature_value' => '6',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Matt paper',
+                    ],
+                    [
+                        'id_feature_value' => '1',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Polyester',
+                    ],
+                    [
+                        'id_feature_value' => '5',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Recycled cardboard',
+                    ],
+                    [
+                        'id_feature_value' => '2',
+                        'id_feature' => '1',
+                        'custom' => '0',
+                        'id_lang' => '1',
+                        'value' => 'Wool',
+                    ],
+                ]
+            );
+        FeatureValue::setStaticExpectations($featureMock);
+
+        $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_value_lang_value WHERE id_feature_value=1 AND id_lang=2')
+            ->andReturn([]);
+
+        $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_lang_value WHERE id_feature=4 AND id_lang=2')
+            ->andReturn(['something', 'weird']);
+
+        $this->assertEquals(
+            [
+                'filters' => [
+                    [
+                        'type_lite' => 'id_feature',
+                        'type' => 'id_feature',
+                        'id_key' => '1',
+                        'values' => [
+                            4 => [
+                                'nbr' => '2',
+                                'name' => 'Cotton',
+                                'url_name' => 'something',
+                                'meta_title' => 'weird',
+                                'checked' => true,
+                            ],
+                        ],
+                        'name' => 'Composition',
+                        'url_name' => null,
+                        'meta_title' => null,
+                        'filter_show_limit' => 2,
+                        'filter_type' => 2,
+                    ],
+                ],
+            ],
+            $this->block->getFilterBlock(
+                10,
+                [
+                    'id_feature' => [[4]],
                 ]
             )
         );
