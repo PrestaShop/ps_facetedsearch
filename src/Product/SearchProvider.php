@@ -377,10 +377,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function addEncodedFacetsToFilters(array $facets)
     {
         // first get the currently active facetFilter in an array
-        $activeFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
+        $allActiveFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
         $urlSerializer = new URLFragmentSerializer();
 
         foreach ($facets as $facet) {
+            $activeFacetFilters = $allActiveFacetFilters;
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
