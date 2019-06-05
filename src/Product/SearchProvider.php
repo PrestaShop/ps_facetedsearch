@@ -377,10 +377,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function addEncodedFacetsToFilters(array $facets)
     {
         // first get the currently active facetFilter in an array
-        $activeFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
+        $originalFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
         $urlSerializer = new URLFragmentSerializer();
 
         foreach ($facets as $facet) {
+            $activeFacetFilters = $originalFacetFilters;
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
@@ -389,7 +390,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
                         $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
-                            $activeFacetFilters,
+                            $originalFacetFilters,
                             $filter,
                             $facet
                         );
@@ -399,18 +400,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             }
 
             foreach ($facet->getFilters() as $filter) {
-                $facetFilters = $activeFacetFilters;
-
                 // toggle the current filter
                 if ($filter->isActive() || $facet->getProperty('range')) {
                     $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
-                        $facetFilters,
+                        $activeFacetFilters,
                         $filter,
                         $facet
                     );
                 } else {
                     $facetFilters = $this->facetsSerializer->addFilterToFacetFilters(
-                        $facetFilters,
+                        $activeFacetFilters,
                         $filter,
                         $facet
                     );
