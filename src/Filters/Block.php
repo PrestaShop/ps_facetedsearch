@@ -192,20 +192,19 @@ class Block
         }
 
         return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
-            ON a.`id_attribute_group` = ag.`id_attribute_group`
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
-            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+            'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+            'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
             Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
             Shop::addSqlAssociation('attribute', 'a') . ' ' .
             (
                 $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
-                'AND agl.`id_attribute_group` IS NOT NULL ' :
+                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
                 ''
             ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
         );
@@ -657,12 +656,12 @@ class Block
         }
 
         return $this->database->executeS(
-            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . '
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ')
-            GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
+            'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
         );
     }
 
@@ -712,19 +711,22 @@ class Block
 
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
-            $count = $values['c'];
+            if (!isset($attributes[$idAttribute])) {
+                continue;
+            }
 
+            $count = $values['c'];
             $attribute = $attributes[$idAttribute];
             $idAttributeGroup = $attribute['id_attribute_group'];
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
                 $attributeGroupLayeredInfos = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
-                if (empty($attributeGroupLayeredInfos)) {
-                    continue;
+                if (!empty($attributeGroupLayeredInfos)) {
+                    list($urlName, $metaTitle) = array_values($attributeGroupLayeredInfos);
+                } else {
+                    $urlName = $metaTitle = null;
                 }
-
-                list($urlName, $metaTitle) = $attributeGroupLayeredInfos;
 
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
@@ -741,11 +743,12 @@ class Block
             }
 
             $attributeLayeredInfos = $this->getAttributeLayeredInfos($idAttribute, $idLang);
-            if (empty($attributeLayeredInfos)) {
-                continue;
+            if (!empty($attributeLayeredInfos)) {
+                list($urlName, $metaTitle) = array_values($attributeLayeredInfos);
+            } else {
+                $urlName = $metaTitle = null;
             }
 
-            list($urlName, $metaTitle) = $attributeLayeredInfos;
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'color' => $attribute['color'],
                 'name' => $attribute['name'],
@@ -822,6 +825,10 @@ class Block
         }
 
         $tempFeatures = Feature::getFeatures($idLang);
+        if (empty($tempFeatures)) {
+            return [];
+        }
+
         foreach ($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
@@ -838,17 +845,16 @@ class Block
 
             if (!isset($featureBlock[$idFeature])) {
                 $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
-
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }
 
                 $featureLayeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
-                if (empty($featureLayeredInfos)) {
-                    continue;
+                if (!empty($featureLayeredInfos)) {
+                    list($urlName, $metaTitle) = array_values($featureLayeredInfos);
+                } else {
+                    $urlName = $metaTitle = null;
                 }
-
-                list($urlName, $metaTitle) = $featureLayeredInfos;
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
@@ -869,11 +875,11 @@ class Block
             }
 
             $featureValueLayeredInfos = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
-            if (empty($featureValueLayeredInfos)) {
-                continue;
+            if (!empty($featureValueLayeredInfos)) {
+                list($urlName, $metaTitle) = array_values($featureValueLayeredInfos);
+            } else {
+                $urlName = $metaTitle = null;
             }
-
-            list($urlName, $metaTitle) = $featureValueLayeredInfos;
 
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,

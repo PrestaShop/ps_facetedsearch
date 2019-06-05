@@ -53,11 +53,11 @@ class ProductSearch extends AbstractHook
             $this->context->controller->addJqueryUi('slider');
             $this->context->controller->registerStylesheet(
                 'facetedsearch_front',
-                $this->module->getPathUri() . 'views/dist/front.css'
+                '/modules/ps_facetedsearch/views/dist/front.css'
             );
             $this->context->controller->registerJavascript(
                 'facetedsearch_front',
-                $this->module->getPathUri() . 'views/dist/front.js',
+                '/modules/ps_facetedsearch/views/dist/front.js',
                 ['position' => 'bottom', 'priority' => 100]
             );
 

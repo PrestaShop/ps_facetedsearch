@@ -30,10 +30,11 @@ use stdClass;
 use Db;
 use Context;
 use StockAvailable;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 
-class MySQLTest extends TestCase
+class MySQLTest extends MockeryTestCase
 {
     private $adapter;
 
@@ -41,13 +42,10 @@ class MySQLTest extends TestCase
     {
         $this->adapter = new MySQL();
 
-        $mock = $this->getMockBuilder(StockAvailable::class)
-              ->setMethods(['addSqlShopRestriction'])
-              ->getMock();
-        $mock->expects($this->any())
-            ->method('addSqlShopRestriction')
+        $mock = Mockery::mock(StockAvailable::class);
+        $mock->shouldReceive('addSqlShopRestriction')
             ->with(null, null, 'sa')
-            ->will($this->returnValue(''));
+            ->andReturn('');
 
         StockAvailable::setStaticExpectations($mock);
 
@@ -61,12 +59,9 @@ class MySQLTest extends TestCase
         $stdClass->currency = new stdClass();
         $stdClass->currency->id = 4;
 
-        $contextMock = $this->getMockBuilder(Context::class)
-              ->setMethods(['getContext'])
-              ->getMock();
-        $contextMock->expects($this->any())
-            ->method('getContext')
-            ->will($this->returnValue($stdClass));
+        $contextMock = Mockery::mock(Context::class);
+        $contextMock->shouldReceive('getContext')
+            ->andReturn($stdClass);
         Context::setStaticExpectations($contextMock);
     }
 
@@ -93,31 +88,23 @@ class MySQLTest extends TestCase
 
     public function testGetMinMaxPriceValue()
     {
-        $dbInstanceMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['executeS'])
-                ->getMock();
-        $dbInstanceMock->expects($this->once())
-            ->method('executeS')
+        $dbInstanceMock = Mockery::mock(Db::class)->makePartial();
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
             ->with('SELECT psi.price_min, MIN(price_min) as min, MAX(price_max) as max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE')
-            ->will(
-                $this->returnValue(
+            ->andReturn(
+                [
                     [
-                        [
-                            'price_min' => '11',
-                            'min' => '11',
-                            'max' => '35',
-                        ],
-                    ]
-                )
+                        'price_min' => '11',
+                        'min' => '11',
+                        'max' => '35',
+                    ],
+                ]
             );
 
-        $dbMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['getInstance'])
-                ->getMock();
-
-        $dbMock->expects($this->any())
-            ->method('getInstance')
-            ->will($this->returnValue($dbInstanceMock));
+        $dbMock = Mockery::mock(Db::class)->makePartial();
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
 
         Db::setStaticExpectations($dbMock);
         $this->assertEquals(
@@ -128,30 +115,22 @@ class MySQLTest extends TestCase
 
     public function testGetMinMaxValueForWeight()
     {
-        $dbInstanceMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['executeS'])
-                ->getMock();
-        $dbInstanceMock->expects($this->once())
-            ->method('executeS')
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
             ->with('SELECT MIN(weight) as min, MAX(weight) as max FROM ps_product p WHERE p.active = TRUE')
-            ->will(
-                $this->returnValue(
+            ->andReturn(
+                [
                     [
-                        [
-                            'min' => '10',
-                            'max' => '42',
-                        ],
-                    ]
-                )
+                        'min' => '10',
+                        'max' => '42',
+                    ],
+                ]
             );
 
-        $dbMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['getInstance'])
-                ->getMock();
-
-        $dbMock->expects($this->any())
-            ->method('getInstance')
-            ->will($this->returnValue($dbInstanceMock));
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
 
         Db::setStaticExpectations($dbMock);
         $this->assertEquals(
@@ -162,29 +141,22 @@ class MySQLTest extends TestCase
 
     public function testCount()
     {
-        $dbInstanceMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['executeS'])
-                ->getMock();
-        $dbInstanceMock->expects($this->once())
-            ->method('executeS')
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
             ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.active = TRUE')
-            ->will(
-                $this->returnValue(
+            ->andReturn(
+                [
                     [
-                        [
-                            'c' => '100',
-                        ],
-                    ]
-                )
+                        'c' => '100',
+                    ],
+                ]
             );
 
-        $dbMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['getInstance'])
-                ->getMock();
+        $dbMock = Mockery::mock(Db::class);
 
-        $dbMock->expects($this->any())
-            ->method('getInstance')
-            ->will($this->returnValue($dbInstanceMock));
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
 
         Db::setStaticExpectations($dbMock);
         $this->assertEquals(
@@ -195,30 +167,22 @@ class MySQLTest extends TestCase
 
     public function testValueCount()
     {
-        $dbInstanceMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['executeS'])
-                ->getMock();
-        $dbInstanceMock->expects($this->once())
-            ->method('executeS')
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
             ->with('SELECT p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.active = TRUE GROUP BY p.weight')
-            ->will(
-                $this->returnValue(
+            ->andReturn(
+                [
                     [
-                        [
-                            'weight' => '10',
-                            'c' => '100',
-                        ],
-                    ]
-                )
+                        'weight' => '10',
+                        'c' => '100',
+                    ],
+                ]
             );
 
-        $dbMock = $this->getMockBuilder(Db::class)
-                ->setMethods(['getInstance'])
-                ->getMock();
-
-        $dbMock->expects($this->any())
-            ->method('getInstance')
-            ->will($this->returnValue($dbInstanceMock));
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
 
         Db::setStaticExpectations($dbMock);
         $this->assertEquals(
