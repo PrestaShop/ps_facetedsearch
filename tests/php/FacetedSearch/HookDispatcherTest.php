@@ -27,29 +27,25 @@
 namespace PrestaShop\Module\FacetedSearch\Tests;
 
 use Context;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 use Ps_FacetedSearch;
 
-class HookDispatcherTest extends TestCase
+class HookDispatcherTest extends MockeryTestCase
 {
+    private $module;
     private $dispatcher;
 
     protected function setUp()
     {
-        $contextMock = $this->getMockBuilder(Context::class)
-                     ->setMethods(['getTranslator', 'getContext'])
-                     ->disableOriginalConstructor()
-                     ->getMock();
+        $contextMock = Mockery::mock(Context::class);
+        $this->module = Mockery::mock(Ps_FacetedSearch::class);
+        $this->module->shouldReceive('getDatabase');
+        $this->module->shouldReceive('getContext')
+            ->andReturn($contextMock);
 
-        $module = $this->getMockBuilder(Ps_FacetedSearch::class)
-                ->setMethods(['getContext', 'getDatabase'])
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $module->method('getContext')
-            ->willReturn($contextMock);
-        $this->dispatcher = new HookDispatcher($module);
+        $this->dispatcher = new HookDispatcher($this->module);
     }
 
     public function testGetAvailableHooks()
@@ -69,14 +65,14 @@ class HookDispatcherTest extends TestCase
                 'actionCategoryDelete',
                 'actionCategoryUpdate',
                 'displayLeftColumn',
+                'actionFeatureSave',
                 'actionFeatureDelete',
                 'displayFeatureForm',
                 'displayFeaturePostProcess',
                 'actionFeatureValueSave',
-                'afterDeleteFeatureValue',
-                'afterSaveFeatureValue',
+                'actionFeatureValueDelete',
                 'displayFeatureValueForm',
-                'postProcessFeatureValue',
+                'displayFeatureValuePostProcess',
                 'actionProductSave',
                 'productSearchProvider',
             ],
@@ -86,6 +82,10 @@ class HookDispatcherTest extends TestCase
 
     public function testDispatchUnfoundHook()
     {
-        $this->assertNull($this->dispatcher->dispatch('ThisHookDoesNotExists'));
+        $this->module->shouldReceive('renderWidget')
+            ->once()
+            ->with('ThisHookDoesNotExists', [])
+            ->andReturn('');
+        $this->assertEquals('', $this->dispatcher->dispatch('ThisHookDoesNotExists'));
     }
 }
