@@ -80,4 +80,100 @@ class URLSerializerTest extends MockeryTestCase
             $this->serializer->getActiveFacetFiltersFromFacets([$facet])
         );
     }
+
+    public function testAddAndRemoveFiltersWithoutRange()
+    {
+        $filter = $this->mockFilter('Tops');
+        $facet = $this->mockFacet('Categories', ['range' => false]);
+        $facetsFilters = $this->serializer->addFilterToFacetFilters(
+            [],
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            ['Categories' => ['Tops' => 'Tops']],
+            $facetsFilters
+        );
+        $facetsFilters = $this->serializer->removeFilterFromFacetFilters(
+            $facetsFilters,
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            [],
+            $facetsFilters
+        );
+    }
+
+    public function testAddAndRemoveFiltersWithRangeAndMinMax()
+    {
+        $filter = $this->mockFilter(
+            'filter',
+            true,
+            [0, 100],
+            ['symbol' => '$']
+        );
+        $facet = $this->mockFacet(
+            'Price',
+            [
+                'range' => true,
+                'values' => [],
+                'min' => 0,
+                'max' => 200,
+            ]
+        );
+        $facetsFilters = $this->serializer->addFilterToFacetFilters(
+            [],
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            ['Price' => ['$', 0, 200]],
+            $facetsFilters
+        );
+        $facetsFilters = $this->serializer->removeFilterFromFacetFilters(
+            $facetsFilters,
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            [],
+            $facetsFilters
+        );
+    }
+
+    public function testAddAndRemoveFiltersWithRange()
+    {
+        $filter = $this->mockFilter(
+            'filter',
+            true,
+            [0, 100],
+            ['symbol' => '$']
+        );
+        $facet = $this->mockFacet(
+            'Price',
+            [
+                'range' => true,
+                'values' => [10, 100],
+            ]
+        );
+        $facetsFilters = $this->serializer->addFilterToFacetFilters(
+            [],
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            ['Price' => ['$', 10, 100]],
+            $facetsFilters
+        );
+        $facetsFilters = $this->serializer->removeFilterFromFacetFilters(
+            $facetsFilters,
+            $filter,
+            $facet
+        );
+        $this->assertEquals(
+            [],
+            $facetsFilters
+        );
+    }
 }
