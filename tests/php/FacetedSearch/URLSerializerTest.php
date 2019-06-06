@@ -15,12 +15,18 @@ class URLSerializerTest extends MockeryTestCase
         $this->serializer = new URLSerializer();
     }
 
-    private function mockFacet($label)
+    private function mockFacet($label, $properties = [])
     {
         $facet = Mockery::mock('PrestaShop\PrestaShop\Core\Product\Search\Facet');
         $facet->shouldReceive('getLabel')
             ->andReturn($label);
 
+        $facet->shouldReceive('getProperty')
+            ->andReturnUsing(
+                function ($arg) use ($properties) {
+                    return $properties[$arg];
+                }
+            );
         return $facet;
     }
 
@@ -47,32 +53,31 @@ class URLSerializerTest extends MockeryTestCase
         return $filter;
     }
 
-    public function testSerializeOneFacet()
+    public function testGetActiveFilters()
     {
         $first = $this->mockFilter('Tops', true);
-        $second = $this->mockFilter('Robes', true);
+        $second = $this->mockFilter('Robes', false);
 
-        $facet = $this->mockFacet('Categories');
+        $facet = $this->mockFacet('Categories', ['range' => false]);
         $facet->shouldReceive('getFilters')
             ->andReturn([$first, $second]);
 
-        $this->assertEquals('Categories-Tops-Robes', $this->serializer->serialize([$facet]));
+        $this->assertEquals(
+            ['Categories' => ['Tops' => 'Tops']],
+            $this->serializer->getActiveFacetFiltersFromFacets([$facet])
+        );
     }
 
-    public function testSerializePriceFacet()
+    public function testGetActiveFiltersWithRange()
     {
-        $facet = (new Facet())
-            ->setLabel('Price')
-            ->setProperty('range', true)
-            ->addFilter(
-                (new Filter())
-                ->setLabel('Doesn\'t matter')
-                ->setActive(true)
-                ->setProperty('symbol', '€')
-                ->setValue([7, 9])
-            )
-        ;
+        $filter = $this->mockFilter('filter', true, [0, 100], ['symbol' => '$']);
+        $facet = $this->mockFacet('Price', ['range' => true]);
+        $facet->shouldReceive('getFilters')
+            ->andReturn([$filter]);
 
-        $this->assertEquals('Price-€-7-9', $this->serializer->serialize([$facet]));
+        $this->assertEquals(
+            ['Price' => ['$', 0, 100]],
+            $this->serializer->getActiveFacetFiltersFromFacets([$facet])
+        );
     }
 }
