@@ -44,11 +44,14 @@
     "eslint-config-prestashop": "0.0.2",
     "eslint-plugin-import": "^2.16.0",
     "mini-css-extract-plugin": "^0.5.0",
-    "mocha": "^6.0.2",
+    "mocha": "^6.1.4",
     "node-sass": "^4.11.0",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3"
+  },
+  "dependencies": {
+    "jquery-ui-touch-punch": "^0.2.3"
   }
 }

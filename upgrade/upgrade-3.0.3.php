@@ -27,44 +27,23 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_0_0(Ps_Facetedsearch $module)
+function upgrade_module_3_0_3(Ps_Facetedsearch $module)
 {
     // Clear legacy hook names
     $oldHooks = [
-        'categoryAddition',
-        'categoryUpdate',
-        'attributeGroupForm',
-        'afterSaveAttributeGroup',
-        'afterDeleteAttributeGroup',
-        'featureForm',
-        'afterDeleteFeature',
-        'afterSaveFeature',
-        'categoryDeletion',
-        'afterSaveProduct',
-        'postProcessAttributeGroup',
-        'postProcessFeature',
-        'featureValueForm',
-        'postProcessFeatureValue',
         'afterDeleteFeatureValue',
         'afterSaveFeatureValue',
-        'attributeForm',
-        'postProcessAttribute',
-        'afterDeleteAttribute',
-        'afterSaveAttribute',
-        'productSearchProvider',
-        'displayLeftColumn',
+        'postProcessFeatureValue',
     ];
-
     foreach ($oldHooks as $hookName) {
         $module->unregisterHook($hookName);
     }
 
-    // These methods have no return value
-    // If something failed an exception will be raised and
-    // the upgrade will stop
-    $module->rebuildLayeredStructure();
-    $module->rebuildPriceIndexTable();
-    $module->invalidateLayeredFilterBlockCache();
+    $newHooks = [
+        'actionFeatureSave',
+        'actionFeatureValueDelete',
+        'displayFeatureValuePostProcess',
+    ];
 
-    return $module->registerHook($module->getHookDispatcher()->getAvailableHooks());
+    return $module->registerHook($newHooks);
 }

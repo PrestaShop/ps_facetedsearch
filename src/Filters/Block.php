@@ -96,7 +96,8 @@ class Block
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category ' .
+            'SELECT type, id_value, filter_show_limit, filter_type ' .
+            'FROM ' . _DB_PREFIX_ . 'layered_category ' .
             'WHERE id_category = ' . (int) $idParent . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
@@ -175,6 +176,37 @@ class Block
         $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
             VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
+        );
+    }
+
+    /**
+     * @param int $idLang
+     * @param bool $notNull
+     *
+     * @return array|false|\PDOStatement|resource|null
+     */
+    public function getAttributes($idLang, $notNull = true)
+    {
+        if (!Combination::isFeatureActive()) {
+            return [];
+        }
+
+        return $this->database->executeS(
+            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+            'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+            'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            Shop::addSqlAssociation('attribute', 'a') . ' ' .
+            (
+                $notNull ?
+                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
+                ''
+            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
         );
     }
 
@@ -441,14 +473,7 @@ class Block
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
                 // search count of products always available when out of stock (out_of_stock == 1)
-                if (isset($resultOutOfStock['out_of_stock']) && (int) $resultOutOfStock['out_of_stock'] === 0) {
-                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
-                    $results[1]['c'] += (int) $resultOutOfStock['c'];
-                    continue;
-                }
-
-                // search count of products always available when out of stock (out_of_stock == 1)
-                if (isset($resultOutOfStock['out_of_stock']) && (int) $resultOutOfStock['out_of_stock'] === 1) {
+                if (isset($resultOutOfStock['out_of_stock']) && in_array((int) $resultOutOfStock['out_of_stock'], [0, 1])) {
                     $results[0]['c'] -= (int) $resultOutOfStock['c'];
                     $results[1]['c'] += (int) $resultOutOfStock['c'];
                     continue;
@@ -468,7 +493,7 @@ class Block
                 $count = $values['c'];
 
                 $quantityArray[$key]['nbr'] = $count;
-                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'])) {
+                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'], true)) {
                     $quantityArray[$key]['checked'] = true;
                 }
             }
@@ -618,57 +643,25 @@ class Block
     }
 
     /**
-     * @param int $idLang
-     * @param bool $notNull
-     *
-     * @return array|false|\PDOStatement|resource|null
-     */
-    public function getAttributes($idLang, $notNull = true)
-    {
-        if (!Combination::isFeatureActive()) {
-            return [];
-        }
-
-        return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ')
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a
-            ON a.`id_attribute_group` = ag.`id_attribute_group`
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
-            ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            Shop::addSqlAssociation('attribute', 'a') . ' ' .
-            (
-                $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL ' .
-                'AND agl.`id_attribute_group` IS NOT NULL ' :
-                ''
-            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
-        );
-    }
-
-    /**
      * Get all attributes groups for a given language
      *
      * @param int $idLang Language id
      *
      * @return array Attributes groups
      */
-    public function getAttributesGroups($idLang)
+    private function getAttributesGroups($idLang)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
         return $this->database->executeS(
-            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group
-            FROM `' . _DB_PREFIX_ . 'attribute_group` ag' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . '
-            LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
-            ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ')
-            GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
+            'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
         );
     }
 
@@ -718,14 +711,22 @@ class Block
 
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
-            $count = $values['c'];
+            if (!isset($attributes[$idAttribute])) {
+                continue;
+            }
 
+            $count = $values['c'];
             $attribute = $attributes[$idAttribute];
             $idAttributeGroup = $attribute['id_attribute_group'];
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
-                list($urlName, $metaTitle) = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
+                $attributeGroupLayeredInfos = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
+                if (!empty($attributeGroupLayeredInfos)) {
+                    list($urlName, $metaTitle) = array_values($attributeGroupLayeredInfos);
+                } else {
+                    $urlName = $metaTitle = null;
+                }
 
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
@@ -741,7 +742,13 @@ class Block
                 ];
             }
 
-            list($urlName, $metaTitle) = $this->getAttributeLayeredInfos($idAttribute, $idLang);
+            $attributeLayeredInfos = $this->getAttributeLayeredInfos($idAttribute, $idLang);
+            if (!empty($attributeLayeredInfos)) {
+                list($urlName, $metaTitle) = array_values($attributeLayeredInfos);
+            } else {
+                $urlName = $metaTitle = null;
+            }
+
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'color' => $attribute['color'],
                 'name' => $attribute['name'],
@@ -818,6 +825,10 @@ class Block
         }
 
         $tempFeatures = Feature::getFeatures($idLang);
+        if (empty($tempFeatures)) {
+            return [];
+        }
+
         foreach ($tempFeatures as $key => $feature) {
             $features[$feature['id_feature']] = $feature;
         }
@@ -834,12 +845,16 @@ class Block
 
             if (!isset($featureBlock[$idFeature])) {
                 $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
-
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }
 
-                list($urlName, $metaTitle) = $this->getFeatureLayeredInfos($idFeature, $idLang);
+                $featureLayeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
+                if (!empty($featureLayeredInfos)) {
+                    list($urlName, $metaTitle) = array_values($featureLayeredInfos);
+                } else {
+                    $urlName = $metaTitle = null;
+                }
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
@@ -859,7 +874,12 @@ class Block
                 continue;
             }
 
-            list($urlName, $metaTitle) = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
+            $featureValueLayeredInfos = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
+            if (!empty($featureValueLayeredInfos)) {
+                list($urlName, $metaTitle) = array_values($featureValueLayeredInfos);
+            } else {
+                $urlName = $metaTitle = null;
+            }
 
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
@@ -968,12 +988,18 @@ class Block
         foreach ($categories as $key => $value) {
             $categories[$value['id_category']] = $value;
         }
+
         $results = $filteredSearchAdapter->valueCount('id_category');
 
         foreach ($results as $key => $values) {
             $idCategory = $values['id_category'];
-            $count = $values['c'];
+            if (!isset($categories[$idCategory])) {
+                // Category can sometimes not be found in case of multistore
+                // plus waiting for indexation
+                continue;
+            }
 
+            $count = $values['c'];
             $categoryArray[$idCategory] = [
                 'name' => $categories[$idCategory]['name'],
                 'nbr' => $count,

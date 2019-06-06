@@ -85,7 +85,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.0.2';
+        $this->version = '3.0.3';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -198,7 +198,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
             $this->fullPricesIndexProcess();
-            $this->indexAttribute();
+            $this->indexAttributes();
         }
 
         return true;
@@ -214,17 +214,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
 
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_price_index');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_block');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_shop');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_block');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter_shop');
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_price_index');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_product_attribute');
 
         return parent::uninstall();
@@ -239,11 +239,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     }
 
     /*
-     * Generate data product attribute
+     * Generate data product attributes
      *
      * @param int $idProduct
+     *
+     * @return boolean
      */
-    public function indexAttribute($idProduct = null)
+    public function indexAttributes($idProduct = null)
     {
         if (null === $idProduct) {
             $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
@@ -254,7 +256,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             );
         }
 
-        $this->getDatabase()->execute(
+        return $this->getDatabase()->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
             SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
             FROM ' . _DB_PREFIX_ . 'product_attribute pa' .
@@ -265,8 +267,36 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             ' . ($idProduct === null ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
             GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
         );
+    }
 
-        return 1;
+    /*
+     * Generate data for product features
+     *
+     * @return boolean
+     */
+    public function indexFeatures()
+    {
+        return $this->getDatabase()->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature` ' .
+            'SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature` ' .
+            'WHERE id_feature NOT IN (SELECT id_feature FROM ' .
+            '`' . _DB_PREFIX_ . 'layered_indexable_feature`)'
+        );
+    }
+
+    /*
+     * Generate data for product attribute group
+     *
+     * @return boolean
+     */
+    public function indexAttributeGroup()
+    {
+        return $this->getDatabase()->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` ' .
+            'SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group` ' .
+            'WHERE id_attribute_group NOT IN (SELECT id_attribute_group FROM ' .
+            '`' . _DB_PREFIX_ . 'layered_indexable_attribute_group`)'
+        );
     }
 
     /**
@@ -1425,7 +1455,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     {
         $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
 
-        return $this->fetch('module:ps_facetedsearch/ps_facetedsearch.tpl');
+        return $this->fetch(
+            'module:ps_facetedsearch/ps_facetedsearch.tpl',
+            false,
+            false
+        );
     }
 
     /**

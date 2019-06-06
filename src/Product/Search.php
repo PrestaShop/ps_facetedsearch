@@ -138,7 +138,15 @@ class Search
                     break;
 
                 case 'id_attribute_group':
-                    $this->addFilter('id_attribute', $filterValues);
+                    $operationsFilter = [];
+                    foreach ($filterValues as $filterValue) {
+                        $operationsFilter[] = ['id_attribute', $filterValue];
+                    }
+
+                    $this->getSearchAdapter()->addOperationsFilter(
+                        'with_attributes',
+                        [$operationsFilter]
+                    );
                     break;
 
                 case 'category':
