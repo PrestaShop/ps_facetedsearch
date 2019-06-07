@@ -27,6 +27,7 @@ class URLSerializerTest extends MockeryTestCase
                     return $properties[$arg];
                 }
             );
+
         return $facet;
     }
 

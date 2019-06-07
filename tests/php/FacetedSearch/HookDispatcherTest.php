@@ -30,7 +30,7 @@ use Context;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
-use Ps_FacetedSearch;
+use Ps_Facetedsearch;
 
 class HookDispatcherTest extends MockeryTestCase
 {
@@ -39,8 +39,8 @@ class HookDispatcherTest extends MockeryTestCase
 
     protected function setUp()
     {
+        $this->module = Mockery::mock(Ps_Facetedsearch::class);
         $contextMock = Mockery::mock(Context::class);
-        $this->module = Mockery::mock(Ps_FacetedSearch::class);
         $this->module->shouldReceive('getDatabase');
         $this->module->shouldReceive('getContext')
             ->andReturn($contextMock);
