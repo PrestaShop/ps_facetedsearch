@@ -44,7 +44,6 @@ use Tools;
 
 class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
-
     /**
      * @var Ps_Facetedsearch
      */
@@ -260,6 +259,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function prepareActiveFiltersForRender(ProductSearchContext $context, ProductSearchResult $result)
     {
         $facetCollection = $result->getFacetCollection();
+
         // not all search providers generate menus
         if (empty($facetCollection)) {
             return null;
@@ -469,12 +469,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Generate a URL corresponding to the current page but
      * with the query string altered.
      *
-     * If $extraParams is set to NULL, then all query params are stripped.
-     *
-     * Otherwise, params from $extraParams that have a null value are stripped,
+     * Params from $extraParams that have a null value are stripped,
      * and other params are added. Params not in $extraParams are unchanged.
      */
-    private function updateQueryString(array $extraParams = null)
+    private function updateQueryString(array $extraParams = [])
     {
         $uriWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
         $url = Tools::getCurrentUrlProtocolPrefix() . $_SERVER['HTTP_HOST'] . $uriWithoutParams;
@@ -485,21 +483,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
         parse_str($paramsFromUri, $params);
 
-        if (null === $extraParams) {
-            $params = [];
-        } else {
-            foreach ($extraParams as $key => $value) {
-                if (null === $value) {
-                    unset($params[$key]);
-                } else {
-                    $params[$key] = $value;
-                }
+        foreach ($extraParams as $key => $value) {
+            if (null === $value) {
+                unset($params[$key]);
+            } else {
+                $params[$key] = $value;
             }
+        }
 
-            foreach ($params as $key => $param) {
-                if (null === $param || '' === $param) {
-                    unset($params[$key]);
-                }
+        foreach ($params as $key => $param) {
+            if (null === $param || '' === $param) {
+                unset($params[$key]);
             }
         }
 

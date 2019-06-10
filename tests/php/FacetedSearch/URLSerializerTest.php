@@ -5,6 +5,8 @@ namespace PrestaShop\Module\FacetedSearch\Tests;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
+use PrestaShop\PrestaShop\Core\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
 class URLSerializerTest extends MockeryTestCase
 {
@@ -17,7 +19,7 @@ class URLSerializerTest extends MockeryTestCase
 
     private function mockFacet($label, $properties = [])
     {
-        $facet = Mockery::mock('PrestaShop\PrestaShop\Core\Product\Search\Facet');
+        $facet = Mockery::mock(Facet::class);
         $facet->shouldReceive('getLabel')
             ->andReturn($label);
 
@@ -33,7 +35,7 @@ class URLSerializerTest extends MockeryTestCase
 
     private function mockFilter($label, $active = false, $value = null, $properties = [])
     {
-        $filter = Mockery::mock('PrestaShop\PrestaShop\Core\Product\Search\Filter');
+        $filter = Mockery::mock(Filter::class);
         $filter->shouldReceive('getLabel')
             ->andReturn($label);
         $filter->shouldReceive('isActive')

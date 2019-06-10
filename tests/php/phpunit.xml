@@ -1,11 +1,19 @@
 <phpunit
     bootstrap="bootstrap.php"
     >
+  <php>
+    <const name="_DB_PREFIX_" value="ps_"/>
+    <const name="_PS_VERSION_" value="FacetedSearchVersion"/>
+    <server name="REQUEST_URI" value="/catalog?from=scratch&amp;page=1"/>
+    <server name="HTTP_HOST" value="shop.prestashop.com"/>
+  </php>
+
   <testsuites>
     <testsuite name="FacetedSearch">
       <directory>.</directory>
     </testsuite>
   </testsuites>
+
   <filter>
     <whitelist processUncoveredFilesFromWhitelist="true">
       <directory suffix=".php">../../src</directory>
