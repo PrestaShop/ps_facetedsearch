@@ -44,10 +44,6 @@ use Tools;
 
 class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
-    /**
-     * @var bool
-     */
-    private $isAjax;
 
     /**
      * @var Ps_Facetedsearch
@@ -64,15 +60,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private $facetsSerializer;
 
-    public function __construct(Ps_Facetedsearch $module, $isAjax)
-    {
-        $this->isAjax = $isAjax;
+    public function __construct(
+        Ps_Facetedsearch $module,
+        Filters\Converter $converter,
+        URLSerializer $serializer
+    ) {
         $this->module = $module;
-        $this->filtersConverter = new Filters\Converter(
-            $module->getContext(),
-            $module->getDatabase()
-        );
-        $this->facetsSerializer = new URLSerializer();
+        $this->filtersConverter = $converter;
+        $this->facetsSerializer = $serializer;
     }
 
     /**
@@ -214,7 +209,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
-                'js_enabled' => $this->isAjax,
+                'js_enabled' => $this->module->isAjax(),
                 'displayedFacets' => $displayedFacets,
                 'activeFilters' => $activeFilters,
                 'sort_order' => $result->getCurrentSortOrder()->toString(),

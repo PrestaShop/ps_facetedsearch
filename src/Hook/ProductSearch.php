@@ -27,6 +27,8 @@
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
+use PrestaShop\Module\FacetedSearch\Filters\Converter;
 
 class ProductSearch extends AbstractHook
 {
@@ -61,7 +63,14 @@ class ProductSearch extends AbstractHook
                 ['position' => 'bottom', 'priority' => 100]
             );
 
-            return new SearchProvider($this->module, $this->module->isAjax());
+            return new SearchProvider(
+                $this->module,
+                new Converter(
+                    $this->module->getContext(),
+                    $this->module->getDatabase()
+                ),
+                new URLSerializer()
+            );
         }
 
         return null;
