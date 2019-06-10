@@ -220,4 +220,125 @@ class SearchProviderTest extends MockeryTestCase
             )
         );
     }
+
+    public function testRenderFacetsWithFacetsCollectionAndFilters()
+    {
+        $context = Mockery::mock(ProductSearchContext::class);
+        $sortOrder = Mockery::mock(SortOrder::class);
+        $sortOrder->shouldReceive('toString')
+            ->once()
+            ->andReturn('product.position.asc');
+        $productSearchResult = Mockery::mock(ProductSearchResult::class);
+        $productSearchResult->shouldReceive('getFacetCollection')
+            ->once()
+            ->andReturn($this->facetCollection);
+        $productSearchResult->shouldReceive('getCurrentSortOrder')
+            ->once()
+            ->andReturn($sortOrder);
+
+        $facet = $this->mockFacet(
+            'Test',
+            [
+                'displayed' => true,
+                'filters' => [
+                    [
+                        'label' => 'Men',
+                        'type' => 'category',
+                        'nextEncodedFacets' => 'Categories-Men',
+                        'active' => false,
+                    ],
+                    [
+                        'label' => 'Women',
+                        'type' => 'category',
+                        'nextEncodedFacets' => '',
+                        'active' => true,
+                    ],
+                ],
+            ]
+        );
+        $this->facetCollection->shouldReceive('getFacets')
+            ->once()
+            ->andReturn(
+                [
+                    $facet,
+                ]
+            );
+
+        $this->module->shouldReceive('render')
+            ->once()
+            ->with(
+                'views/templates/front/catalog/facets.tpl',
+                [
+                    'show_quantities' => true,
+                    'facets' => [
+                        [
+                            'displayed' => true,
+                            'filters' => [
+                                [
+                                    'label' => 'Men',
+                                    'type' => 'category',
+                                    'nextEncodedFacets' => 'Categories-Men',
+                                    'active' => false,
+                                    'facetLabel' => 'Test',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&q=Categories-Men',
+                                ],
+                                [
+                                    'label' => 'Women',
+                                    'type' => 'category',
+                                    'nextEncodedFacets' => '',
+                                    'active' => true,
+                                    'facetLabel' => 'Test',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&page=1',
+                                ],
+                            ],
+                        ],
+                    ],
+                    'js_enabled' => true,
+                    'displayedFacets' => [
+                        [
+                            'displayed' => true,
+                            'filters' => [
+                                [
+                                    'label' => 'Men',
+                                    'type' => 'category',
+                                    'nextEncodedFacets' => 'Categories-Men',
+                                    'active' => false,
+                                    'facetLabel' => 'Test',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&q=Categories-Men',
+                                ],
+                                [
+                                    'label' => 'Women',
+                                    'type' => 'category',
+                                    'nextEncodedFacets' => '',
+                                    'active' => true,
+                                    'facetLabel' => 'Test',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&page=1',
+                                ],
+                            ],
+                        ],
+                    ],
+                    'activeFilters' => [
+                        [
+                            'label' => 'Women',
+                            'type' => 'category',
+                            'nextEncodedFacets' => '',
+                            'active' => true,
+                            'facetLabel' => 'Test',
+                            'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&page=1',
+                        ],
+                    ],
+                    'sort_order' => 'product.position.asc',
+                    'clear_all_link' => 'http://shop.prestashop.com/catalog?from=scratch',
+                ]
+            )
+            ->andReturn('');
+
+        $this->assertEquals(
+            '',
+            $this->provider->renderFacets(
+                $context,
+                $productSearchResult
+            )
+        );
+    }
 }
