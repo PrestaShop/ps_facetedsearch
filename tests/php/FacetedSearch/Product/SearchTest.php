@@ -175,14 +175,6 @@ class SearchTest extends MockeryTestCase
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
         $this->assertEquals(
             [
-                'id_feature_value' => [
-                    '=' => [
-                        [
-                            1,
-                            2,
-                        ],
-                    ],
-                ],
                 'weight' => [
                     '>=' => [
                         [
@@ -276,6 +268,171 @@ class SearchTest extends MockeryTestCase
                             [
                                 4,
                                 5,
+                            ],
+                        ],
+                    ],
+                ],
+                'with_features' => [
+                    [
+                        [
+                            'id_feature_value',
+                            [
+                                1,
+                                2,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithManyFeatures()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(
+            [
+                'id_feature' => [
+                    [[1], [2, 3, 4]],
+                ],
+            ]
+        );
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+
+        $this->assertEquals(
+            [
+                'with_features' => [
+                    [
+                        [
+                            'id_feature_value',
+                            [
+                                [
+                                    1,
+                                ],
+                                [
+                                    2,
+                                    3,
+                                    4,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithManyAttributes()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(
+            [
+                'id_attribute_group' => [
+                    [[1], [2, 3, 4]],
+                ],
+            ]
+        );
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+
+        $this->assertEquals(
+            [
+                'with_attributes' => [
+                    [
+                        [
+                            'id_attribute',
+                            [
+                                [
+                                    1,
+                                ],
+                                [
+                                    2,
+                                    3,
+                                    4,
+                                ],
                             ],
                         ],
                     ],
