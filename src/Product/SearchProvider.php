@@ -485,6 +485,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         foreach ($extraParams as $key => $value) {
             if (null === $value) {
+                // Force clear param if null value is passed
                 unset($params[$key]);
             } else {
                 $params[$key] = $value;
