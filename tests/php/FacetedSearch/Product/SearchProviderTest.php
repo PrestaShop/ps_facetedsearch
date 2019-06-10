@@ -31,7 +31,11 @@ use Db;
 use Context;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
 
 class SearchProviderTest extends MockeryTestCase
 {
@@ -54,12 +58,35 @@ class SearchProviderTest extends MockeryTestCase
     {
         $this->database = Mockery::mock(Db::class);
         $this->context = Mockery::mock(Context::class);
+        $this->converter = Mockery::mock(Converter::class);
+        $this->serializer = Mockery::mock(URLSerializer::class);
         $this->module = Mockery::mock(Ps_Facetedsearch::class);
         $this->module->shouldReceive('getDatabase')
             ->andReturn($this->database);
         $this->module->shouldReceive('getContext')
             ->andReturn($this->context);
 
-        $this->provider = new SearchProvider($this->module, false);
+        $this->provider = new SearchProvider(
+            $this->module,
+            $this->converter,
+            $this->serializer
+        );
+    }
+
+    public function testRenderFacetsWithoutFacetsCollection()
+    {
+        $context = Mockery::mock(ProductSearchContext::class);
+        $productSearchResult = Mockery::mock(ProductSearchResult::class);
+        $productSearchResult->shouldReceive('getFacetCollection')
+            ->once()
+            ->andReturn([]);
+
+        $this->assertEquals(
+            '',
+            $this->provider->renderFacets(
+                $context,
+                $productSearchResult
+            )
+        );
     }
 }
