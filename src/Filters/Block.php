@@ -92,13 +92,13 @@ class Block
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
         );
-        $parent = new Category((int) $idParent, $idLang);
+        $parent = new Category($idParent, $idLang);
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . (int) $idParent . ' ' .
+            'WHERE id_category = ' . $idParent . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );

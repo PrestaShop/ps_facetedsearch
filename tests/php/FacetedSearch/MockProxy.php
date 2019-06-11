@@ -127,3 +127,9 @@ class FeatureValue extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Module extends MockProxy
+{
+    // Redeclare to use this instead MockProxy::mock
+    protected static $mock;
+}
