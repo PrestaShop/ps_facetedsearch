@@ -355,7 +355,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
 
             if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $taxRatesByCountry = [['rate' => 0, 'id_country' => 0, 'iso_code' => '']];
+                $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT');
+                $isoCode = Country::getIsoById($idCountry);
+                $taxRatesByCountry = [['rate' => 0, 'id_country' => $idCountry, 'iso_code' => $isoCode]];
             } else {
                 $taxRatesByCountry = $this->getDatabase()->executeS(
                     'SELECT t.rate rate, tr.id_country, c.iso_code
