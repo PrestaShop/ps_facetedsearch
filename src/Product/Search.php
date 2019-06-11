@@ -134,7 +134,15 @@ class Search
 
             switch ($key) {
                 case 'id_feature':
-                    $this->addFilter('id_feature_value', $filterValues);
+                    $operationsFilter = [];
+                    foreach ($filterValues as $filterValue) {
+                        $operationsFilter[] = ['id_feature_value', $filterValue];
+                    }
+
+                    $this->getSearchAdapter()->addOperationsFilter(
+                        'with_features',
+                        [$operationsFilter]
+                    );
                     break;
 
                 case 'id_attribute_group':
