@@ -200,11 +200,20 @@ interface InterfaceAdapter
     public function resetOperationsFilters();
 
     /**
+     * Reset the operations filter for the given filterName
+     *
+     * @param string $filterName
+     *
+     * @return self
+     */
+    public function resetOperationsFilter($filterName);
+
+    /**
      * Reset the filter for the given filterName
      *
      * @param string $filterName
      *
-     * @return mixed
+     * @return self
      */
     public function resetFilter($filterName);
 
