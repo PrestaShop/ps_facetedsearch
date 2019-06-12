@@ -366,7 +366,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'GROUP BY id_product, tr.id_country'
             );
 
-            if (empty($taxRatesByCountry) or !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
+            if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
                 $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT');
                 $isoCode = Country::getIsoById($idCountry);
                 $taxRatesByCountry = [['rate' => 0, 'id_country' => $idCountry, 'iso_code' => $isoCode]];
