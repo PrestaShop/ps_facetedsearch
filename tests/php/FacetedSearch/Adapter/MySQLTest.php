@@ -68,7 +68,7 @@ class MySQLTest extends MockeryTestCase
     public function testGetEmptyQuery()
     {
         $this->assertEquals(
-            'SELECT  FROM ps_product p WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT  FROM ps_product p ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -91,7 +91,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class)->makePartial();
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT psi.price_min, MIN(price_min) as min, MAX(price_max) as max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE')
+            ->with('SELECT psi.price_min, MIN(price_min) as min, MAX(price_max) as max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3)')
             ->andReturn(
                 [
                     [
@@ -118,7 +118,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT MIN(weight) as min, MAX(weight) as max FROM ps_product p WHERE p.active = TRUE')
+            ->with('SELECT MIN(weight) as min, MAX(weight) as max FROM ps_product p')
             ->andReturn(
                 [
                     [
@@ -144,7 +144,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.active = TRUE')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p')
             ->andReturn(
                 [
                     [
@@ -170,7 +170,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.active = TRUE GROUP BY p.weight')
+            ->with('SELECT p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p GROUP BY p.weight')
             ->andReturn(
                 [
                     [
@@ -224,7 +224,7 @@ class MySQLTest extends MockeryTestCase
         );
 
         $this->assertEquals(
-            'SELECT p.id_product, pa.id_product_attribute, pac.id_attribute, a.id_attribute_group, fp.id_feature, ps.id_shop, p.id_feature_çvalue, cp.id_category, pl.name, c.nleft, c.nright, c.level_depth, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end, cg.id_group, m.name FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product, pa.id_product_attribute, pac.id_attribute, a.id_attribute_group, fp.id_feature, ps.id_shop, p.id_feature_çvalue, cp.id_category, pl.name, c.nleft, c.nright, c.level_depth, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end, cg.id_group, m.name FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1 AND ps.active = TRUE) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -250,7 +250,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->addFilter('id_product', [2, 20, 200], '=');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.condition IN (\'new\', \'used\') AND p.weight=\'10\' AND psi.price_min>=10 AND psi.price_min<=100 AND p.id_product IN (2, 20, 200) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.condition IN (\'new\', \'used\') AND p.weight=\'10\' AND psi.price_min>=10 AND psi.price_min<=100 AND p.id_product IN (2, 20, 200) ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -281,7 +281,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->addGroupBy('p.something_defined_by_me');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE GROUP BY p.id_product, fp.id_feature_value, p.something_defined_by_me ORDER BY p.id_product DESC LIMIT 0, 20',
+            'SELECT p.id_product FROM ps_product p GROUP BY p.id_product, fp.id_feature_value, p.something_defined_by_me ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -292,7 +292,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderField('price');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE ORDER BY psi.price_max DESC LIMIT 0, 20',
+            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_max DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -304,7 +304,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('asc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE ORDER BY psi.price_min ASC LIMIT 0, 20',
+            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_min ASC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -317,7 +317,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('asc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, m.name FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE) p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC',
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, m.name FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer)) p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC',
             $this->adapter->getQuery()
         );
     }
@@ -330,7 +330,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, cp.position FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) WHERE p.active = TRUE) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC',
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, cp.position FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC',
             $this->adapter->getQuery()
         );
     }
@@ -358,7 +358,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [1], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((sa.quantity>=0 AND sa1.out_of_stock IN (1, 3, 4)) OR (sa.quantity>0 AND sa1.out_of_stock=1)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((sa.quantity>=0 AND sa1.out_of_stock IN (1, 3, 4)) OR (sa.quantity>0 AND sa1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
             [
                 'fields' => [
@@ -375,7 +375,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [1], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute=4) OR (sa.quantity>0 AND sa1.out_of_stock=1)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute=4) OR (sa.quantity>0 AND sa1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
             [
                 'fields' => [
@@ -393,7 +393,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [0], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac2 ON (pa.id_product_attribute = pac2.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute IN (4, 5, 6) AND pac2.id_attribute IN (7, 8, 9)) OR (sa.quantity>0 AND sa1.out_of_stock=0)) AND p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac2 ON (pa.id_product_attribute = pac2.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute IN (4, 5, 6) AND pac2.id_attribute IN (7, 8, 9)) OR (sa.quantity>0 AND sa1.out_of_stock=0)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
         ];
     }
@@ -401,27 +401,27 @@ class MySQLTest extends MockeryTestCase
     public function oneSelectFieldDataProvider()
     {
         return [
-            ['id_product', 'SELECT p.id_product FROM ps_product p WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_product_attribute', 'SELECT pa.id_product_attribute FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_attribute', 'SELECT pac.id_attribute FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_attribute_group', 'SELECT a.id_attribute_group FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_feature', 'SELECT fp.id_feature FROM ps_product p INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_shop', 'SELECT ps.id_shop FROM ps_product p INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_feature_value', 'SELECT fp.id_feature_value FROM ps_product p LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_category', 'SELECT cp.id_category FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['position', 'SELECT cp.position FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['name', 'SELECT pl.name FROM ps_product p INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['nleft', 'SELECT c.nleft FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['nright', 'SELECT c.nright FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['level_depth', 'SELECT c.level_depth FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['out_of_stock', 'SELECT sa.out_of_stock FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['quantity', 'SELECT sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['price_min', 'SELECT psi.price_min FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['price_max', 'SELECT psi.price_max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['range_start', 'SELECT psi.range_start FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['range_end', 'SELECT psi.range_end FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['id_group', 'SELECT cg.id_group FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
-            ['manufacturer_name', 'SELECT m.name FROM ps_product p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) WHERE p.active = TRUE ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_product', 'SELECT p.id_product FROM ps_product p ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_product_attribute', 'SELECT pa.id_product_attribute FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_attribute', 'SELECT pac.id_attribute FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_attribute_group', 'SELECT a.id_attribute_group FROM ps_product p STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_feature', 'SELECT fp.id_feature FROM ps_product p INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_shop', 'SELECT ps.id_shop FROM ps_product p INNER JOIN ps_product_shop ps ON (p.id_product = ps.id_product AND ps.id_shop = 1 AND ps.active = TRUE) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_feature_value', 'SELECT fp.id_feature_value FROM ps_product p LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_category', 'SELECT cp.id_category FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['position', 'SELECT cp.position FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['name', 'SELECT pl.name FROM ps_product p INNER JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_shop = 1 AND pl.id_lang = 2) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['nleft', 'SELECT c.nleft FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['nright', 'SELECT c.nright FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['level_depth', 'SELECT c.level_depth FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['out_of_stock', 'SELECT sa.out_of_stock FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['quantity', 'SELECT sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['price_min', 'SELECT psi.price_min FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['price_max', 'SELECT psi.price_max FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['range_start', 'SELECT psi.range_start FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['range_end', 'SELECT psi.range_end FROM ps_product p INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['id_group', 'SELECT cg.id_group FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) INNER JOIN ps_category c ON (cp.id_category = c.id_category AND c.active=1) LEFT JOIN ps_category_group cg ON (cg.id_category = c.id_category) ORDER BY p.id_product DESC LIMIT 0, 20'],
+            ['manufacturer_name', 'SELECT m.name FROM ps_product p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY p.id_product DESC LIMIT 0, 20'],
         ];
     }
 }

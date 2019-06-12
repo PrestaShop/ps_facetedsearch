@@ -134,11 +134,6 @@ class MySQL extends AbstractAdapter
                 }
             }
 
-            if ($this->initialPopulation === null) {
-                // We want to select only activated products
-                $whereConditions[] = 'p.active = TRUE';
-            }
-
             if (!empty($whereConditions)) {
                 $query .= ' WHERE ' . implode(' AND ', $whereConditions);
             }
@@ -203,7 +198,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
                 'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                $this->getContext()->shop->id . ')',
+                $this->getContext()->shop->id . ' AND ps.active = TRUE)',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_feature_value' => [
