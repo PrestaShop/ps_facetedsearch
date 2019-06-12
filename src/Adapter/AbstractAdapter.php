@@ -87,7 +87,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetFilter($filterName)
     {
-        if($this->filters->offsetExists($filterName)) {
+        if ($this->filters->offsetExists($filterName)) {
             $this->filters->offsetUnset($filterName);
         }
 
@@ -99,7 +99,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function resetOperationsFilter($filterName)
     {
-        if($this->operationsFilters->offsetExists($filterName)) {
+        if ($this->operationsFilters->offsetExists($filterName)) {
             $this->operationsFilters->offsetUnset($filterName);
         }
 
