@@ -92,13 +92,13 @@ class Block
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
         );
-        $parent = new Category((int) $idParent, $idLang);
+        $parent = new Category($idParent, $idLang);
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . (int) $idParent . ' ' .
+            'WHERE id_category = ' . $idParent . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
@@ -683,7 +683,7 @@ class Block
         if (!empty($selectedFilters['id_attribute_group'])) {
             foreach ($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
                 if ($key == $idAttributeGroup) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_attribute');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_attributes');
                     break;
                 }
             }
@@ -815,11 +815,12 @@ class Block
         if (!empty($selectedFilters['id_feature'])) {
             foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
                 if ($key == $idFeature) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_feature_value');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_features');
                     break;
                 }
             }
         }
+
         if (!$filteredSearchAdapter) {
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }

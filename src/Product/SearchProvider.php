@@ -45,11 +45,6 @@ use Tools;
 class SearchProvider implements FacetsRendererInterface, ProductSearchProviderInterface
 {
     /**
-     * @var bool
-     */
-    private $isAjax;
-
-    /**
      * @var Ps_Facetedsearch
      */
     private $module;
@@ -64,15 +59,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private $facetsSerializer;
 
-    public function __construct(Ps_Facetedsearch $module, $isAjax)
-    {
-        $this->isAjax = $isAjax;
+    public function __construct(
+        Ps_Facetedsearch $module,
+        Filters\Converter $converter,
+        URLSerializer $serializer
+    ) {
         $this->module = $module;
-        $this->filtersConverter = new Filters\Converter(
-            $module->getContext(),
-            $module->getDatabase()
-        );
-        $this->facetsSerializer = new URLSerializer();
+        $this->filtersConverter = $converter;
+        $this->facetsSerializer = $serializer;
     }
 
     /**
@@ -214,7 +208,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
-                'js_enabled' => $this->isAjax,
+                'js_enabled' => $this->module->isAjax(),
                 'displayedFacets' => $displayedFacets,
                 'activeFilters' => $activeFilters,
                 'sort_order' => $result->getCurrentSortOrder()->toString(),
@@ -265,6 +259,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function prepareActiveFiltersForRender(ProductSearchContext $context, ProductSearchResult $result)
     {
         $facetCollection = $result->getFacetCollection();
+
         // not all search providers generate menus
         if (empty($facetCollection)) {
             return null;
@@ -377,10 +372,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function addEncodedFacetsToFilters(array $facets)
     {
         // first get the currently active facetFilter in an array
-        $activeFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
+        $originalFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
         $urlSerializer = new URLFragmentSerializer();
 
         foreach ($facets as $facet) {
+            $activeFacetFilters = $originalFacetFilters;
             // If only one filter can be selected, we keep track of
             // the current active filter to disable it before generating the url stub
             // and not select two filters in a facet that can have only one active filter.
@@ -389,7 +385,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
                         $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
-                            $activeFacetFilters,
+                            $originalFacetFilters,
                             $filter,
                             $facet
                         );
@@ -399,18 +395,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             }
 
             foreach ($facet->getFilters() as $filter) {
-                $facetFilters = $activeFacetFilters;
-
                 // toggle the current filter
                 if ($filter->isActive() || $facet->getProperty('range')) {
                     $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
-                        $facetFilters,
+                        $activeFacetFilters,
                         $filter,
                         $facet
                     );
                 } else {
                     $facetFilters = $this->facetsSerializer->addFilterToFacetFilters(
-                        $facetFilters,
+                        $activeFacetFilters,
                         $filter,
                         $facet
                     );
@@ -475,12 +469,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Generate a URL corresponding to the current page but
      * with the query string altered.
      *
-     * If $extraParams is set to NULL, then all query params are stripped.
-     *
-     * Otherwise, params from $extraParams that have a null value are stripped,
+     * Params from $extraParams that have a null value are stripped,
      * and other params are added. Params not in $extraParams are unchanged.
      */
-    private function updateQueryString(array $extraParams = null)
+    private function updateQueryString(array $extraParams = [])
     {
         $uriWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
         $url = Tools::getCurrentUrlProtocolPrefix() . $_SERVER['HTTP_HOST'] . $uriWithoutParams;
@@ -491,21 +483,18 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
         parse_str($paramsFromUri, $params);
 
-        if (null === $extraParams) {
-            $params = [];
-        } else {
-            foreach ($extraParams as $key => $value) {
-                if (null === $value) {
-                    unset($params[$key]);
-                } else {
-                    $params[$key] = $value;
-                }
+        foreach ($extraParams as $key => $value) {
+            if (null === $value) {
+                // Force clear param if null value is passed
+                unset($params[$key]);
+            } else {
+                $params[$key] = $value;
             }
+        }
 
-            foreach ($params as $key => $param) {
-                if (null === $param || '' === $param) {
-                    unset($params[$key]);
-                }
+        foreach ($params as $key => $param) {
+            if (null === $param || '' === $param) {
+                unset($params[$key]);
             }
         }
 
