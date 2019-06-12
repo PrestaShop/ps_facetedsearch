@@ -107,6 +107,7 @@ class BlockTest extends MockeryTestCase
         Shop::setStaticExpectations($this->shopMock);
 
         $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
+        $this->adapterMock->resetAll();
 
         $this->block = new Block($this->adapterMock, $this->contextMock, $this->dbMock);
     }
@@ -170,6 +171,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'price', 'filter_show_limit' => false]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('getMinMaxPriceValue')
             ->andReturn([10.0, 100.0]);
         $this->adapterMock->shouldReceive('getInitialPopulation')
@@ -241,6 +243,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'weight', 'filter_show_limit' => false]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
             ->andReturn([10.0, 100.0]);
@@ -290,6 +293,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'weight', 'filter_show_limit' => false]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
             ->andReturn([0, 0]);
@@ -520,6 +524,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('valueCount')
             ->with('condition')
             ->andReturn([['c' => 100, 'condition' => 'new']]);
@@ -620,6 +625,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('valueCount')
             ->with('id_manufacturer')
             ->andReturn(
@@ -673,6 +679,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('id_attribute')
             ->andReturn($adapterInitialMock);
@@ -697,6 +704,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->andReturn($adapterInitialMock);
 
@@ -719,6 +727,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->andReturn($adapterInitialMock);
 
@@ -873,8 +882,9 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('id_feature_value')
+            ->with('with_features')
             ->once()
             ->andReturn($adapterInitialMock);
 
@@ -904,6 +914,7 @@ class BlockTest extends MockeryTestCase
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
+        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->once()
             ->andReturn($adapterInitialMock);

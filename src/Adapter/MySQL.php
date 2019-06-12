@@ -78,7 +78,9 @@ class MySQL extends AbstractAdapter
         if ($this->getInitialPopulation() !== null && !$skipInitialPopulation) {
             $mysqlAdapter->initialPopulation = clone $this->getInitialPopulation();
             if ($resetFilter) {
+                // Try to reset filter & operations filter
                 $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
+                $mysqlAdapter->initialPopulation->resetOperationsFilter($resetFilter);
             }
         }
 
