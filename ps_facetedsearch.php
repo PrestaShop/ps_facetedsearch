@@ -354,21 +354,22 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $this->getDatabase()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
             }
 
-            if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
+            $taxRatesByCountry = $this->getDatabase()->executeS(
+                'SELECT t.rate rate, tr.id_country, c.iso_code ' .
+                'FROM `' . _DB_PREFIX_ . 'product_shop` p ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON  ' .
+                '(trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ') ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group) ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1) ' .
+                'JOIN `' . _DB_PREFIX_ . 'country` c ON (tr.id_country=c.id_country AND c.active = 1) ' .
+                'WHERE id_product = ' . (int) $idProduct . ' ' .
+                'GROUP BY id_product, tr.id_country'
+            );
+
+            if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
                 $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT');
                 $isoCode = Country::getIsoById($idCountry);
                 $taxRatesByCountry = [['rate' => 0, 'id_country' => $idCountry, 'iso_code' => $isoCode]];
-            } else {
-                $taxRatesByCountry = $this->getDatabase()->executeS(
-                    'SELECT t.rate rate, tr.id_country, c.iso_code
-                    FROM `' . _DB_PREFIX_ . 'product_shop` p
-                    LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON (trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ')
-                    LEFT JOIN `' . _DB_PREFIX_ . 'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group)
-                    LEFT JOIN `' . _DB_PREFIX_ . 'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1)
-                    JOIN `' . _DB_PREFIX_ . 'country` c ON (tr.id_country=c.id_country AND c.active = 1)
-                    WHERE id_product = ' . (int) $idProduct . '
-                    GROUP BY id_product, tr.id_country'
-                );
             }
 
             $productMinPrices = $this->getDatabase()->executeS(
