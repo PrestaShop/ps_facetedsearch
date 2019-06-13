@@ -39,6 +39,11 @@ use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 class Ps_Facetedsearch extends Module implements WidgetInterface
 {
     /**
+     * @var string Name of the module running on PS 1.6.x. Used for data migration.
+     */
+    const PS_16_EQUIVALENT_MODULE = 'blocklayered';
+
+    /**
      * Lock indexation if too many products
      *
      * @var int
@@ -174,31 +179,41 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             return false;
         }
 
-        Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
-        Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
-        Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
-        Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
-        Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
-        Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
+        if ($this->uninstallPrestaShop16Module()) {
+            $this->rebuildLayeredStructure();
+            $this->buildLayeredCategories();
 
-        $this->psLayeredFullTree = 1;
+            $this->rebuildPriceIndexTable();
 
-        $this->rebuildLayeredStructure();
-        $this->buildLayeredCategories();
+            $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
+            $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'friendly_url');
+        } else {
+            Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
+            Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
+            Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
+            Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
+            Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
+            Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
 
-        $productsCount = $this->getDatabase()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
+            $this->psLayeredFullTree = 1;
 
-        if ($productsCount < static::LOCK_TEMPLATE_CREATION) {
-            $this->rebuildLayeredCache();
-        }
+            $this->rebuildLayeredStructure();
+            $this->buildLayeredCategories();
 
-        $this->rebuildPriceIndexTable();
-        $this->installIndexableAttributeTable();
-        $this->installProductAttributeTable();
+            $productsCount = $this->getDatabase()->getValue('SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`');
 
-        if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
-            $this->fullPricesIndexProcess();
-            $this->indexAttributes();
+            if ($productsCount < static::LOCK_TEMPLATE_CREATION) {
+                $this->rebuildLayeredCache();
+            }
+
+            $this->rebuildPriceIndexTable();
+            $this->installIndexableAttributeTable();
+            $this->installProductAttributeTable();
+
+            if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
+                $this->fullPricesIndexProcess();
+                $this->indexAttributes();
+            }
         }
 
         return true;
@@ -228,6 +243,28 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_product_attribute');
 
         return parent::uninstall();
+    }
+
+    /**
+     * Migrate data from 1.6 equivalent module (if applicable), then uninstall
+     */
+    private function uninstallPrestaShop16Module()
+    {
+        if (!Module::isInstalled(self::PS_16_EQUIVALENT_MODULE)) {
+            return false;
+        }
+        $oldModule = Module::getInstanceByName(self::PS_16_EQUIVALENT_MODULE);
+        if ($oldModule) {
+            // This closure calls the parent class to prevent data to be erased
+            // It allows the new module to be configured without migration
+            $parentUninstallClosure = function () {
+                return parent::uninstall();
+            };
+            $parentUninstallClosure = $parentUninstallClosure->bindTo($oldModule, get_class($oldModule));
+            $parentUninstallClosure();
+        }
+
+        return true;
     }
 
     /**
