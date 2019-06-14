@@ -39,7 +39,7 @@ class ProductSearch extends AbstractHook
     /**
      * Hook project search provider
      *
-     * @params array $params
+     * @param array $params
      *
      * @return SearchProvider|null
      */
