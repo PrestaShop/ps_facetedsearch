@@ -37,7 +37,7 @@ class Design extends AbstractHook
      * because Hook::isHookCallableOn before the instanceof function.
      * Which means is_callable always returns true with a __call usage.
      *
-     * @params array $params
+     * @param array $params
      */
     public function displayLeftColumn(array $params)
     {
