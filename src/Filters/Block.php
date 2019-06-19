@@ -473,7 +473,7 @@ class Block
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
                 // search count of products always available when out of stock (out_of_stock == 1)
-                if (isset($resultOutOfStock['out_of_stock']) && in_array((int) $resultOutOfStock['out_of_stock'], [0, 1])) {
+                if (isset($resultOutOfStock['out_of_stock']) && in_array((int) $resultOutOfStock['out_of_stock'], [1])) {
                     $results[0]['c'] -= (int) $resultOutOfStock['c'];
                     $results[1]['c'] += (int) $resultOutOfStock['c'];
                     continue;
