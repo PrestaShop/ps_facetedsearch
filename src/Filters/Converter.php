@@ -306,7 +306,7 @@ class Converter
                 case 'weight':
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         $filters = $facetAndFiltersLabels[$filterLabel];
-                        if (isset($filters[1]) && isset($filters[2])) {
+                        if (isset($filters[1], $filters[2])) {
                             $from = $filters[1];
                             $to = $filters[2];
                             $searchFilters[$filter['type']][0] = $from;

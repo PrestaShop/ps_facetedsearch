@@ -238,12 +238,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $this->hookDispatcher;
     }
 
-    /*
+    /**
      * Generate data product attributes
      *
      * @param int $idProduct
      *
-     * @return boolean
+     * @return bool
      */
     public function indexAttributes($idProduct = null)
     {
@@ -269,10 +269,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         );
     }
 
-    /*
+    /**
      * Generate data for product features
      *
-     * @return boolean
+     * @return bool
      */
     public function indexFeatures()
     {
@@ -284,10 +284,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         );
     }
 
-    /*
+    /**
      * Generate data for product attribute group
      *
-     * @return boolean
+     * @return bool
      */
     public function indexAttributeGroup()
     {
@@ -709,7 +709,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
         $treeCategoriesHelper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
-                                                                     ->setUseCheckBox(true);
+            ->setUseCheckBox(true);
 
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
@@ -748,8 +748,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
 
             $selectShops = $filters['shop_list'];
-            unset($filters['categories']);
-            unset($filters['shop_list']);
+            unset($filters['categories'], $filters['shop_list']);
 
             $this->context->smarty->assign([
                 'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
