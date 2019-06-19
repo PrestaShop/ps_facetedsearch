@@ -140,7 +140,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         // now get the filter blocks associated with the current search
         $filterBlockSearch = new Filters\Block(
-            $facetedSearch->getsearchAdapter(),
+            $facetedSearch->getSearchAdapter(),
             $context,
             $this->module->getDatabase()
         );
