@@ -175,7 +175,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $this->labelRangeFilters($facets);
         $this->addEncodedFacetsToFilters($facets);
-        $this->hideZeroValues($facets);
+        $this->hideZeroValuesAndShowLimit($facets);
         $this->hideUselessFacets($facets);
 
         $facetCollection = new FacetCollection();
@@ -422,14 +422,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
     /**
      * Hide entries with 0 results
+     * Hide depending of show limit parameter
      *
      * @param array $facets
      */
-    private function hideZeroValues(array $facets)
+    private function hideZeroValuesAndShowLimit(array $facets)
     {
         foreach ($facets as $facet) {
-            foreach ($facet->getFilters() as $filter) {
-                if ($filter->getMagnitude() === 0) {
+            foreach ($facet->getFilters() as $idx => $filter) {
+                if ($filter->getMagnitude() === 0
+                    || $idx >= $facet->getProperty('filter_show_limit')
+                ) {
                     $filter->setDisplayed(false);
                 }
             }
