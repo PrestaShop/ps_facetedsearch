@@ -429,12 +429,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function hideZeroValuesAndShowLimit(array $facets)
     {
         foreach ($facets as $facet) {
-            foreach ($facet->getFilters() as $idx => $filter) {
+            $count = 0;
+            foreach ($facet->getFilters() as $filter) {
                 if ($filter->getMagnitude() === 0
-                    || $idx >= $facet->getProperty('filter_show_limit')
+                    || $count >= $facet->getProperty('filter_show_limit')
                 ) {
                     $filter->setDisplayed(false);
+                    continue;
                 }
+
+                $count++;
             }
         }
     }
