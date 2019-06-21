@@ -638,8 +638,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             $this->trans('was added successfully.', [], 'Modules.Facetedsearch.Admin')
                         )
                     );
-
-                    return $this->redirectToModule();
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
@@ -653,8 +651,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
             $this->invalidateLayeredFilterBlockCache();
-
-            return $this->redirectToModule();
         } elseif (Tools::getValue('deleteFilterTemplate')) {
             $layered_values = $this->getDatabase()->getValue(
                 'SELECT filters
@@ -672,8 +668,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             } else {
                 $message = $this->displayError($this->trans('Filter template not found', [], 'Modules.Facetedsearch.Admin'));
             }
-
-            return $this->redirectToModule();
         }
 
         $categoryBox = [];
@@ -1464,15 +1458,5 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function getWidgetVariables($hookName, array $configuration)
     {
         return [];
-    }
-
-    /**
-     * Redirecto to main page of the module
-     */
-    private function redirectToModule()
-    {
-        Tools::redirectAdmin(
-            $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch'
-        );
     }
 }
