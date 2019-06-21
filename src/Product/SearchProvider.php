@@ -441,7 +441,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Keep facet status when it's a slider
      *
      * @param array $facets
-     * @param integer $totalProducts
+     * @param int $totalProducts
      */
     private function hideUselessFacets(array $facets, $totalProducts)
     {
@@ -467,7 +467,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $usefulFiltersCount > 1
                 ||
                 (
-                    /**
+                    /*
                      * There is only one fitler and the
                      * magnitude is different than the
                      * total products
