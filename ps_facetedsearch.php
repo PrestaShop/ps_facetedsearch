@@ -726,33 +726,36 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         if (Tools::getValue('edit_filters_template')) {
+            $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
             $template = $this->getDatabase()->getRow(
                 'SELECT *
                 FROM `' . _DB_PREFIX_ . 'layered_filter`
-                WHERE id_layered_filter = ' . (int) Tools::getValue('id_layered_filter')
+                WHERE id_layered_filter = ' . $idLayeredFilter
             );
 
-            $filters = Tools::unSerialize($template['filters']);
-            $treeCategoriesHelper->setSelectedCategories($filters['categories']);
-            $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
+            if (!empty($template)) {
+                $filters = Tools::unSerialize($template['filters']);
+                $treeCategoriesHelper->setSelectedCategories($filters['categories']);
+                $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
 
-            $selectShops = $filters['shop_list'];
-            unset($filters['categories']);
-            unset($filters['shop_list']);
+                $selectShops = $filters['shop_list'];
+                unset($filters['categories']);
+                unset($filters['shop_list']);
 
-            $this->context->smarty->assign([
-                'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
-                'uri' => $this->getPathUri(),
-                'id_layered_filter' => (int) Tools::getValue('id_layered_filter'),
-                'template_name' => $template['name'],
-                'attribute_groups' => $attributeGroups,
-                'features' => $features,
-                'filters' => $filters,
-                'total_filters' => 6 + count($attributeGroups) + count($features),
-                'default_filters' => $this->getDefaultFilters(),
-            ]);
+                $this->context->smarty->assign([
+                    'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
+                    'uri' => $this->getPathUri(),
+                    'id_layered_filter' => $idLayeredFilter,
+                    'template_name' => $template['name'],
+                    'attribute_groups' => $attributeGroups,
+                    'features' => $features,
+                    'filters' => $filters,
+                    'total_filters' => 6 + count($attributeGroups) + count($features),
+                    'default_filters' => $this->getDefaultFilters(),
+                ]);
 
-            return $this->display(__FILE__, 'views/templates/admin/view.tpl');
+                return $this->display(__FILE__, 'views/templates/admin/view.tpl');
+            }
         }
 
         $this->context->smarty->assign([
