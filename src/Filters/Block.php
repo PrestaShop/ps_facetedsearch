@@ -1060,10 +1060,18 @@ class Block
 
         // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
         $precision = isset($currency->precision) ? $currency->precision : 2;
+        $formats = explode(';', $currency->format);
+        if (count($formats) > 1) {
+            $positivePattern = $formats[0];
+            $negativePattern = $formats[1];
+        } else {
+            $positivePattern = $currency->format;
+            $negativePattern = $currency->format;
+        }
 
         return [
-            'positivePattern' => $currency->format,
-            'negativePattern' => $currency->format,
+            'positivePattern' => $positivePattern,
+            'negativePattern' => $negativePattern,
             'symbol' => $symbol,
             'maxFractionDigits' => $precision,
             'minFractionDigits' => $precision,
