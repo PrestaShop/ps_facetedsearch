@@ -85,7 +85,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.0.5';
+        $this->version = '3.0.6';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -1459,9 +1459,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         $this->smarty->assign($this->getWidgetVariables($hookName, $configuration));
 
         return $this->fetch(
-            'module:ps_facetedsearch/ps_facetedsearch.tpl',
-            false,
-            false
+            'module:ps_facetedsearch/ps_facetedsearch.tpl'
         );
     }
 
