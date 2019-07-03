@@ -259,14 +259,14 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
@@ -392,6 +392,8 @@ class MySQL extends AbstractAdapter
     private function computeWhereConditions(array $filterToTableMapping)
     {
         $whereConditions = [];
+        $attributes = false;
+        $quantity = false;
         foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
@@ -399,6 +401,12 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
+                    if($operation[0] == 'id_attribute') {
+                        $attributes = true;
+                    }
+                    if($operation[0] == 'quantity' || $operation[0] == 'out_of_stock') {
+                        $quantity = true;
+                    }
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
@@ -492,6 +500,15 @@ class MySQL extends AbstractAdapter
             }
         }
 
+        // if attribute is selected and quanity filter is on, then get combinantion quantity not overall quantity
+        if($quantity) {
+            if($attributes) {
+               $whereConditions[] = 'sa.id_product_attribute = pa.id_product_attribute';
+            } else {
+                $whereConditions[] = 'sa.id_product_attribute = 0';
+            }
+        }
+        
         return $whereConditions;
     }
 
