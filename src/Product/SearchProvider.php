@@ -438,7 +438,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     continue;
                 }
 
-                $count++;
+                ++$count;
             }
         }
     }
