@@ -58,7 +58,7 @@ class Attribute extends AbstractHook
             $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
             if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+                continue;
             }
 
             $this->database->execute(

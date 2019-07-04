@@ -67,7 +67,7 @@ VALUES (' . (int) $params['id_attribute_group'] . ', ' . (int) Tools::getValue('
             $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
 
             if (empty($seoUrl)) {
-                $seoUrl = Tools::getValue('name_' . (int) $language['id_lang']);
+                continue;
             }
 
             $this->database->execute(
