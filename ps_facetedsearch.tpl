@@ -1,7 +1,7 @@
-{if isset($rendered_active_filters)}
-  {$rendered_active_filters nofilter}
+{if isset($listing.rendered_active_filters)}
+  {$listing.rendered_active_filters nofilter}
 {/if}
 
-{if isset($rendered_facets)}
-  {$rendered_facets nofilter}
+{if isset($listing.rendered_facets)}
+  {$listing.rendered_facets nofilter}
 {/if}

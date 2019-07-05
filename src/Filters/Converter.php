@@ -47,6 +47,15 @@ class Converter
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
 
+    const TYPE_ATTRIBUTE_GROUP = 'attribute_group';
+    const TYPE_AVAILABILITY = 'availability';
+    const TYPE_CATEGORY = 'category';
+    const TYPE_CONDITION = 'condition';
+    const TYPE_FEATURE = 'feature';
+    const TYPE_MANUFACTURER = 'manufacturer';
+    const TYPE_PRICE = 'price';
+    const TYPE_WEIGHT = 'weight';
+
     /**
      * @var Context
      */
@@ -76,23 +85,24 @@ class Converter
             $facet = new Facet();
             $facet
                 ->setLabel($filterBlock['name'])
+                ->setProperty('filter_show_limit', $filterBlock['filter_show_limit'])
                 ->setMultipleSelectionAllowed(true);
 
             switch ($filterBlock['type']) {
-                case 'category':
+                case self::TYPE_CATEGORY:
+                case self::TYPE_CONDITION:
+                case self::TYPE_MANUFACTURER:
                 case 'quantity':
-                case 'condition':
-                case 'manufacturer':
                 case 'id_attribute_group':
                 case 'id_feature':
                     $type = $filterBlock['type'];
                     if ($filterBlock['type'] == 'quantity') {
-                        $type = 'availability';
+                        $type = self::TYPE_AVAILABILITY;
                     } elseif ($filterBlock['type'] == 'id_attribute_group') {
-                        $type = 'attribute_group';
+                        $type = self::TYPE_ATTRIBUTE_GROUP;
                         $facet->setProperty('id_attribute_group', $filterBlock['id_key']);
                     } elseif ($filterBlock['type'] == 'id_feature') {
-                        $type = 'feature';
+                        $type = self::TYPE_FEATURE;
                         $facet->setProperty('id_feature', $filterBlock['id_key']);
                     }
 
@@ -118,8 +128,8 @@ class Converter
                         $facet->addFilter($filter);
                     }
                     break;
-                case 'weight':
-                case 'price':
+                case self::TYPE_WEIGHT:
+                case self::TYPE_PRICE:
                     $facet
                         ->setType($filterBlock['type'])
                         ->setProperty('min', $filterBlock['min'])
