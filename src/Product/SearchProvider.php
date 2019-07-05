@@ -176,7 +176,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $this->labelRangeFilters($facets);
         $this->addEncodedFacetsToFilters($facets);
         $this->hideZeroValues($facets);
-        $this->hideUselessFacets($facets);
+        $this->hideUselessFacets($facets, (int) $result->getTotalProductsCount());
 
         $facetCollection = new FacetCollection();
         $nextMenu = $facetCollection->setFacets($facets);
@@ -441,8 +441,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Keep facet status when it's a slider
      *
      * @param array $facets
+     * @param int $totalProducts
      */
-    private function hideUselessFacets(array $facets)
+    private function hideUselessFacets(array $facets, $totalProducts)
     {
         foreach ($facets as $facet) {
             if ($facet->getWidgetType() === 'slider') {
@@ -452,15 +453,29 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
+            $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
                 if ($filter->getMagnitude() > 0) {
+                    $totalFacetProducts += $filter->getMagnitude();
                     ++$usefulFiltersCount;
                 }
             }
 
             $facet->setDisplayed(
+                // There are two filters displayed
                 $usefulFiltersCount > 1
+                ||
+                /*
+                 * There is only one fitler and the
+                 * magnitude is different than the
+                 * total products
+                 */
+                (
+                    count($facet->getFilters()) === 1
+                    && $totalFacetProducts != $totalProducts
+                    && $usefulFiltersCount > 0
+                )
             );
         }
     }
