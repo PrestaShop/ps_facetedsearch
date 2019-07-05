@@ -85,6 +85,7 @@ class Converter
             $facet = new Facet();
             $facet
                 ->setLabel($filterBlock['name'])
+                ->setProperty('filter_show_limit', $filterBlock['filter_show_limit'])
                 ->setMultipleSelectionAllowed(true);
 
             switch ($filterBlock['type']) {
