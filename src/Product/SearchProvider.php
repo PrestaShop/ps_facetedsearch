@@ -466,12 +466,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 // There are two filters displayed
                 $usefulFiltersCount > 1
                 ||
+                /*
+                 * There is only one fitler and the
+                 * magnitude is different than the
+                 * total products
+                 */
                 (
-                    /*
-                     * There is only one fitler and the
-                     * magnitude is different than the
-                     * total products
-                     */
                     count($facet->getFilters()) === 1
                     && $totalFacetProducts != $totalProducts
                     && $usefulFiltersCount > 0
