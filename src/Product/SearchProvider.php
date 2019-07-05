@@ -430,9 +430,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         foreach ($facets as $facet) {
             $count = 0;
+            $filterShowLimit = (int) $facet->getProperty('filter_show_limit');
             foreach ($facet->getFilters() as $filter) {
                 if ($filter->getMagnitude() === 0
-                    || $count >= $facet->getProperty('filter_show_limit')
+                    || ($filterShowLimit > 0 && $count >= $filterShowLimit)
                 ) {
                     $filter->setDisplayed(false);
                     continue;
