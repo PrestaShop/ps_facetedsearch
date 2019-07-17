@@ -1063,6 +1063,20 @@ class Block
             );
         }
 
+        // Default symbol configuration
+        $symbol = [
+            '.',
+            ',',
+            ';',
+            '%',
+            '-',
+            '+',
+            'E',
+            '×',
+            '‰',
+            '∞',
+            'NaN',
+        ];
         // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
         $precision = isset($currency->precision) ? $currency->precision : 2;
         $formats = explode(';', $currency->format);
