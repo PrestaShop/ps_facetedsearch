@@ -751,12 +751,15 @@ class Block
             }
 
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
-                'color' => $attribute['color'],
                 'name' => $attribute['name'],
                 'nbr' => $count,
                 'url_name' => $urlName,
                 'meta_title' => $metaTitle,
             ];
+
+            if ($attributesBlock[$idAttributeGroup]['is_color_group'] !== false) {
+                $attributesBlock[$idAttributeGroup]['values'][$idAttribute]['color'] = $attribute['color'];
+            }
 
             if (array_key_exists('id_attribute_group', $selectedFilters)) {
                 foreach ($selectedFilters['id_attribute_group'] as $selectedAttribute) {
