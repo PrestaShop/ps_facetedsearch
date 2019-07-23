@@ -30,6 +30,8 @@ import NumberSymbol from './number-symbol';
 import PriceSpecification from './specifications/price';
 import NumberSpecification from './specifications/number';
 
+const escapeRE = require('lodash.escaperegexp');
+
 const CURRENCY_SYMBOL_PLACEHOLDER = '¤';
 const DECIMAL_SEPARATOR_PLACEHOLDER = '.';
 const GROUP_SEPARATOR_PLACEHOLDER = ',';
@@ -199,7 +201,7 @@ class NumberFormatter {
    */
   replaceSymbols(number) {
     const symbols = this.numberSpecification.getSymbol();
-    let num = number;
+
     const map = {};
     map[DECIMAL_SEPARATOR_PLACEHOLDER] = symbols.getDecimal();
     map[GROUP_SEPARATOR_PLACEHOLDER] = symbols.getGroup();
@@ -207,10 +209,20 @@ class NumberFormatter {
     map[PERCENT_SYMBOL_PLACEHOLDER] = symbols.getPercentSign();
     map[PLUS_SIGN_PLACEHOLDER] = symbols.getPlusSign();
 
-    return number.replace(/[<>\n]/g, function(match) {
-      return map[match];
-    });
+    return this.strtr(number, map);
   }
+
+  /**
+   * strtr() for JavaScript
+   * Translate characters or replace substrings
+   */
+  strtr(str, pairs) {
+    const substrs = Object.keys(pairs).map(escapeRE);
+    return str.split(RegExp(`(${substrs.join('|')})`))
+      .map(part => pairs[part] || part)
+      .join('');
+  }
+
 
   /**
    * Add missing placeholders to the number using the passed CLDR pattern.
