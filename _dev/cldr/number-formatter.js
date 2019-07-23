@@ -202,7 +202,6 @@ class NumberFormatter {
     let num = number;
     const map = {};
     map[DECIMAL_SEPARATOR_PLACEHOLDER] = symbols.getDecimal();
-    map[DECIMAL_SEPARATOR_PLACEHOLDER] = symbols.getDecimal();
     map[GROUP_SEPARATOR_PLACEHOLDER] = symbols.getGroup();
     map[MINUS_SIGN_PLACEHOLDER] = symbols.getMinusSign();
     map[PERCENT_SYMBOL_PLACEHOLDER] = symbols.getPercentSign();
