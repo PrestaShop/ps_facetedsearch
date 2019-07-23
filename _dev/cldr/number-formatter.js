@@ -200,13 +200,17 @@ class NumberFormatter {
   replaceSymbols(number) {
     const symbols = this.numberSpecification.getSymbol();
     let num = number;
-    num = num.split(DECIMAL_SEPARATOR_PLACEHOLDER).join(symbols.getDecimal());
-    num = num.split(GROUP_SEPARATOR_PLACEHOLDER).join(symbols.getGroup());
-    num = num.split(MINUS_SIGN_PLACEHOLDER).join(symbols.getMinusSign());
-    num = num.split(PERCENT_SYMBOL_PLACEHOLDER).join(symbols.getPercentSign());
-    num = num.split(PLUS_SIGN_PLACEHOLDER).join(symbols.getPlusSign());
+    const map = {};
+    map[DECIMAL_SEPARATOR_PLACEHOLDER] = symbols.getDecimal();
+    map[DECIMAL_SEPARATOR_PLACEHOLDER] = symbols.getDecimal();
+    map[GROUP_SEPARATOR_PLACEHOLDER] = symbols.getGroup();
+    map[MINUS_SIGN_PLACEHOLDER] = symbols.getMinusSign();
+    map[PERCENT_SYMBOL_PLACEHOLDER] = symbols.getPercentSign();
+    map[PLUS_SIGN_PLACEHOLDER] = symbols.getPlusSign();
 
-    return num;
+    return number.replace(/[<>\n]/g, function(match) {
+      return map[match];
+    });
   }
 
   /**
