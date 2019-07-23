@@ -36,6 +36,8 @@ use FeatureValue;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
+use PrestaShop\PrestaShop\Core\Localization\Locale;
+use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
 use Shop;
 use Tools;
 
@@ -1032,6 +1034,36 @@ class Block
      */
     private function preparePriceSpecifications()
     {
+        /* @var Currency */
+        $currency = $this->context->currency;
+        // New method since PS 1.7.6
+        if (isset($this->context->currentLocale) && method_exists($this->context->currentLocale, 'getPriceSpecification')) {
+            /* @var PriceSpecification */
+            $priceSpecification = $this->context->currentLocale->getPriceSpecification($currency->iso_code);
+            /* @var NumberSymbolList */
+            $symbolList = $priceSpecification->getSymbolsByNumberingSystem(Locale::NUMBERING_SYSTEM_LATIN);
+
+            $symbol = [
+                $symbolList->getDecimal(),
+                $symbolList->getGroup(),
+                $symbolList->getList(),
+                $symbolList->getPercentSign(),
+                $symbolList->getMinusSign(),
+                $symbolList->getPlusSign(),
+                $symbolList->getExponential(),
+                $symbolList->getSuperscriptingExponent(),
+                $symbolList->getPerMille(),
+                $symbolList->getInfinity(),
+                $symbolList->getNaN(),
+            ];
+
+            return array_merge(
+                ['symbol' => $symbol],
+                $priceSpecification->toArray()
+            );
+        }
+
+        // Default symbol configuration
         $symbol = [
             '.',
             ',',
@@ -1045,19 +1077,6 @@ class Block
             '∞',
             'NaN',
         ];
-        /* @var Currency */
-        $currency = $this->context->currency;
-        // New method since PS 1.7.6
-        if (isset($this->context->currentLocale) && method_exists($this->context->currentLocale, 'getPriceSpecification')) {
-            /* @var PriceSpecification */
-            $priceSpecification = $this->context->currentLocale->getPriceSpecification($currency->iso_code);
-
-            return array_merge(
-                ['symbol' => $symbol],
-                $priceSpecification->toArray()
-            );
-        }
-
         // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
         $precision = isset($currency->precision) ? $currency->precision : 2;
         $formats = explode(';', $currency->format);
