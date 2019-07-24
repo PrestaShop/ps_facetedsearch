@@ -118,13 +118,14 @@ class Converter
                             $filter->setActive($filterArray['checked']);
                         }
 
-                        if (isset($filterArray['color']) && $filterArray['color'] != '') {
-                            $filter->setProperty('color', $filterArray['color']);
+                        if (isset($filterArray['color'])) {
+                            if ($filterArray['color'] != '') {
+                                $filter->setProperty('color', $filterArray['color']);
+                            } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
+                                $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
+                            }
                         }
 
-                        if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
-                            $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
-                        }
                         $facet->addFilter($filter);
                     }
                     break;
