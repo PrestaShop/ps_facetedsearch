@@ -282,7 +282,7 @@ class ConverterTest extends MockeryTestCase
                             ],
                             'multipleSelectionAllowed' => false,
                             'widgetType' => 'dropdown',
-                        ],
+                        ]
                     ),
                 ],
             ],
