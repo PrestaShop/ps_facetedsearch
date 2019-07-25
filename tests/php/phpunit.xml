@@ -4,6 +4,7 @@
   <php>
     <const name="_DB_PREFIX_" value="ps_"/>
     <const name="_PS_VERSION_" value="FacetedSearchVersion"/>
+    <const name="_THEME_COL_DIR_" value="/theme/"/>
     <server name="REQUEST_URI" value="/catalog?from=scratch&amp;page=1&amp;something"/>
     <server name="HTTP_HOST" value="shop.prestashop.com"/>
   </php>
