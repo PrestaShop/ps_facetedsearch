@@ -252,6 +252,9 @@ class Filter
         return $this->nextEncodedFacets;
     }
 
+    /**
+     * Functions created for testing
+     */
     public function setProperties(array $data)
     {
         $this->properties = $data;

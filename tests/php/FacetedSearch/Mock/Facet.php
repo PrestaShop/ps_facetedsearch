@@ -231,6 +231,9 @@ class Facet
         return $this->widgetType;
     }
 
+    /**
+     * Functions created for testing
+     */
     public function setProperties(array $data)
     {
         $this->properties = $data;
