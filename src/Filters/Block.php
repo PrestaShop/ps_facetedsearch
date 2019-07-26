@@ -48,11 +48,6 @@ use Tools;
 class Block
 {
     /**
-     * @var array
-     */
-    const RANGE_FILTERS = ['price', 'weight'];
-
-    /**
      * @var InterfaceAdapter
      */
     private $searchAdapter;

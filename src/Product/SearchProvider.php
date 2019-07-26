@@ -329,7 +329,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function labelRangeFilters(array $facets)
     {
         foreach ($facets as $facet) {
-            if (!in_array($facet->getType(), Filters\Block::RANGE_FILTERS)) {
+            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS)) {
                 continue;
             }
 

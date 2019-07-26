@@ -58,6 +58,11 @@ class Converter
     const TYPE_WEIGHT = 'weight';
 
     /**
+     * @var array
+     */
+    const RANGE_FILTERS = [self::TYPE_PRICE, self::TYPE_WEIGHT];
+
+    /**
      * @var Context
      */
     protected $context;
