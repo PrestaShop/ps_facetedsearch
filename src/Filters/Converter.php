@@ -447,7 +447,7 @@ class Converter
     }
 
     /**
-     * Sort filters by magnitude
+     * Sort filters by label
      *
      * @param Filter $a
      * @param Filter $b
