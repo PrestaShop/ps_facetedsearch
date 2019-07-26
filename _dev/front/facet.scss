@@ -31,6 +31,13 @@
 
 #search_filters {
   .facet {
+    .title {
+      display: flex;
+      .collapse-icons {
+        margin-left: auto;
+      }
+    }
+
     .facet-title {
       @include text-ellipsis();
     }
