@@ -176,7 +176,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $this->labelRangeFilters($facets);
         $this->addEncodedFacetsToFilters($facets);
         $this->hideUselessFacets($facets, (int) $result->getTotalProductsCount());
-        $this->hideZeroValuesAndShowLimit($facets);
 
         $facetCollection = new FacetCollection();
         $nextMenu = $facetCollection->setFacets($facets);
@@ -330,12 +329,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function labelRangeFilters(array $facets)
     {
         foreach ($facets as $facet) {
-            if ($facet->getType() === 'weight') {
-                $unit = Configuration::get('PS_WEIGHT_UNIT');
-                foreach ($facet->getFilters() as $filter) {
-                    $filterValue = $filter->getValue();
-                    $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
-                    $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
+            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS)) {
+                continue;
+            }
+
+            foreach ($facet->getFilters() as $filter) {
+                $filterValue = $filter->getValue();
+                $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
+                $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
+                if ($facet->getType() === 'weight') {
+                    $unit = Configuration::get('PS_WEIGHT_UNIT');
                     $filter->setLabel(
                         sprintf(
                             '%1$s%2$s - %3$s%4$s',
@@ -345,12 +348,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                             $unit
                         )
                     );
-                }
-            } elseif ($facet->getType() === 'price') {
-                foreach ($facet->getFilters() as $filter) {
-                    $filterValue = $filter->getValue();
-                    $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
-                    $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
+                } elseif ($facet->getType() === 'price') {
                     $filter->setLabel(
                         sprintf(
                             '%1$s - %2$s',
@@ -416,30 +414,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $filter->setNextEncodedFacets(
                     $urlSerializer->serialize($facetFilters)
                 );
-            }
-        }
-    }
-
-    /**
-     * Hide entries with 0 results
-     * Hide depending of show limit parameter
-     *
-     * @param array $facets
-     */
-    private function hideZeroValuesAndShowLimit(array $facets)
-    {
-        foreach ($facets as $facet) {
-            $count = 0;
-            $filterShowLimit = (int) $facet->getProperty('filter_show_limit');
-            foreach ($facet->getFilters() as $filter) {
-                if ($filter->getMagnitude() === 0
-                    || ($filterShowLimit > 0 && $count >= $filterShowLimit)
-                ) {
-                    $filter->setDisplayed(false);
-                    continue;
-                }
-
-                ++$count;
             }
         }
     }

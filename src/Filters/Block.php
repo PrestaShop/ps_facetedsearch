@@ -35,6 +35,7 @@ use Feature;
 use FeatureValue;
 use Group;
 use Manufacturer;
+use PrestaShopDatabaseException;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
@@ -175,10 +176,14 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
-        $this->database->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data)
-            VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
-        );
+        try {
+            $this->database->execute(
+                'REPLACE INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data) ' .
+                'VALUES ("' . $filterHash . '", "' . pSQL(serialize($data)) . '")'
+            );
+        } catch (PrestaShopDatabaseException $e) {
+            // Don't worry if the cache have invalid or duplicate hash
+        }
     }
 
     /**
@@ -235,7 +240,7 @@ class Block
             'min' => null,
             'unit' => $this->context->currency->sign,
             'specifications' => $priceSpecifications,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'nbr' => $nbProducts,
         ];
@@ -325,7 +330,7 @@ class Block
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
             'specifications' => null,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'value' => null,
             'nbr' => $nbProducts,
@@ -409,7 +414,7 @@ class Block
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop'),
             'values' => $conditionArray,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
         ];
 
@@ -506,7 +511,7 @@ class Block
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop'),
             'values' => $quantityArray,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
         ];
 
@@ -568,7 +573,7 @@ class Block
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop'),
             'values' => $manufacturersArray,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
         ];
 
@@ -738,7 +743,7 @@ class Block
                     'values' => [],
                     'url_name' => $urlName,
                     'meta_title' => $metaTitle,
-                    'filter_show_limit' => $filter['filter_show_limit'],
+                    'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
             }
@@ -869,7 +874,7 @@ class Block
                     'name' => $feature['name'],
                     'url_name' => $urlName,
                     'meta_title' => $metaTitle,
-                    'filter_show_limit' => $filter['filter_show_limit'],
+                    'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
             }
@@ -1023,7 +1028,7 @@ class Block
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop'),
             'values' => $categoryArray,
-            'filter_show_limit' => $filter['filter_show_limit'],
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
         ];
 
