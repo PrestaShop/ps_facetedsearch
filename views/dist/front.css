@@ -120,6 +120,11 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+#search_filters .facet .title {
+  display: flex; }
+  #search_filters .facet .title .collapse-icons {
+    margin-left: auto; }
+
 #search_filters .facet .facet-title {
   width: calc(100% - 30px);
   overflow: hidden;

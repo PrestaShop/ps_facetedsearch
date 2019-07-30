@@ -50,11 +50,9 @@
 
         <div class="title hidden-md-up" data-target="#facet_{$_expand_id}" data-toggle="collapse"{if !$_collapse} aria-expanded="true"{/if}>
           <p class="h6 facet-title">{$facet.label}</p>
-          <span class="float-xs-right">
-            <span class="navbar-toggler collapse-icons">
-              <i class="material-icons add">&#xE313;</i>
-              <i class="material-icons remove">&#xE316;</i>
-            </span>
+          <span class="navbar-toggler collapse-icons">
+            <i class="material-icons add">&#xE313;</i>
+            <i class="material-icons remove">&#xE316;</i>
           </span>
         </div>
 
@@ -161,7 +159,7 @@
           {block name='facet_item_slider'}
             {foreach from=$facet.filters item="filter"}
               <ul id="facet_{$_expand_id}"
-                class="faceted-slider"
+                class="faceted-slider collapse{if !$_collapse} in{/if}"
                 data-slider-min="{$facet.properties.min}"
                 data-slider-max="{$facet.properties.max}"
                 data-slider-id="{$_expand_id}"
