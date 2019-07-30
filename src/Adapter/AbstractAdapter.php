@@ -72,6 +72,7 @@ abstract class AbstractAdapter implements InterfaceAdapter
     public function __clone()
     {
         $this->filters = clone $this->filters;
+        $this->operationsFilters = clone $this->operationsFilters;
     }
 
     /**
@@ -97,10 +98,25 @@ abstract class AbstractAdapter implements InterfaceAdapter
     /**
      * {@inheritdoc}
      */
-    public function resetOperationsFilter($filterName)
+    public function resetOperationsFilter($filterName, $value = null)
     {
         if ($this->operationsFilters->offsetExists($filterName)) {
-            $this->operationsFilters->offsetUnset($filterName);
+            if ($value === null) {
+                $this->operationsFilters->offsetUnset($filterName);
+            } else {
+                $operations = $this->operationsFilters->offsetGet($filterName);
+                foreach ($operations as $filterId => $filterValue) {
+                    if ($filterId === $value) {
+                        unset($operations[$filterId]);
+                    }
+                }
+
+                if (empty($operations)) {
+                    $this->resetOperationsFilter($filterName);
+                } else {
+                    $this->addOperationsFilter($filterName, $operations);
+                }
+            }
         }
 
         return $this;

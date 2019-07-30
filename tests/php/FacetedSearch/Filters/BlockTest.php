@@ -680,9 +680,17 @@ class BlockTest extends MockeryTestCase
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
+
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('id_attribute')
+            ->once()
+            ->with()
             ->andReturn($adapterInitialMock);
+        $adapterInitialMock->shouldReceive('getInitialPopulation')
+            ->once()
+            ->andReturn($adapterInitialMock);
+        $adapterInitialMock->shouldReceive('resetOperationsFilter')
+            ->once()
+            ->with('with_attributes', 1);
 
         $this->assertEquals(
             [
@@ -884,9 +892,15 @@ class BlockTest extends MockeryTestCase
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('with_features')
+            ->with()
             ->once()
             ->andReturn($adapterInitialMock);
+        $adapterInitialMock->shouldReceive('getInitialPopulation')
+            ->once()
+            ->andReturn($adapterInitialMock);
+        $adapterInitialMock->shouldReceive('resetOperationsFilter')
+            ->once()
+            ->with('with_features', 1);
 
         $featureMock = Mockery::mock(Feature::class);
         $featureMock->shouldReceive('getFeatures')

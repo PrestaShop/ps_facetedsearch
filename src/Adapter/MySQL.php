@@ -420,7 +420,9 @@ class MySQL extends AbstractAdapter
                 $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
             }
 
-            $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
+            if (!empty($operationsConditions)) {
+                $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
+            }
         }
 
         foreach ($this->getFilters() as $filterName => $filterContent) {

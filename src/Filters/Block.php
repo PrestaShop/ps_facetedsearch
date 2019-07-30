@@ -684,11 +684,13 @@ class Block
         if (!empty($selectedFilters['id_attribute_group'])) {
             foreach ($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
                 if ($key == $idAttributeGroup) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_attributes');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
+                    $filteredSearchAdapter->getInitialPopulation()->resetOperationsFilter('with_attributes', (int) $idAttributeGroup);
                     break;
                 }
             }
         }
+
         if (!$filteredSearchAdapter) {
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
@@ -819,7 +821,9 @@ class Block
         if (!empty($selectedFilters['id_feature'])) {
             foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
                 if ($key == $idFeature) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_features');
+                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
+                    $filteredSearchAdapter->getInitialPopulation()->resetOperationsFilter('with_features', (int) $idFeature);
+
                     break;
                 }
             }

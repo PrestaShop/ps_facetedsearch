@@ -481,7 +481,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                  */
                 (
                     count($facet->getFilters()) === 1
-                    && $totalFacetProducts != $totalProducts
+                    && $totalFacetProducts < $totalProducts
                     && $usefulFiltersCount > 0
                 )
             );

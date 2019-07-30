@@ -206,7 +206,7 @@ interface InterfaceAdapter
      *
      * @return self
      */
-    public function resetOperationsFilter($filterName);
+    public function resetOperationsFilter($filterName, $value = null);
 
     /**
      * Reset the filter for the given filterName
