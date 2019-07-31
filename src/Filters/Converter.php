@@ -47,14 +47,20 @@ class Converter
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
 
-    const TYPE_ATTRIBUTE_GROUP = 'attribute_group';
+    const TYPE_ATTRIBUTE_GROUP = 'id_attribute_group';
     const TYPE_AVAILABILITY = 'availability';
     const TYPE_CATEGORY = 'category';
     const TYPE_CONDITION = 'condition';
-    const TYPE_FEATURE = 'feature';
+    const TYPE_FEATURE = 'id_feature';
+    const TYPE_QUANTITY = 'quantity';
     const TYPE_MANUFACTURER = 'manufacturer';
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
+
+    /**
+     * @var array
+     */
+    const RANGE_FILTERS = [self::TYPE_PRICE, self::TYPE_WEIGHT];
 
     /**
      * @var Context
@@ -92,21 +98,22 @@ class Converter
                 case self::TYPE_CATEGORY:
                 case self::TYPE_CONDITION:
                 case self::TYPE_MANUFACTURER:
-                case 'quantity':
-                case 'id_attribute_group':
-                case 'id_feature':
+                case self::TYPE_QUANTITY:
+                case self::TYPE_ATTRIBUTE_GROUP:
+                case self::TYPE_FEATURE:
                     $type = $filterBlock['type'];
-                    if ($filterBlock['type'] == 'quantity') {
-                        $type = self::TYPE_AVAILABILITY;
-                    } elseif ($filterBlock['type'] == 'id_attribute_group') {
-                        $type = self::TYPE_ATTRIBUTE_GROUP;
-                        $facet->setProperty('id_attribute_group', $filterBlock['id_key']);
-                    } elseif ($filterBlock['type'] == 'id_feature') {
-                        $type = self::TYPE_FEATURE;
-                        $facet->setProperty('id_feature', $filterBlock['id_key']);
+                    if ($filterBlock['type'] === self::TYPE_QUANTITY) {
+                        $type = 'availability';
+                    } elseif ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
+                        $type = 'attribute_group';
+                        $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
+                    } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
+                        $type = 'feature';
+                        $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
                     }
 
                     $facet->setType($type);
+                    $filters = [];
                     foreach ($filterBlock['values'] as $id => $filterArray) {
                         $filter = new Filter();
                         $filter
@@ -118,13 +125,23 @@ class Converter
                             $filter->setActive($filterArray['checked']);
                         }
 
-                        if (isset($filterArray['color']) && $filterArray['color'] != '') {
-                            $filter->setProperty('color', $filterArray['color']);
+                        if (isset($filterArray['color'])) {
+                            if ($filterArray['color'] != '') {
+                                $filter->setProperty('color', $filterArray['color']);
+                            } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
+                                $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
+                            }
                         }
 
-                        if (isset($filterArray['url_name']) && $filterArray['url_name'] != '') {
-                            $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
-                        }
+                        $filters[] = $filter;
+                    }
+
+                    usort($filters, array($this, 'sortFiltersByMagnitude'));
+                    $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
+                    usort($filters, array($this, 'sortFiltersByLabel'));
+
+                    // No method available to add all filters
+                    foreach ($filters as $filter) {
                         $facet->addFilter($filter);
                     }
                     break;
@@ -208,7 +225,7 @@ class Converter
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 
             switch ($filter['type']) {
-                case 'manufacturer':
+                case self::TYPE_MANUFACTURER:
                     if (!isset($facetAndFiltersLabels[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
@@ -222,7 +239,7 @@ class Converter
                         }
                     }
                     break;
-                case 'quantity':
+                case self::TYPE_QUANTITY:
                     if (!isset($facetAndFiltersLabels[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
@@ -248,7 +265,7 @@ class Converter
                         }
                     }
                     break;
-                case 'condition':
+                case self::TYPE_CONDITION:
                     if (!isset($facetAndFiltersLabels[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
@@ -279,7 +296,7 @@ class Converter
                         }
                     }
                     break;
-                case 'id_feature':
+                case self::TYPE_FEATURE:
                     $features = Feature::getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] == $feature['id_feature']
@@ -296,7 +313,7 @@ class Converter
                         }
                     }
                     break;
-                case 'id_attribute_group':
+                case self::TYPE_ATTRIBUTE_GROUP:
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
                         if ($filter['id_value'] == $attributeGroup['id_attribute_group']
@@ -312,8 +329,8 @@ class Converter
                         }
                     }
                     break;
-                case 'price':
-                case 'weight':
+                case self::TYPE_PRICE:
+                case self::TYPE_WEIGHT:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         $filters = $facetAndFiltersLabels[$filterLabel];
                         if (isset($filters[1]) && isset($filters[2])) {
@@ -324,7 +341,7 @@ class Converter
                         }
                     }
                     break;
-                case 'category':
+                case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
                             $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
@@ -346,8 +363,8 @@ class Converter
         // Remove all empty selected filters
         foreach ($searchFilters as $key => $value) {
             switch ($key) {
-                case 'price':
-                case 'weight':
+                case self::TYPE_PRICE:
+                case self::TYPE_WEIGHT:
                     if ($value[0] === '' && $value[1] === '') {
                         unset($searchFilters[$key]);
                     }
@@ -363,25 +380,87 @@ class Converter
         return $searchFilters;
     }
 
+    /**
+     * Convert filter type to label
+     *
+     * @param string $filterType
+     */
     private function convertFilterTypeToLabel($filterType)
     {
         switch ($filterType) {
-            case 'price':
+            case self::TYPE_PRICE:
                 return $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
-            case 'weight':
+            case self::TYPE_WEIGHT:
                 return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
-            case 'condition':
+            case self::TYPE_CONDITION:
                 return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
-            case 'quantity':
+            case self::TYPE_QUANTITY:
                 return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
-            case 'manufacturer':
+            case self::TYPE_MANUFACTURER:
                 return $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
-            case 'category':
+            case self::TYPE_CATEGORY:
                 return $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
-            case 'id_feature':
-            case 'id_attribute_group':
+            case self::TYPE_FEATURE:
+            case self::TYPE_ATTRIBUTE_GROUP:
             default:
                 return null;
         }
+    }
+
+    /**
+     * Hide entries with 0 results
+     * Hide depending of show limit parameter
+     *
+     * @param array $filters
+     *
+     * @return array
+     */
+    private function hideZeroValuesAndShowLimit(array $filters, $showLimit)
+    {
+        $count = 0;
+        foreach ($filters as $filter) {
+            if ($filter->getMagnitude() === 0
+                || ($showLimit > 0 && $count >= $showLimit)
+            ) {
+                $filter->setDisplayed(false);
+                continue;
+            }
+
+            ++$count;
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Sort filters by magnitude
+     *
+     * @param Filter $a
+     * @param Filter $b
+     *
+     * @return int
+     */
+    private function sortFiltersByMagnitude(Filter $a, Filter $b)
+    {
+        $aMagnitude = $a->getMagnitude();
+        $bMagnitude = $b->getMagnitude();
+        if ($aMagnitude == $bMagnitude) {
+            return 0;
+        }
+
+        return $aMagnitude > $bMagnitude ? -1 : +1;
+    }
+
+    /**
+     * Sort filters by label
+     *
+     * @param Filter $a
+     * @param Filter $b
+     *
+     * @return int
+     */
+    private function sortFiltersByLabel(Filter $a, Filter $b)
+    {
+        return strcmp($a->getLabel(), $b->getLabel());
     }
 }

@@ -90,7 +90,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.1.0';
+        $this->version = '3.2.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -1404,9 +1404,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                     ? Tools::getShopDomainSsl(true)
                     : Tools::getShopDomain(true);
 
-            if (!Tools::file_get_contents($domain . __PS_BASE_URI__ . 'modules/ps_facetedsearch/ps_facetedsearch-price-indexer.php?token=' . $token . '&cursor=' . (int) $cursor . '&full=' . (int) $full)) {
-                $this->indexPrices((int) $cursor, (int) $full);
-            }
+            $this->indexPrices((int) $cursor, (int) $full);
 
             return $cursor;
         }

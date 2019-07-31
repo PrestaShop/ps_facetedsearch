@@ -56,8 +56,8 @@ class Attribute extends AbstractHook
 
         foreach (Language::getLanguages(false) as $language) {
             $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-
-            if (empty($seoUrl)) {
+            $metaTitle = Tools::getValue('meta_title_' . (int) $language['id_lang']);
+            if (empty($seoUrl) && empty($metaTitle)) {
                 continue;
             }
 
@@ -67,7 +67,7 @@ class Attribute extends AbstractHook
                 VALUES (
                 ' . (int) $params['id_attribute'] . ', ' . (int) $language['id_lang'] . ',
                 \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL(Tools::getValue('meta_title_' . (int) $language['id_lang']), true) . '\')'
+                \'' . pSQL($metaTitle, true) . '\')'
             );
         }
         $this->module->invalidateLayeredFilterBlockCache();

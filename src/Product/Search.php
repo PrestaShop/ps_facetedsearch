@@ -135,25 +135,25 @@ class Search
             switch ($key) {
                 case 'id_feature':
                     $operationsFilter = [];
-                    foreach ($filterValues as $filterValue) {
-                        $operationsFilter[] = ['id_feature_value', $filterValue];
+                    foreach ($filterValues as $featureId => $filterValue) {
+                        $operationsFilter[$featureId][] = ['id_feature_value', $filterValue];
                     }
 
                     $this->getSearchAdapter()->addOperationsFilter(
                         'with_features',
-                        [$operationsFilter]
+                        $operationsFilter
                     );
                     break;
 
                 case 'id_attribute_group':
                     $operationsFilter = [];
-                    foreach ($filterValues as $filterValue) {
-                        $operationsFilter[] = ['id_attribute', $filterValue];
+                    foreach ($filterValues as $attributeId => $filterValue) {
+                        $operationsFilter[$attributeId][] = ['id_attribute', $filterValue];
                     }
 
                     $this->getSearchAdapter()->addOperationsFilter(
                         'with_attributes',
-                        [$operationsFilter]
+                        $operationsFilter
                     );
                     break;
 

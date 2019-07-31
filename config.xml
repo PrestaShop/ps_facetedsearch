@@ -2,7 +2,7 @@
 <module>
     <name>ps_facetedsearch</name>
     <displayName><![CDATA[Faceted search]]></displayName>
-    <version><![CDATA[3.1.0]]></version>
+    <version><![CDATA[3.2.0]]></version>
     <description><![CDATA[Displays a block allowing multiple filters.]]></description>
     <author><![CDATA[PrestaShop]]></author>
     <tab><![CDATA[front_office_features]]></tab>
