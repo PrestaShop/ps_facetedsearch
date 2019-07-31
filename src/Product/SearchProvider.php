@@ -438,7 +438,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
-                if ($filter->getMagnitude() > 0) {
+                if ($filter->getMagnitude() > 0 && $filter->isDisplayed()) {
                     $totalFacetProducts += $filter->getMagnitude();
                     ++$usefulFiltersCount;
                 }
@@ -455,8 +455,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                  */
                 (
                     count($facet->getFilters()) === 1
-                    && $totalFacetProducts != $totalProducts
-                    && $usefulFiltersCount > 0
+                    && $totalFacetProducts < $totalProducts
+                    && $usefulFiltersCount > 1
                 )
             );
         }
