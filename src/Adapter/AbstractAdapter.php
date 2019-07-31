@@ -111,11 +111,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
         }
 
         $operations = $this->operationsFilters->offsetGet($filterName);
-        foreach ($operations as $filterId => $filterValue) {
-            if ($filterId === $value) {
-                unset($operations[$filterId]);
-                break;
-            }
+        if (isset($operations[$value])) {
+            unset($operations[$value]);
         }
 
         if (empty($operations)) {
