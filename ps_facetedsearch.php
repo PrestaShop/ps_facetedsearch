@@ -885,7 +885,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
             `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
-            `data` TEXT NULL
+            `data` MEDIUMTEXT NULL
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
