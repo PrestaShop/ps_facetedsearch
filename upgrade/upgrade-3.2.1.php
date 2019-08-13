@@ -29,6 +29,6 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_2_1(Ps_Facetedsearch $module)
 {
-    $sql = 'ALTER TABLE `'._DB_PREFIX_.'layered_filter_block` CHANGE `data` `data` MEDIUMTEXT NULL DEFAULT NULL;';
+    $sql = 'ALTER TABLE `'._DB_PREFIX_.'layered_filter_block` CHANGE COLUMN `data` `data` MEDIUMTEXT NULL DEFAULT NULL;';
     return Db::getInstance()->execute($sql);
 }
