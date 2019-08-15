@@ -261,7 +261,7 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
-                'with_attributes' => [
+                'with_attributes_0' => [
                     [
                         [
                             'id_attribute',
@@ -272,7 +272,7 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
-                'with_features' => [
+                'with_features_0' => [
                     [
                         [
                             'id_feature_value',
@@ -343,7 +343,7 @@ class SearchTest extends MockeryTestCase
 
         $this->assertEquals(
             [
-                'with_features' => [
+                'with_features_0' => [
                     [
                         [
                             'id_feature_value',
@@ -420,7 +420,7 @@ class SearchTest extends MockeryTestCase
 
         $this->assertEquals(
             [
-                'with_attributes' => [
+                'with_attributes_0' => [
                     [
                         [
                             'id_attribute',
