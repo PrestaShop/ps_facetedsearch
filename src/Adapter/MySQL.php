@@ -392,6 +392,7 @@ class MySQL extends AbstractAdapter
     private function computeWhereConditions(array $filterToTableMapping)
     {
         $whereConditions = [];
+        $operationIdx = 0;
         foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
@@ -403,7 +404,9 @@ class MySQL extends AbstractAdapter
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
                         // multi join
-                        $selectAlias = $joinMapping['tableAlias'] . ($idx === 0 ? '' : $idx);
+                        $selectAlias = $joinMapping['tableAlias'] .
+                                     ($operationIdx === 0 ? '' : '_' . $operationIdx ) .
+                                     ($idx === 0 ? '' : '_' . $idx);
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
@@ -420,6 +423,7 @@ class MySQL extends AbstractAdapter
                 $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
             }
 
+            $operationIdx++;
             if (!empty($operationsConditions)) {
                 $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
             }
@@ -511,25 +515,31 @@ class MySQL extends AbstractAdapter
         $this->addJoinList($joinList, $this->getSelectFields(), $filterToTableMapping);
         $this->addJoinList($joinList, $this->getFilters()->getKeys(), $filterToTableMapping);
 
+        $operationIdx = 0;
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
                     if (array_key_exists($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
-                        if ($idx !== 0) {
+                        if ($idx !== 0 || $operationIdx !== 0) {
                             // Index is not the first, append index to tableAlias on joinCondition
                             $joinMapping['joinCondition'] = preg_replace(
                                 '~([\(\s=]' . $joinMapping['tableAlias'] . ')\.~',
-                                '${1}' . $idx . '.',
+                                '${1}' .
+                                ($operationIdx === 0 ? '' : '_' . $operationIdx) .
+                                ($idx === 0 ? '' : '_' . $idx) .
+                                '.',
                                 $joinMapping['joinCondition']
                             );
-                            $joinMapping['tableAlias'] .= $idx;
+                            $joinMapping['tableAlias'] .= ($operationIdx === 0 ? '' : '_' . $operationIdx) .
+                                ($idx === 0 ? '' : '_' . $idx);
                         }
 
                         $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
                     }
                 }
             }
+            $operationIdx++;
         }
 
         $this->addJoinList($joinList, $this->getGroupFields()->getKeys(), $filterToTableMapping);
@@ -578,7 +588,7 @@ class MySQL extends AbstractAdapter
             'joinType' => $joinMapping['joinType'],
         ];
 
-        $joinList->set($joinMapping['tableAlias'] . $joinMapping['tableName'], $joinInfos);
+        $joinList->set($joinMapping['tableAlias'] . '_' . $joinMapping['tableName'], $joinInfos);
     }
 
     /**
