@@ -405,7 +405,7 @@ class MySQL extends AbstractAdapter
                         // If index is not the first, append to the table alias for
                         // multi join
                         $selectAlias = $joinMapping['tableAlias'] .
-                                     ($operationIdx === 0 ? '' : '_' . $operationIdx ) .
+                                     ($operationIdx === 0 ? '' : '_' . $operationIdx) .
                                      ($idx === 0 ? '' : '_' . $idx);
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
@@ -423,7 +423,7 @@ class MySQL extends AbstractAdapter
                 $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
             }
 
-            $operationIdx++;
+            ++$operationIdx;
             if (!empty($operationsConditions)) {
                 $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
             }
@@ -539,7 +539,7 @@ class MySQL extends AbstractAdapter
                     }
                 }
             }
-            $operationIdx++;
+            ++$operationIdx;
         }
 
         $this->addJoinList($joinList, $this->getGroupFields()->getKeys(), $filterToTableMapping);
