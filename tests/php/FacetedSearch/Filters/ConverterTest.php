@@ -239,6 +239,20 @@ class ConverterTest extends MockeryTestCase
                             'filters' => [
                                 Filter::__set_state(
                                     [
+                                        'label' => 'White',
+                                        'type' => 'attribute_group',
+                                        'active' => false,
+                                        'displayed' => true,
+                                        'properties' => [
+                                            'color' => '#ffffff',
+                                        ],
+                                        'magnitude' => 3,
+                                        'value' => 8,
+                                        'nextEncodedFacets' => [],
+                                    ]
+                                ),
+                                Filter::__set_state(
+                                    [
                                         'label' => 'Black',
                                         'type' => 'attribute_group',
                                         'active' => false,
@@ -262,20 +276,6 @@ class ConverterTest extends MockeryTestCase
                                         ],
                                         'magnitude' => 3,
                                         'value' => 12,
-                                        'nextEncodedFacets' => [],
-                                    ]
-                                ),
-                                Filter::__set_state(
-                                    [
-                                        'label' => 'White',
-                                        'type' => 'attribute_group',
-                                        'active' => false,
-                                        'displayed' => true,
-                                        'properties' => [
-                                            'color' => '#ffffff',
-                                        ],
-                                        'magnitude' => 3,
-                                        'value' => 8,
                                         'nextEncodedFacets' => [],
                                     ]
                                 ),
