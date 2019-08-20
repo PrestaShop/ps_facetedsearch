@@ -294,15 +294,39 @@ class ConverterTest extends MockeryTestCase
                     'type' => 'id_feature',
                     'id_key' => '2',
                     'values' => [
-                        10 => [
-                            'nbr' => '3',
-                            'name' => '120 pages',
+                        5 => [
+                            'nbr' => '2',
+                            'name' => '2',
+                            'url_name' => null,
+                            'meta_title' => null,
+                        ],
+                        6 => [
+                            'nbr' => '2',
+                            'name' => '1',
+                            'url_name' => null,
+                            'meta_title' => null,
+                        ],
+                        7 => [
+                            'nbr' => '2',
+                            'name' => '2.2',
+                            'url_name' => null,
+                            'meta_title' => null,
+                        ],
+                        8 => [
+                            'nbr' => '2',
+                            'name' => '2.1',
                             'url_name' => null,
                             'meta_title' => null,
                         ],
                         9 => [
                             'nbr' => '3',
                             'name' => 'Removable cover',
+                            'url_name' => null,
+                            'meta_title' => null,
+                        ],
+                        10 => [
+                            'nbr' => '3',
+                            'name' => '120 pages',
                             'url_name' => null,
                             'meta_title' => null,
                         ],
@@ -324,6 +348,54 @@ class ConverterTest extends MockeryTestCase
                                 'id_feature' => '2',
                             ],
                             'filters' => [
+                                Filter::__set_state(
+                                    [
+                                        'label' => '1',
+                                        'type' => 'feature',
+                                        'active' => false,
+                                        'displayed' => true,
+                                        'properties' => [],
+                                        'magnitude' => 2,
+                                        'value' => 6,
+                                        'nextEncodedFacets' => [],
+                                    ]
+                                ),
+                                Filter::__set_state(
+                                    [
+                                        'label' => '2',
+                                        'type' => 'feature',
+                                        'active' => false,
+                                        'displayed' => true,
+                                        'properties' => [],
+                                        'magnitude' => 2,
+                                        'value' => 5,
+                                        'nextEncodedFacets' => [],
+                                    ]
+                                ),
+                                Filter::__set_state(
+                                    [
+                                        'label' => '2.1',
+                                        'type' => 'feature',
+                                        'active' => false,
+                                        'displayed' => true,
+                                        'properties' => [],
+                                        'magnitude' => 2,
+                                        'value' => 8,
+                                        'nextEncodedFacets' => [],
+                                    ]
+                                ),
+                                Filter::__set_state(
+                                    [
+                                        'label' => '2.2',
+                                        'type' => 'feature',
+                                        'active' => false,
+                                        'displayed' => true,
+                                        'properties' => [],
+                                        'magnitude' => 2,
+                                        'value' => 7,
+                                        'nextEncodedFacets' => [],
+                                    ]
+                                ),
                                 Filter::__set_state(
                                     [
                                         'label' => '120 pages',
