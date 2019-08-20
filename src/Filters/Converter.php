@@ -469,7 +469,7 @@ class Converter
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
         if (is_numeric($a->getLabel()) && is_numeric($b->getLabel())) {
-            return (float) $a->getLabel() - (float) $b->getLabel();
+            return ceil($a->getLabel()) - ceil($b->getLabel());
         }
 
         return strcmp($a->getLabel(), $b->getLabel());
