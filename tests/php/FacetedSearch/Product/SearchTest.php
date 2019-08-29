@@ -104,6 +104,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
                 'id_shop' => [
                     '=' => [
                         [
@@ -233,6 +240,9 @@ class SearchTest extends MockeryTestCase
                 'id_category' => [
                     '=' => [
                         [
+                            null,
+                        ],
+                        [
                             6,
                         ],
                     ],
@@ -338,6 +348,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -415,6 +432,13 @@ class SearchTest extends MockeryTestCase
                     ],
                 ],
                 'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
                     '=' => [
                         [
                             null,
