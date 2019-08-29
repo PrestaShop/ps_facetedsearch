@@ -136,9 +136,15 @@ class Converter
                         $filters[] = $filter;
                     }
 
-                    usort($filters, array($this, 'sortFiltersByMagnitude'));
+                    if ((int) $filterBlock['filter_show_limit'] !== 0) {
+                        usort($filters, array($this, 'sortFiltersByMagnitude'));
+                    }
+
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
-                    usort($filters, array($this, 'sortFiltersByLabel'));
+
+                    if ((int) $filterBlock['filter_show_limit'] !== 0 || $filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP) {
+                        usort($filters, array($this, 'sortFiltersByLabel'));
+                    }
 
                     // No method available to add all filters
                     foreach ($filters as $filter) {
@@ -445,7 +451,8 @@ class Converter
         $aMagnitude = $a->getMagnitude();
         $bMagnitude = $b->getMagnitude();
         if ($aMagnitude == $bMagnitude) {
-            return 0;
+            // Same magnitude, sort by label
+            return $this->sortFiltersByLabel($a, $b);
         }
 
         return $aMagnitude > $bMagnitude ? -1 : +1;
@@ -461,6 +468,6 @@ class Converter
      */
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
-        return strcmp($a->getLabel(), $b->getLabel());
+        return strnatcmp($a->getLabel(), $b->getLabel());
     }
 }
