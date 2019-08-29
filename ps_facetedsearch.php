@@ -528,7 +528,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             $minPrice[$idCountry][$currency['id_currency']] = $price;
                         }
 
-                        if ($minPrice > $maxPrice[$idCountry][$currency['id_currency']]) {
+                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
                             $maxPrice[$idCountry][$currency['id_currency']] = $price;
                         }
                     }
