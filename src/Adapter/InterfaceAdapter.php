@@ -201,14 +201,12 @@ interface InterfaceAdapter
 
     /**
      * Reset the operations filter for the given filterName
-     * or reset the operations filter with a specific value
      *
      * @param string $filterName
-     * @param string|int $value
      *
      * @return self
      */
-    public function resetOperationsFilter($filterName, $value = null);
+    public function resetOperationsFilter($filterName);
 
     /**
      * Reset the filter for the given filterName

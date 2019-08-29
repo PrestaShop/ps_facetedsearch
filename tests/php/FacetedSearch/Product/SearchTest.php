@@ -261,7 +261,7 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
-                'with_attributes' => [
+                'with_attributes_0' => [
                     [
                         [
                             'id_attribute',
@@ -272,7 +272,7 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
-                'with_features' => [
+                'with_features_0' => [
                     [
                         [
                             'id_feature_value',
@@ -306,7 +306,8 @@ class SearchTest extends MockeryTestCase
         $this->search->initSearch(
             [
                 'id_feature' => [
-                    [[1], [2, 3, 4]],
+                    [1],
+                    [2, 3, 4],
                 ],
             ]
         );
@@ -343,24 +344,29 @@ class SearchTest extends MockeryTestCase
 
         $this->assertEquals(
             [
-                'with_features' => [
+                'with_features_0' => [
                     [
                         [
                             'id_feature_value',
                             [
-                                [
-                                    1,
-                                ],
-                                [
-                                    2,
-                                    3,
-                                    4,
-                                ],
+                                1,
                             ],
                         ],
                     ],
                 ],
-            ],
+                'with_features_1' => [
+                    [
+                        [
+                            'id_feature_value',
+                            [
+                                2,
+                                3,
+                                4,
+                            ],
+                        ],
+                    ],
+                ],
+           ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
         );
     }
@@ -383,7 +389,8 @@ class SearchTest extends MockeryTestCase
         $this->search->initSearch(
             [
                 'id_attribute_group' => [
-                    [[1], [2, 3, 4]],
+                    [1],
+                    [2, 3, 4],
                 ],
             ]
         );
@@ -420,19 +427,24 @@ class SearchTest extends MockeryTestCase
 
         $this->assertEquals(
             [
-                'with_attributes' => [
+                'with_attributes_0' => [
                     [
                         [
                             'id_attribute',
                             [
-                                [
-                                    1,
-                                ],
-                                [
-                                    2,
-                                    3,
-                                    4,
-                                ],
+                                1,
+                            ],
+                        ],
+                    ],
+                ],
+                'with_attributes_1' => [
+                    [
+                        [
+                            'id_attribute',
+                            [
+                                2,
+                                3,
+                                4,
                             ],
                         ],
                     ],

@@ -358,7 +358,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [1], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((sa.quantity>=0 AND sa1.out_of_stock IN (1, 3, 4)) OR (sa.quantity>0 AND sa1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.out_of_stock, sa.quantity, psi.price_min, psi.price_max, psi.range_start, psi.range_end FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) INNER JOIN ps_layered_price_index psi ON (psi.id_product = p.id_product AND psi.id_currency = 4 AND psi.id_country = 3) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND 0 = sa_1.id_product_attribute ) WHERE ((sa.quantity>=0 AND sa_1.out_of_stock IN (1, 3, 4)) OR (sa.quantity>0 AND sa_1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
             [
                 'fields' => [
@@ -375,7 +375,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [1], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute=4) OR (sa.quantity>0 AND sa1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND 0 = sa_1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac_1.id_attribute=4) OR (sa.quantity>0 AND sa_1.out_of_stock=1)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
             [
                 'fields' => [
@@ -393,7 +393,7 @@ class MySQLTest extends MockeryTestCase
                         ['out_of_stock', [0], '='],
                     ],
                 ],
-                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac1 ON (pa.id_product_attribute = pac1.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac2 ON (pa.id_product_attribute = pac2.id_product_attribute) LEFT JOIN ps_stock_available sa1 ON (p.id_product = sa1.id_product AND 0 = sa1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac1.id_attribute IN (4, 5, 6) AND pac2.id_attribute IN (7, 8, 9)) OR (sa.quantity>0 AND sa1.out_of_stock=0)) ORDER BY p.id_product DESC LIMIT 0, 20',
+                'expected' => 'SELECT p.id_product, sa.quantity FROM ps_product p LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND 0 = sa.id_product_attribute ) STRAIGHT_JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) STRAIGHT_JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute) STRAIGHT_JOIN ps_product_attribute_combination pac_2 ON (pa.id_product_attribute = pac_2.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND 0 = sa_1.id_product_attribute ) WHERE ((pac.id_attribute=2 AND pac_1.id_attribute IN (4, 5, 6) AND pac_2.id_attribute IN (7, 8, 9)) OR (sa.quantity>0 AND sa_1.out_of_stock=0)) ORDER BY p.id_product DESC LIMIT 0, 20',
             ],
         ];
     }

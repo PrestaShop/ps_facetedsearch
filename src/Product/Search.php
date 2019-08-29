@@ -136,25 +136,22 @@ class Search
                 case 'id_feature':
                     $operationsFilter = [];
                     foreach ($filterValues as $featureId => $filterValue) {
-                        $operationsFilter[$featureId][] = ['id_feature_value', $filterValue];
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            'with_features_' . $featureId,
+                            [[['id_feature_value', $filterValue]]]
+                        );
                     }
-
-                    $this->getSearchAdapter()->addOperationsFilter(
-                        'with_features',
-                        $operationsFilter
-                    );
                     break;
 
                 case 'id_attribute_group':
                     $operationsFilter = [];
                     foreach ($filterValues as $attributeId => $filterValue) {
-                        $operationsFilter[$attributeId][] = ['id_attribute', $filterValue];
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            'with_attributes_' . $attributeId,
+                            [[['id_attribute', $filterValue]]]
+                        );
                     }
 
-                    $this->getSearchAdapter()->addOperationsFilter(
-                        'with_attributes',
-                        $operationsFilter
-                    );
                     break;
 
                 case 'category':
