@@ -98,27 +98,10 @@ abstract class AbstractAdapter implements InterfaceAdapter
     /**
      * {@inheritdoc}
      */
-    public function resetOperationsFilter($filterName, $value = null)
+    public function resetOperationsFilter($filterName)
     {
-        if (!$this->operationsFilters->offsetExists($filterName)) {
-            return $this;
-        }
-
-        if ($value === null) {
+        if ($this->operationsFilters->offsetExists($filterName)) {
             $this->operationsFilters->offsetUnset($filterName);
-
-            return $this;
-        }
-
-        $operations = $this->operationsFilters->offsetGet($filterName);
-        if (isset($operations[$value])) {
-            unset($operations[$value]);
-        }
-
-        if (empty($operations)) {
-            $this->resetOperationsFilter($filterName);
-        } else {
-            $this->addOperationsFilter($filterName, $operations);
         }
 
         return $this;

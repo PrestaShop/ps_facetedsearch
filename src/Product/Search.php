@@ -107,6 +107,7 @@ class Search
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
             $this->addFilter('id_category_default', [$parent->id]);
+            $this->addFilter('id_category', [$parent->id]);
         }
 
         // Visibility of a product must be in catalog or both (search & catalog)
@@ -136,25 +137,22 @@ class Search
                 case 'id_feature':
                     $operationsFilter = [];
                     foreach ($filterValues as $featureId => $filterValue) {
-                        $operationsFilter[$featureId][] = ['id_feature_value', $filterValue];
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            'with_features_' . $featureId,
+                            [[['id_feature_value', $filterValue]]]
+                        );
                     }
-
-                    $this->getSearchAdapter()->addOperationsFilter(
-                        'with_features',
-                        $operationsFilter
-                    );
                     break;
 
                 case 'id_attribute_group':
                     $operationsFilter = [];
                     foreach ($filterValues as $attributeId => $filterValue) {
-                        $operationsFilter[$attributeId][] = ['id_attribute', $filterValue];
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            'with_attributes_' . $attributeId,
+                            [[['id_attribute', $filterValue]]]
+                        );
                     }
 
-                    $this->getSearchAdapter()->addOperationsFilter(
-                        'with_attributes',
-                        $operationsFilter
-                    );
                     break;
 
                 case 'category':
