@@ -67,6 +67,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     ];
 
     /**
+     * Number of digits for MySQL DECIMAL
+     *
+     * @var int
+     */
+    const DECIMAL_DIGITS = 5;
+
+    /**
      * @var bool
      */
     private $ajax;
@@ -543,15 +550,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $minPriceValue = array_key_exists($idCountry, $minPrice) ? $minPrice[$idCountry][$currency['id_currency']] : 0;
                     $maxPriceValue = array_key_exists($idCountry, $maxPrice) ? $maxPrice[$idCountry][$currency['id_currency']] : 0;
                     if (!in_array($taxRateByCountry['iso_code'], self::ISO_CODE_TAX_FREE)) {
-                        $minPriceValue = Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, 0);
-                        $maxPriceValue = Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, 0);
+                        $minPriceValue = Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, self::DECIMAL_DIGITS);
+                        $maxPriceValue = Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, self::DECIMAL_DIGITS);
                     }
 
                     $values[] = '(' . (int) $idProduct . ',
                         ' . (int) $currency['id_currency'] . ',
                         ' . $idShop . ',
-                        ' . (int) $minPriceValue . ',
-                        ' . (int) $maxPriceValue . ',
+                        ' . $minPriceValue . ',
+                        ' . $maxPriceValue . ',
                         ' . (int) $idCountry . ')';
                 }
             }
@@ -559,8 +566,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             if (!empty($values)) {
                 $this->getDatabase()->execute(
                     'INSERT INTO `' . _DB_PREFIX_ . 'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max, id_country)
-                VALUES ' . implode(',', $values) . '
-                ON DUPLICATE KEY UPDATE id_product = id_product' // Avoid duplicate keys
+                     VALUES ' . implode(',', $values) . '
+                     ON DUPLICATE KEY UPDATE id_product = id_product' // Avoid duplicate keys
                 );
             }
         }
@@ -1235,8 +1242,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             `id_product` INT  NOT NULL,
             `id_currency` INT NOT NULL,
             `id_shop` INT NOT NULL,
-            `price_min` INT NOT NULL,
-            `price_max` INT NOT NULL,
+            `price_min` DECIMAL(11, 5) NOT NULL,
+            `price_max` DECIMAL(11, 5) NOT NULL,
             `id_country` INT NOT NULL,
             PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
             INDEX `id_currency` (`id_currency`),
