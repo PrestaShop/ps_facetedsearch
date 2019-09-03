@@ -28,6 +28,11 @@ namespace PrestaShop\Module\FacetedSearch\Hook;
 
 class SpecificPrice extends AbstractHook
 {
+    /**
+     * @var array
+     */
+    protected $productsBefore = null;
+
     const AVAILABLE_HOOKS = [
         'actionObjectSpecificPriceRuleUpdateBefore',
         'actionAdminSpecificPriceRuleControllerSaveAfter',
@@ -44,7 +49,9 @@ class SpecificPrice extends AbstractHook
             return;
         }
 
-        $this->productsBefore = $params['object']->getAffectedProducts();
+        /** @var \SpecificPriceRule */
+        $specificPrice = $params['object'];
+        $this->productsBefore = $specificPrice->getAffectedProducts();
     }
 
     /**
@@ -58,7 +65,9 @@ class SpecificPrice extends AbstractHook
             return;
         }
 
-        $affectedProducts = array_merge($this->productsBefore, $params['return']->getAffectedProducts());
+        /** @var \SpecificPriceRule */
+        $specificPrice = $params['return'];
+        $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
         foreach ($affectedProducts as $product) {
             $this->module->indexProductPrices($product['id_product']);
             $this->module->indexAttributes($product['id_product']);
