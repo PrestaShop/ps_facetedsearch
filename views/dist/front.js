@@ -182,5 +182,5 @@ var S=n(3),x=function(){function t(e){!function(t,e){if(!(t instanceof e))throw 
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
-$(document).ready(function(){prestashop.on("updateProductList",function(){$(".faceted-overlay").remove(),k()}),k(),prestashop.on("updateFacets",function(){1!==$(".faceted-overlay").length&&$("body").append(E)})});n(7),n(9)}]);
+$(document).ready(function(){prestashop.on("updateProductList",function(){$(".faceted-overlay").remove(),k()}),k(),prestashop.on("updateFacets",function(){1!==$(".faceted-overlay").length&&$("body").append(E)}),k(),prestashop.on("updateProductList",function(event){$("html,body").animate({scrollTop:$("#products").offset().top},500);})});n(7),n(9)}]);
 //# sourceMappingURL=front.js.map
