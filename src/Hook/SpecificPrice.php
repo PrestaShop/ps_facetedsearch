@@ -39,7 +39,7 @@ class SpecificPrice extends AbstractHook
     ];
 
     /**
-     * After saving a specific price rule
+     * Before saving a specific price rule
      *
      * @param array $params
      */
