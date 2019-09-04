@@ -30,6 +30,7 @@ use Db;
 use Context;
 use StockAvailable;
 use Doctrine\Common\Collections\ArrayCollection;
+use PrestaShop\Module\FacetedSearch\Product\Search;
 
 class MySQL extends AbstractAdapter
 {
@@ -111,38 +112,28 @@ class MySQL extends AbstractAdapter
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
 
-        if (empty($this->getSelectFields())
-            && empty($this->getFilters())
-            && empty($this->getGroupFields())
-            && empty($this->getOrderField())
-        ) {
-            // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
-            $query = $referenceTable;
-            $this->setOrderField('');
-        } else {
-            $query = 'SELECT ';
+        $query = 'SELECT ';
 
-            $selectFields = $this->computeSelectFields($filterToTableMapping);
-            $whereConditions = $this->computeWhereConditions($filterToTableMapping);
-            $joinConditions = $this->computeJoinConditions($filterToTableMapping);
-            $groupFields = $this->computeGroupByFields($filterToTableMapping);
+        $selectFields = $this->computeSelectFields($filterToTableMapping);
+        $whereConditions = $this->computeWhereConditions($filterToTableMapping);
+        $joinConditions = $this->computeJoinConditions($filterToTableMapping);
+        $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
-            $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
+        $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
-            foreach ($joinConditions as $joinAliasInfos) {
-                foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
-                    $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
-                        $tableAlias . ' ON ' . $joinInfos['joinCondition'];
-                }
+        foreach ($joinConditions as $joinAliasInfos) {
+            foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
+                $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
+                       $tableAlias . ' ON ' . $joinInfos['joinCondition'];
             }
+        }
 
-            if (!empty($whereConditions)) {
-                $query .= ' WHERE ' . implode(' AND ', $whereConditions);
-            }
+        if (!empty($whereConditions)) {
+            $query .= ' WHERE ' . implode(' AND ', $whereConditions);
+        }
 
-            if ($groupFields) {
-                $query .= ' GROUP BY ' . implode(', ', $groupFields);
-            }
+        if ($groupFields) {
+            $query .= ' GROUP BY ' . implode(', ', $groupFields);
         }
 
         if ($orderField) {
@@ -259,16 +250,18 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product AND pac.id_product_attribute = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
+                'dependencyField' => 'id_attribute',
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
+                'joinCondition' => '(p.id_product = sa.id_product AND pac.id_product_attribute = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
+                'dependencyField' => 'id_attribute',
             ],
             'price_min' => [
                 'tableName' => 'layered_price_index',
@@ -601,7 +594,7 @@ class MySQL extends AbstractAdapter
     private function computeGroupByFields(array $filterToTableMapping)
     {
         $groupFields = [];
-        if (empty($this->getGroupFields())) {
+        if ($this->getGroupFields()->isEmpty()) {
             return $groupFields;
         }
 
@@ -664,6 +657,9 @@ class MySQL extends AbstractAdapter
         $this->addGroupBy($fieldName);
         $this->addSelectField($fieldName);
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
+
+        $this->copyStockManagementFilter();
+
         $this->setLimit(null);
         $this->setOrderField('');
 
@@ -706,5 +702,27 @@ class MySQL extends AbstractAdapter
     protected function getDatabase()
     {
         return Db::getInstance();
+    }
+
+    /**
+     * Copy stock management operation filters
+     * to make sure quantity is also used
+     */
+    protected function copyStockManagementFilter()
+    {
+        $initialPopulation = $this->getInitialPopulation();
+        if (null === $initialPopulation) {
+            return;
+        }
+
+        $operationsFilters = $initialPopulation->getOperationsFilters();
+        if (!$operationsFilters->offsetExists(Search::STOCK_MANAGEMENT_FILTER)) {
+            return;
+        }
+
+        $this->addOperationsFilter(
+            Search::STOCK_MANAGEMENT_FILTER,
+            $operationsFilters->offsetGet(Search::STOCK_MANAGEMENT_FILTER)
+        );
     }
 }
