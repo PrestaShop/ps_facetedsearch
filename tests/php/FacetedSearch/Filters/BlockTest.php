@@ -67,7 +67,7 @@ class BlockTest extends MockeryTestCase
                     'PS_HOME_CATEGORY' => 1,
                     'PS_WEIGHT_UNIT' => 'kg',
                     'PS_STOCK_MANAGEMENT' => '1',
-                    'PS_ORDER_OUT_OF_STOCK' => '0',
+                    'PS_ORDER_OUT_OF_STOCK' => '1',
                     'PS_UNIDENTIFIED_GROUP' => '1',
                     'PS_LAYERED_FILTER_CATEGORY_DEPTH' => 3,
                 ];
@@ -211,7 +211,7 @@ class BlockTest extends MockeryTestCase
                             'currencyCode' => 'EUR',
                             'currencySymbol' => '€',
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 3,
                         'nbr' => 10,
                         'value' => [
@@ -261,7 +261,7 @@ class BlockTest extends MockeryTestCase
                         'min' => 10.0,
                         'unit' => 'kg',
                         'specifications' => null,
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 3,
                         'nbr' => 10,
                         'value' => [
@@ -324,7 +324,7 @@ class BlockTest extends MockeryTestCase
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -337,7 +337,7 @@ class BlockTest extends MockeryTestCase
             ->andReturnUsing(function ($arg) {
                 $valueMap = [
                     'quantity' => [['c' => 100]],
-                    'out_of_stock' => [['out_of_stock' => 0, 'c' => 10]],
+                    'out_of_stock' => [['out_of_stock' => 0, 'c' => 100]], // Unable to order these products
                 ];
 
                 return $valueMap[$arg];
@@ -366,7 +366,7 @@ class BlockTest extends MockeryTestCase
                                 'checked' => true,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -390,7 +390,7 @@ class BlockTest extends MockeryTestCase
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
 
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -428,11 +428,11 @@ class BlockTest extends MockeryTestCase
                             ],
                             [
                                 'name' => 'In stock',
-                                'nbr' => 10,
+                                'nbr' => 110,
                                 'checked' => true,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -455,7 +455,7 @@ class BlockTest extends MockeryTestCase
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -489,15 +489,15 @@ class BlockTest extends MockeryTestCase
                         'values' => [
                             [
                                 'name' => 'Not available',
-                                'nbr' => 100,
+                                'nbr' => 90,
                             ],
                             [
                                 'name' => 'In stock',
-                                'nbr' => 0,
+                                'nbr' => 110,
                                 'checked' => true,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -521,7 +521,7 @@ class BlockTest extends MockeryTestCase
             [['Refurbished', [], 'Modules.Facetedsearch.Shop'], 'Refurbished'],
             [['Condition', [], 'Modules.Facetedsearch.Shop'], 'Condition'],
         ]);
-        $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -555,7 +555,7 @@ class BlockTest extends MockeryTestCase
                                 'nbr' => 0,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -582,7 +582,7 @@ class BlockTest extends MockeryTestCase
 
         Manufacturer::setStaticExpectations($mock);
 
-        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $this->assertEquals(
             [
@@ -622,7 +622,7 @@ class BlockTest extends MockeryTestCase
         Manufacturer::setStaticExpectations($mock);
         $this->mockTranslator('Brand', [], 'Modules.Facetedsearch.Shop', 'Brand');
 
-        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -659,7 +659,7 @@ class BlockTest extends MockeryTestCase
                                 'nbr' => 10,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],

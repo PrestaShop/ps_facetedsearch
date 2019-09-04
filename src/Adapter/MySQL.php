@@ -50,11 +50,6 @@ class MySQL extends AbstractAdapter
     const INNER_JOIN = 'INNER JOIN';
 
     /**
-     * @var string
-     */
-    const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
-
-    /**
      * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
@@ -165,20 +160,20 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_attribute',
                 'tableAlias' => 'pa',
                 'joinCondition' => '(p.id_product = pa.id_product)',
-                'joinType' => self::STRAIGHT_JOIN,
+                'joinType' => self::LEFT_JOIN,
             ],
             'id_attribute' => [
                 'tableName' => 'product_attribute_combination',
                 'tableAlias' => 'pac',
                 'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
-                'joinType' => self::STRAIGHT_JOIN,
+                'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_product_attribute',
             ],
             'id_attribute_group' => [
                 'tableName' => 'attribute',
                 'tableAlias' => 'a',
                 'joinCondition' => '(a.id_attribute = pac.id_attribute)',
-                'joinType' => self::STRAIGHT_JOIN,
+                'joinType' => self::INNER_JOIN,
                 'dependencyField' => 'id_attribute',
             ],
             'id_feature' => [
@@ -250,7 +245,7 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND pac.id_product_attribute = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
@@ -258,7 +253,7 @@ class MySQL extends AbstractAdapter
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND pac.id_product_attribute = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',

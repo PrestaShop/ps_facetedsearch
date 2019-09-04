@@ -468,7 +468,7 @@ class Block
                 'c' => !empty($noMoreQuantityResults) ? (int) $noMoreQuantityResults[0]['c'] : 0,
             ],
         ];
-        $results[1]['c'] = (int) ($allResults - $results[0]['c']);
+        $results[1]['c'] = (int) ($allResults);
         if (!$this->psStockManagement) {
             if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
                 $quantityArray[1]['checked'] = true;
@@ -479,6 +479,12 @@ class Block
         } else {
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
+                // search count of products not available when out of stock (out_of_stock == 0)
+                if ((int) $resultOutOfStock['out_of_stock'] === 0) {
+                    $results[1]['c'] -= (int) $resultOutOfStock['c'];
+                    continue;
+                }
+
                 // search count of products always available when out of stock (out_of_stock == 1)
                 if ((int) $resultOutOfStock['out_of_stock'] === 1) {
                     $results[0]['c'] -= (int) $resultOutOfStock['c'];
