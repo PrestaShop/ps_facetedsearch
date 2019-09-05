@@ -468,7 +468,8 @@ class Block
                 'c' => !empty($noMoreQuantityResults) ? (int) $noMoreQuantityResults[0]['c'] : 0,
             ],
         ];
-        $results[1]['c'] = (int) ($allResults);
+        $results[1]['c'] = (int) ($allResults - $results[0]['c']);
+
         if (!$this->psStockManagement) {
             if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
                 $quantityArray[1]['checked'] = true;
@@ -479,31 +480,24 @@ class Block
         } else {
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
-                // search count of products not available when out of stock (out_of_stock == 0)
-                // Or psOrderOutOfStock === false and orders are denied by default
-                if ((int) $resultOutOfStock['out_of_stock'] === 0 ||
-                    (
-                        $this->psOrderOutOfStock === false
-                        && (int) $resultOutOfStock['out_of_stock'] === 2
-                    )
-                ) {
-                    $results[1]['c'] -= (int) $resultOutOfStock['c'];
-                    continue;
-                }
+                switch ((int) $resultOutOfStock['out_of_stock']) {
+                    // search count of products always available when out of stock (out_of_stock: 1)
+                    case 1:
+                        $results[0]['c'] -= (int) $resultOutOfStock['c'];
+                        $results[1]['c'] += (int) $resultOutOfStock['c'];
+                        break;
+                    // search count of products depending on global configuration (out_of_stock: 2)
+                    case 2:
+                        if ($this->psOrderOutOfStock) {
+                            $results[0]['c'] -= (int) $resultOutOfStock['c'];
+                            $results[1]['c'] += (int) $resultOutOfStock['c'];
+                        }
+                        break;
 
-                // search count of products always available when out of stock (out_of_stock == 1)
-                if ((int) $resultOutOfStock['out_of_stock'] === 1) {
-                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
-                    $results[1]['c'] += (int) $resultOutOfStock['c'];
-                    continue;
-                }
-
-                // if $this->psOrderOutOfStock === true, product with out_of_stock == 2 are available
-                if ($this->psOrderOutOfStock === true
-                    && (int) $resultOutOfStock['out_of_stock'] === 2
-                ) {
-                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
-                    $results[1]['c'] += (int) $resultOutOfStock['c'];
+                    // search count of products not available when out of stock (out_of_stock: 0)
+                    // or psOrderOutOfStock: false
+                    default:
+                        break;
                 }
             }
 
