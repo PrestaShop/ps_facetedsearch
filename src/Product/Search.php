@@ -154,7 +154,6 @@ class Search
                             [[['id_attribute', $filterValue]]]
                         );
                     }
-
                     break;
 
                 case 'category':

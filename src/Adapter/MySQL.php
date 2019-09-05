@@ -30,7 +30,6 @@ use Db;
 use Context;
 use StockAvailable;
 use Doctrine\Common\Collections\ArrayCollection;
-use PrestaShop\Module\FacetedSearch\Product\Search;
 
 class MySQL extends AbstractAdapter
 {
@@ -634,29 +633,28 @@ class MySQL extends AbstractAdapter
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
-        $mysqlAdapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
-        $mysqlAdapter->setLimit(null);
-        $mysqlAdapter->setOrderField('');
 
-        $result = $mysqlAdapter->execute();
+        $result = $mysqlAdapter->valueCount();
 
-        return isset($result[0]['c']) ? $result[0]['c'] : 0;
+        return isset($result[0]['c']) ? (int) $result[0]['c'] : 0;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function valueCount($fieldName)
+    public function valueCount($fieldName = null)
     {
         $this->resetGroupBy();
-        $this->addGroupBy($fieldName);
-        $this->addSelectField($fieldName);
+        if ($fieldName !== null) {
+            $this->addGroupBy($fieldName);
+            $this->addSelectField($fieldName);
+        }
+
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
-
-        $this->copyStockManagementFilter();
-
         $this->setLimit(null);
         $this->setOrderField('');
+
+        $this->copyOperationsFilters();
 
         return $this->execute();
     }
@@ -703,21 +701,19 @@ class MySQL extends AbstractAdapter
      * Copy stock management operation filters
      * to make sure quantity is also used
      */
-    protected function copyStockManagementFilter()
+    protected function copyOperationsFilters()
     {
         $initialPopulation = $this->getInitialPopulation();
         if (null === $initialPopulation) {
             return;
         }
 
-        $operationsFilters = $initialPopulation->getOperationsFilters();
-        if (!$operationsFilters->offsetExists(Search::STOCK_MANAGEMENT_FILTER)) {
-            return;
+        $operationsFilters = clone $initialPopulation->getOperationsFilters();
+        foreach ($operationsFilters as $operationName => $operations) {
+            $this->addOperationsFilter(
+                $operationName,
+                $operations
+            );
         }
-
-        $this->addOperationsFilter(
-            Search::STOCK_MANAGEMENT_FILTER,
-            $operationsFilters->offsetGet(Search::STOCK_MANAGEMENT_FILTER)
-        );
     }
 }
