@@ -95,7 +95,6 @@ class Block
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
         );
-        $parent = new Category($idParent, $idLang);
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
@@ -134,6 +133,7 @@ class Block
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
+                    $parent = new Category($idParent, $idLang);
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }
@@ -480,7 +480,13 @@ class Block
             $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
             foreach ($resultsOutOfStock as $resultOutOfStock) {
                 // search count of products not available when out of stock (out_of_stock == 0)
-                if ((int) $resultOutOfStock['out_of_stock'] === 0) {
+                // Or psOrderOutOfStock === false and orders are denied by default
+                if ((int) $resultOutOfStock['out_of_stock'] === 0 ||
+                    (
+                        $this->psOrderOutOfStock === false
+                        && (int) $resultOutOfStock['out_of_stock'] === 2
+                    )
+                ) {
                     $results[1]['c'] -= (int) $resultOutOfStock['c'];
                     continue;
                 }
