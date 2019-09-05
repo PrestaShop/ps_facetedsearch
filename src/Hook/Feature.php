@@ -59,6 +59,7 @@ class Feature extends AbstractHook
         'actionFeatureDelete',
         'displayFeatureForm',
         'displayFeaturePostProcess',
+        'actionFeatureFormBuilderModifier',
         'actionAfterCreateFeatureFormHandler',
         'actionAfterUpdateFeatureFormHandler',
     ];
