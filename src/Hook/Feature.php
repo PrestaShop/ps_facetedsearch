@@ -130,6 +130,10 @@ class Feature extends AbstractHook
      */
     public function displayFeatureForm(array $params)
     {
+        if (version_compare(_PS_VERSION_, '1.7.7.0', '>=')) {
+            return;
+        }
+
         $values = [];
         $isIndexable = $this->database->getValue(
             'SELECT `indexable`
