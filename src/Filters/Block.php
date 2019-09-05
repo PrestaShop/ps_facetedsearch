@@ -198,23 +198,30 @@ class Block
             return [];
         }
 
-        return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
-            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
-            'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
-            'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            Shop::addSqlAssociation('attribute', 'a') . ' ' .
-            (
-                $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
-                ''
-            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
-        );
+        if (!isset($this->attributes[$idLang])) {
+            $tempAttributes = $this->database->executeS(
+                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+                'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+                'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+                Shop::addSqlAssociation('attribute', 'a') . ' ' .
+                (
+                    $notNull ?
+                    'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
+                    ''
+                ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
+            );
+            foreach ($tempAttributes as $key => $attribute) {
+                $this->attributes[$idLang][$attribute['id_attribute']] = $attribute;
+            }
+        }
+
+        return $this->attributes[$idLang];
     }
 
     /**
@@ -667,14 +674,23 @@ class Block
             return [];
         }
 
-        return $this->database->executeS(
-            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
-            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
-            'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
-        );
+        if (!isset($this->attributesGroup[$idLang])) {
+            $tempAttributesGroup =  $this->database->executeS(
+                'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
+                'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+            );
+
+
+            foreach ($tempAttributesGroup as $key => $attributeGroup) {
+                $this->attributesGroup[$idLang][$attributeGroup['id_attribute_group']] = $attributeGroup;
+            }
+        }
+
+        return $this->attributesGroup[$idLang];
     }
 
     /**
@@ -688,7 +704,7 @@ class Block
      */
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
-        $attributesBlock = $attributes = $attributesGroup = [];
+        $attributesBlock = [];
         $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
 
@@ -705,19 +721,12 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempAttributesGroup = $this->getAttributesGroups($idLang);
-        if ($tempAttributesGroup === []) {
+        $attributesGroup = $this->getAttributesGroups($idLang);
+        if ($attributesGroup === []) {
             return $attributesBlock;
         }
 
-        foreach ($tempAttributesGroup as $key => $attributeGroup) {
-            $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
-        }
-
-        $tempAttributes = $this->getAttributes($idLang, true);
-        foreach ($tempAttributes as $key => $attribute) {
-            $attributes[$attribute['id_attribute']] = $attribute;
-        }
+        $attributes = $this->getAttributes($idLang, true);
 
         $filteredSearchAdapter->addFilter('id_attribute_group', [(int) $idAttributeGroup]);
         $results = $filteredSearchAdapter->valueCount('id_attribute');
