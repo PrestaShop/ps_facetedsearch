@@ -29,6 +29,7 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_2_2(Ps_Facetedsearch $module)
 {
+<<<<<<< HEAD
     // These methods have no return value
     // If something failed an exception will be raised and
     // the upgrade will stop
@@ -36,4 +37,13 @@ function upgrade_module_3_2_2(Ps_Facetedsearch $module)
     $module->invalidateLayeredFilterBlockCache();
 
     return $module->registerHook($module->getHookDispatcher()->getAvailableHooks());
+=======
+    $newHooks = [
+        'actionFeatureFormBuilderModifier',
+        'actionAfterCreateFeatureFormHandler',
+        'actionAfterUpdateFeatureFormHandler',
+    ];
+
+    return $module->registerHook($newHooks);
+>>>>>>> adds upgrade
 }
