@@ -26,6 +26,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Configuration;
 use PrestaShop\Module\FacetedSearch\Form\Feature\FormDataProvider;
 use PrestaShop\Module\FacetedSearch\Form\Feature\FormModifier;
 use PrestaShopDatabaseException;
