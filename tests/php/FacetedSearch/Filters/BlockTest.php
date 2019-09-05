@@ -428,7 +428,7 @@ class BlockTest extends MockeryTestCase
                             ],
                             [
                                 'name' => 'In stock',
-                                'nbr' => 110,
+                                'nbr' => 10,
                                 'checked' => true,
                             ],
                         ],
@@ -493,7 +493,7 @@ class BlockTest extends MockeryTestCase
                             ],
                             [
                                 'name' => 'In stock',
-                                'nbr' => 110,
+                                'nbr' => 10,
                                 'checked' => true,
                             ],
                         ],
