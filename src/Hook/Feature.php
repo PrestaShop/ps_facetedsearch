@@ -178,14 +178,9 @@ class Feature extends AbstractHook
             return;
         }
 
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        );
+        $featureId = (int) $params('id_feature');
+
+        $this->cleanLayeredIndexableTables($featureId);
 
         $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
@@ -204,7 +199,7 @@ class Feature extends AbstractHook
                 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
                 (`id_feature`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
-                ' . (int) $params['id_feature'] . ', ' . (int) $language['id_lang'] . ',
+                ' . $featureId . ', ' . (int) $language['id_lang'] . ',
                 \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
                 \'' . pSQL($metaTitle, true) . '\')'
             );
@@ -222,14 +217,7 @@ class Feature extends AbstractHook
     {
         $featureId = (int) $params['id'];
 
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . $featureId
-        );
-        $this->database->execute(
-            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . $featureId
-        );
+        $this->cleanLayeredIndexableTables($featureId);
 
         $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
@@ -264,5 +252,22 @@ class Feature extends AbstractHook
         }
 
         $this->module->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * Deletes from layered_indexable_feature and layered_indexable_feature_lang_value by feature id
+     *
+     * @param int $featureId
+     */
+    private function cleanLayeredIndexableTables($featureId)
+    {
+        $this->database->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
+            WHERE `id_feature` = ' . $featureId
+        );
+        $this->database->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
+            WHERE `id_feature` = ' . $featureId
+        );
     }
 }

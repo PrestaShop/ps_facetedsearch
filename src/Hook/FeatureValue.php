@@ -37,43 +37,7 @@ class FeatureValue extends AbstractHook
         'actionFeatureValueDelete',
         'displayFeatureValueForm',
         'displayFeatureValuePostProcess',
-        'actionFeatureFormBuilderModifier',
-        'actionAfterCreateFeatureFormHandler',
-        'actionAfterUpdateFeatureFormHandler',
     ];
-
-    /**
-     * Hook for modifying feature form formBuilder
-     *
-     * @param array $params
-     *
-     * @throws PrestaShopDatabaseException
-     */
-    public function actionFeatureFormBuilderModifier(array $params)
-    {
-        $this->formModifier->modify($params['form_builder'], $this->dataProvider->getData($params));
-
-    }
-
-    /**
-     * Hook after create feature. @since ps v1.7.7
-     *
-     * @param array $params
-     */
-    public function actionAfterCreateFeatureFormHandler(array $params)
-    {
-        $this->save($params);
-    }
-
-    /**
-     * Hook after update feature. @since ps v1.7.7
-     *
-     * @param array $params
-     */
-    public function actionAfterUpdateFeatureFormHandler(array $params)
-    {
-        $this->save($params);
-    }
 
     /**
      * After save feature value
