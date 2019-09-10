@@ -203,7 +203,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
 
         return $this->module->fetch(
-            'views/templates/front/catalog/facets.tpl',
+            'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl',
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
