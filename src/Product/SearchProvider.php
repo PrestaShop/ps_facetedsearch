@@ -202,7 +202,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             return '';
         }
 
-        return $this->module->render(
+        return $this->module->fetch(
             'views/templates/front/catalog/facets.tpl',
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
@@ -233,8 +233,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         list($activeFilters) = $this->prepareActiveFiltersForRender($context, $result);
 
-        return $this->module->render(
-            'views/templates/front/catalog/active-filters.tpl',
+        return $this->module->fetch(
+            'module:ps_facetedsearch/views/templates/front/catalog/active-filters.tpl',
             [
                 'activeFilters' => $activeFilters,
                 'clear_all_link' => $this->updateQueryString(
