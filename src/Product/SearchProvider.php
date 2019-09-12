@@ -202,8 +202,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             return '';
         }
 
-        return $this->module->fetch(
-            'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl',
+        $this->module->getContext()->smarty->assign(
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
                 'facets' => $facetsVar,
@@ -219,6 +218,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 ),
             ]
         );
+
+        return $this->module->fetch(
+            'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl'
+        );
     }
 
     /**
@@ -233,8 +236,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         list($activeFilters) = $this->prepareActiveFiltersForRender($context, $result);
 
-        return $this->module->fetch(
-            'module:ps_facetedsearch/views/templates/front/catalog/active-filters.tpl',
+        $this->module->getContext()->smarty->assign(
             [
                 'activeFilters' => $activeFilters,
                 'clear_all_link' => $this->updateQueryString(
@@ -244,6 +246,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     ]
                 ),
             ]
+        );
+
+        return $this->module->fetch(
+            'module:ps_facetedsearch/views/templates/front/catalog/active-filters.tpl'
         );
     }
 
