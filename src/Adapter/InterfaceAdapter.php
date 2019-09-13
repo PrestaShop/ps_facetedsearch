@@ -190,7 +190,7 @@ interface InterfaceAdapter
      *
      * @return mixed
      */
-    public function valueCount($fieldName);
+    public function valueCount($fieldName = null);
 
     /**
      * Reset the operations filters
