@@ -35,8 +35,6 @@ use Context;
 
 class Search
 {
-    const STOCK_MANAGEMENT_FILTER = 'with_stock_management';
-
     /**
      * @var bool
      */
@@ -154,6 +152,7 @@ class Search
                             [[['id_attribute', $filterValue]]]
                         );
                     }
+
                     break;
 
                 case 'category':
@@ -192,7 +191,7 @@ class Search
                     }
 
                     $this->getSearchAdapter()->addOperationsFilter(
-                        self::STOCK_MANAGEMENT_FILTER,
+                        'with_stock_management',
                         $operationsFilter
                     );
                     break;

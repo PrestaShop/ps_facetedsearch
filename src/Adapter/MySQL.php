@@ -49,6 +49,11 @@ class MySQL extends AbstractAdapter
     const INNER_JOIN = 'INNER JOIN';
 
     /**
+     * @var string
+     */
+    const STRAIGHT_JOIN = 'STRAIGHT_JOIN';
+
+    /**
      * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
@@ -106,28 +111,38 @@ class MySQL extends AbstractAdapter
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
 
-        $query = 'SELECT ';
+        if (empty($this->getSelectFields())
+            && empty($this->getFilters())
+            && empty($this->getGroupFields())
+            && empty($this->getOrderField())
+        ) {
+            // avoid adding an extra SELECT FROM (SELECT ...) if it's not needed
+            $query = $referenceTable;
+            $this->setOrderField('');
+        } else {
+            $query = 'SELECT ';
 
-        $selectFields = $this->computeSelectFields($filterToTableMapping);
-        $whereConditions = $this->computeWhereConditions($filterToTableMapping);
-        $joinConditions = $this->computeJoinConditions($filterToTableMapping);
-        $groupFields = $this->computeGroupByFields($filterToTableMapping);
+            $selectFields = $this->computeSelectFields($filterToTableMapping);
+            $whereConditions = $this->computeWhereConditions($filterToTableMapping);
+            $joinConditions = $this->computeJoinConditions($filterToTableMapping);
+            $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
-        $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
+            $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
-        foreach ($joinConditions as $joinAliasInfos) {
-            foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
-                $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
-                       $tableAlias . ' ON ' . $joinInfos['joinCondition'];
+            foreach ($joinConditions as $joinAliasInfos) {
+                foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
+                    $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
+                        $tableAlias . ' ON ' . $joinInfos['joinCondition'];
+                }
             }
-        }
 
-        if (!empty($whereConditions)) {
-            $query .= ' WHERE ' . implode(' AND ', $whereConditions);
-        }
+            if (!empty($whereConditions)) {
+                $query .= ' WHERE ' . implode(' AND ', $whereConditions);
+            }
 
-        if ($groupFields) {
-            $query .= ' GROUP BY ' . implode(', ', $groupFields);
+            if ($groupFields) {
+                $query .= ' GROUP BY ' . implode(', ', $groupFields);
+            }
         }
 
         if ($orderField) {
@@ -159,20 +174,20 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_attribute',
                 'tableAlias' => 'pa',
                 'joinCondition' => '(p.id_product = pa.id_product)',
-                'joinType' => self::LEFT_JOIN,
+                'joinType' => self::STRAIGHT_JOIN,
             ],
             'id_attribute' => [
                 'tableName' => 'product_attribute_combination',
                 'tableAlias' => 'pac',
                 'joinCondition' => '(pa.id_product_attribute = pac.id_product_attribute)',
-                'joinType' => self::LEFT_JOIN,
+                'joinType' => self::STRAIGHT_JOIN,
                 'dependencyField' => 'id_product_attribute',
             ],
             'id_attribute_group' => [
                 'tableName' => 'attribute',
                 'tableAlias' => 'a',
                 'joinCondition' => '(a.id_attribute = pac.id_attribute)',
-                'joinType' => self::INNER_JOIN,
+                'joinType' => self::STRAIGHT_JOIN,
                 'dependencyField' => 'id_attribute',
             ],
             'id_feature' => [
@@ -244,18 +259,16 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
-                'dependencyField' => 'id_attribute',
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND 0 = sa.id_product_attribute ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
-                'dependencyField' => 'id_attribute',
             ],
             'price_min' => [
                 'tableName' => 'layered_price_index',
@@ -588,7 +601,7 @@ class MySQL extends AbstractAdapter
     private function computeGroupByFields(array $filterToTableMapping)
     {
         $groupFields = [];
-        if ($this->getGroupFields()->isEmpty()) {
+        if (empty($this->getGroupFields())) {
             return $groupFields;
         }
 
@@ -633,28 +646,26 @@ class MySQL extends AbstractAdapter
     {
         $mysqlAdapter = $this->getFilteredSearchAdapter();
         $mysqlAdapter->copyFilters($this);
+        $mysqlAdapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
+        $mysqlAdapter->setLimit(null);
+        $mysqlAdapter->setOrderField('');
 
-        $result = $mysqlAdapter->valueCount();
+        $result = $mysqlAdapter->execute();
 
-        return isset($result[0]['c']) ? (int) $result[0]['c'] : 0;
+        return isset($result[0]['c']) ? $result[0]['c'] : 0;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function valueCount($fieldName = null)
+    public function valueCount($fieldName)
     {
         $this->resetGroupBy();
-        if ($fieldName !== null) {
-            $this->addGroupBy($fieldName);
-            $this->addSelectField($fieldName);
-        }
-
+        $this->addGroupBy($fieldName);
+        $this->addSelectField($fieldName);
         $this->addSelectField('COUNT(DISTINCT p.id_product) c');
         $this->setLimit(null);
         $this->setOrderField('');
-
-        $this->copyOperationsFilters();
 
         return $this->execute();
     }
@@ -695,25 +706,5 @@ class MySQL extends AbstractAdapter
     protected function getDatabase()
     {
         return Db::getInstance();
-    }
-
-    /**
-     * Copy stock management operation filters
-     * to make sure quantity is also used
-     */
-    protected function copyOperationsFilters()
-    {
-        $initialPopulation = $this->getInitialPopulation();
-        if (null === $initialPopulation) {
-            return;
-        }
-
-        $operationsFilters = clone $initialPopulation->getOperationsFilters();
-        foreach ($operationsFilters as $operationName => $operations) {
-            $this->addOperationsFilter(
-                $operationName,
-                $operations
-            );
-        }
     }
 }
