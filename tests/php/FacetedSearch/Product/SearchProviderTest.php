@@ -42,6 +42,7 @@ use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use Smarty;
 
 class SearchProviderTest extends MockeryTestCase
 {
@@ -153,7 +154,7 @@ class SearchProviderTest extends MockeryTestCase
 
     public function testRenderFacetsWithoutFacetsCollection()
     {
-        $context = Mockery::mock(ProductSearchContext::class);
+        $productContext = Mockery::mock(ProductSearchContext::class);
         $productSearchResult = Mockery::mock(ProductSearchResult::class);
         $productSearchResult->shouldReceive('getFacetCollection')
             ->once()
@@ -162,7 +163,7 @@ class SearchProviderTest extends MockeryTestCase
         $this->assertEquals(
             '',
             $this->provider->renderFacets(
-                $context,
+                $productContext,
                 $productSearchResult
             )
         );
@@ -170,7 +171,26 @@ class SearchProviderTest extends MockeryTestCase
 
     public function testRenderFacetsWithFacetsCollection()
     {
-        $context = Mockery::mock(ProductSearchContext::class);
+        $productContext = Mockery::mock(ProductSearchContext::class);
+        $smarty = Mockery::mock(Smarty::class);
+        $smarty->shouldReceive('assign')
+            ->once()
+            ->with(
+                [
+                    'show_quantities' => true,
+                    'facets' => [
+                        [
+                            'filters' => [],
+                        ],
+                    ],
+                    'js_enabled' => true,
+                    'displayedFacets' => [],
+                    'activeFilters' => [],
+                    'sort_order' => 'product.position.asc',
+                    'clear_all_link' => 'http://shop.prestashop.com/catalog?from=scratch',
+                ]
+            );
+        $this->context->smarty = $smarty;
         $sortOrder = Mockery::mock(SortOrder::class);
         $sortOrder->shouldReceive('toString')
             ->once()
@@ -192,30 +212,17 @@ class SearchProviderTest extends MockeryTestCase
                 ]
             );
 
-        $this->module->shouldReceive('render')
+        $this->module->shouldReceive('fetch')
             ->once()
             ->with(
-                'views/templates/front/catalog/facets.tpl',
-                [
-                    'show_quantities' => true,
-                    'facets' => [
-                        [
-                            'filters' => [],
-                        ],
-                    ],
-                    'js_enabled' => true,
-                    'displayedFacets' => [],
-                    'activeFilters' => [],
-                    'sort_order' => 'product.position.asc',
-                    'clear_all_link' => 'http://shop.prestashop.com/catalog?from=scratch',
-                ]
+                'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl'
             )
             ->andReturn('');
 
         $this->assertEquals(
             '',
             $this->provider->renderFacets(
-                $context,
+                $productContext,
                 $productSearchResult
             )
         );
@@ -223,51 +230,11 @@ class SearchProviderTest extends MockeryTestCase
 
     public function testRenderFacetsWithFacetsCollectionAndFilters()
     {
-        $context = Mockery::mock(ProductSearchContext::class);
-        $sortOrder = Mockery::mock(SortOrder::class);
-        $sortOrder->shouldReceive('toString')
-            ->once()
-            ->andReturn('product.position.asc');
-        $productSearchResult = Mockery::mock(ProductSearchResult::class);
-        $productSearchResult->shouldReceive('getFacetCollection')
-            ->once()
-            ->andReturn($this->facetCollection);
-        $productSearchResult->shouldReceive('getCurrentSortOrder')
-            ->once()
-            ->andReturn($sortOrder);
-
-        $facet = $this->mockFacet(
-            'Test',
-            [
-                'displayed' => true,
-                'filters' => [
-                    [
-                        'label' => 'Men',
-                        'type' => 'category',
-                        'nextEncodedFacets' => 'Categories-Men',
-                        'active' => false,
-                    ],
-                    [
-                        'label' => 'Women',
-                        'type' => 'category',
-                        'nextEncodedFacets' => '',
-                        'active' => true,
-                    ],
-                ],
-            ]
-        );
-        $this->facetCollection->shouldReceive('getFacets')
-            ->once()
-            ->andReturn(
-                [
-                    $facet,
-                ]
-            );
-
-        $this->module->shouldReceive('render')
+        $productContext = Mockery::mock(ProductSearchContext::class);
+        $smarty = Mockery::mock(Smarty::class);
+        $smarty->shouldReceive('assign')
             ->once()
             ->with(
-                'views/templates/front/catalog/facets.tpl',
                 [
                     'show_quantities' => true,
                     'facets' => [
@@ -330,13 +297,59 @@ class SearchProviderTest extends MockeryTestCase
                     'sort_order' => 'product.position.asc',
                     'clear_all_link' => 'http://shop.prestashop.com/catalog?from=scratch',
                 ]
+            );
+        $this->context->smarty = $smarty;
+        $sortOrder = Mockery::mock(SortOrder::class);
+        $sortOrder->shouldReceive('toString')
+            ->once()
+            ->andReturn('product.position.asc');
+        $productSearchResult = Mockery::mock(ProductSearchResult::class);
+        $productSearchResult->shouldReceive('getFacetCollection')
+            ->once()
+            ->andReturn($this->facetCollection);
+        $productSearchResult->shouldReceive('getCurrentSortOrder')
+            ->once()
+            ->andReturn($sortOrder);
+
+        $facet = $this->mockFacet(
+            'Test',
+            [
+                'displayed' => true,
+                'filters' => [
+                    [
+                        'label' => 'Men',
+                        'type' => 'category',
+                        'nextEncodedFacets' => 'Categories-Men',
+                        'active' => false,
+                    ],
+                    [
+                        'label' => 'Women',
+                        'type' => 'category',
+                        'nextEncodedFacets' => '',
+                        'active' => true,
+                    ],
+                ],
+            ]
+        );
+        $this->facetCollection->shouldReceive('getFacets')
+            ->once()
+            ->andReturn(
+                [
+                    $facet,
+                ]
+            );
+
+        $this->module->shouldReceive('fetch')
+            ->once()
+            ->with(
+                'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl'
             )
             ->andReturn('');
 
         $this->assertEquals(
             '',
             $this->provider->renderFacets(
-                $context,
+                $productContext,
                 $productSearchResult
             )
         );
