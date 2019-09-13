@@ -73,6 +73,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
     {
         $this->filters = clone $this->filters;
         $this->operationsFilters = clone $this->operationsFilters;
+        $this->groupFields = clone $this->groupFields;
+        $this->selectFields = clone $this->selectFields;
     }
 
     /**
@@ -195,7 +197,8 @@ abstract class AbstractAdapter implements InterfaceAdapter
      */
     public function copyFilters(InterfaceAdapter $adapter)
     {
-        $this->filters = $adapter->getFilters();
+        $this->filters = clone $adapter->getFilters();
+        $this->operationsFilters = clone $adapter->getOperationsFilters();
     }
 
     /**
