@@ -260,28 +260,28 @@ class MySQL extends AbstractAdapter
             'price_min' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
                 $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
                 $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
                 $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_currency = ' .
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
                 $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
                 'joinType' => self::INNER_JOIN,
             ],
