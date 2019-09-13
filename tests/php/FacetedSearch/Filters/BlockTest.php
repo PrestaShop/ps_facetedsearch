@@ -42,6 +42,7 @@ use PrestaShop\Module\FacetedSearch\Filters\Block;
 use Shop;
 use Tools;
 use stdClass;
+use StockAvailable;
 
 class BlockTest extends MockeryTestCase
 {
@@ -67,7 +68,7 @@ class BlockTest extends MockeryTestCase
                     'PS_HOME_CATEGORY' => 1,
                     'PS_WEIGHT_UNIT' => 'kg',
                     'PS_STOCK_MANAGEMENT' => '1',
-                    'PS_ORDER_OUT_OF_STOCK' => '0',
+                    'PS_ORDER_OUT_OF_STOCK' => '1',
                     'PS_UNIDENTIFIED_GROUP' => '1',
                     'PS_LAYERED_FILTER_CATEGORY_DEPTH' => 3,
                 ];
@@ -90,7 +91,24 @@ class BlockTest extends MockeryTestCase
         $this->contextMock->currency->sign = '€';
         $this->contextMock->currency->id = 4;
 
+        $this->contextMock->shouldReceive('getContext')
+            ->andReturn($this->contextMock);
+        Context::setStaticExpectations($this->contextMock);
+
         $this->dbMock = Mockery::mock(Db::class);
+        $dbMock = Mockery::mock(Db::class)->makePartial();
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($this->dbMock);
+
+        Db::setStaticExpectations($dbMock);
+
+        $mock = Mockery::mock(StockAvailable::class);
+        $mock->shouldReceive('addSqlShopRestriction')
+            ->with(null, null, 'sa')
+            ->andReturn('');
+
+        StockAvailable::setStaticExpectations($mock);
+
         $toolsMock = Mockery::mock(Tools::class);
         $toolsMock->shouldReceive('getValue')
             ->andReturnUsing(function ($arg) {
@@ -211,7 +229,7 @@ class BlockTest extends MockeryTestCase
                             'currencyCode' => 'EUR',
                             'currencySymbol' => '€',
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 3,
                         'nbr' => 10,
                         'value' => [
@@ -261,7 +279,7 @@ class BlockTest extends MockeryTestCase
                         'min' => 10.0,
                         'unit' => 'kg',
                         'specifications' => null,
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 3,
                         'nbr' => 10,
                         'value' => [
@@ -324,24 +342,24 @@ class BlockTest extends MockeryTestCase
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
         ]);
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
-        $adapterInitialMock->shouldReceive('count')
+
+        $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->andReturn(100);
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND IFNULL(pac.id_product_attribute, 0) = sa_1.id_product_attribute) WHERE ((sa.quantity<=0 AND sa_1.out_of_stock=0))')
+            ->andReturn([
+                ['c' => 1000],
+            ]);
 
-        $adapterInitialMock
-            ->shouldReceive('valueCount')
-            ->andReturnUsing(function ($arg) {
-                $valueMap = [
-                    'quantity' => [['c' => 100]],
-                    'out_of_stock' => [['out_of_stock' => 0, 'c' => 10]],
-                ];
-
-                return $valueMap[$arg];
-            });
+        $this->dbMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND IFNULL(pac.id_product_attribute, 0) = sa_1.id_product_attribute) WHERE ((sa.quantity>=0 AND sa_1.out_of_stock>=1) OR (sa.quantity>0))')
+            ->andReturn([
+                ['c' => 100],
+            ]);
 
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('quantity')
@@ -358,146 +376,15 @@ class BlockTest extends MockeryTestCase
                         'values' => [
                             [
                                 'name' => 'Not available',
+                                'nbr' => 1000,
+                            ],
+                            [
+                                'name' => 'In stock',
                                 'nbr' => 100,
-                            ],
-                            [
-                                'name' => 'In stock',
-                                'nbr' => 0,
                                 'checked' => true,
                             ],
                         ],
-                        'filter_show_limit' => false,
-                        'filter_type' => 1,
-                    ],
-                ],
-            ],
-            $this->block->getFilterBlock(
-                10,
-                [
-                    'quantity' => [
-                        1,
-                    ],
-                ]
-            )
-        );
-    }
-
-    public function testGetFiltersBlockWithQuantitiesWithOufOfStockOneData()
-    {
-        $this->mockTranslator([
-            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
-            [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
-            [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
-        ]);
-
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
-
-        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
-        $adapterInitialMock->resetAll();
-        $adapterInitialMock->shouldReceive('count')
-            ->once()
-            ->andReturn(100);
-
-        $adapterInitialMock
-            ->shouldReceive('valueCount')
-            ->andReturnUsing(function ($arg) {
-                $valueMap = [
-                    'quantity' => [['c' => 100]],
-                    'out_of_stock' => [['out_of_stock' => 1, 'c' => 10]],
-                ];
-
-                return $valueMap[$arg];
-            });
-
-        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('quantity')
-            ->andReturn($adapterInitialMock);
-
-        $this->assertEquals(
-            [
-                'filters' => [
-                    [
-                        'type_lite' => 'quantity',
-                        'type' => 'quantity',
-                        'id_key' => 0,
-                        'name' => 'Quantity',
-                        'values' => [
-                            [
-                                'name' => 'Not available',
-                                'nbr' => 90,
-                            ],
-                            [
-                                'name' => 'In stock',
-                                'nbr' => 10,
-                                'checked' => true,
-                            ],
-                        ],
-                        'filter_show_limit' => false,
-                        'filter_type' => 1,
-                    ],
-                ],
-            ],
-            $this->block->getFilterBlock(
-                10,
-                [
-                    'quantity' => [
-                        1,
-                    ],
-                ]
-            )
-        );
-    }
-
-    public function testGetFiltersBlockWithQuantitiesWithOufOfStockTwoData()
-    {
-        $this->mockTranslator([
-            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
-            [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
-            [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
-        ]);
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => false, 'filter_type' => 1]]);
-
-        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
-        $adapterInitialMock->resetAll();
-        $adapterInitialMock->shouldReceive('count')
-            ->once()
-            ->andReturn(100);
-
-        $adapterInitialMock
-            ->shouldReceive('valueCount')
-            ->andReturnUsing(function ($arg) {
-                $valueMap = [
-                    'quantity' => [['c' => 100]],
-                    'out_of_stock' => [['out_of_stock' => 2, 'c' => 10]],
-                ];
-
-                return $valueMap[$arg];
-            });
-
-        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('quantity')
-            ->andReturn($adapterInitialMock);
-
-        $this->assertEquals(
-            [
-                'filters' => [
-                    [
-                        'type_lite' => 'quantity',
-                        'type' => 'quantity',
-                        'id_key' => 0,
-                        'name' => 'Quantity',
-                        'values' => [
-                            [
-                                'name' => 'Not available',
-                                'nbr' => 100,
-                            ],
-                            [
-                                'name' => 'In stock',
-                                'nbr' => 0,
-                                'checked' => true,
-                            ],
-                        ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -521,7 +408,7 @@ class BlockTest extends MockeryTestCase
             [['Refurbished', [], 'Modules.Facetedsearch.Shop'], 'Refurbished'],
             [['Condition', [], 'Modules.Facetedsearch.Shop'], 'Condition'],
         ]);
-        $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -555,7 +442,7 @@ class BlockTest extends MockeryTestCase
                                 'nbr' => 0,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -582,7 +469,7 @@ class BlockTest extends MockeryTestCase
 
         Manufacturer::setStaticExpectations($mock);
 
-        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $this->assertEquals(
             [
@@ -622,7 +509,7 @@ class BlockTest extends MockeryTestCase
         Manufacturer::setStaticExpectations($mock);
         $this->mockTranslator('Brand', [], 'Modules.Facetedsearch.Shop', 'Brand');
 
-        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => false, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'manufacturer', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -659,7 +546,7 @@ class BlockTest extends MockeryTestCase
                                 'nbr' => 10,
                             ],
                         ],
-                        'filter_show_limit' => false,
+                        'filter_show_limit' => 0,
                         'filter_type' => 1,
                     ],
                 ],
@@ -727,6 +614,13 @@ class BlockTest extends MockeryTestCase
     {
         $this->mockCombination(true);
         $this->mockLayeredCategory([['type' => 'id_attribute_group', 'id_value' => 1]]);
+        $this->shopMock->shouldReceive('addSqlAssociation')
+            ->with('attribute', 'a')
+            ->andReturn('');
+
+        $this->dbMock->shouldReceive('executeS')
+            ->with('SELECT pac.id_attribute, COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) INNER JOIN ps_attribute a ON (a.id_attribute = pac.id_attribute) WHERE ((a.id_attribute_group=1)) GROUP BY pac.id_attribute')
+            ->andReturn([]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
