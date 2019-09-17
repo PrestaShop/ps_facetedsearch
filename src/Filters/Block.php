@@ -41,6 +41,7 @@ use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
 use Shop;
 use Tools;
+use PrestaShop\Module\FacetedSearch\Product\Search;
 
 /**
  * Display filters block on navigation
@@ -72,6 +73,16 @@ class Block
      */
     private $database;
 
+    /**
+     * @var array
+     */
+    private $attributesGroup;
+
+    /**
+     * @var array
+     */
+    private $attributes;
+
     public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database)
     {
         $this->searchAdapter = $searchAdapter;
@@ -95,7 +106,6 @@ class Block
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
         );
-        $parent = new Category($idParent, $idLang);
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
@@ -134,6 +144,7 @@ class Block
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
+                    $parent = new Category($idParent, $idLang);
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }
@@ -198,23 +209,31 @@ class Block
             return [];
         }
 
-        return $this->database->executeS(
-            'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
-            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
-            'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
-            'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            Shop::addSqlAssociation('attribute', 'a') . ' ' .
-            (
-                $notNull ?
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
-                ''
-            ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
-        );
+        if (!isset($this->attributes[$idLang])) {
+            $this->attributes[$idLang] = [];
+            $tempAttributes = $this->database->executeS(
+                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+                'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+                'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
+                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+                Shop::addSqlAssociation('attribute', 'a') . ' ' .
+                (
+                    $notNull ?
+                    'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
+                    ''
+                ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
+            );
+            foreach ($tempAttributes as $key => $attribute) {
+                $this->attributes[$idLang][$attribute['id_attribute']] = $attribute;
+            }
+        }
+
+        return $this->attributes[$idLang];
     }
 
     /**
@@ -431,7 +450,7 @@ class Block
      */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('quantity');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
         $quantityArray = [
             0 => [
                 'name' => $this->context->getTranslator()->trans(
@@ -459,41 +478,36 @@ class Block
             $this->psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
-        $allResults = $filteredSearchAdapter->count();
-        $filteredSearchAdapter->addFilter('quantity', [0]);
-        $noMoreQuantityResults = $filteredSearchAdapter->valueCount('quantity');
+        if ($this->psStockManagement) {
+            $results = [];
+            $filteredSearchAdapter->addOperationsFilter(
+                Search::STOCK_MANAGEMENT_FILTER,
+                [
+                    [
+                        ['quantity', [0], '<='],
+                        ['out_of_stock', !$this->psOrderOutOfStock ? [0, 2] : [0], '='],
+                    ],
+                ]
+            );
+            $results[0] = [
+                'c' => $filteredSearchAdapter->count(),
+            ];
 
-        $results = [
-            [
-                'c' => !empty($noMoreQuantityResults) ? (int) $noMoreQuantityResults[0]['c'] : 0,
-            ],
-        ];
-        $results[1]['c'] = (int) ($allResults - $results[0]['c']);
-        if (!$this->psStockManagement) {
-            if (isset($selectedFilters['quantity']) && in_array(1, $selectedFilters['quantity'])) {
-                $quantityArray[1]['checked'] = true;
-            }
-
-            $count = $results[0]['c'] + $results[1]['c'];
-            $quantityArray[1]['nbr'] = $count;
-        } else {
-            $resultsOutOfStock = $filteredSearchAdapter->valueCount('out_of_stock');
-            foreach ($resultsOutOfStock as $resultOutOfStock) {
-                // search count of products always available when out of stock (out_of_stock == 1)
-                if ((int) $resultOutOfStock['out_of_stock'] === 1) {
-                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
-                    $results[1]['c'] += (int) $resultOutOfStock['c'];
-                    continue;
-                }
-
-                // if $this->psOrderOutOfStock === true, product with out_of_stock == 2 are available
-                if ($this->psOrderOutOfStock === true
-                    && (int) $resultOutOfStock['out_of_stock'] === 2
-                ) {
-                    $results[0]['c'] -= (int) $resultOutOfStock['c'];
-                    $results[1]['c'] += (int) $resultOutOfStock['c'];
-                }
-            }
+            $filteredSearchAdapter->addOperationsFilter(
+                Search::STOCK_MANAGEMENT_FILTER,
+                [
+                    [
+                        ['quantity', [0], '>='],
+                        ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
+                    ],
+                    [
+                        ['quantity', [0], '>'],
+                    ],
+                ]
+            );
+            $results[1] = [
+                'c' => $filteredSearchAdapter->count(),
+            ];
 
             foreach ($results as $key => $values) {
                 $count = $values['c'];
@@ -661,14 +675,23 @@ class Block
             return [];
         }
 
-        return $this->database->executeS(
-            'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
-            'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-            Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-            'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
-            'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
-        );
+        if (!isset($this->attributesGroup[$idLang])) {
+            $this->attributesGroup[$idLang] = [];
+            $tempAttributesGroup = $this->database->executeS(
+                'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
+                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
+                'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
+            );
+
+            foreach ($tempAttributesGroup as $key => $attributeGroup) {
+                $this->attributesGroup[$idLang][$attributeGroup['id_attribute_group']] = $attributeGroup;
+            }
+        }
+
+        return $this->attributesGroup[$idLang];
     }
 
     /**
@@ -682,7 +705,7 @@ class Block
      */
     private function getAttributesBlock($filter, $selectedFilters, $idLang)
     {
-        $attributesBlock = $attributes = $attributesGroup = [];
+        $attributesBlock = [];
         $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
 
@@ -699,23 +722,18 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempAttributesGroup = $this->getAttributesGroups($idLang);
-        if ($tempAttributesGroup === []) {
+        $attributesGroup = $this->getAttributesGroups($idLang);
+        if ($attributesGroup === []) {
             return $attributesBlock;
         }
 
-        foreach ($tempAttributesGroup as $key => $attributeGroup) {
-            $attributesGroup[$attributeGroup['id_attribute_group']] = $attributeGroup;
-        }
+        $attributes = $this->getAttributes($idLang, true);
 
-        $tempAttributes = $this->getAttributes($idLang, true);
-        foreach ($tempAttributes as $key => $attribute) {
-            $attributes[$attribute['id_attribute']] = $attribute;
-        }
-
-        $filteredSearchAdapter->addFilter('id_attribute_group', [(int) $idAttributeGroup]);
+        $filteredSearchAdapter->addOperationsFilter(
+            'id_attribute_group_' . $idAttributeGroup,
+            [[['id_attribute_group', [(int) $idAttributeGroup]]]]
+        );
         $results = $filteredSearchAdapter->valueCount('id_attribute');
-
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
             if (!isset($attributes[$idAttribute])) {
@@ -793,7 +811,7 @@ class Block
      *
      * @return array
      */
-    private function sortByKey($sortedReferenceArray, $array)
+    private function sortByKey(array $sortedReferenceArray, $array)
     {
         $sortedArray = [];
 
@@ -845,7 +863,11 @@ class Block
             $features[$feature['id_feature']] = $feature;
         }
 
-        $filteredSearchAdapter->addFilter('id_feature', [(int) $idFeature]);
+        $filteredSearchAdapter->addOperationsFilter(
+            'id_feature_' . $idFeature,
+            [[['id_feature', [(int) $idFeature]]]]
+        );
+
         $filteredSearchAdapter->addSelectField('id_feature');
         $results = $filteredSearchAdapter->valueCount('id_feature_value');
         foreach ($results as $key => $values) {
