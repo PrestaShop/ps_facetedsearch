@@ -76,7 +76,7 @@ class SearchProviderTest extends MockeryTestCase
      */
     private $module;
 
-    private function mockFacet($label, $data = ['filters' => []])
+    private function mockFacet($label, $data = ['filters' => []], $widgetType = 'checkbox')
     {
         $facet = Mockery::mock(Facet::class);
         $facet->shouldReceive('getLabel')
@@ -84,6 +84,9 @@ class SearchProviderTest extends MockeryTestCase
 
         $facet->shouldReceive('toArray')
             ->andReturn($data);
+
+        $facet->shouldReceive('getWidgetType')
+            ->andReturn($widgetType);
 
         return $facet;
     }

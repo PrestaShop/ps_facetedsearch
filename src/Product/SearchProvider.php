@@ -311,7 +311,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetsArray = $facet->toArray();
         foreach ($facetsArray['filters'] as &$filter) {
             $filter['facetLabel'] = $facet->getLabel();
-            if ($filter['nextEncodedFacets']) {
+            if ($filter['nextEncodedFacets'] || $facet->getWidgetType() === 'slider') {
                 $filter['nextEncodedFacetsURL'] = $this->updateQueryString([
                     'q' => $filter['nextEncodedFacets'],
                     'page' => null,
