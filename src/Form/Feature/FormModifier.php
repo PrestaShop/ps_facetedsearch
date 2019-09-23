@@ -61,12 +61,12 @@ class FormModifier
             'Invalid characters: <>;=#{}_', [], 'Modules.Facetedsearch.Admin'
         );
         $urlTip = $translator->trans(
-            'When the Faceted Search module is enabled, you can get more detailed URLs by choosing the word that best represent this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
+            'When the Faceted Search module is enabled, you can get more detailed URLs by choosing the word that best represents this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
             [],
             'Modules.Facetedsearch.Admin'
         );
         $metaTitleTip = $translator->trans(
-            'When the Faceted Search module is enabled, you can get more detailed page titles by choosing the word that best represent this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
+            'When the Faceted Search module is enabled, you can get more detailed page titles by choosing the word that best represents this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
             [],
             'Modules.Facetedsearch.Admin'
         );
