@@ -84,7 +84,7 @@ class Feature extends AbstractHook
      */
     public function actionAfterCreateFeatureFormHandler(array $params)
     {
-        $this->save($params);
+        $this->save($params['id'], $params['form_data']);
     }
 
     /**
@@ -94,7 +94,7 @@ class Feature extends AbstractHook
      */
     public function actionAfterUpdateFeatureFormHandler(array $params)
     {
-        $this->save($params);
+        $this->save($params['id'], $params['form_data']);
     }
 
     /**
@@ -178,51 +178,43 @@ class Feature extends AbstractHook
             return;
         }
 
-        $featureId = (int) $params('id_feature');
-
-        $this->cleanLayeredIndexableTables($featureId);
-
-        $this->database->execute(
-            'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
-            (`id_feature`, `indexable`)
-            VALUES (' . (int) $params['id_feature'] . ', ' . (int) Tools::getValue('layered_indexable') . ')'
-        );
+        $featureId = (int) $params['id_feature'];
+        $formData = [
+            'layered_indexable' => Tools::getValue('layered_indexable'),
+        ];
 
         foreach (Language::getLanguages(false) as $language) {
-            $seoUrl = Tools::getValue('url_name_' . (int) $language['id_lang']);
-            $metaTitle = Tools::getValue('meta_title_' . (int) $language['id_lang']);
+            $langId = (int) $language['id_lang'];
+            $seoUrl = Tools::getValue('url_name_' . $langId);
+            $metaTitle = Tools::getValue('meta_title_' . $langId);
+
             if (empty($seoUrl) && empty($metaTitle)) {
                 continue;
             }
 
-            $this->database->execute(
-                'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-                (`id_feature`, `id_lang`, `url_name`, `meta_title`)
-                VALUES (
-                ' . $featureId . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
-                \'' . pSQL($metaTitle, true) . '\')'
-            );
+            $formData['meta_title'][$langId] = $metaTitle;
+            $formData['url_name'][$langId] = $seoUrl;
         }
 
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->save($featureId, $formData);
     }
 
     /**
-     * Saves feature form. @since ps 1.7.7
+     * Saves feature form.
      *
-     * @param array $params
+     * @param $featureId
+     * @param array $formData
+     *
+     * @since ps 1.7.7
      */
-    private function save(array $params)
+    private function save($featureId, array $formData)
     {
-        $featureId = (int) $params['id'];
-
         $this->cleanLayeredIndexableTables($featureId);
 
         $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
             (`id_feature`, `indexable`)
-            VALUES (' . $featureId . ', ' . (int) $params['form_data']['layered_indexable'] . ')'
+            VALUES (' . $featureId . ', ' . (int) $formData['layered_indexable'] . ')'
         );
 
         $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
@@ -233,9 +225,9 @@ class Feature extends AbstractHook
 
         foreach (Language::getLanguages(false) as $language) {
             $langId = (int) $language['id_lang'];
-            $metaTitle = pSQL($params['form_data']['meta_title'][$langId]);
-            $seoUrl = $params['form_data']['url_name'][$langId];
-            $name = $params['form_data']['name'][$langId] ?: $params['form_data']['name'][$defaultLangId];
+            $metaTitle = pSQL($formData['meta_title'][$langId]);
+            $seoUrl = $formData['url_name'][$langId];
+            $name = $formData['name'][$langId] ?: $formData['name'][$defaultLangId];
 
             if (empty($seoUrl)) {
                 $seoUrl = $name;
