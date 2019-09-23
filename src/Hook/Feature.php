@@ -226,6 +226,11 @@ class Feature extends AbstractHook
         );
 
         $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
+        $tableName = _DB_PREFIX_ . 'layered_indexable_feature_lang_value';
+        $query = "
+              INSERT INTO %s(`id_feature`, `id_lang`, `url_name`, `meta_title`)
+              VALUES (%d, %d, '%s', '%s')";
+
         foreach (Language::getLanguages(false) as $language) {
             $langId = (int) $language['id_lang'];
             $metaTitle = pSQL($params['form_data']['meta_title'][$langId]);
@@ -236,19 +241,17 @@ class Feature extends AbstractHook
                 $seoUrl = $name;
             }
 
-            $tableName = _DB_PREFIX_ . 'layered_indexable_feature_lang_value';
             $url = pSQL(Tools::link_rewrite($seoUrl));
 
-            $query = sprintf("
-              INSERT INTO $tableName(`id_feature`, `id_lang`, `url_name`, `meta_title`)
-              VALUES (%s, %s, '%s', '%s')",
-                $featureId,
-                $langId,
-                $url,
-                $metaTitle
+            $this->database->execute(
+                sprintf($query,
+                    $tableName,
+                    $featureId,
+                    $langId,
+                    $url,
+                    $metaTitle
+                )
             );
-
-            $this->database->execute($query);
         }
 
         $this->module->invalidateLayeredFilterBlockCache();
