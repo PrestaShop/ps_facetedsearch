@@ -135,15 +135,15 @@ class Feature extends AbstractHook
      */
     public function displayFeatureForm(array $params)
     {
-        if (version_compare(_PS_VERSION_, '1.7.7.0', '>=')) {
+        if (version_compare(_PS_VERSION_, '1.7.7.0') >= 0) {
             return;
         }
 
         $values = [];
         $isIndexable = $this->database->getValue(
-            'SELECT `indexable`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . (int) $params['id_feature']
+            'SELECT `indexable` ' .
+            'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature ' .
+            'WHERE `id_feature` = ' . (int) $params['id_feature']
         );
 
         // Request failed, force $isIndexable
@@ -152,7 +152,7 @@ class Feature extends AbstractHook
         }
         $result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` ' .
-            'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value' .
+            'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value ' .
             'WHERE `id_feature` = ' . (int) $params['id_feature']
         );
         if ($result) {

@@ -12,5 +12,6 @@ parameters:
     - '~Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.~'
     - '~Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.~'
     - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
+    - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
 
   level: 5
