@@ -27,13 +27,13 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_4_0(Ps_Facetedsearch $module)
+function upgrade_module_3_2_2(Ps_Facetedsearch $module)
 {
-    $newHooks = [
-        'actionFeatureFormBuilderModifier',
-        'actionAfterCreateFeatureFormHandler',
-        'actionAfterUpdateFeatureFormHandler',
-    ];
+    // These methods have no return value
+    // If something failed an exception will be raised and
+    // the upgrade will stop
+    $module->rebuildPriceIndexTable();
+    $module->invalidateLayeredFilterBlockCache();
 
-    return $module->registerHook($newHooks);
+    return $module->registerHook($module->getHookDispatcher()->getAvailableHooks());
 }
