@@ -53,43 +53,62 @@ class FormModifier
         array $data
     ) {
         /**
-         * @var TranslatorComponent $translator
+         * @var TranslatorComponent
          */
         $translator = $this->context->getTranslator();
-
         $invalidCharsHint = $translator->trans(
-            'Invalid characters: <>;=#{}_', [], 'Modules.Facetedsearch.Admin'
+            'Invalid characters: <>;=#{}_',
+            [],
+            'Modules.Facetedsearch.Admin'
         );
+
         $urlTip = $translator->trans(
-            'When the Faceted Search module is enabled, you can get more detailed URLs by choosing the word that best represents this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
+            'When the Faceted Search module is enabled, you can get more detailed URLs by choosing ' .
+            'the word that best represents this feature. By default, PrestaShop uses the ' .
+            'feature\'s name, but you can change that setting using this field.',
             [],
             'Modules.Facetedsearch.Admin'
         );
         $metaTitleTip = $translator->trans(
-            'When the Faceted Search module is enabled, you can get more detailed page titles by choosing the word that best represents this feature. By default, PrestaShop uses the feature\'s name, but you can change that setting using this field.',
+            'When the Faceted Search module is enabled, you can get more detailed page titles by ' .
+            'choosing the word that best represents this feature. By default, PrestaShop uses the ' .
+            'feature\'s name, but you can change that setting using this field.',
             [],
             'Modules.Facetedsearch.Admin'
         );
 
         $formBuilder
-            ->add('url_name', TranslatableType::class, [
-                'required' => false,
-                'label' => $translator->trans('URL', [], 'Admin.Global'),
-                'help' => $urlTip . ' ' . $invalidCharsHint,
-                'options' => [
-                    'constraints' => [
-                        new Url([
-                            'message' => $translator->trans('%s is invalid.', [], 'Admin.Notifications.Error')
-                        ]),
-                    ]
-                ],
-                'data' => $data['url'],
-            ])->add('meta_title', TranslatableType::class, [
-                'required' => false,
-                'label' => $translator->trans('Meta title', [], 'Admin.Global'),
-                'help' => $metaTitleTip,
-                'data' => $data['meta_title'],
-            ])->add('layered_indexable', SwitchType::class, [
+            ->add(
+                'url_name',
+                TranslatableType::class,
+                [
+                    'required' => false,
+                    'label' => $translator->trans('URL', [], 'Modules.Facetedsearch.Admin'),
+                    'help' => $urlTip . ' ' . $invalidCharsHint,
+                    'options' => [
+                        'constraints' => [
+                            new Url([
+                                'message' => $translator->trans('%s is invalid.', [], 'Admin.Notifications.Error'),
+                            ]),
+                        ],
+                    ],
+                    'data' => $data['url'],
+                ]
+            )
+            ->add(
+                'meta_title',
+                TranslatableType::class,
+                [
+                    'required' => false,
+                    'label' => $translator->trans('Meta title', [], 'Modules.Facetedsearch.Admin'),
+                    'help' => $metaTitleTip,
+                    'data' => $data['meta_title'],
+                ]
+            )
+            ->add(
+                'layered_indexable',
+                SwitchType::class,
+                [
                     'required' => false,
                     'label' => $translator->trans('Indexable', [], 'Modules.Facetedsearch.Admin'),
                     'help' => $translator->trans(

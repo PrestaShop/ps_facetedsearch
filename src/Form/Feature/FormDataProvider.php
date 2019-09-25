@@ -65,19 +65,19 @@ class FormDataProvider
 
             // returns false if request failed.
             $queryIndexable = $this->database->getValue(
-                'SELECT `indexable`
-            FROM ' . _DB_PREFIX_ . 'layered_indexable_feature
-            WHERE `id_feature` = ' . $featureId
+                'SELECT `indexable` ' .
+                'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature ' .
+                'WHERE `id_feature` = ' . $featureId
             );
 
-            if ($queryIndexable !== false) {
-                $isIndexable = (bool) $queryIndexable;
-            }
+            $isIndexable = (bool) $queryIndexable;
+            $result = $this->database->executeS(
+                'SELECT `url_name`, `meta_title`, `id_lang` ' .
+                'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value ' .
+                'WHERE `id_feature` = ' . $featureId
+            );
 
-            if ($result = $this->database->executeS(
-                'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . $featureId
-            )) {
+            if (!empty($result) && is_array($result)) {
                 foreach ($result as $data) {
                     $defaultUrl[$data['id_lang']] = $data['url_name'];
                     $defaultMetaTitle[$data['id_lang']] = $data['meta_title'];
@@ -88,8 +88,7 @@ class FormDataProvider
         return [
             'url' => $defaultUrl,
             'meta_title' => $defaultMetaTitle,
-            'is_indexable' => $isIndexable
+            'is_indexable' => $isIndexable,
         ];
     }
-
 }

@@ -27,17 +27,17 @@
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
 use Configuration;
+use Language;
+use PrestaShopDatabaseException;
 use PrestaShop\Module\FacetedSearch\Form\Feature\FormDataProvider;
 use PrestaShop\Module\FacetedSearch\Form\Feature\FormModifier;
-use PrestaShopDatabaseException;
 use Ps_Facetedsearch;
 use Tools;
-use Language;
 
 class Feature extends AbstractHook
 {
     /**
-     * @var FormModifier $formModifier
+     * @var FormModifier
      */
     private $formModifier;
 
@@ -74,11 +74,12 @@ class Feature extends AbstractHook
     public function actionFeatureFormBuilderModifier(array $params)
     {
         $this->formModifier->modify($params['form_builder'], $this->dataProvider->getData($params));
-
     }
 
     /**
-     * Hook after create feature. @since ps v1.7.7
+     * Hook after create feature.
+     *
+     * @since PrestaShop 1.7.7.0
      *
      * @param array $params
      */
@@ -88,7 +89,9 @@ class Feature extends AbstractHook
     }
 
     /**
-     * Hook after update feature. @since ps v1.7.7
+     * Hook after update feature.
+     *
+     * @since PrestaShop 1.7.7.0
      *
      * @param array $params
      */
@@ -202,10 +205,10 @@ class Feature extends AbstractHook
     /**
      * Saves feature form.
      *
-     * @param $featureId
+     * @param int $featureId
      * @param array $formData
      *
-     * @since ps 1.7.7
+     * @since PrestaShop 1.7.7
      */
     private function save($featureId, array $formData)
     {
@@ -214,14 +217,13 @@ class Feature extends AbstractHook
         $this->database->execute(
             'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature
             (`id_feature`, `indexable`)
-            VALUES (' . $featureId . ', ' . (int) $formData['layered_indexable'] . ')'
+            VALUES (' . (int) $featureId . ', ' . (int) $formData['layered_indexable'] . ')'
         );
 
         $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
-        $tableName = _DB_PREFIX_ . 'layered_indexable_feature_lang_value';
-        $query = "
-              INSERT INTO %s(`id_feature`, `id_lang`, `url_name`, `meta_title`)
-              VALUES (%d, %d, '%s', '%s')";
+        $query = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value ' .
+               '(`id_feature`, `id_lang`, `url_name`, `meta_title`) ' .
+               'VALUES (%d, %d, \'%s\', \'%s\')';
 
         foreach (Language::getLanguages(false) as $language) {
             $langId = (int) $language['id_lang'];
@@ -236,8 +238,8 @@ class Feature extends AbstractHook
             $url = pSQL(Tools::link_rewrite($seoUrl));
 
             $this->database->execute(
-                sprintf($query,
-                    $tableName,
+                sprintf(
+                    $query,
                     $featureId,
                     $langId,
                     $url,
