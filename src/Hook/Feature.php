@@ -150,13 +150,17 @@ class Feature extends AbstractHook
         if ($isIndexable === false) {
             $isIndexable = true;
         }
-
-        if ($result = $this->database->executeS(
-            'SELECT `url_name`, `meta_title`, `id_lang` FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value
-            WHERE `id_feature` = ' . (int) $params['id_feature']
-        )) {
+        $result = $this->database->executeS(
+            'SELECT `url_name`, `meta_title`, `id_lang` ' .
+            'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value' .
+            'WHERE `id_feature` = ' . (int) $params['id_feature']
+        );
+        if ($result) {
             foreach ($result as $data) {
-                $values[$data['id_lang']] = ['url_name' => $data['url_name'], 'meta_title' => $data['meta_title']];
+                $values[$data['id_lang']] = [
+                    'url_name' => $data['url_name'],
+                    'meta_title' => $data['meta_title']
+                ];
             }
         }
 
@@ -231,18 +235,16 @@ class Feature extends AbstractHook
             $seoUrl = $formData['url_name'][$langId];
             $name = $formData['name'][$langId] ?: $formData['name'][$defaultLangId];
 
-            if (empty($seoUrl)) {
-                $seoUrl = $name;
+            if (!empty($seoUrl)) {
+                $seoUrl = pSQL(Tools::link_rewrite($seoUrl));
             }
-
-            $url = pSQL(Tools::link_rewrite($seoUrl));
 
             $this->database->execute(
                 sprintf(
                     $query,
                     $featureId,
                     $langId,
-                    $url,
+                    $seoUrl,
                     $metaTitle
                 )
             );
