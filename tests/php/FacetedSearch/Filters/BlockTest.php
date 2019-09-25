@@ -1017,7 +1017,7 @@ class BlockTest extends MockeryTestCase
             $this->dbMock->shouldReceive('executeS')
                 ->once()
                 ->with(
-                    'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+                    'SELECT ag.id_attribute_group, agl.public_name as attribute_group_name, is_color_group ' .
                     'FROM `ps_attribute_group` ag INNER JOIN ps_attribute_group_shop attribute_group_shop ' .
                     'ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND ' .
                     'attribute_group_shop.id_shop = 1) LEFT JOIN `ps_attribute_group_lang` agl ON ' .
