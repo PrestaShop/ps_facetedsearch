@@ -159,7 +159,7 @@ class Feature extends AbstractHook
             foreach ($result as $data) {
                 $values[$data['id_lang']] = [
                     'url_name' => $data['url_name'],
-                    'meta_title' => $data['meta_title']
+                    'meta_title' => $data['meta_title'],
                 ];
             }
         }
