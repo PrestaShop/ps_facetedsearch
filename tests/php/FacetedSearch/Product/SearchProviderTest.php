@@ -76,7 +76,7 @@ class SearchProviderTest extends MockeryTestCase
      */
     private $module;
 
-    private function mockFacet($label, $data = ['filters' => []])
+    private function mockFacet($label, $data = ['filters' => []], $widgetType = 'checkbox')
     {
         $facet = Mockery::mock(Facet::class);
         $facet->shouldReceive('getLabel')
@@ -84,6 +84,9 @@ class SearchProviderTest extends MockeryTestCase
 
         $facet->shouldReceive('toArray')
             ->andReturn($data);
+
+        $facet->shouldReceive('getWidgetType')
+            ->andReturn($widgetType);
 
         return $facet;
     }
@@ -259,6 +262,23 @@ class SearchProviderTest extends MockeryTestCase
                                 ],
                             ],
                         ],
+                        [
+                            'displayed' => true,
+                            'filters' => [
+                                [
+                                    'label' => '£22.00 - £35.00',
+                                    'type' => 'price',
+                                    'active' => false,
+                                    'displayed' => true,
+                                    'properties' => [],
+                                    'magnitude' => 2,
+                                    'value' => 0,
+                                    'nextEncodedFacets' => '',
+                                    'facetLabel' => 'Price',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch',
+                                ],
+                            ],
+                        ],
                     ],
                     'js_enabled' => true,
                     'displayedFacets' => [
@@ -280,6 +300,23 @@ class SearchProviderTest extends MockeryTestCase
                                     'active' => true,
                                     'facetLabel' => 'Test',
                                     'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch&page=1',
+                                ],
+                            ],
+                        ],
+                        [
+                            'displayed' => true,
+                            'filters' => [
+                                [
+                                    'label' => '£22.00 - £35.00',
+                                    'type' => 'price',
+                                    'active' => false,
+                                    'displayed' => true,
+                                    'properties' => [],
+                                    'magnitude' => 2,
+                                    'value' => 0,
+                                    'nextEncodedFacets' => '',
+                                    'facetLabel' => 'Price',
+                                    'nextEncodedFacetsURL' => 'http://shop.prestashop.com/catalog?from=scratch',
                                 ],
                             ],
                         ],
@@ -331,11 +368,31 @@ class SearchProviderTest extends MockeryTestCase
                 ],
             ]
         );
+        $facetSlider = $this->mockFacet(
+            'Price',
+            [
+                'displayed' => true,
+                'filters' => [
+                    [
+                        'label' => '£22.00 - £35.00',
+                        'type' => 'price',
+                        'active' => false,
+                        'displayed' => true,
+                        'properties' => [],
+                        'magnitude' => 2,
+                        'value' => 0,
+                        'nextEncodedFacets' => '',
+                    ],
+                ],
+            ],
+            'slider'
+        );
         $this->facetCollection->shouldReceive('getFacets')
             ->once()
             ->andReturn(
                 [
                     $facet,
+                    $facetSlider,
                 ]
             );
 
