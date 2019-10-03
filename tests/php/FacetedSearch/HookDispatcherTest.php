@@ -26,6 +26,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Tests;
 
+use Db;
 use Context;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
@@ -41,7 +42,9 @@ class HookDispatcherTest extends MockeryTestCase
     {
         $this->module = Mockery::mock(Ps_Facetedsearch::class);
         $contextMock = Mockery::mock(Context::class);
-        $this->module->shouldReceive('getDatabase');
+        $dbMock = Mockery::mock(Db::class);
+        $this->module->shouldReceive('getDatabase')
+            ->andReturn($dbMock);
         $this->module->shouldReceive('getContext')
             ->andReturn($contextMock);
 
@@ -50,7 +53,7 @@ class HookDispatcherTest extends MockeryTestCase
 
     public function testGetAvailableHooks()
     {
-        $this->assertCount(24, $this->dispatcher->getAvailableHooks());
+        $this->assertCount(27, $this->dispatcher->getAvailableHooks());
         $this->assertEquals(
             [
                 'actionAttributeGroupDelete',
@@ -69,6 +72,9 @@ class HookDispatcherTest extends MockeryTestCase
                 'actionFeatureDelete',
                 'displayFeatureForm',
                 'displayFeaturePostProcess',
+                'actionFeatureFormBuilderModifier',
+                'actionAfterCreateFeatureFormHandler',
+                'actionAfterUpdateFeatureFormHandler',
                 'actionFeatureValueSave',
                 'actionFeatureValueDelete',
                 'displayFeatureValueForm',
