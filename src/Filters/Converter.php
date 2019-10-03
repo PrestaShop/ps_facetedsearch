@@ -323,9 +323,9 @@ class Converter
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
                         if ($filter['id_value'] == $attributeGroup['id_attribute_group']
-                            && isset($facetAndFiltersLabels[$attributeGroup['name']])
+                            && isset($facetAndFiltersLabels[$attributeGroup['public_name']])
                         ) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['name']];
+                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['public_name']];
                             $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
                             foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
