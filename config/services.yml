@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    public: true
+
+  prestashop.module.ps_facetedsearch.constraint.url_segment_validator:
+    class: PrestaShop\Module\FacetedSearch\Constraint\UrlSegmentValidator
+    arguments:
+      - '@prestashop.adapter.tools'
+    tags:
+      - { name: validator.constraint_validator }
