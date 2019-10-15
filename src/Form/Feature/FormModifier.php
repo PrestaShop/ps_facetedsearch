@@ -27,11 +27,11 @@
 namespace PrestaShop\Module\FacetedSearch\Form\Feature;
 
 use Context;
+use PrestaShop\Module\FacetedSearch\Constraint\UrlSegment;
 use PrestaShopBundle\Form\Admin\Type\SwitchType;
 use PrestaShopBundle\Form\Admin\Type\TranslatableType;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraints\Url;
 
 /**
  * Adds module specific fields to BO form
@@ -87,7 +87,7 @@ class FormModifier
                     'help' => $urlTip . ' ' . $invalidCharsHint,
                     'options' => [
                         'constraints' => [
-                            new Url([
+                            new UrlSegment([
                                 'message' => $translator->trans('%s is invalid.', [], 'Admin.Notifications.Error'),
                             ]),
                         ],
