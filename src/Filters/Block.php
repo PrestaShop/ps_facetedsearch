@@ -678,7 +678,7 @@ class Block
         if (!isset($this->attributesGroup[$idLang])) {
             $this->attributesGroup[$idLang] = [];
             $tempAttributesGroup = $this->database->executeS(
-                'SELECT ag.id_attribute_group, agl.name as attribute_group_name, is_color_group ' .
+                'SELECT ag.id_attribute_group, agl.public_name as attribute_group_name, is_color_group ' .
                 'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
                 Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
                 'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .

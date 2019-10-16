@@ -97,7 +97,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.3.0';
+        $this->version = '3.4.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -1227,7 +1227,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function invalidateLayeredFilterBlockCache()
     {
-        $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+        return $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
     }
 
     /**
