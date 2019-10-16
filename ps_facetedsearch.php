@@ -1227,7 +1227,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function invalidateLayeredFilterBlockCache()
     {
-        $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
+        return $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
     }
 
     /**
