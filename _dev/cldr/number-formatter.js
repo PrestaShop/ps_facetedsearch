@@ -277,7 +277,13 @@ class NumberFormatter {
   }
 
   static build(specifications) {
-    const symbol = new NumberSymbol(...specifications.symbol);
+    let symbol;
+    if (undefined !== specifications.numberSymbols) {
+      symbol = new NumberSymbol(...specifications.numberSymbols);
+    } else {
+      symbol = new NumberSymbol(...specifications.symbol);
+    }
+
     let specification;
     if (specifications.currencySymbol) {
       specification = new PriceSpecification(
