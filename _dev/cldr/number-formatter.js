@@ -80,7 +80,7 @@ class NumberFormatter {
     }
 
     // Get the good CLDR formatting pattern. Sign is important here !
-    const pattern = this.getCldrPattern(majorDigits < 0);
+    const pattern = this.getCldrPattern(number < 0);
     formattedNumber = this.addPlaceholders(formattedNumber, pattern);
     formattedNumber = this.replaceSymbols(formattedNumber);
 
