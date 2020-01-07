@@ -307,6 +307,7 @@ class MySQL extends AbstractAdapter
     private function computeOrderByField(array $filterToTableMapping)
     {
         $orderField = $this->getOrderField();
+
         if ($this->getInitialPopulation() !== null && !empty($orderField)) {
             $this->getInitialPopulation()->addSelectField($orderField);
         }
@@ -336,6 +337,37 @@ class MySQL extends AbstractAdapter
             $orderField = 'p.' . $orderField;
         }
 
+        // put some products at the end of the list
+        $orderField = $this->computeShowLast($orderField);
+
+        return $orderField;
+    }
+
+    /**
+     * Sort product list: InStock, OOPS with qty 0, OutOfStock
+     * @param  string $orderField
+     * @return string
+     */
+    private function computeShowLast($orderField)
+    {
+        // allow only if feature is enabled
+        if(! \Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')) {
+            return $orderField;
+        }
+
+        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
+            $this->getInitialPopulation()->addSelectField('out_of_stock');
+
+            // order by out-of-stock last
+            $byOutOfStockLast = 'p.quantity <= 0';
+
+            // order by allow to order last
+            $byOOPS = 'FIELD(p.out_of_stock, 2, 1, 0) ASC';
+
+            $orderField = $byOutOfStockLast.', '
+                .$byOOPS.', '
+                .$orderField;
+        }
         return $orderField;
     }
 
