@@ -321,7 +321,9 @@ class MySQL extends AbstractAdapter
         if ($orderField === 'price') {
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
-
+        
+        // COULD BE CHANGED WITH METHOD computeFieldName($fieldName)
+        // example: $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
         if (array_key_exists($orderField, $filterToTableMapping)
             && (
                 // If the requested order field is in the result, no need to change tableAlias
@@ -358,20 +360,48 @@ class MySQL extends AbstractAdapter
             return $orderField;
         }
 
-
-        $this->getInitialPopulation()->addSelectField('out_of_stock');
+        $this->addSelectField('out_of_stock');
 
         // order by out-of-stock last
-        $byOutOfStockLast = 'p.quantity <= 0';
+        $byOutOfStockLast = $this->computeFieldName('quantity') .' <= 0';
 
         // order by allow to order last
-        $byOOPS = 'FIELD(p.out_of_stock, 2, 1, 0) ASC';
+        $byOOPS = 'FIELD('. $this->computeFieldName('out_of_stock'). ', 2, 1, 0) ASC';
 
         $orderField = $byOutOfStockLast.', '
             .$byOOPS.', '
             .$orderField;
 
         return $orderField;
+    }
+
+    /**
+     * Add alias to table field name
+     * @param  string $fieldName
+     * @param  array $filterToTableMapping  Optional
+     * @return string  Table Field name with an alias
+     */
+    private function computeFieldName($fieldName, $filterToTableMapping = null)
+    {
+        if($filterToTableMapping == null) {
+            $filterToTableMapping = $this->getFieldMapping();
+        }
+
+        if (array_key_exists($fieldName, $filterToTableMapping)
+            && (
+                // If the requested order field is in the result, no need to change tableAlias
+                // unless a fieldName key exists
+                isset($filterToTableMapping[$fieldName]['fieldName'])
+                || $this->getInitialPopulation() === null
+                || !$this->getInitialPopulation()->getSelectFields()->contains($fieldName)
+            )
+        ) {
+            $joinMapping = $filterToTableMapping[$fieldName];
+            $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+        } else {
+            $fieldName = 'p.' . $fieldName;
+        }
+        return $fieldName;
     }
 
     /**
