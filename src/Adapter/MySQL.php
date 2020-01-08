@@ -333,7 +333,9 @@ class MySQL extends AbstractAdapter
 
     /**
      * Sort product list: InStock, OOPS with qty 0, OutOfStock
-     * @param  string $orderField
+     *
+     * @param string $orderField
+     *
      * @return string
      */
     private function computeShowLast($orderField)
@@ -349,27 +351,29 @@ class MySQL extends AbstractAdapter
         $this->addSelectField('out_of_stock');
 
         // order by out-of-stock last
-        $byOutOfStockLast = $this->computeFieldName('quantity') .' <= 0';
+        $byOutOfStockLast = $this->computeFieldName('quantity') . ' <= 0';
 
         // order by allow to order last
-        $byOOPS = 'FIELD('. $this->computeFieldName('out_of_stock'). ', 2, 1, 0) ASC';
+        $byOOPS = 'FIELD(' . $this->computeFieldName('out_of_stock') . ', 2, 1, 0) ASC';
 
-        $orderField = $byOutOfStockLast.', '
-            .$byOOPS.', '
-            .$orderField;
+        $orderField = $byOutOfStockLast . ', '
+            . $byOOPS . ', '
+            . $orderField;
 
         return $orderField;
     }
 
     /**
      * Add alias to table field name
-     * @param  string $fieldName
-     * @param  array $filterToTableMapping  Optional
-     * @return string  Table Field name with an alias
+     *
+     * @param string $fieldName
+     * @param array $filterToTableMapping Optional
+     *
+     * @return string Table Field name with an alias
      */
     private function computeFieldName($fieldName, $filterToTableMapping = null)
     {
-        if($filterToTableMapping == null) {
+        if ($filterToTableMapping == null) {
             $filterToTableMapping = $this->getFieldMapping();
         }
 
@@ -387,6 +391,7 @@ class MySQL extends AbstractAdapter
         } else {
             $fieldName = 'p.' . $fieldName;
         }
+
         return $fieldName;
     }
 
