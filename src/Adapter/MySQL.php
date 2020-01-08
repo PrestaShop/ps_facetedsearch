@@ -350,24 +350,27 @@ class MySQL extends AbstractAdapter
      */
     private function computeShowLast($orderField)
     {
-        // allow only if feature is enabled
-        if(! \Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')) {
+        // allow only if feature is enabled & it is main product list query
+        if ($this->getInitialPopulation() === null
+            || empty($orderField)
+            || ! \Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+        ) {
             return $orderField;
         }
 
-        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
-            $this->getInitialPopulation()->addSelectField('out_of_stock');
 
-            // order by out-of-stock last
-            $byOutOfStockLast = 'p.quantity <= 0';
+        $this->getInitialPopulation()->addSelectField('out_of_stock');
 
-            // order by allow to order last
-            $byOOPS = 'FIELD(p.out_of_stock, 2, 1, 0) ASC';
+        // order by out-of-stock last
+        $byOutOfStockLast = 'p.quantity <= 0';
 
-            $orderField = $byOutOfStockLast.', '
-                .$byOOPS.', '
-                .$orderField;
-        }
+        // order by allow to order last
+        $byOOPS = 'FIELD(p.out_of_stock, 2, 1, 0) ASC';
+
+        $orderField = $byOutOfStockLast.', '
+            .$byOOPS.', '
+            .$orderField;
+
         return $orderField;
     }
 
