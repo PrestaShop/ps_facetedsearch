@@ -323,22 +323,7 @@ class MySQL extends AbstractAdapter
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
-        // COULD BE CHANGED WITH METHOD computeFieldName($fieldName)
-        // example: $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
-        if (array_key_exists($orderField, $filterToTableMapping)
-            && (
-                // If the requested order field is in the result, no need to change tableAlias
-                // unless a fieldName key exists
-                isset($filterToTableMapping[$orderField]['fieldName'])
-                || $this->getInitialPopulation() === null
-                || !$this->getInitialPopulation()->getSelectFields()->contains($orderField)
-            )
-        ) {
-            $joinMapping = $filterToTableMapping[$orderField];
-            $orderField = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $orderField);
-        } else {
-            $orderField = 'p.' . $orderField;
-        }
+        $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
 
         // put some products at the end of the list
         $orderField = $this->computeShowLast($orderField);
