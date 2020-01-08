@@ -28,6 +28,7 @@ namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Db;
 use Context;
+use Configuration;
 use StockAvailable;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -321,7 +322,7 @@ class MySQL extends AbstractAdapter
         if ($orderField === 'price') {
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
-        
+
         // COULD BE CHANGED WITH METHOD computeFieldName($fieldName)
         // example: $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
         if (array_key_exists($orderField, $filterToTableMapping)
@@ -355,7 +356,7 @@ class MySQL extends AbstractAdapter
         // allow only if feature is enabled & it is main product list query
         if ($this->getInitialPopulation() === null
             || empty($orderField)
-            || ! \Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            || !Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
         ) {
             return $orderField;
         }
