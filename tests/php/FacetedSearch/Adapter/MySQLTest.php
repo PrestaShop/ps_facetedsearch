@@ -29,6 +29,7 @@ namespace PrestaShop\Module\FacetedSearch\Tests\Adapter;
 use stdClass;
 use Db;
 use Context;
+use Configuration;
 use StockAvailable;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
@@ -64,6 +65,12 @@ class MySQLTest extends MockeryTestCase
         $contextMock->shouldReceive('getContext')
             ->andReturn($stdClass);
         Context::setStaticExpectations($contextMock);
+
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(0);
+        Configuration::setStaticExpectations($configurationMock);
     }
 
     public function testGetEmptyQuery()
