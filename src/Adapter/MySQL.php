@@ -326,7 +326,7 @@ class MySQL extends AbstractAdapter
         $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
 
         // put some products at the end of the list
-        $orderField = $this->computeShowLast($orderField);
+        $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
 
         return $orderField;
     }
@@ -335,10 +335,11 @@ class MySQL extends AbstractAdapter
      * Sort product list: InStock, OOPS with qty 0, OutOfStock
      *
      * @param string $orderField
+     * @param array $filterToTableMapping
      *
      * @return string
      */
-    private function computeShowLast($orderField)
+    private function computeShowLast($orderField, $filterToTableMapping)
     {
         // allow only if feature is enabled & it is main product list query
         if ($this->getInitialPopulation() === null
@@ -351,10 +352,10 @@ class MySQL extends AbstractAdapter
         $this->addSelectField('out_of_stock');
 
         // order by out-of-stock last
-        $byOutOfStockLast = $this->computeFieldName('quantity') . ' <= 0';
+        $byOutOfStockLast = $this->computeFieldName('quantity', $filterToTableMapping) . ' <= 0';
 
         // order by allow to order last
-        $byOOPS = 'FIELD(' . $this->computeFieldName('out_of_stock') . ', 2, 1, 0) ASC';
+        $byOOPS = 'FIELD(' . $this->computeFieldName('out_of_stock', $filterToTableMapping) . ', 2, 1, 0) ASC';
 
         $orderField = $byOutOfStockLast . ', '
             . $byOOPS . ', '
@@ -367,16 +368,12 @@ class MySQL extends AbstractAdapter
      * Add alias to table field name
      *
      * @param string $fieldName
-     * @param array $filterToTableMapping Optional
+     * @param array $filterToTableMapping
      *
      * @return string Table Field name with an alias
      */
-    private function computeFieldName($fieldName, $filterToTableMapping = null)
+    private function computeFieldName($fieldName, $filterToTableMapping)
     {
-        if ($filterToTableMapping == null) {
-            $filterToTableMapping = $this->getFieldMapping();
-        }
-
         if (array_key_exists($fieldName, $filterToTableMapping)
             && (
                 // If the requested order field is in the result, no need to change tableAlias
