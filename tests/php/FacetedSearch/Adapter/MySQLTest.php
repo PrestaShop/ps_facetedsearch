@@ -437,6 +437,30 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    public function testGetQueryWithComputeShowLastEnabledAndDenyOrderOutOfStockProducts()
+    {
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(true);
+        Configuration::setStaticExpectations($configurationMock);
+
+        $productMock = Mockery::namedMock(Product::class);
+        $productMock->shouldReceive('isAvailableWhenOutOfStock')
+            ->with(2)
+            ->andReturn(false);
+
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('desc');
+
+        $this->assertEquals(
+            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, sa.quantity, p.condition, p.weight, p.price, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.quantity <= 0, FIELD(sa.out_of_stock, 1) DESC, p.position DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
     public function getManyOperationsFilters()
     {
         return [
