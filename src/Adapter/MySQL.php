@@ -27,6 +27,7 @@
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Db;
+use Product;
 use Context;
 use Configuration;
 use StockAvailable;
@@ -354,8 +355,26 @@ class MySQL extends AbstractAdapter
         // order by out-of-stock last
         $byOutOfStockLast = $this->computeFieldName('quantity', $filterToTableMapping) . ' <= 0';
 
+        /**
+         * Default behaviour when out of stock
+         * 0 - when deny orders
+         * 1 - when allow orders
+         *
+         * @var int
+         */
+        $isAvailableWhenOutOfStock = (int) Product::isAvailableWhenOutOfStock(2);
+
+        // computing values for order by 'allow to order last'
+        $computedField = $this->computeFieldName('out_of_stock', $filterToTableMapping);
+        $computedValue = $isAvailableWhenOutOfStock ? 0 : 1;
+        $computedDirection = $isAvailableWhenOutOfStock ? 'ASC' : 'DESC';
+
         // order by allow to order last
-        $byOOPS = 'FIELD(' . $this->computeFieldName('out_of_stock', $filterToTableMapping) . ', 2, 1, 0) ASC';
+        $byOOPS = str_replace(
+            [':field', ':value', ':direction'],
+            [$computedField, $computedValue, $computedDirection],
+            'FIELD(:field, :value) :direction'
+        );
 
         $orderField = $byOutOfStockLast . ', '
             . $byOOPS . ', '
