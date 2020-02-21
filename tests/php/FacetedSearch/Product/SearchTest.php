@@ -52,6 +52,7 @@ class SearchTest extends MockeryTestCase
                     'PS_ORDER_OUT_OF_STOCK' => true,
                     'PS_HOME_CATEGORY' => true,
                     'PS_LAYERED_FULL_TREE' => false,
+                    'PS_LAYERED_ONLY_DEFAULT_CATEGORY' => false,
                 ];
 
                 return $valueMap[$arg];
