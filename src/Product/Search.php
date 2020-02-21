@@ -113,7 +113,7 @@ class Search
         }
 
         $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
-        if(!$psLayeredFilterByDefaultCategory) {
+        if (!$psLayeredFilterByDefaultCategory) {
             $this->getSearchAdapter()->resetFilter('id_category_default');
         }
 
