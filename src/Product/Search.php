@@ -112,11 +112,10 @@ class Search
             $this->addFilter('id_category', [$parent->id]);
         }
 
-        $psLayeredOnlyDefaultCategory = Configuration::get('PS_LAYERED_ONLY_DEFAULT_CATEGORY');
-        if($psLayeredOnlyDefaultCategory) {
+        $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        if(!$psLayeredFilterByDefaultCategory) {
             $this->getSearchAdapter()->resetFilter('id_category_default');
         }
-
 
         // Visibility of a product must be in catalog or both (search & catalog)
         $this->addFilter('visibility', ['both', 'catalog']);
