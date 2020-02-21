@@ -108,12 +108,15 @@ class Search
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
-            $psLayeredOnlyDefaultCategory = Configuration::get('PS_LAYERED_ONLY_DEFAULT_CATEGORY');
-            if(!$psLayeredOnlyDefaultCategory) {
-                $this->addFilter('id_category_default', [$parent->id]);
-            }
+            $this->addFilter('id_category_default', [$parent->id]);
             $this->addFilter('id_category', [$parent->id]);
         }
+
+        $psLayeredOnlyDefaultCategory = Configuration::get('PS_LAYERED_ONLY_DEFAULT_CATEGORY');
+        if($psLayeredOnlyDefaultCategory) {
+            $this->getSearchAdapter()->resetFilter('id_category_default');
+        }
+
 
         // Visibility of a product must be in catalog or both (search & catalog)
         $this->addFilter('visibility', ['both', 'catalog']);
