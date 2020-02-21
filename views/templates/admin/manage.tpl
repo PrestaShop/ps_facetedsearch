@@ -147,6 +147,27 @@
 			</div>
 		</div>
 		<div class="form-group">
+			<label class="col-lg-3 control-label">{l s='Show products only from default category' d='Modules.Facetedsearch.Admin'}</label>
+			<div class="col-lg-9">
+				<span class="switch prestashop-switch fixed-width-lg">
+					<input type="radio" name="ps_layered_only_default_category" id="ps_layered_only_default_category_on" value="1"{if $only_default_category} checked="checked"{/if}>
+					<label for="ps_layered_only_default_category_on" class="radioCheck">
+						<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+					</label>
+					<input type="radio" name="ps_layered_only_default_category" id="ps_layered_only_default_category_off" value="0"{if !$only_default_category} checked="checked"{/if}>
+					<label for="ps_layered_only_default_category_off" class="radioCheck">
+						<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+					</label>
+					<a class="slide-button btn"></a>
+				</span>
+			</div>
+			<div class="col-lg-9 col-lg-offset-3">
+				<div class="help-block">
+					{l s='Works only if "Show products from subcategories" is off.' d='Modules.Facetedsearch.Admin'}
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
 			<label class="col-lg-3 control-label">{l s='Category filter depth (0 for no limits, 1 by default)' d='Modules.Facetedsearch.Admin'}</label>
 			<div class="col-lg-9">
 				<input type="text" name="ps_layered_filter_category_depth" value="{if $category_depth !== false}{$category_depth}{else}1{/if}" class="fixed-width-sm" />
