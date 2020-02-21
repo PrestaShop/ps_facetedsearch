@@ -201,7 +201,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
-            Configuration::updateValue('PS_LAYERED_ONLY_DEFAULT_CATEGORY', 0);
+            Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
 
             $this->psLayeredFullTree = 1;
 
@@ -236,7 +236,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_USETAX');
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
-        Configuration::deleteByName('PS_LAYERED_ONLY_DEFAULT_CATEGORY');
+        Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -692,7 +692,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
-            Configuration::updateValue('PS_LAYERED_ONLY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_only_default_category'));
+            Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -824,7 +824,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
             'limit_warning' => $this->displayLimitPostWarning(21 + count($attributeGroups) * 3 + count($features) * 3),
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
-            'only_default_category' => (bool) Configuration::get('PS_LAYERED_ONLY_DEFAULT_CATEGORY'),
+            'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');

@@ -150,12 +150,12 @@
 			<label class="col-lg-3 control-label">{l s='Show products only from default category' d='Modules.Facetedsearch.Admin'}</label>
 			<div class="col-lg-9">
 				<span class="switch prestashop-switch fixed-width-lg">
-					<input type="radio" name="ps_layered_only_default_category" id="ps_layered_only_default_category_on" value="1"{if $only_default_category} checked="checked"{/if}>
-					<label for="ps_layered_only_default_category_on" class="radioCheck">
+					<input type="radio" name="ps_layered_filter_by_default_category" id="ps_layered_filter_by_default_category_on" value="1"{if $filter_by_default_category} checked="checked"{/if}>
+					<label for="ps_layered_filter_by_default_category_on" class="radioCheck">
 						<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
 					</label>
-					<input type="radio" name="ps_layered_only_default_category" id="ps_layered_only_default_category_off" value="0"{if !$only_default_category} checked="checked"{/if}>
-					<label for="ps_layered_only_default_category_off" class="radioCheck">
+					<input type="radio" name="ps_layered_filter_by_default_category" id="ps_layered_filter_by_default_category_off" value="0"{if !$filter_by_default_category} checked="checked"{/if}>
+					<label for="ps_layered_filter_by_default_category_off" class="radioCheck">
 						<i class="color_danger"></i> {l s='No' d='Admin.Global'}
 					</label>
 					<a class="slide-button btn"></a>
