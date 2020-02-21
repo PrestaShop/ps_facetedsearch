@@ -108,7 +108,10 @@ class Search
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
-            $this->addFilter('id_category_default', [$parent->id]);
+            $psLayeredOnlyDefaultCategory = Configuration::get('PS_LAYERED_ONLY_DEFAULT_CATEGORY');
+            if(!$psLayeredOnlyDefaultCategory) {
+                $this->addFilter('id_category_default', [$parent->id]);
+            }
             $this->addFilter('id_category', [$parent->id]);
         }
 
