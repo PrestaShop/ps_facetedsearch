@@ -406,7 +406,9 @@ class MySQL extends AbstractAdapter
             $joinMapping = $filterToTableMapping[$fieldName];
             $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
         } else {
-            $fieldName = 'p.' . $fieldName;
+            if (!strpos($fieldName, '(')) {
+                $fieldName = 'p.' . $fieldName;
+            }
         }
 
         return $fieldName;
@@ -423,20 +425,8 @@ class MySQL extends AbstractAdapter
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
-            $selectAlias = 'p';
-            if (array_key_exists($selectField, $filterToTableMapping)) {
-                $joinMapping = $filterToTableMapping[$selectField];
-                $selectAlias = $joinMapping['tableAlias'];
-                if (isset($joinMapping['fieldName'])) {
-                    $selectField = $joinMapping['fieldName'];
-                }
-            }
-
-            if (strpos($selectField, '(') !== false) {
-                $selectFields[] = $selectField;
-            } else {
-                $selectFields[] = $selectAlias . '.' . $selectField;
-            }
+            $selectField = $this->computeFieldName($selectField, $filterToTableMapping);
+            $selectFields[] = $selectField;
         }
 
         return $selectFields;
