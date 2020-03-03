@@ -258,6 +258,8 @@ class MySQL extends AbstractAdapter
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
+                'aggregateFunction' => 'SUM',
+                'aggregateFieldName' => 'quantity',
             ],
             'price_min' => [
                 'tableName' => 'layered_price_index',
@@ -405,6 +407,10 @@ class MySQL extends AbstractAdapter
         ) {
             $joinMapping = $filterToTableMapping[$fieldName];
             $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+
+            if (isset($joinMapping['aggregateFunction']) && isset($joinMapping['aggregateFieldName'])) {
+                $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
+            }
         } else {
             if (!strpos($fieldName, '(')) {
                 $fieldName = 'p.' . $fieldName;
