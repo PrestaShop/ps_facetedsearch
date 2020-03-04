@@ -408,7 +408,7 @@ class MySQL extends AbstractAdapter
             $joinMapping = $filterToTableMapping[$fieldName];
             $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
 
-            if (isset($joinMapping['aggregateFunction']) && isset($joinMapping['aggregateFieldName'])) {
+            if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
                 $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
             }
         } else {
