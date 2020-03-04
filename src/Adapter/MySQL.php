@@ -431,8 +431,7 @@ class MySQL extends AbstractAdapter
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
-            $selectField = $this->computeFieldName($selectField, $filterToTableMapping);
-            $selectFields[] = $selectField;
+            $selectFields[]  = $this->computeFieldName($selectField, $filterToTableMapping);
         }
 
         return $selectFields;
