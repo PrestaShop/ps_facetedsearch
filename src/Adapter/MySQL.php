@@ -412,7 +412,7 @@ class MySQL extends AbstractAdapter
                 $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
             }
         } else {
-            if (!strpos($fieldName, '(')) {
+            if (strpos($fieldName, '(') !== false) {
                 $fieldName = 'p.' . $fieldName;
             }
         }
