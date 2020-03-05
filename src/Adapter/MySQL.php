@@ -356,7 +356,7 @@ class MySQL extends AbstractAdapter
 
         // order by out-of-stock last
         $computedQuantityField = $this->computeFieldName('quantity', $filterToTableMapping);
-        $byOutOfStockLast = 'IFNULL(' . $computedQuantityField . ',0) <= 0';
+        $byOutOfStockLast = 'IFNULL(' . $computedQuantityField . ', 0) <= 0';
 
         /**
          * Default behaviour when out of stock
