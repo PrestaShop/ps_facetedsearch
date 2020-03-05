@@ -372,11 +372,11 @@ class MySQL extends AbstractAdapter
         $computedValue = $isAvailableWhenOutOfStock ? 0 : 1;
         $computedDirection = $isAvailableWhenOutOfStock ? 'ASC' : 'DESC';
 
-        // order by allow to order last
+        // query: products with zero or less quantity and not available to order go to the end
         $byOOPS = str_replace(
-            [':field', ':value', ':direction'],
-            [$computedField, $computedValue, $computedDirection],
-            'FIELD(:field, :value) :direction'
+            [':byOutOfStockLast', ':field', ':value', ':direction'],
+            [$byOutOfStockLast, $computedField, $computedValue, $computedDirection],
+            ':byOutOfStockLast AND FIELD(:field, :value) :direction'
         );
 
         $orderField = $byOutOfStockLast . ', '
