@@ -224,3 +224,22 @@ $(document).ready(() => {
     });
   }
 });
+
+$(document).on('ready', () => {
+  const layeredDefaultCategory = $('input[name="ps_layered_filter_by_default_category"]');
+  layeredDefaultCategory.on('change', function initializeOptions(event) {
+    const elm = $(this);
+    if (!elm.prop('checked')) {
+      return;
+    }
+
+    if (elm.val() === '1') {
+      $('input[name="ps_layered_full_tree"][value="0"]').prop('checked', true);
+      $('input[name="ps_layered_full_tree"]').prop('disabled', true);
+    } else {
+      $('input[name="ps_layered_full_tree"]').prop('disabled', false);
+    }
+  });
+
+  layeredDefaultCategory.filter('[value="1"]').trigger('change');
+});
