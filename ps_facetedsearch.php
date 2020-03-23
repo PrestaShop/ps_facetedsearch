@@ -1204,7 +1204,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 $params['errors'][] = Tools::displayError(
                     $this->trans(
                         '"%s" is not a valid url',
-                        [$urlNameLang],
+                        [Tools::safeOutput($urlNameLang, true)],
                         'Modules.Facetedsearch.Admin'
                     )
                 );
