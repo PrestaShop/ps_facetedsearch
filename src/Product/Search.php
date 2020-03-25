@@ -108,8 +108,12 @@ class Search
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
-            $this->addFilter('id_category_default', [$parent->id]);
             $this->addFilter('id_category', [$parent->id]);
+        }
+
+        $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        if ($psLayeredFilterByDefaultCategory) {
+            $this->addFilter('id_category_default', [$parent->id]);
         }
 
         // Visibility of a product must be in catalog or both (search & catalog)

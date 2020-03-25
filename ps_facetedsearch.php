@@ -97,7 +97,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.4.1';
+        $this->version = '3.5.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -201,6 +201,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', 1);
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
+            Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
 
             $this->psLayeredFullTree = 1;
 
@@ -235,6 +237,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_USETAX');
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
+        Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
+        Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -411,7 +415,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             );
 
             if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT');
+                $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT', null, null, $idShop);
                 $isoCode = Country::getIsoById($idCountry);
                 $taxRatesByCountry = [['rate' => 0, 'id_country' => $idCountry, 'iso_code' => $isoCode]];
             }
@@ -690,6 +694,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
+            Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -821,6 +827,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
             'limit_warning' => $this->displayLimitPostWarning(21 + count($attributeGroups) * 3 + count($features) * 3),
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
+            'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
+            'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
@@ -1200,7 +1208,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 $params['errors'][] = Tools::displayError(
                     $this->trans(
                         '"%s" is not a valid url',
-                        [$urlNameLang],
+                        [Tools::safeOutput($urlNameLang, true)],
                         'Modules.Facetedsearch.Admin'
                     )
                 );

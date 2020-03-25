@@ -27,7 +27,9 @@
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Db;
+use Product;
 use Context;
+use Configuration;
 use StockAvailable;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -256,6 +258,8 @@ class MySQL extends AbstractAdapter
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
+                'aggregateFunction' => 'SUM',
+                'aggregateFieldName' => 'quantity',
             ],
             'price_min' => [
                 'tableName' => 'layered_price_index',
@@ -307,6 +311,7 @@ class MySQL extends AbstractAdapter
     private function computeOrderByField(array $filterToTableMapping)
     {
         $orderField = $this->getOrderField();
+
         if ($this->getInitialPopulation() !== null && !empty($orderField)) {
             $this->getInitialPopulation()->addSelectField($orderField);
         }
@@ -321,22 +326,98 @@ class MySQL extends AbstractAdapter
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
-        if (array_key_exists($orderField, $filterToTableMapping)
+        $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
+
+        // put some products at the end of the list
+        $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
+
+        return $orderField;
+    }
+
+    /**
+     * Sort product list: InStock, OOPS with qty 0, OutOfStock
+     *
+     * @param string $orderField
+     * @param array $filterToTableMapping
+     *
+     * @return string
+     */
+    private function computeShowLast($orderField, $filterToTableMapping)
+    {
+        // allow only if feature is enabled & it is main product list query
+        if ($this->getInitialPopulation() === null
+            || empty($orderField)
+            || !Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+        ) {
+            return $orderField;
+        }
+
+        $this->addSelectField('out_of_stock');
+
+        // order by out-of-stock last
+        $computedQuantityField = $this->computeFieldName('quantity', $filterToTableMapping);
+        $byOutOfStockLast = 'IFNULL(' . $computedQuantityField . ', 0) <= 0';
+
+        /**
+         * Default behaviour when out of stock
+         * 0 - when deny orders
+         * 1 - when allow orders
+         *
+         * @var int
+         */
+        $isAvailableWhenOutOfStock = (int) Product::isAvailableWhenOutOfStock(2);
+
+        // computing values for order by 'allow to order last'
+        $computedField = $this->computeFieldName('out_of_stock', $filterToTableMapping);
+        $computedValue = $isAvailableWhenOutOfStock ? 0 : 1;
+        $computedDirection = $isAvailableWhenOutOfStock ? 'ASC' : 'DESC';
+
+        // query: products with zero or less quantity and not available to order go to the end
+        $byOOPS = str_replace(
+            [':byOutOfStockLast', ':field', ':value', ':direction'],
+            [$byOutOfStockLast, $computedField, $computedValue, $computedDirection],
+            ':byOutOfStockLast AND FIELD(:field, :value) :direction'
+        );
+
+        $orderField = $byOutOfStockLast . ', '
+            . $byOOPS . ', '
+            . $orderField;
+
+        return $orderField;
+    }
+
+    /**
+     * Add alias to table field name
+     *
+     * @param string $fieldName
+     * @param array $filterToTableMapping
+     *
+     * @return string Table Field name with an alias
+     */
+    private function computeFieldName($fieldName, $filterToTableMapping)
+    {
+        if (array_key_exists($fieldName, $filterToTableMapping)
             && (
                 // If the requested order field is in the result, no need to change tableAlias
                 // unless a fieldName key exists
-                isset($filterToTableMapping[$orderField]['fieldName'])
+                isset($filterToTableMapping[$fieldName]['fieldName'])
                 || $this->getInitialPopulation() === null
-                || !$this->getInitialPopulation()->getSelectFields()->contains($orderField)
+                || !$this->getInitialPopulation()->getSelectFields()->contains($fieldName)
             )
         ) {
-            $joinMapping = $filterToTableMapping[$orderField];
-            $orderField = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $orderField);
+            $joinMapping = $filterToTableMapping[$fieldName];
+            $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+
+            if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
+                $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
+            }
         } else {
-            $orderField = 'p.' . $orderField;
+            if (strpos($fieldName, '(') === false) {
+                $fieldName = 'p.' . $fieldName;
+            }
         }
 
-        return $orderField;
+        return $fieldName;
     }
 
     /**
@@ -350,20 +431,7 @@ class MySQL extends AbstractAdapter
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
-            $selectAlias = 'p';
-            if (array_key_exists($selectField, $filterToTableMapping)) {
-                $joinMapping = $filterToTableMapping[$selectField];
-                $selectAlias = $joinMapping['tableAlias'];
-                if (isset($joinMapping['fieldName'])) {
-                    $selectField = $joinMapping['fieldName'];
-                }
-            }
-
-            if (strpos($selectField, '(') !== false) {
-                $selectFields[] = $selectField;
-            } else {
-                $selectFields[] = $selectAlias . '.' . $selectField;
-            }
+            $selectFields[] = $this->computeFieldName($selectField, $filterToTableMapping);
         }
 
         return $selectFields;
