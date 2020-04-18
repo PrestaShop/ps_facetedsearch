@@ -133,7 +133,7 @@ class MySQL extends AbstractAdapter
         }
 
         if ($orderField) {
-            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->getOrderDirection());
+            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->getOrderDirection()) . ', p.id_product ASC';
         }
 
         if ($this->limit !== null) {
