@@ -77,7 +77,7 @@ class MySQLTest extends MockeryTestCase
     public function testGetEmptyQuery()
     {
         $this->assertEquals(
-            'SELECT  FROM ps_product p ORDER BY p.id_product DESC, p.id_product ASC LIMIT 0, 20',
+            'SELECT  FROM ps_product p ORDER BY p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
