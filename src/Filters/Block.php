@@ -168,6 +168,10 @@ class Block
      */
     public function getFromCache($filterHash)
     {
+        if (!Configuration::get('PS_LAYERED_CACHE_ENABLED')) {
+            return;
+        }
+
         $row = $this->database->getRow(
             'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . pSQL($filterHash) . '"'
         );
@@ -187,6 +191,10 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
+        if (!Configuration::get('PS_LAYERED_CACHE_ENABLED')) {
+            return;
+        }
+
         try {
             $this->database->execute(
                 'REPLACE INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data) ' .
