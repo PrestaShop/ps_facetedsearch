@@ -137,13 +137,13 @@ class Converter
                     }
 
                     if ((int) $filterBlock['filter_show_limit'] !== 0) {
-                        usort($filters, array($this, 'sortFiltersByMagnitude'));
+                        usort($filters, [$this, 'sortFiltersByMagnitude']);
                     }
 
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
 
                     if ((int) $filterBlock['filter_show_limit'] !== 0 || $filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP) {
-                        usort($filters, array($this, 'sortFiltersByLabel'));
+                        usort($filters, [$this, 'sortFiltersByLabel']);
                     }
 
                     // No method available to add all filters

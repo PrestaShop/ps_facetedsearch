@@ -26,8 +26,8 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
-use Db;
 use Context;
+use Db;
 use Ps_Facetedsearch;
 
 abstract class AbstractHook

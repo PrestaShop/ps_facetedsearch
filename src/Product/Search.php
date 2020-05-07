@@ -26,12 +26,12 @@
 
 namespace PrestaShop\Module\FacetedSearch\Product;
 
-use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
-use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
-use Configuration;
-use Tools;
 use Category;
+use Configuration;
 use Context;
+use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
+use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
+use Tools;
 
 class Search
 {

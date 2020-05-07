@@ -26,9 +26,9 @@
 
 namespace PrestaShop\Module\FacetedSearch;
 
-use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
-use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 
 class URLSerializer
 {

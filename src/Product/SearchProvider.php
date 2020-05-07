@@ -27,7 +27,6 @@
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use Configuration;
-use Context;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;

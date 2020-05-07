@@ -26,8 +26,8 @@
 
 namespace PrestaShop\Module\FacetedSearch\Tests;
 
-use Db;
 use Context;
+use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
