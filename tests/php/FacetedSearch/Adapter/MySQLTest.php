@@ -26,16 +26,16 @@
 
 namespace PrestaShop\Module\FacetedSearch\Tests\Adapter;
 
-use stdClass;
-use Db;
-use Product;
-use Context;
 use Configuration;
-use StockAvailable;
+use Context;
+use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Product\Search;
+use Product;
+use stdClass;
+use StockAvailable;
 
 class MySQLTest extends MockeryTestCase
 {

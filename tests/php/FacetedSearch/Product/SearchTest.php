@@ -32,8 +32,8 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Product\Search;
-use Tools;
 use stdClass;
+use Tools;
 
 class SearchTest extends MockeryTestCase
 {

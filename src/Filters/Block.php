@@ -35,13 +35,13 @@ use Feature;
 use FeatureValue;
 use Group;
 use Manufacturer;
-use PrestaShopDatabaseException;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
+use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
+use PrestaShopDatabaseException;
 use Shop;
 use Tools;
-use PrestaShop\Module\FacetedSearch\Product\Search;
 
 /**
  * Display filters block on navigation
@@ -168,6 +168,10 @@ class Block
      */
     public function getFromCache($filterHash)
     {
+        if (!Configuration::get('PS_LAYERED_CACHE_ENABLED')) {
+            return null;
+        }
+
         $row = $this->database->getRow(
             'SELECT data FROM ' . _DB_PREFIX_ . 'layered_filter_block WHERE hash="' . pSQL($filterHash) . '"'
         );
@@ -187,6 +191,10 @@ class Block
      */
     public function insertIntoCache($filterHash, $data)
     {
+        if (!Configuration::get('PS_LAYERED_CACHE_ENABLED')) {
+            return;
+        }
+
         try {
             $this->database->execute(
                 'REPLACE INTO ' . _DB_PREFIX_ . 'layered_filter_block (hash, data) ' .

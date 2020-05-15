@@ -26,12 +26,12 @@
 
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
-use Db;
-use Product;
-use Context;
 use Configuration;
-use StockAvailable;
+use Context;
+use Db;
 use Doctrine\Common\Collections\ArrayCollection;
+use Product;
+use StockAvailable;
 
 class MySQL extends AbstractAdapter
 {

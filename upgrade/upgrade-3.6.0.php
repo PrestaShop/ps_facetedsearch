@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2019 PrestaShop.
+ * 2007-2020 PrestaShop.
  *
  * NOTICE OF LICENSE
  *
@@ -19,48 +19,17 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2019 PrestaShop SA
+ * @copyright 2007-2020 PrestaShop SA
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
-namespace PrestaShop\Module\FacetedSearch\Hook;
-
-use Context;
-use Db;
-use Ps_Facetedsearch;
-
-abstract class AbstractHook
+function upgrade_module_3_6_0($module)
 {
-    const AVAILABLE_HOOKS = [];
+    Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', 1);
 
-    /**
-     * @var Context
-     */
-    protected $context;
-
-    /**
-     * @var Ps_Facetedsearch
-     */
-    protected $module;
-
-    /**
-     * @var Db
-     */
-    protected $database;
-
-    public function __construct(Ps_Facetedsearch $module)
-    {
-        $this->module = $module;
-        $this->context = $module->getContext();
-        $this->database = $module->getDatabase();
-    }
-
-    /**
-     * @return array
-     */
-    public function getAvailableHooks()
-    {
-        return static::AVAILABLE_HOOKS;
-    }
+    return true;
 }

@@ -26,11 +26,11 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use PrestaShop\Module\FacetedSearch\Product\Search;
+use Configuration;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
+use PrestaShop\Module\FacetedSearch\Product\Search;
 use Product;
 use Validate;
-use Configuration;
 
 class Products
 {

@@ -35,8 +35,8 @@ use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use Shop;
-use Tools;
 use stdClass;
+use Tools;
 
 class ConverterTest extends MockeryTestCase
 {

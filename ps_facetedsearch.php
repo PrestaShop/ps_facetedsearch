@@ -195,6 +195,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
             $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'friendly_url');
         } else {
+            Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
@@ -231,6 +232,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     public function uninstall()
     {
         /* Delete all configurations */
+        Configuration::deleteByName('PS_LAYERED_CACHE_ENABLED');
         Configuration::deleteByName('PS_LAYERED_SHOW_QTIES');
         Configuration::deleteByName('PS_LAYERED_FULL_TREE');
         Configuration::deleteByName('PS_LAYERED_INDEXED');
@@ -689,6 +691,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
+            Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', (int) Tools::getValue('ps_layered_cache_enabled'));
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int) Tools::getValue('ps_layered_show_qties'));
             Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('ps_layered_full_tree'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
@@ -822,6 +825,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
+            'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
             'full_tree' => $this->psLayeredFullTree,
             'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
             'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),

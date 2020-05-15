@@ -26,23 +26,23 @@
 
 namespace PrestaShop\Module\FacetedSearch\Tests\Product;
 
-use Ps_Facetedsearch;
-use Tools;
-use Db;
 use Configuration;
 use Context;
+use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
-use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
-use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
+use PrestaShop\PrestaShop\Core\Product\Search\Facet;
+use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
+use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchContext;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
-use PrestaShop\PrestaShop\Core\Product\Search\FacetCollection;
-use PrestaShop\PrestaShop\Core\Product\Search\Facet;
-use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
+use Ps_Facetedsearch;
 use Smarty;
+use Tools;
 
 class SearchProviderTest extends MockeryTestCase
 {

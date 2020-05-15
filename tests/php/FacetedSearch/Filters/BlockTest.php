@@ -36,13 +36,13 @@ use Group;
 use Manufacturer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
-use PrestaShopBundle\Translation\TranslatorComponent;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
+use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
-use Tools;
 use stdClass;
 use StockAvailable;
+use Tools;
 
 class BlockTest extends MockeryTestCase
 {
