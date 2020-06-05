@@ -1,32 +1,67 @@
 GitHub contributors:
 --------------------------------
  - 123monsite-regis
- - AlexEven
+ - Alex Even
+ - Alex Sampaio
+ - André
+ - Bastien Bieri
+ - Clotaire 202 ecommerce
+ - Damien Metzger
+ - David Gonzalez
+ - Edvinas Gurevicius
  - Francois Gaillard
+ - François-Marie de Jouvencel
+ - GoT
  - Gregory Roussac
+ - Gytis Škėma
+ - Hashem
+ - Hendrik Luup
  - Jerome Nadaud
- - Jerome Nadaud
+ - Jonathan Lelievre
+ - Julien Bourdeau
+ - Julius Zukauskas
  - Jérôme Nadaud
- - Jérôme Nadaud
+ - Krystian Podemski
  - MathiasReker
+ - Mathieu Ferment
+ - Matthieu Rolland
  - Maxime Biloé
- - PierreRambaud
+ - Michel ANTOINE
+ - Mickaël Andrieu
+ - Nico
+ - Pablo Borowicz
+ - Pavel Novitsky
+ - PeNov
+ - Pierre RAMBAUD
  - PrestaSafe
+ - Progi1984
  - Quetzacoalt91
- - aleeks
- - antoin-m
+ - Robert Keresnyei
+ - Rokas Zygmantas
+ - Rémi Gaillard
+ - Sacha Froment
+ - Samir Shah
+ - Stomp9
+ - Thibaud Chauviere
+ - Thierry Marianne
+ - Thomas
+ - Thomas Nabord
+ - Veebipoed.ee
+ - Xavier
+ - Zebx
+ - alex4102
  - djfm
- - eternoendless
+ - fojt-cz
  - gRoussac
- - gadnis
- - jocel1
+ - indesign47
+ - iqit-commerce
+ - iqit-commerce (Marcin Sz)
+ - joce
+ - jocelyn fournier
  - jolelievre
- - julienbourdeau
+ - kermes
+ - marionf
  - matks
- - matrixino
- - maximebiloe
- - mickaelandrieu
- - sfroment
- - tchauviere
- - xBorderie
- - zuk3975
+ - matrix
+ - raph
+ - sadlyblue
