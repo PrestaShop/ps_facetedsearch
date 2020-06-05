@@ -1,0 +1,32 @@
+GitHub contributors:
+--------------------------------
+ - 123monsite-regis
+ - AlexEven
+ - Francois Gaillard
+ - Gregory Roussac
+ - Jerome Nadaud
+ - Jerome Nadaud
+ - Jérôme Nadaud
+ - Jérôme Nadaud
+ - MathiasReker
+ - Maxime Biloé
+ - PierreRambaud
+ - PrestaSafe
+ - Quetzacoalt91
+ - aleeks
+ - antoin-m
+ - djfm
+ - eternoendless
+ - gRoussac
+ - gadnis
+ - jocel1
+ - jolelievre
+ - julienbourdeau
+ - matks
+ - matrixino
+ - maximebiloe
+ - mickaelandrieu
+ - sfroment
+ - tchauviere
+ - xBorderie
+ - zuk3975
