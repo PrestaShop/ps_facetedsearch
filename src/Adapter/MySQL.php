@@ -414,11 +414,9 @@ class MySQL extends AbstractAdapter
             )
         ) {
             $joinMapping = $filterToTableMapping[$fieldName];
-
-            if ($sortByField) {
-                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
-            } else {
-                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName) . (isset($joinMapping['fieldAlias']) ? ' as ' . $joinMapping['fieldAlias'] : '');
+            $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+            if ($sortByField === false) {
+                $fieldName .= isset($joinMapping['fieldAlias']) ? ' as ' . $joinMapping['fieldAlias'] : '';
             }
 
             if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
