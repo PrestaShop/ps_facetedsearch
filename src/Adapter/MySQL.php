@@ -110,6 +110,7 @@ class MySQL extends AbstractAdapter
 
         $query = 'SELECT ';
 
+
         $selectFields = $this->computeSelectFields($filterToTableMapping);
         $whereConditions = $this->computeWhereConditions($filterToTableMapping);
         $joinConditions = $this->computeJoinConditions($filterToTableMapping);
@@ -296,6 +297,14 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'nleft',
             ],
+            'sales' => [
+                'tableName' => 'product_sale',
+                'tableAlias' => 'psales',
+                'fieldName' => 'quantity',
+                'fieldAlias' => 'sales',
+                'joinCondition' => '(psales.id_product = p.id_product)',
+                'joinType' => self::LEFT_JOIN,
+            ],
         ];
 
         return $filterToTableMapping;
@@ -325,11 +334,12 @@ class MySQL extends AbstractAdapter
         if ($orderField === 'price') {
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
-
-        $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
+        
+        $orderField = $this->computeFieldName($orderField, $filterToTableMapping, true);
 
         // put some products at the end of the list
         $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
+    
 
         return $orderField;
     }
@@ -394,7 +404,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string Table Field name with an alias
      */
-    private function computeFieldName($fieldName, $filterToTableMapping)
+    private function computeFieldName($fieldName, $filterToTableMapping, $sortByField = false)
     {
         if (array_key_exists($fieldName, $filterToTableMapping)
             && (
@@ -406,7 +416,11 @@ class MySQL extends AbstractAdapter
             )
         ) {
             $joinMapping = $filterToTableMapping[$fieldName];
-            $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+            
+            if($sortByField)
+                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+            else
+                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName) . (isset($joinMapping['fieldAlias']) ? ' as '.$joinMapping['fieldAlias'] : '');
 
             if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
                 $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
@@ -742,6 +756,7 @@ class MySQL extends AbstractAdapter
                 'condition',
                 'weight',
                 'price',
+                'sales'
             ]
         );
         $this->initialPopulation = clone $this;
