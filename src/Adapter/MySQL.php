@@ -110,7 +110,6 @@ class MySQL extends AbstractAdapter
 
         $query = 'SELECT ';
 
-
         $selectFields = $this->computeSelectFields($filterToTableMapping);
         $whereConditions = $this->computeWhereConditions($filterToTableMapping);
         $joinConditions = $this->computeJoinConditions($filterToTableMapping);
@@ -334,12 +333,11 @@ class MySQL extends AbstractAdapter
         if ($orderField === 'price') {
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
-        
+
         $orderField = $this->computeFieldName($orderField, $filterToTableMapping, true);
 
         // put some products at the end of the list
         $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
-    
 
         return $orderField;
     }
@@ -416,11 +414,12 @@ class MySQL extends AbstractAdapter
             )
         ) {
             $joinMapping = $filterToTableMapping[$fieldName];
-            
-            if($sortByField)
+
+            if ($sortByField) {
                 $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
-            else
-                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName) . (isset($joinMapping['fieldAlias']) ? ' as '.$joinMapping['fieldAlias'] : '');
+            } else {
+                $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName) . (isset($joinMapping['fieldAlias']) ? ' as ' . $joinMapping['fieldAlias'] : '');
+            }
 
             if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
                 $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
@@ -756,7 +755,7 @@ class MySQL extends AbstractAdapter
                 'condition',
                 'weight',
                 'price',
-                'sales'
+                'sales',
             ]
         );
         $this->initialPopulation = clone $this;
