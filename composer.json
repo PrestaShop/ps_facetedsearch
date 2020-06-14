@@ -17,7 +17,8 @@
     "friendsofphp/php-cs-fixer": "^2.14",
     "phpunit/phpunit": "~5.7",
     "prestashop/php-coding-standards": "dev-master",
-    "mockery/mockery": "^1.2"
+    "mockery/mockery": "^1.2",
+    "prestashop/php-dev-tools": "^3.4"
   },
   "config": {
     "platform": {
