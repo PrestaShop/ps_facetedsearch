@@ -1,46 +1,49 @@
 {
-  "name": "prestashop/ps_facetedsearch",
-  "description": "PrestaShop module ps_facetedsearch",
-  "homepage": "https://github.com/PrestaShop/ps_facetedsearch",
-  "license": "AFL-3.0",
-  "authors": [
-    {
-      "name": "PrestaShop SA",
-      "email": "contact@prestashop.com"
-    }
-  ],
-  "require": {
-    "php": ">=5.6",
-    "doctrine/collections": "^1.4"
-  },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^2.14",
-    "phpunit/phpunit": "~5.7",
-    "prestashop/php-coding-standards": "dev-master",
-    "mockery/mockery": "^1.2"
-  },
-  "config": {
-    "platform": {
-      "php": "5.6.0"
-    },
-    "preferred-install": "dist",
-    "prepend-autoloader": false
-  },
-  "type": "prestashop-module",
-  "autoload": {
-    "psr-4": {
-      "PrestaShop\\Module\\FacetedSearch\\Controller\\": "src/Controller/",
-      "PrestaShop\\Module\\FacetedSearch\\": "src/",
-      "PrestaShop\\Module\\FacetedSearch\\Tests\\": "tests/php/FacetedSearch"
-    },
-    "classmap": ["ps_facetedsearch.php"]
-  },
-  "scripts": {
-    "test": [
-      "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/php/phpunit.xml"
+    "name": "prestashop/ps_facetedsearch",
+    "description": "PrestaShop module ps_facetedsearch",
+    "homepage": "https://github.com/PrestaShop/ps_facetedsearch",
+    "license": "AFL-3.0",
+    "authors": [
+        {
+            "name": "PrestaShop SA",
+            "email": "contact@prestashop.com"
+        }
     ],
-    "lint": [
-      "php-cs-fixer fix --no-interaction --dry-run --diff"
-    ]
-  }
+    "require": {
+        "php": ">=5.6",
+        "doctrine/collections": "^1.4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.14",
+        "phpunit/phpunit": "~5.7",
+        "prestashop/php-coding-standards": "dev-master",
+        "mockery/mockery": "^1.2"
+    },
+    "config": {
+        "platform": {
+            "php": "5.6.0"
+        },
+        "preferred-install": "dist",
+        "prepend-autoloader": false
+    },
+    "type": "prestashop-module",
+    "autoload": {
+        "psr-4": {
+            "PrestaShop\\Module\\FacetedSearch\\Controller\\": "src/Controller/",
+            "PrestaShop\\Module\\FacetedSearch\\": "src/",
+            "PrestaShop\\Module\\FacetedSearch\\Tests\\": "tests/php/FacetedSearch"
+        },
+        "classmap": [
+            "ps_facetedsearch.php"
+        ]
+    },
+    "scripts": {
+        "test": [
+            "@php -d date.timezone=UTC ./vendor/bin/phpunit -c tests/php/phpunit.xml"
+        ],
+        "lint": [
+            "php-cs-fixer fix --no-interaction --dry-run --diff"
+        ]
+    },
+    "author": "PrestaShop"
 }
