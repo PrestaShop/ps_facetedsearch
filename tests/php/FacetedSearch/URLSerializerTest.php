@@ -18,7 +18,6 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
-
 namespace PrestaShop\Module\FacetedSearch\Tests;
 
 use Mockery;

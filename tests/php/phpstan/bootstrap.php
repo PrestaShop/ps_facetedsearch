@@ -17,8 +17,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-
-
 $rootDir = getenv('_PS_ROOT_DIR_');
 
 if (!$rootDir) {
