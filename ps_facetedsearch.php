@@ -1412,14 +1412,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
-            $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
-            $domain = Tools::usingSecureMode()
-                    ? Tools::getShopDomainSsl(true)
-                    : Tools::getShopDomain(true);
-
-            $this->indexPrices((int) $cursor, (int) $full);
-
-            return $cursor;
+            return $this->indexPrices((int) $cursor, $full);
         }
 
         if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
@@ -1444,7 +1437,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             ]);
         }
 
-        return -1;
+        return $nbProducts;
     }
 
     /**
