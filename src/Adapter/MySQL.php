@@ -27,7 +27,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Product;
 use StockAvailable;
 use Tools;
-use Doctrine\Common\Collections\ArrayCollection;
 
 class MySQL extends AbstractAdapter
 {
