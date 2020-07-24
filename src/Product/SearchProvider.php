@@ -67,6 +67,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private function getAvailableSortOrders()
     {
+        $sortSalesDesc = new SortOrder('product', 'sales', 'desc');
         $sortPosAsc = new SortOrder('product', 'position', 'asc');
         $sortNameAsc = new SortOrder('product', 'name', 'asc');
         $sortNameDesc = new SortOrder('product', 'name', 'desc');
@@ -75,6 +76,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $translator = $this->module->getTranslator();
 
         return [
+            $sortSalesDesc->setLabel(
+                $translator->trans('Best sellers', [], 'Modules.Facetedsearch.Shop')
+            ),
             $sortPosAsc->setLabel(
                 $translator->trans('Relevance', [], 'Modules.Facetedsearch.Shop')
             ),
