@@ -134,7 +134,7 @@
                         <a
                           rel="nofollow"
                           href="{$filter.nextEncodedFacetsURL}"
-                          class="select-list"
+                          class="select-list js-search-link"
                         >
                           {$filter.label}
                           {if $filter.magnitude and $show_quantities}
