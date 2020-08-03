@@ -411,9 +411,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             );
 
             if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $idCountry = (int) Configuration::get('PS_COUNTRY_DEFAULT', null, null, $idShop);
-                $isoCode = Country::getIsoById($idCountry);
-                $taxRatesByCountry = [['rate' => 0, 'id_country' => $idCountry, 'iso_code' => $isoCode]];
+                $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+                $taxCountries = array_filter($shopCountries, function ($country) {
+                    return $country['active'] == 1;
+                });
+                $taxRatesByCountry = array_map(function ($country) {
+                    return [
+                        'rate' => 0,
+                        'id_country' => $country['id_country'],
+                        'iso_code' => $country['iso_code']
+                    ];
+                }, $taxCountries);
             }
 
             $productMinPrices = $this->getDatabase()->executeS(
