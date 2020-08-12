@@ -113,6 +113,7 @@ $(document).ready(() => {
     return false;
   });
 
+  var totalCount = 0;
   $('.ajaxcall-recurcive').each((it, elm) => {
     $(elm).click(function onAjaxRecursiveCall(e) {
       e.preventDefault();
@@ -153,6 +154,7 @@ $(document).ready(() => {
           this.running = false;
           if (res.result) {
             this.cursor = 0;
+            totalCount = 0;
             $('#indexing-warning').hide();
             $(this).html(this.legend);
             $('#ajax-message-ok span').html(translations.price_indexation_finished);
@@ -160,8 +162,14 @@ $(document).ready(() => {
             return;
           }
 
+          totalCount += parseInt(res.count, 10);
           this.cursor = parseInt(res.cursor, 10);
-          $(this).html(this.legend + translations.price_indexation_in_progress.replace('%s', res.count));
+          $(this).html(
+            this.legend + translations.price_indexation_in_progress.replace(
+              '%s',
+              totalCount + ' / ' + res.total
+            )
+          );
           $(this).click();
         },
         error(res) {
