@@ -113,7 +113,7 @@ $(document).ready(() => {
     return false;
   });
 
-  var totalCount = 0;
+  let totalCount = 0;
   $('.ajaxcall-recurcive').each((it, elm) => {
     $(elm).click(function onAjaxRecursiveCall(e) {
       e.preventDefault();
@@ -167,8 +167,8 @@ $(document).ready(() => {
           $(this).html(
             this.legend + translations.price_indexation_in_progress.replace(
               '%s',
-              totalCount + ' / ' + res.total
-            )
+              `${totalCount}/${res.total}`,
+            ),
           );
           $(this).click();
         },
