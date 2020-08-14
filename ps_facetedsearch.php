@@ -428,12 +428,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Get price by currency & country, without reduction!
                 foreach ($currencyList as $currency) {
-                    if (!empty($productMinPrices)) {
-                        $minPrice[$idCountry][$currency['id_currency']] = null;
-                        $maxPrice[$idCountry][$currency['id_currency']] = null;
-                        continue;
-                    }
-
                     $price = Product::priceCalculation(
                         $idShop,
                         (int) $idProduct,
