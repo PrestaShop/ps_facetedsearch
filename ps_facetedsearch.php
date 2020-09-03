@@ -1411,6 +1411,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
             return json_encode([
+                'total' => $nbProducts,
                 'cursor' => $cursor,
                 'count' => $indexedProducts,
             ]);
@@ -1418,8 +1419,9 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         if ($ajax && $nbProducts > 0 && !$full) {
             return json_encode([
+                'total' => $nbProducts,
                 'cursor' => $cursor,
-                'count' => $nbProducts,
+                'count' => $indexedProducts,
             ]);
         }
 
