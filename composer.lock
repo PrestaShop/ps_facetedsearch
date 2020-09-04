@@ -522,16 +522,16 @@
         },
         {
             "name": "mockery/mockery",
-            "version": "1.3.2",
+            "version": "1.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mockery/mockery.git",
-                "reference": "9b6f117dd7d36dc3858d8d8ddf9b3d584fcae283"
+                "reference": "60fa2f67f6e4d3634bb4a45ff3171fa52215800d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mockery/mockery/zipball/9b6f117dd7d36dc3858d8d8ddf9b3d584fcae283",
-                "reference": "9b6f117dd7d36dc3858d8d8ddf9b3d584fcae283",
+                "url": "https://api.github.com/repos/mockery/mockery/zipball/60fa2f67f6e4d3634bb4a45ff3171fa52215800d",
+                "reference": "60fa2f67f6e4d3634bb4a45ff3171fa52215800d",
                 "shasum": ""
             },
             "require": {
@@ -540,7 +540,7 @@
                 "php": ">=5.6.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "~5.7.10|~6.5|~7.0|~8.0|~9.0"
+                "phpunit/phpunit": "^5.7.10|^6.5|^7.5|^8.5|^9.3"
             },
             "type": "library",
             "extra": {
@@ -583,7 +583,7 @@
                 "test double",
                 "testing"
             ],
-            "time": "2020-07-09T08:23:05+00:00"
+            "time": "2020-08-11T18:10:21+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -1237,6 +1237,7 @@
             "keywords": [
                 "tokenizer"
             ],
+            "abandoned": true,
             "time": "2017-12-04T08:55:13+00:00"
         },
         {
@@ -1433,12 +1434,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/php-dev-tools.git",
-                "reference": "6e799a01119d838beaf6466d349f3c77b9fc462d"
+                "reference": "0b1b6dc80bc33db2ed2a3794a889dcc863bd5aa4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/6e799a01119d838beaf6466d349f3c77b9fc462d",
-                "reference": "6e799a01119d838beaf6466d349f3c77b9fc462d",
+                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/0b1b6dc80bc33db2ed2a3794a889dcc863bd5aa4",
+                "reference": "0b1b6dc80bc33db2ed2a3794a889dcc863bd5aa4",
                 "shasum": ""
             },
             "require": {
@@ -1464,7 +1465,7 @@
             ],
             "description": "PrestaShop coding standards",
             "abandoned": "prestashop/php-dev-tools",
-            "time": "2020-07-19T14:47:58+00:00"
+            "time": "2020-07-31T18:08:23+00:00"
         },
         {
             "name": "psr/log",
