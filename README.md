@@ -27,7 +27,7 @@ Required only for development:
 
 ## Installation
 
-Install all dependencies.
+Install all dependencies. Be careful, you need NodeJs 10+.
 ```
 npm install
 composer install
