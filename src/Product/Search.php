@@ -34,22 +34,22 @@ class Search
     /**
      * @var bool
      */
-    private $psStockManagement;
+    protected $psStockManagement;
 
     /**
      * @var bool
      */
-    private $psOrderOutOfStock;
+    protected $psOrderOutOfStock;
 
     /**
      * @var AbstractAdapter
      */
-    private $searchAdapter;
+    protected $searchAdapter;
 
     /**
      * @var Context
      */
-    private $context;
+    protected $context;
 
     /**
      * Search constructor.
