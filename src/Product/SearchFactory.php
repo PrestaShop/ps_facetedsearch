@@ -24,7 +24,6 @@ use Context;
 
 class SearchFactory
 {
-
     /**
      * Returns an instance of Search for this context
      *
