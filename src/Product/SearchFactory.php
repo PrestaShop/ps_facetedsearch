@@ -35,5 +35,4 @@ class SearchFactory
     {
         return new Search($context);
     }
-
 }
