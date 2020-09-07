@@ -119,7 +119,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
         $context = $this->module->getContext();
-        $facetedSearch = $this->searchFactory->getSearch($context);
+        $facetedSearch = $this->searchFactory->build($context);
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 

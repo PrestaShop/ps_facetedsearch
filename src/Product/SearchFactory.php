@@ -32,7 +32,7 @@ class SearchFactory
      *
      * @return Search
      */
-    public function getSearch(Context $context)
+    public function build(Context $context)
     {
         return new Search($context);
     }
