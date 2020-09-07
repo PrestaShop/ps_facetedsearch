@@ -29,6 +29,7 @@ class SearchFactory
      * Returns an instance of Search for this context
      *
      * @param Context $context
+     *
      * @return Search
      */
     public function getSearch(Context $context)
