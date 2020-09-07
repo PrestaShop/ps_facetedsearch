@@ -26,7 +26,7 @@ class SearchFactory
 {
 
     /**
-     * Search factory. Returns an instance of Search for this context
+     * Returns an instance of Search for this context
      *
      * @param Context $context
      * @return Search
