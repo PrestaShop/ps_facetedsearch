@@ -61,7 +61,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         Ps_Facetedsearch $module,
         Filters\Converter $converter,
         URLSerializer $serializer,
-        ?SearchFactory $searchFactory = null
+        SearchFactory $searchFactory = null
     ) {
         $this->module = $module;
         $this->filtersConverter = $converter;
