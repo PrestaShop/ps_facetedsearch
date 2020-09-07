@@ -310,7 +310,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    private function computeOrderByField(array $filterToTableMapping)
+    protected function computeOrderByField(array $filterToTableMapping)
     {
         $orderField = $this->getOrderField();
 
@@ -344,7 +344,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    private function computeShowLast($orderField, $filterToTableMapping)
+    protected function computeShowLast($orderField, $filterToTableMapping)
     {
         // allow only if feature is enabled & it is main product list query
         if ($this->getInitialPopulation() === null
@@ -396,7 +396,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string Table Field name with an alias
      */
-    private function computeFieldName($fieldName, $filterToTableMapping, $sortByField = false)
+    protected function computeFieldName($fieldName, $filterToTableMapping, $sortByField = false)
     {
         if (array_key_exists($fieldName, $filterToTableMapping)
             && (
@@ -432,7 +432,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeSelectFields(array $filterToTableMapping)
+    protected function computeSelectFields(array $filterToTableMapping)
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
@@ -449,7 +449,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeWhereConditions(array $filterToTableMapping)
+    protected function computeWhereConditions(array $filterToTableMapping)
     {
         $whereConditions = [];
         $operationIdx = 0;
@@ -568,7 +568,7 @@ class MySQL extends AbstractAdapter
      *
      * @return ArrayCollection
      */
-    private function computeJoinConditions(array $filterToTableMapping)
+    protected function computeJoinConditions(array $filterToTableMapping)
     {
         $joinList = new ArrayCollection();
 

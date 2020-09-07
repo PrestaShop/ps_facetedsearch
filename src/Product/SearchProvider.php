@@ -52,14 +52,21 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private $facetsSerializer;
 
+    /**
+     * @var SearchFactory
+     */
+    private $searchFactory;
+
     public function __construct(
         Ps_Facetedsearch $module,
         Filters\Converter $converter,
-        URLSerializer $serializer
+        URLSerializer $serializer,
+        SearchFactory $searchFactory = null
     ) {
         $this->module = $module;
         $this->filtersConverter = $converter;
         $this->facetsSerializer = $serializer;
+        $this->searchFactory = $searchFactory === null ? new SearchFactory() : $searchFactory;
     }
 
     /**
@@ -112,7 +119,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
         $context = $this->module->getContext();
-        $facetedSearch = new Search($context);
+        $facetedSearch = $this->searchFactory->build($context);
         // init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
