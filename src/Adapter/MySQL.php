@@ -1,37 +1,31 @@
 <?php
 /**
- * 2007-2019 PrestaShop.
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
  * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
  * https://opensource.org/licenses/AFL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
  *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2019 PrestaShop SA
+ * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- * International Registered Trademark & Property of PrestaShop SA
  */
 
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
-use Db;
-use Product;
-use Context;
 use Configuration;
-use StockAvailable;
+use Context;
+use Db;
 use Doctrine\Common\Collections\ArrayCollection;
+use Product;
+use StockAvailable;
 
 class MySQL extends AbstractAdapter
 {
@@ -296,6 +290,14 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'nleft',
             ],
+            'sales' => [
+                'tableName' => 'product_sale',
+                'tableAlias' => 'psales',
+                'fieldName' => 'quantity',
+                'fieldAlias' => 'sales',
+                'joinCondition' => '(psales.id_product = p.id_product)',
+                'joinType' => self::LEFT_JOIN,
+            ],
         ];
 
         return $filterToTableMapping;
@@ -308,7 +310,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    private function computeOrderByField(array $filterToTableMapping)
+    protected function computeOrderByField(array $filterToTableMapping)
     {
         $orderField = $this->getOrderField();
 
@@ -326,7 +328,7 @@ class MySQL extends AbstractAdapter
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
-        $orderField = $this->computeFieldName($orderField, $filterToTableMapping);
+        $orderField = $this->computeFieldName($orderField, $filterToTableMapping, true);
 
         // put some products at the end of the list
         $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
@@ -342,7 +344,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string
      */
-    private function computeShowLast($orderField, $filterToTableMapping)
+    protected function computeShowLast($orderField, $filterToTableMapping)
     {
         // allow only if feature is enabled & it is main product list query
         if ($this->getInitialPopulation() === null
@@ -394,7 +396,7 @@ class MySQL extends AbstractAdapter
      *
      * @return string Table Field name with an alias
      */
-    private function computeFieldName($fieldName, $filterToTableMapping)
+    protected function computeFieldName($fieldName, $filterToTableMapping, $sortByField = false)
     {
         if (array_key_exists($fieldName, $filterToTableMapping)
             && (
@@ -407,6 +409,9 @@ class MySQL extends AbstractAdapter
         ) {
             $joinMapping = $filterToTableMapping[$fieldName];
             $fieldName = $joinMapping['tableAlias'] . '.' . (isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $fieldName);
+            if ($sortByField === false) {
+                $fieldName .= isset($joinMapping['fieldAlias']) ? ' as ' . $joinMapping['fieldAlias'] : '';
+            }
 
             if (isset($joinMapping['aggregateFunction'], $joinMapping['aggregateFieldName'])) {
                 $fieldName = $joinMapping['aggregateFunction'] . '(' . $fieldName . ') as ' . $joinMapping['aggregateFieldName'];
@@ -427,7 +432,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeSelectFields(array $filterToTableMapping)
+    protected function computeSelectFields(array $filterToTableMapping)
     {
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
@@ -444,7 +449,7 @@ class MySQL extends AbstractAdapter
      *
      * @return array
      */
-    private function computeWhereConditions(array $filterToTableMapping)
+    protected function computeWhereConditions(array $filterToTableMapping)
     {
         $whereConditions = [];
         $operationIdx = 0;
@@ -563,7 +568,7 @@ class MySQL extends AbstractAdapter
      *
      * @return ArrayCollection
      */
-    private function computeJoinConditions(array $filterToTableMapping)
+    protected function computeJoinConditions(array $filterToTableMapping)
     {
         $joinList = new ArrayCollection();
 
@@ -742,6 +747,7 @@ class MySQL extends AbstractAdapter
                 'condition',
                 'weight',
                 'price',
+                'sales',
             ]
         );
         $this->initialPopulation = clone $this;

@@ -1,5 +1,11 @@
 # Faceted search module
 
+[![Build Status](https://travis-ci.com/PrestaShop/ps_facetedsearch.svg?branch=master)](https://travis-ci.com/PrestaShop/ps_facetedsearch)
+[![Latest Stable Version](https://poser.pugx.org/PrestaShop/ps_facetedsearch/v)](//packagist.org/packages/PrestaShop/ps_facetedsearch)
+[![Total Downloads](https://poser.pugx.org/PrestaShop/ps_facetedsearch/downloads)](//packagist.org/packages/PrestaShop/ps_facetedsearch)
+[![GitHub license](https://img.shields.io/github/license/PrestaShop/ps_facetedsearch)](https://github.com/PrestaShop/ps_facetedsearch/LICENSE.md)
+
+
 ## About
 
 Displays a block with layered navigation filters.
@@ -21,7 +27,7 @@ Required only for development:
 
 ## Installation
 
-Install all dependencies.
+Install all dependencies. Be careful, you need NodeJs 10+.
 ```
 npm install
 composer install

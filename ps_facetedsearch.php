@@ -1,27 +1,21 @@
 <?php
 /**
- * 2007-2019 PrestaShop.
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
  * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
  * https://opensource.org/licenses/AFL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
  *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2019 PrestaShop SA
+ * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- * International Registered Trademark & Property of PrestaShop SA
  */
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -97,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.5.0';
+        $this->version = '3.6.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -195,6 +189,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
             $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'friendly_url');
         } else {
+            Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
             Configuration::updateValue('PS_LAYERED_FULL_TREE', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', 1);
@@ -231,6 +226,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     public function uninstall()
     {
         /* Delete all configurations */
+        Configuration::deleteByName('PS_LAYERED_CACHE_ENABLED');
         Configuration::deleteByName('PS_LAYERED_SHOW_QTIES');
         Configuration::deleteByName('PS_LAYERED_FULL_TREE');
         Configuration::deleteByName('PS_LAYERED_INDEXED');
@@ -432,12 +428,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Get price by currency & country, without reduction!
                 foreach ($currencyList as $currency) {
-                    if (!empty($productMinPrices)) {
-                        $minPrice[$idCountry][$currency['id_currency']] = null;
-                        $maxPrice[$idCountry][$currency['id_currency']] = null;
-                        continue;
-                    }
-
                     $price = Product::priceCalculation(
                         $idShop,
                         (int) $idProduct,
@@ -689,6 +679,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
+            Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', (int) Tools::getValue('ps_layered_cache_enabled'));
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int) Tools::getValue('ps_layered_show_qties'));
             Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('ps_layered_full_tree'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_USETAX', (int) Tools::getValue('ps_layered_filter_price_usetax'));
@@ -822,6 +813,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
+            'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
             'full_tree' => $this->psLayeredFullTree,
             'category_depth' => Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH'),
             'price_use_tax' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX'),
@@ -1414,18 +1406,12 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
-            $token = substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10);
-            $domain = Tools::usingSecureMode()
-                    ? Tools::getShopDomainSsl(true)
-                    : Tools::getShopDomain(true);
-
-            $this->indexPrices((int) $cursor, (int) $full);
-
-            return $cursor;
+            return $this->indexPrices((int) $cursor, $full, $ajax, $smart);
         }
 
         if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
             return json_encode([
+                'total' => $nbProducts,
                 'cursor' => $cursor,
                 'count' => $indexedProducts,
             ]);
@@ -1433,8 +1419,9 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         if ($ajax && $nbProducts > 0 && !$full) {
             return json_encode([
+                'total' => $nbProducts,
                 'cursor' => $cursor,
-                'count' => $nbProducts,
+                'count' => $indexedProducts,
             ]);
         }
 
@@ -1446,7 +1433,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             ]);
         }
 
-        return -1;
+        return $nbProducts;
     }
 
     /**
