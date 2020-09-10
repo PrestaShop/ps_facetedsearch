@@ -359,6 +359,9 @@ class Converter
                     }
             }
         }
+        if (0 == Configuration::get('PS_DISP_UNAVAILABLE_ATTR') && !isset($searchFilters[self::TYPE_QUANTITY])) {
+            $searchFilters[self::TYPE_QUANTITY] = [1];
+        }
 
         // Remove all empty selected filters
         foreach ($searchFilters as $key => $value) {
