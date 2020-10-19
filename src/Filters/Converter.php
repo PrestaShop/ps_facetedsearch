@@ -122,7 +122,8 @@ class Converter
                         if (isset($filterArray['color'])) {
                             if ($filterArray['color'] != '') {
                                 $filter->setProperty('color', $filterArray['color']);
-                            } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
+                            }
+                            if (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
                                 $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
                             }
                         }
