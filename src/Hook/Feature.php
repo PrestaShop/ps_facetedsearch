@@ -40,6 +40,11 @@ class Feature extends AbstractHook
      */
     private $dataProvider;
 
+    /**
+     * @var bool
+     */
+    private $isMigratedPage = false;
+
     public function __construct(Ps_Facetedsearch $module)
     {
         parent::__construct($module);
@@ -67,6 +72,7 @@ class Feature extends AbstractHook
      */
     public function actionFeatureFormBuilderModifier(array $params)
     {
+        $this->isMigratedPage = true;
         $this->formModifier->modify($params['form_builder'], $this->dataProvider->getData($params));
     }
 
@@ -129,7 +135,7 @@ class Feature extends AbstractHook
      */
     public function displayFeatureForm(array $params)
     {
-        if (version_compare(_PS_VERSION_, '1.7.7.0') >= 0) {
+        if ($this->isMigratedPage === true) {
             return;
         }
 
