@@ -17,7 +17,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
-const getQueryParameters = params => params.split('&').map((str) => {
+const getQueryParameters = (params) => params.split('&').map((str) => {
   const [key, val] = str.split('=');
   return {
     name: key,
