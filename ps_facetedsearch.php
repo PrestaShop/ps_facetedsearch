@@ -100,7 +100,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         parent::__construct();
 
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
-        $this->description = $this->trans('Displays a block allowing multiple filters.', [], 'Modules.Facetedsearch.Admin');
+        $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
         $this->psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
 
