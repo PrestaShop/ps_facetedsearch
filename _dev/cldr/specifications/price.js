@@ -24,7 +24,6 @@ import NumberSpecification from './number';
  */
 const CURRENCY_DISPLAY_SYMBOL = 'symbol';
 
-
 class PriceSpecification extends NumberSpecification {
   /**
    * Price specification constructor.

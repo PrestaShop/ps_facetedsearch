@@ -204,7 +204,6 @@ $(document).ready(() => {
     );
   });
 
-
   if (typeof window.filters !== 'undefined') {
     const filters = JSON.parse(window.filters);
     let container = null;
