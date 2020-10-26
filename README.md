@@ -8,7 +8,7 @@
 
 ## About
 
-Displays a block with layered navigation filters.
+Filter your catalog to help visitors picture the category tree and browse your store easily.
 
 ## Multistore compatibility
 
