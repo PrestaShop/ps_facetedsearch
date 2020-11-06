@@ -6,18 +6,11 @@ notifications:
 
 jobs:
   include:
-    - stage: "JS"
-      node_js: 10
-    - node_js: 11
-    - node_js: 12
     - stage: "PHP"
-      name: "PHPStan on PS nightly and unit tests"
+      name: "PHPUnit"
       language: php
       php: 7.2
       script:
         - composer install
         # PHP Unit
         - composer run test
-script:
-  - npm run lint
-  - npm run test
