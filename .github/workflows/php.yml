@@ -64,3 +64,27 @@ jobs:
             # This tool is outside the composer.json because of the compatibility with PHP 5.6
             - name : Run PHPStan
               run: docker run --rm --volumes-from temp-ps -v $PWD:/web/module -e _PS_ROOT_DIR_=/var/www/html --workdir=/web/module phpstan/phpstan:0.12 analyse --configuration=/web/module/tests/php/phpstan/phpstan.neon
+
+    phpunit:
+        name: PHPUnit
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+
+            # Add vendor folder in cache to make next builds faster
+            - name: Cache vendor folder
+              uses: actions/cache@v1
+              with:
+                  path: vendor
+                  key: php-${{ hashFiles('composer.lock') }}
+
+            # Add composer local folder in cache to make next builds faster
+            - name: Cache composer folder
+              uses: actions/cache@v1
+              with:
+                  path: ~/.composer/cache
+                  key: php-composer-cache
+
+            - run: composer install
+            - run: composer run test
