@@ -316,8 +316,6 @@ class Block
      * @param int $priceMinFilter
      * @param int $priceMaxFilter
      * @param int $weightFilter
-     *
-     * @return array
      */
     private function restorePriceAndWeightFilters(
         $filteredSearchAdapter,

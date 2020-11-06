@@ -101,7 +101,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
         $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
-        $this->psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
+        $this->psLayeredFullTree = (int) Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
 
         $this->hookDispatcher = new HookDispatcher($this);
@@ -260,6 +260,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if (!Module::isInstalled(self::PS_16_EQUIVALENT_MODULE)) {
             return false;
         }
+        /** @var Module|bool $oldModule */
         $oldModule = Module::getInstanceByName(self::PS_16_EQUIVALENT_MODULE);
         if ($oldModule) {
             // This closure calls the parent class to prevent data to be erased
@@ -348,6 +349,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      *
      * @param int $cursor in order to restart indexing from the last state
      * @param bool $ajax
+     * @param bool $smart
      */
     public function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
     {
@@ -1355,12 +1357,12 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     /**
      * Index prices
      *
-     * @param $cursor int last indexed id_product
+     * @param int $cursor last indexed id_product
      * @param bool $full
      * @param bool $ajax
      * @param bool $smart
      *
-     * @return int
+     * @return int|string|bool
      */
     private function indexPrices($cursor = 0, $full = false, $ajax = false, $smart = false)
     {
@@ -1439,7 +1441,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     /**
      * Index prices unbreakable
      *
-     * @param $cursor int last indexed id_product
+     * @param int $cursor last indexed id_product
      * @param bool $full All products, otherwise only indexed products
      * @param bool $smart Delete before reindex
      * @param int $length nb of products to index
@@ -1448,10 +1450,6 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     private function indexPricesUnbreakable($cursor, $full = false, $smart = false, $length = 100)
     {
-        if (null === $cursor) {
-            $cursor = 0;
-        }
-
         if ($full) {
             $query = 'SELECT p.`id_product` ' .
                 'FROM `' . _DB_PREFIX_ . 'product` p ' .

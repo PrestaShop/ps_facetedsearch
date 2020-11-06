@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c44a2a375b9e58c91603a0451b0533f1",
+    "content-hash": "e636a3dacad2148670737ac42151868e",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -1399,26 +1399,26 @@
         },
         {
             "name": "prestashop/header-stamp",
-            "version": "v1.2",
+            "version": "v1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShopCorp/header-stamp.git",
-                "reference": "cc83b8f315dded710aebd73b3bac2aa4a2931fe1"
+                "reference": "c13190c00594ea55f595b1b1c1dc832ecf4faaa0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShopCorp/header-stamp/zipball/cc83b8f315dded710aebd73b3bac2aa4a2931fe1",
-                "reference": "cc83b8f315dded710aebd73b3bac2aa4a2931fe1",
+                "url": "https://api.github.com/repos/PrestaShopCorp/header-stamp/zipball/c13190c00594ea55f595b1b1c1dc832ecf4faaa0",
+                "reference": "c13190c00594ea55f595b1b1c1dc832ecf4faaa0",
                 "shasum": ""
             },
             "require": {
                 "nikic/php-parser": "^3.1",
                 "php": ">=5.6",
-                "symfony/console": "^3.4",
-                "symfony/finder": "^3.4"
+                "symfony/console": "^3.4 || ~4.0 || ~5.0",
+                "symfony/finder": "^3.4 || ~4.0 || ~5.0"
             },
             "require-dev": {
-                "prestashop/php-coding-standards": "dev-master"
+                "prestashop/php-dev-tools": "1.*"
             },
             "bin": [
                 "bin/header-stamp"
@@ -1440,12 +1440,12 @@
                 }
             ],
             "description": "Rewrite your file headers to add the license or to make them up-to-date",
-            "homepage": "https://github.com/PrestaShop/pimp_my_header",
-            "time": "2019-11-12T08:59:19+00:00"
+            "homepage": "https://github.com/PrestaShopCorp/header-stamp",
+            "time": "2020-10-14T16:53:05+00:00"
         },
         {
-            "name": "prestashop/php-coding-standards",
-            "version": "dev-master",
+            "name": "prestashop/php-dev-tools",
+            "version": "v3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/php-dev-tools.git",
@@ -2044,16 +2044,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.5.5",
+            "version": "3.5.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
-                "reference": "73e2e7f57d958e7228fce50dc0c61f58f017f9f6"
+                "reference": "9d583721a7157ee997f235f327de038e7ea6dac4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/73e2e7f57d958e7228fce50dc0c61f58f017f9f6",
-                "reference": "73e2e7f57d958e7228fce50dc0c61f58f017f9f6",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/9d583721a7157ee997f235f327de038e7ea6dac4",
+                "reference": "9d583721a7157ee997f235f327de038e7ea6dac4",
                 "shasum": ""
             },
             "require": {
@@ -2091,7 +2091,7 @@
                 "phpcs",
                 "standards"
             ],
-            "time": "2020-04-17T01:09:41+00:00"
+            "time": "2020-10-23T02:01:07+00:00"
         },
         {
             "name": "symfony/console",
@@ -2968,20 +2968,6 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "funding": [
-                {
-                    "url": "https://symfony.com/sponsor",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://github.com/fabpot",
-                    "type": "github"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
-                    "type": "tidelift"
-                }
-            ],
             "time": "2020-04-24T10:16:04+00:00"
         },
         {
@@ -3035,9 +3021,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "prestashop/php-coding-standards": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
@@ -3046,6 +3030,5 @@
     "platform-dev": [],
     "platform-overrides": {
         "php": "5.6.0"
-    },
-    "plugin-api-version": "1.1.0"
+    }
 }

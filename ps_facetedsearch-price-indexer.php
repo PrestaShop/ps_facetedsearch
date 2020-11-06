@@ -28,7 +28,7 @@ Shop::setContext(Shop::CONTEXT_ALL);
 
 $module = new Ps_Facetedsearch();
 if (Tools::getValue('full')) {
-    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'), true);
+    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'), true);
 } else {
-    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'));
+    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'));
 }
