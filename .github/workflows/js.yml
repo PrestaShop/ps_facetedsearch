@@ -1,0 +1,17 @@
+name: JS tests
+on: [push, pull_request]
+jobs:
+    js-linter:
+        name: JS linter
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: '13.x'
+            - run: npm install
+            - name: Lint
+              run: npm run lint
+            - name: Test
+              run: npm run test
