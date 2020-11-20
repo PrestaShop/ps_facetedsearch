@@ -1,17 +1,27 @@
+includes:
+	- %currentWorkingDirectory%/vendor/prestashop/php-dev-tools/phpstan/ps-module-extension.neon
+
 parameters:
-  reportUnmatchedIgnoredErrors: false
-  bootstrap: /var/www/html/modules/ps_facetedsearch/tests/php/phpstan/bootstrap.php
   paths:
-    - /var/www/html/modules/ps_facetedsearch/src
+    # From PHPStan 0.12, paths to check are relative to the neon file
+    - ../../../ps_facetedsearch.php
+    - ../../../ps_facetedsearch-attribute-indexer.php
+    - ../../../ps_facetedsearch-clear-cache.php
+    - ../../../ps_facetedsearch-price-indexer.php
+    - ../../../src/
   ignoreErrors:
     # module specific
-    - '~Constant _THEME_COL_DIR_ not found.~'
-    - '~Iterating over an object of an unknown class mysqli_result\.~'
-    - '~Access to offset mixed on an unknown class mysqli_result\.~'
-    - '~Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.~'
+    - '#Access to an undefined property Cookie::\$id_lang.#'
+    - '~Constant _PS_JS_DIR_ not found.~'
+    - '#Parameter \#1 \$hook_name of method ModuleCore::registerHook\(\) expects string, array<string> given.#'
     - '~Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.~'
-    - '~Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.~'
-    - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
+    - '#Parameter \#[0-9]+ [\$a-zA-Z]+ of class Category constructor expects null, int given.#'
+    - '#Parameter \#[0-9]+ [\$a-zA-Z_]+ of static method CurrencyCore::getCurrencies\(\) expects [a-z]+, [a-zA-Z]+ given.#'
+    - '#Parameter \#[0-9]+ [\$a-zA-Z_]+ of static method ProductCore::priceCalculation\(\) expects [a-z]+, [a-z]+ given.#'
     - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
-
+    # PS <= 1.7.3
+    - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
+    # PS <= 1.7.2
+    - '#Call to an undefined method PrestaShop\\PrestaShop\\Adapter\\Tools::linkRewrite\(\).#'
+  reportUnmatchedIgnoredErrors: false
   level: 5

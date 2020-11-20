@@ -1,0 +1,20 @@
+name: JS tests
+on: [push, pull_request]
+jobs:
+    js-linter:
+        name: JS linter
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-versions: [ '10', '11', '12', '13' ]
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-versions }}
+            - run: npm install
+            - name: Lint
+              run: npm run lint
+            - name: Test
+              run: npm run test
