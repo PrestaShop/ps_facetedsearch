@@ -26,7 +26,7 @@ const displayLabelBlock = (formatterId, displayBlock, min, max) => {
   if (formatters[formatterId] === undefined) {
     displayBlock.text(
       displayBlock.text().replace(
-        /([^\d]*)(?:[\d\s.,]+)([^\d]+)(?:[\d\s.,]+)(.*)/,
+        /([^\d]*)(?:[\d .,]+)([^\d]+)(?:[\d .,]+)(.*)/,
         `$1${min}$2${max}$3`,
       ),
     );
