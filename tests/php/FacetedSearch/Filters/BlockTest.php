@@ -844,6 +844,11 @@ class BlockTest extends MockeryTestCase
                         'id_feature_value' => '4',
                         'c' => '2',
                     ],
+                    [
+                        'id_feature' => '1',
+                        'id_feature_value' => '21',
+                        'c' => '3',
+                    ],
                 ]
             );
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
@@ -946,7 +951,7 @@ class BlockTest extends MockeryTestCase
                         'value' => 'Wool',
                     ],
                     [
-                        'id_feature_value' => '2',
+                        'id_feature_value' => '21',
                         'id_feature' => '1',
                         'custom' => '1',
                         'id_lang' => '1',
@@ -961,8 +966,16 @@ class BlockTest extends MockeryTestCase
             ->andReturn([]);
 
         $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_value_lang_value WHERE id_feature_value=21 AND id_lang=2')
+            ->andReturn([]);
+
+        $this->dbMock->shouldReceive('getRow')
             ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_lang_value WHERE id_feature=4 AND id_lang=2')
             ->andReturn(['something', 'weird']);
+
+        $this->dbMock->shouldReceive('getRow')
+            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_lang_value WHERE id_feature=21 AND id_lang=2')
+            ->andReturn(['url-custom-21', 'title-custom-21']);
 
         $this->assertEquals(
             [
@@ -978,6 +991,12 @@ class BlockTest extends MockeryTestCase
                                 'url_name' => 'something',
                                 'meta_title' => 'weird',
                                 'checked' => true,
+                            ],
+                            21 => [
+                                'nbr' => '3',
+                                'name' => 'Test Custom value',
+                                'url_name' => 'url-custom-21',
+                                'meta_title' => 'title-custom-21',
                             ],
                         ],
                         'name' => 'Composition',
