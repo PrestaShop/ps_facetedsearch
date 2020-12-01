@@ -79,7 +79,7 @@ class Feature extends AbstractHook
     /**
      * Hook after create feature.
      *
-     * @since PrestaShop 1.7.7.0
+     * @since PrestaShop 1.7.8.0
      *
      * @param array $params
      */
@@ -91,7 +91,7 @@ class Feature extends AbstractHook
     /**
      * Hook after update feature.
      *
-     * @since PrestaShop 1.7.7.0
+     * @since PrestaShop 1.7.8.0
      *
      * @param array $params
      */
@@ -212,7 +212,7 @@ class Feature extends AbstractHook
      * @param int $featureId
      * @param array $formData
      *
-     * @since PrestaShop 1.7.7
+     * @since PrestaShop 1.7.8.0
      */
     private function save($featureId, array $formData)
     {
