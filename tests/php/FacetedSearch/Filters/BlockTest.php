@@ -879,7 +879,7 @@ class BlockTest extends MockeryTestCase
 
         $featureMock = Mockery::mock(FeatureValue::class);
         $featureMock->shouldReceive('getFeatureValuesWithLang')
-            ->with(2, 1)
+            ->with(2, 1, true)
             ->andReturn(
                 [
                     [
@@ -944,6 +944,13 @@ class BlockTest extends MockeryTestCase
                         'custom' => '0',
                         'id_lang' => '1',
                         'value' => 'Wool',
+                    ],
+                    [
+                        'id_feature_value' => '2',
+                        'id_feature' => '1',
+                        'custom' => '1',
+                        'id_lang' => '1',
+                        'value' => 'Test Custom value',
                     ],
                 ]
             );
