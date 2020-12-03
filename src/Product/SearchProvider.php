@@ -31,7 +31,6 @@ use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchProviderInterface;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchResult;
 use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
-use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use Ps_Facetedsearch;
 use Tools;
 
@@ -50,7 +49,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     /**
      * @var URLSerializer
      */
-    private $facetsSerializer;
+    private $urlSerializer;
 
     /**
      * @var SearchFactory
@@ -65,7 +64,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     ) {
         $this->module = $module;
         $this->filtersConverter = $converter;
-        $this->facetsSerializer = $serializer;
+        $this->urlSerializer = $serializer;
         $this->searchFactory = $searchFactory === null ? new SearchFactory() : $searchFactory;
     }
 
@@ -184,7 +183,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $facetCollection = new FacetCollection();
         $nextMenu = $facetCollection->setFacets($facets);
         $result->setFacetCollection($nextMenu);
-        $result->setEncodedFacets($this->facetsSerializer->serialize($facets));
+
+        $facetFilters = $this->urlSerializer->getActiveFacetFiltersFromFacets($facets);
+        $result->setEncodedFacets($this->urlSerializer->serialize($facetFilters));
 
         return $result;
     }
@@ -380,8 +381,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function addEncodedFacetsToFilters(array $facets)
     {
         // first get the currently active facetFilter in an array
-        $originalFacetFilters = $this->facetsSerializer->getActiveFacetFiltersFromFacets($facets);
-        $urlSerializer = new URLFragmentSerializer();
+        $originalFacetFilters = $this->urlSerializer->getActiveFacetFiltersFromFacets($facets);
 
         foreach ($facets as $facet) {
             $activeFacetFilters = $originalFacetFilters;
@@ -392,7 +392,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 foreach ($facet->getFilters() as $filter) {
                     if ($filter->isActive()) {
                         // we have a currently active filter is the facet, remove it from the facetFilter array
-                        $activeFacetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
+                        $activeFacetFilters = $this->urlSerializer->removeFilterFromFacetFilters(
                             $originalFacetFilters,
                             $filter,
                             $facet
@@ -405,13 +405,13 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             foreach ($facet->getFilters() as $filter) {
                 // toggle the current filter
                 if ($filter->isActive() || $facet->getProperty('range')) {
-                    $facetFilters = $this->facetsSerializer->removeFilterFromFacetFilters(
+                    $facetFilters = $this->urlSerializer->removeFilterFromFacetFilters(
                         $activeFacetFilters,
                         $filter,
                         $facet
                     );
                 } else {
-                    $facetFilters = $this->facetsSerializer->addFilterToFacetFilters(
+                    $facetFilters = $this->urlSerializer->addFilterToFacetFilters(
                         $activeFacetFilters,
                         $filter,
                         $facet
@@ -422,7 +422,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 // returns the "URL" for the search when user has toggled
                 // the filter.
                 $filter->setNextEncodedFacets(
-                    $urlSerializer->serialize($facetFilters)
+                    $this->urlSerializer->serialize($facetFilters)
                 );
             }
         }

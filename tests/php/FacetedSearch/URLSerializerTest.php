@@ -197,4 +197,43 @@ class URLSerializerTest extends MockeryTestCase
             $facetsFilters
         );
     }
+
+    /**
+     * @dataProvider getSerializerData
+     */
+    public function testSerializeUnserialize($expected, array $fragment)
+    {
+        $this->assertEquals($expected, $this->serializer->serialize($fragment));
+        $this->assertEquals($fragment, $this->serializer->unserialize($expected));
+    }
+
+    public function getSerializerData()
+    {
+        return [
+            [
+                'a-b',
+                ['a' => ['b']],
+            ],
+            [
+                'a-b-c',
+                ['a' => ['b', 'c']],
+            ],
+            [
+                'a-b-c/x-y-z',
+                ['a' => ['b', 'c'], 'x' => ['y', 'z']],
+            ],
+            [
+                'a-b--c',
+                ['a' => ['b-c']],
+            ],
+            [
+                'Many--things-Oh//Yeah-This is Madness/////Second--things---Not//Yeah---mad',
+                ['Many-things' => ['Oh/Yeah', 'This is Madness/'], '/Second-things' => ['-Not/Yeah', '-mad']],
+            ],
+            [
+                'Category-Men & Women-Clothes/Size---1-2',
+                ['Category' => ['Men & Women', 'Clothes'], 'Size' => ['-1', '2']],
+            ],
+        ];
+    }
 }

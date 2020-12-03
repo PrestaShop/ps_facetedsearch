@@ -26,6 +26,7 @@ use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use Shop;
@@ -85,7 +86,7 @@ class ConverterTest extends MockeryTestCase
         $this->shopMock = Mockery::mock(Shop::class);
         Shop::setStaticExpectations($this->shopMock);
 
-        $this->converter = new Converter($this->contextMock, $this->dbMock);
+        $this->converter = new Converter($this->contextMock, $this->dbMock, new URLSerializer());
     }
 
     public function testGetFacetsFromFilterBlocksWithEmptyArray()
