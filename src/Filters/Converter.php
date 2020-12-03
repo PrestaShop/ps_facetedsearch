@@ -31,7 +31,7 @@ use Manufacturer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use Tools;
 
 class Converter
@@ -66,10 +66,16 @@ class Converter
      */
     protected $database;
 
-    public function __construct(Context $context, Db $database)
+    /**
+     * @var URLSerializer
+     */
+    protected $urlSerializer;
+
+    public function __construct(Context $context, Db $database, URLSerializer $urlSerializer)
     {
         $this->context = $context;
         $this->database = $database;
+        $this->urlSerializer = $urlSerializer;
     }
 
     public function getFacetsFromFilterBlocks(array $filterBlocks)
@@ -219,8 +225,7 @@ class Converter
             GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
-        $urlSerializer = new URLFragmentSerializer();
-        $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
+        $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 

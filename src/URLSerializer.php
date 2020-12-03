@@ -107,17 +107,24 @@ class URLSerializer
     }
 
     /**
-     * Serialize facets
+     * Serialize array
      *
-     * @param array $facets
+     * @param array $fragment
      *
      * @return string
      */
-    public function serialize(array $facets)
+    public function serialize(array $fragment)
     {
-        $facetFilters = $this->getActiveFacetFiltersFromFacets($facets);
-        $urlSerializer = new URLFragmentSerializer();
+        return json_encode($fragment);
+    }
 
-        return $urlSerializer->serialize($facetFilters);
+    /**
+     * @param string $string
+     *
+     * @return array
+     */
+    public function unserialize($string)
+    {
+        return json_decode($string, true);
     }
 }
