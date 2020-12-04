@@ -58,6 +58,7 @@ class ProductSearch extends AbstractHook
             );
 
             $urlSerializer = new URLSerializer();
+
             return new SearchProvider(
                 $this->module,
                 new Converter(
