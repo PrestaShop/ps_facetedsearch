@@ -43,6 +43,5 @@
         "lint": [
             "php-cs-fixer fix --no-interaction --dry-run --diff"
         ]
-    },
-    "author": "PrestaShop"
+    }
 }
