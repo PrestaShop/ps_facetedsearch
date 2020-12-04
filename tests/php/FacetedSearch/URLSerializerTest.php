@@ -223,16 +223,16 @@ class URLSerializerTest extends MockeryTestCase
                 ['a' => ['b', 'c'], 'x' => ['y', 'z']],
             ],
             [
-                'a-b--c',
+                'a-b\-c',
                 ['a' => ['b-c']],
             ],
             [
-                'Many--things-Oh//Yeah-This is Madness/////Second--things---Not//Yeah---mad',
-                ['Many-things' => ['Oh/Yeah', 'This is Madness/'], '/Second-things' => ['-Not/Yeah', '-mad']],
+                'Category-Men \/ Women \ \-Children-Clothes/Size-\-1-2',
+                ['Category' => ['Men / Women \ -Children', 'Clothes'], 'Size' => ['-1', '2']],
             ],
             [
-                'Category-Men & Women-Clothes/Size---1-2',
-                ['Category' => ['Men & Women', 'Clothes'], 'Size' => ['-1', '2']],
+                'Category-\-\-\--\-2/\-Size\--\-1-\-2\-',
+                ['Category' => ['---', '-2'], '-Size-' => ['-1', '-2-']],
             ],
         ];
     }

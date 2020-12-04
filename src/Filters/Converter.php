@@ -28,10 +28,10 @@ use Db;
 use Feature;
 use FeatureValue;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\Module\FacetedSearch\URLSerializer;
 use Tools;
 
 class Converter
