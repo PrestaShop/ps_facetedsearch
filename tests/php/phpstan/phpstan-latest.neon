@@ -1,0 +1,16 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    # module specific
+    - '~Access to an undefined property Cookie::\$id_lang.~'
+    - '~Constant _PS_JS_DIR_ not found.~'
+    - '~Parameter #1 \$hook_name of method ModuleCore::registerHook\(\) expects string, array<string> given.~'
+    - '~Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.~'
+    - '~Parameter #[0-9]+ [\$a-zA-Z]+ of class Category constructor expects null, int given.~'
+    - '~Parameter #[0-9]+ [\$a-zA-Z_]+ of static method CurrencyCore::getCurrencies\(\) expects [a-z]+, [a-zA-Z]+ given.~'
+    - '~Parameter #[0-9]+ [\$a-zA-Z_]+ of static method ProductCore::priceCalculation\(\) expects [a-z]+, [a-z]+ given.~'
+    - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
+    - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
+    - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
