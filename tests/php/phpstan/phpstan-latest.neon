@@ -12,4 +12,4 @@ parameters:
 
     - '~^Constant _PS_JS_DIR_ not found\.$~'
 
-    - '~^Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.$~'
+    - '~^Parameter #1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer::unserialize\(\) expects string, array given\.$~'
