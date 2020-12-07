@@ -1,0 +1,17 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    # module specific
+    - '~^Parameter #1 \$hook_name of method ModuleCore::registerHook\(\) expects string, array<string> given\.$~'
+    - '~^Parameter #2 \$active of static method CurrencyCore::getCurrencies\(\) expects bool, int given\.$~'
+    - '~^Parameter #3 \$groupBy of static method CurrencyCore::getCurrencies\(\) expects bool, Shop given\.$~'
+    - '~^Parameter #\d+ \$\w+ of static method ProductCore::priceCalculation\(\) expects \w+, \w+ given\.$~'
+    - '~^Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.$~'
+
+    - '~^Access to an undefined property Cookie::\$id_lang\.$~'
+
+    - '~^Constant _PS_JS_DIR_ not found\.$~'
+
+    - '~^Class PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found\.$~'
