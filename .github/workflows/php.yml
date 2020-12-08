@@ -26,8 +26,17 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2.0.0
 
+            - name: Cache dependencies
+              uses: actions/cache@v2
+              with:
+                path: vendor
+                key: php-${{ hashFiles('composer.lock') }}
+
+            - name: Install dependencies
+              run: composer install
+
             - name: Run PHP-CS-Fixer
-              uses: prestashopcorp/github-action-php-cs-fixer@master
+              run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no --diff-format udiff
 
     # Run PHPStan against the module and a PrestaShop release
     phpstan:
@@ -44,15 +53,15 @@ jobs:
             - name: Cache vendor folder
               uses: actions/cache@v1
               with:
-                  path: vendor
-                  key: php-${{ hashFiles('composer.lock') }}
+                path: vendor
+                key: php-${{ hashFiles('composer.lock') }}
 
             # Add composer local folder in cache to make next builds faster
             - name: Cache composer folder
               uses: actions/cache@v1
               with:
-                  path: ~/.composer/cache
-                  key: php-composer-cache
+                path: ~/.composer/cache
+                key: php-composer-cache
 
             - run: composer install
 
