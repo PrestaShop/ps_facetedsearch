@@ -303,7 +303,7 @@ class Converter
                             && isset($facetAndFiltersLabels[$feature['name']])
                         ) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
+                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature'], true);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['value'], $featureValueLabels)) {
                                     $searchFilters['id_feature'][$feature['id_feature']][] =
