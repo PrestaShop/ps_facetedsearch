@@ -507,8 +507,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         $price = Product::priceCalculation(
                             $idShop,
                             (int) $idProduct,
-                            (int) $idCountry,
                             null,
+                            (int) $idCountry,
                             null,
                             null,
                             (int) $currency['id_currency'],
