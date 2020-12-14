@@ -1,18 +1,22 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
 parameters:
-  reportUnmatchedIgnoredErrors: false
-  bootstrap: /var/www/html/modules/ps_facetedsearch/tests/php/phpstan/bootstrap.php
-  paths:
-    - /var/www/html/modules/ps_facetedsearch/src
   ignoreErrors:
     # module specific
-    - '~Constant _THEME_COL_DIR_ not found.~'
-    - '~Iterating over an object of an unknown class mysqli_result\.~'
-    - '~Access to offset mixed on an unknown class mysqli_result\.~'
-    - '~Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.~'
-    - '~Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.~'
-    - '~Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.~'
-    - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
-    - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
-    - '~Call to an undefined method PrestaShop\\PrestaShop\\Adapter\\Tools::linkRewrite\(\).~'
+    - '~^Parameter #1 \$hook_name of method ModuleCore::registerHook\(\) expects string, array<string> given\.$~'
+    - '~^Parameter #2 \$active of static method CurrencyCore::getCurrencies\(\) expects bool, int given\.$~'
+    - '~^Parameter #3 \$groupBy of static method CurrencyCore::getCurrencies\(\) expects bool, Shop given\.$~'
+    - '~^Parameter #\d+ \$\w+ of static method ProductCore::priceCalculation\(\) expects \w+, \w+ given\.$~'
+    - '~^Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.$~'
+    - '~^Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.$~'
+    - '~^Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.$~'
 
-  level: 5
+    - '~^Access to an undefined property Cookie::\$id_lang\.$~'
+    - '~^Access to constant NUMBERING_SYSTEM_LATIN on an unknown class PrestaShop\\PrestaShop\\Core\\Localization\\Locale.$~'
+
+    - '~^Constant _PS_JS_DIR_ not found\.$~'
+
+    - '~^Class PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found\.$~'
+
+    - '~^Call to an undefined method PrestaShop\\PrestaShop\\Adapter\\Tools::linkRewrite\(\).$~'

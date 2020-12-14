@@ -1,17 +1,13 @@
-parameters:
-  reportUnmatchedIgnoredErrors: false
-  bootstrap: /var/www/html/modules/ps_facetedsearch/tests/php/phpstan/bootstrap.php
-  paths:
-    - /var/www/html/modules/ps_facetedsearch/src
-  ignoreErrors:
-    # module specific
-    - '~Constant _THEME_COL_DIR_ not found.~'
-    - '~Iterating over an object of an unknown class mysqli_result\.~'
-    - '~Access to offset mixed on an unknown class mysqli_result\.~'
-    - '~Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.~'
-    - '~Parameter #1 \$string of method PrestaShop\\PrestaShop\\Core\\Product\\Search\\URLFragmentSerializer::unserialize\(\) expects string, array given\.~'
-    - '~Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.~'
-    - '~constant NUMBERING_SYSTEM_LATIN on an unknown class~'
-    - '~PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found~'
+includes:
+	- %currentWorkingDirectory%/vendor/prestashop/php-dev-tools/phpstan/ps-module-extension.neon
 
+parameters:
+  paths:
+    # From PHPStan 0.12, paths to check are relative to the neon file
+    - ../../../ps_facetedsearch.php
+    - ../../../ps_facetedsearch-attribute-indexer.php
+    - ../../../ps_facetedsearch-clear-cache.php
+    - ../../../ps_facetedsearch-price-indexer.php
+    - ../../../src/
+  reportUnmatchedIgnoredErrors: false
   level: 5

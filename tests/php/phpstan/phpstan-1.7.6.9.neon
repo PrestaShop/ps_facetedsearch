@@ -11,10 +11,7 @@ parameters:
     - '~^Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.$~'
 
     - '~^Access to an undefined property Cookie::\$id_lang\.$~'
-    - '~^Access to constant NUMBERING_SYSTEM_LATIN on an unknown class PrestaShop\\PrestaShop\\Core\\Localization\\Locale.$~'
 
     - '~^Constant _PS_JS_DIR_ not found\.$~'
 
-    - '~^Class PrestaShopBundle\\Form\\Admin\\Type\\(TranslatableType|SwitchType) not found\.$~'
-
-    - '~^Call to an undefined method PrestaShop\\PrestaShop\\Adapter\\Tools::linkRewrite\(\).$~'
+    - '~^Parameter #1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer::unserialize\(\) expects string, array given\.$~'

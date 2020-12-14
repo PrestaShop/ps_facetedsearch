@@ -28,10 +28,10 @@ use Db;
 use Feature;
 use FeatureValue;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use PrestaShop\PrestaShop\Core\Product\Search\URLFragmentSerializer;
 use Tools;
 
 class Converter
@@ -66,10 +66,16 @@ class Converter
      */
     protected $database;
 
-    public function __construct(Context $context, Db $database)
+    /**
+     * @var URLSerializer
+     */
+    protected $urlSerializer;
+
+    public function __construct(Context $context, Db $database, URLSerializer $urlSerializer)
     {
         $this->context = $context;
         $this->database = $database;
+        $this->urlSerializer = $urlSerializer;
     }
 
     public function getFacetsFromFilterBlocks(array $filterBlocks)
@@ -219,8 +225,7 @@ class Converter
             GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
-        $urlSerializer = new URLFragmentSerializer();
-        $facetAndFiltersLabels = $urlSerializer->unserialize($query->getEncodedFacets());
+        $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 
@@ -303,7 +308,7 @@ class Converter
                             && isset($facetAndFiltersLabels[$feature['name']])
                         ) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature']);
+                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature'], true);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['value'], $featureValueLabels)) {
                                     $searchFilters['id_feature'][$feature['id_feature']][] =
@@ -344,7 +349,7 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $idParent);
+                            $categories = Category::searchByName($idLang, $queryFilter, true);
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
                             }

@@ -21,14 +21,14 @@ require_once __DIR__ . '/../../config/config.inc.php';
 require_once __DIR__ . '/ps_facetedsearch.php';
 
 if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
-    die('Bad token');
+    exit('Bad token');
 }
 
 Shop::setContext(Shop::CONTEXT_ALL);
 
 $module = new Ps_Facetedsearch();
 if (Tools::getValue('full')) {
-    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'), true);
+    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'), true);
 } else {
-    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (int) Tools::getValue('ajax'));
+    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'));
 }

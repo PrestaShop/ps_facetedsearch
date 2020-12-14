@@ -57,13 +57,16 @@ class ProductSearch extends AbstractHook
                 ['position' => 'bottom', 'priority' => 100]
             );
 
+            $urlSerializer = new URLSerializer();
+
             return new SearchProvider(
                 $this->module,
                 new Converter(
                     $this->module->getContext(),
-                    $this->module->getDatabase()
+                    $this->module->getDatabase(),
+                    $urlSerializer
                 ),
-                new URLSerializer()
+                $urlSerializer
             );
         }
 

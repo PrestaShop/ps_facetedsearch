@@ -1,3 +1,14 @@
+/*!
+ * jQuery UI Touch Punch 0.2.3
+ *
+ * Copyright 2011–2014, Dave Furfero
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ *
+ * Depends:
+ *  jquery.ui.widget.js
+ *  jquery.ui.mouse.js
+ */
+
 /**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
@@ -16,13 +27,3 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-
-const getQueryParameters = (params) => params.split('&').map((str) => {
-  const [key, val] = str.split('=');
-  return {
-    name: key,
-    value: decodeURIComponent(val).replace(/\+/g, ' '),
-  };
-});
-
-export default getQueryParameters;

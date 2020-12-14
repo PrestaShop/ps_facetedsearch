@@ -213,10 +213,9 @@ class NumberFormatter {
   strtr(str, pairs) {
     const substrs = Object.keys(pairs).map(escapeRE);
     return str.split(RegExp(`(${substrs.join('|')})`))
-      .map(part => pairs[part] || part)
+      .map((part) => pairs[part] || part)
       .join('');
   }
-
 
   /**
    * Add missing placeholders to the number using the passed CLDR pattern.

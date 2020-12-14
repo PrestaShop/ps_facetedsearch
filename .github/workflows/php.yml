@@ -1,0 +1,94 @@
+name: PHP tests
+on: [push, pull_request]
+jobs:
+    # Check there is no syntax errors in the project
+    php-linter:
+        name: PHP Syntax check 5.6|7.2|7.3
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+
+            - name: PHP syntax checker 5.6
+              uses: prestashop/github-action-php-lint/5.6@master
+
+            - name: PHP syntax checker 7.2
+              uses: prestashop/github-action-php-lint/7.2@master
+
+            - name: PHP syntax checker 7.3
+              uses: prestashop/github-action-php-lint/7.3@master
+
+    # Check the PHP code follow the coding standards
+    php-cs-fixer:
+        name: PHP-CS-Fixer
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+
+            - name: Cache dependencies
+              uses: actions/cache@v2
+              with:
+                path: vendor
+                key: php-${{ hashFiles('composer.lock') }}
+
+            - name: Install dependencies
+              run: composer install
+
+            - name: Run PHP-CS-Fixer
+              run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no --diff-format udiff
+
+    # Run PHPStan against the module and a PrestaShop release
+    phpstan:
+        name: PHPStan
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                presta-versions: ['1.7.1.2', '1.7.2.5', '1.7.3.4', '1.7.4.4', '1.7.5.1', '1.7.6.9', 'latest']
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+
+            # Add vendor folder in cache to make next builds faster
+            - name: Cache vendor folder
+              uses: actions/cache@v1
+              with:
+                path: vendor
+                key: php-${{ hashFiles('composer.lock') }}
+
+            # Add composer local folder in cache to make next builds faster
+            - name: Cache composer folder
+              uses: actions/cache@v1
+              with:
+                path: ~/.composer/cache
+                key: php-composer-cache
+
+            - run: composer install
+
+            # Docker images prestashop/prestashop may be used, even if the shop remains uninstalled
+            - name: Execute PHPStan on PrestaShop (Tag ${{ matrix.presta-versions }})
+              run: ./tests/php/phpstan.sh ${{ matrix.presta-versions }}
+
+    phpunit:
+        name: PHPUnit
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2.0.0
+
+            # Add vendor folder in cache to make next builds faster
+            - name: Cache vendor folder
+              uses: actions/cache@v1
+              with:
+                  path: vendor
+                  key: php-${{ hashFiles('composer.lock') }}
+
+            # Add composer local folder in cache to make next builds faster
+            - name: Cache composer folder
+              uses: actions/cache@v1
+              with:
+                  path: ~/.composer/cache
+                  key: php-composer-cache
+
+            - run: composer install
+            - run: composer run test

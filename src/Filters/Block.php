@@ -316,8 +316,6 @@ class Block
      * @param int $priceMinFilter
      * @param int $priceMaxFilter
      * @param int $weightFilter
-     *
-     * @return array
      */
     private function restorePriceAndWeightFilters(
         $filteredSearchAdapter,
@@ -880,7 +878,7 @@ class Block
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature);
+                $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature, true);
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
                 }
