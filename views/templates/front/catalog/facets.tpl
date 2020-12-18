@@ -17,7 +17,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  *}
 <div id="search_filters">
-{if $displayedFacets|count}
+  {if $displayedFacets|count}
     {block name='facets_title'}
       <p class="text-uppercase h6 hidden-sm-down">{l s='Filter By' d='Shop.Theme.Actions'}</p>
     {/block}
@@ -176,5 +176,5 @@
         {/if}
       </section>
     {/foreach}
-{/if}
+  {/if}
 </div>
