@@ -16,8 +16,8 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  *}
+<div id="search_filters">
 {if $displayedFacets|count}
-  <div id="search_filters">
     {block name='facets_title'}
       <p class="text-uppercase h6 hidden-sm-down">{l s='Filter By' d='Shop.Theme.Actions'}</p>
     {/block}
@@ -176,5 +176,5 @@
         {/if}
       </section>
     {/foreach}
-  </div>
 {/if}
+</div>
