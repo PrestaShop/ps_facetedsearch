@@ -393,16 +393,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v2.17.1",
+            "version": "v2.17.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "5198b7308ed63f26799387fd7f3901c3db6bd7fd"
+                "reference": "aaee4f3d16a996fc0b570be0c69d3b80c909c507"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/5198b7308ed63f26799387fd7f3901c3db6bd7fd",
-                "reference": "5198b7308ed63f26799387fd7f3901c3db6bd7fd",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/aaee4f3d16a996fc0b570be0c69d3b80c909c507",
+                "reference": "aaee4f3d16a996fc0b570be0c69d3b80c909c507",
                 "shasum": ""
             },
             "require": {
@@ -432,9 +432,11 @@
                 "php-cs-fixer/accessible-object": "^1.0",
                 "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.2",
                 "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.2.1",
-                "phpunit/phpunit": "^5.7.27 || ^6.5.14 || ^7.1",
+                "phpspec/prophecy-phpunit": "^1.1 || ^2.0",
+                "phpunit/phpunit": "^5.7.27 || ^6.5.14 || ^7.5.20 || ^8.5.13 || ^9.4.4 <9.5",
                 "phpunitgoodpractices/polyfill": "^1.5",
                 "phpunitgoodpractices/traits": "^1.9.1",
+                "sanmai/phpunit-legacy-adapter": "^6.4 || ^8.2.1",
                 "symfony/phpunit-bridge": "^5.1",
                 "symfony/yaml": "^3.0 || ^4.0 || ^5.0"
             },
@@ -487,7 +489,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-12-08T13:47:02+00:00"
+            "time": "2020-12-17T16:41:55+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
@@ -1446,16 +1448,16 @@
         },
         {
             "name": "prestashop/php-dev-tools",
-            "version": "v3.12",
+            "version": "v3.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/php-dev-tools.git",
-                "reference": "4459c09fbe6116bb7c1c6cc54ce3ba3f4de65b62"
+                "reference": "a4d6a082bab49c4efce3d8cbb190bc500ff4204d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/4459c09fbe6116bb7c1c6cc54ce3ba3f4de65b62",
-                "reference": "4459c09fbe6116bb7c1c6cc54ce3ba3f4de65b62",
+                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/a4d6a082bab49c4efce3d8cbb190bc500ff4204d",
+                "reference": "a4d6a082bab49c4efce3d8cbb190bc500ff4204d",
                 "shasum": ""
             },
             "require": {
@@ -1480,7 +1482,7 @@
                 "MIT"
             ],
             "description": "PrestaShop coding standards",
-            "time": "2020-12-10T08:15:43+00:00"
+            "time": "2020-12-23T11:35:25+00:00"
         },
         {
             "name": "psr/log",
