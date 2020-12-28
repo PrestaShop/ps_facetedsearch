@@ -1207,12 +1207,10 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $idLang = $language['id_lang'];
             $urlNameLang = Tools::getValue('url_name_' . $idLang);
             if ($urlNameLang && Tools::link_rewrite($urlNameLang) != strtolower($urlNameLang)) {
-                $params['errors'][] = Tools::displayError(
-                    $this->trans(
-                        '"%s" is not a valid url',
-                        [Tools::safeOutput($urlNameLang, true)],
-                        'Modules.Facetedsearch.Admin'
-                    )
+                $params['errors'][] = $this->trans(
+                    '"%s" is not a valid url',
+                    [Tools::safeOutput($urlNameLang, true)],
+                    'Modules.Facetedsearch.Admin'
                 );
             }
         }
