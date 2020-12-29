@@ -213,16 +213,23 @@ class Block
         if (!isset($this->attributes[$idLang])) {
             $this->attributes[$idLang] = [];
             $tempAttributes = $this->database->executeS(
-                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
+                'SELECT DISTINCT a.`id_attribute`, ' .
+                'a.`color`,  ' .
+                'al.`name`,  ' .
+                'agl.`id_attribute_group`, ' .
+                'IF(lialv.`url_name` IS NULL OR lialv.`url_name` = "", NULL, lialv.`url_name`) AS url_name, ' .
+                'IF(lialv.`meta_title` IS NULL OR lialv.`meta_title` = "", NULL, lialv.`meta_title`) AS meta_title ' .
                 'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
                 'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
                 'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
                 'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
                 Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
                 Shop::addSqlAssociation('attribute', 'a') . ' ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` lialv ' .
+                'ON (a.`id_attribute` = lialv.`id_attribute` AND lialv.`id_lang` = ' . (int) $idLang . ') ' .
                 'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' .
                 'ORDER BY agl.`name` ASC, a.`position` ASC'
             );
@@ -591,23 +598,6 @@ class Block
     }
 
     /**
-     * Get url & meta from layered_indexable_attribute_lang_value table
-     *
-     * @param int $idAttribute
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getAttributeLayeredInfos($idAttribute, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
-            (int) $idAttribute . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
      * Get url & meta from layered_indexable_feature_value_lang_value table
      *
      * @param int $idFeatureValue
@@ -748,18 +738,11 @@ class Block
                 ];
             }
 
-            $attributeLayeredInfos = $this->getAttributeLayeredInfos($idAttribute, $idLang);
-            if (!empty($attributeLayeredInfos)) {
-                list($urlName, $metaTitle) = array_values($attributeLayeredInfos);
-            } else {
-                $urlName = $metaTitle = null;
-            }
-
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'name' => $attribute['name'],
                 'nbr' => $count,
-                'url_name' => $urlName,
-                'meta_title' => $metaTitle,
+                'url_name' => $attribute['url_name'],
+                'meta_title' => $attribute['meta_title'],
             ];
 
             if ($attributesBlock[$idAttributeGroup]['is_color_group'] !== false) {
