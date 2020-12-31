@@ -20,13 +20,10 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use AttributeGroup;
 use Category;
 use Configuration;
 use Context;
 use Db;
-use Feature;
-use FeatureValue;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
