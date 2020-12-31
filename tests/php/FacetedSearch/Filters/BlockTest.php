@@ -30,6 +30,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
 use stdClass;
@@ -119,7 +120,12 @@ class BlockTest extends MockeryTestCase
         $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
         $this->adapterMock->resetAll();
 
-        $this->block = new Block($this->adapterMock, $this->contextMock, $this->dbMock);
+        $this->block = new Block(
+            $this->adapterMock,
+            $this->contextMock,
+            $this->dbMock,
+            new DataAccessor($this->dbMock)
+        );
     }
 
     public function testGetEmptyFiltersBlock()

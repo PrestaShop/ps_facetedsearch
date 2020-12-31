@@ -100,7 +100,6 @@ class Converter
             $facet
                 ->setLabel($filterBlock['name'])
                 ->setProperty('filter_show_limit', $filterBlock['filter_show_limit'])
-                ->setProperty('url_name', isset($filterBlock['url_name']) ? $filterBlock['url_name'] : null)
                 ->setMultipleSelectionAllowed(true);
 
             switch ($filterBlock['type']) {
@@ -116,9 +115,11 @@ class Converter
                     } elseif ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
                         $type = 'attribute_group';
                         $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
+                        $facet->setProperty('url_name', isset($filterBlock['url_name']) ? $filterBlock['url_name'] : null);
                     } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
                         $type = 'feature';
                         $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
+                        $facet->setProperty('url_name', isset($filterBlock['url_name']) ? $filterBlock['url_name'] : null);
                     }
 
                     $facet->setType($type);
