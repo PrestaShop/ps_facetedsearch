@@ -28,6 +28,7 @@ use Db;
 use Feature;
 use FeatureValue;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
@@ -71,11 +72,21 @@ class Converter
      */
     protected $urlSerializer;
 
-    public function __construct(Context $context, Db $database, URLSerializer $urlSerializer)
-    {
+    /**
+     * @var Filters\DataAccessor
+     */
+    private $dataAccessor;
+
+    public function __construct(
+        Context $context,
+        Db $database,
+        URLSerializer $urlSerializer,
+        Filters\DataAccessor $dataAccessor
+    ) {
         $this->context = $context;
         $this->database = $database;
         $this->urlSerializer = $urlSerializer;
+        $this->dataAccessor = $dataAccessor;
     }
 
     public function getFacetsFromFilterBlocks(array $filterBlocks)
@@ -303,14 +314,13 @@ class Converter
                     }
                     break;
                 case self::TYPE_FEATURE:
-                    // @TODO get url_name
-                    $features = Feature::getFeatures($idLang);
+                    $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] == $feature['id_feature']
                             && isset($facetAndFiltersLabels[$feature['name']])
                         ) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature'], true);
+                            $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
                             foreach ($featureValues as $featureValue) {
                                 if (in_array($featureValue['value'], $featureValueLabels)) {
                                     $searchFilters['id_feature'][$feature['id_feature']][] =
@@ -321,14 +331,13 @@ class Converter
                     }
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
-                    // @TODO get url_name
-                    $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
+                    $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
                         if ($filter['id_value'] == $attributeGroup['id_attribute_group']
-                            && isset($facetAndFiltersLabels[$attributeGroup['public_name']])
+                            && isset($facetAndFiltersLabels[$attributeGroup['attribute_group_name']])
                         ) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['public_name']];
-                            $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
+                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['attribute_group_name']];
+                            $attributes = $this->dataAccessor->getAttributes($attributeGroup['id_attribute_group'], $idLang);
                             foreach ($attributes as $attribute) {
                                 if (in_array($attribute['name'], $attributeLabels)) {
                                     $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
