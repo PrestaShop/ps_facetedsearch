@@ -26,7 +26,6 @@ use Configuration;
 use Context;
 use Db;
 use Feature;
-use FeatureValue;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
@@ -230,7 +229,6 @@ class Block
                 Shop::addSqlAssociation('attribute', 'a') . ' ' .
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` lialv ' .
                 'ON (a.`id_attribute` = lialv.`id_attribute` AND lialv.`id_lang` = ' . (int) $idLang . ') ' .
-                'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' .
                 'ORDER BY agl.`name` ASC, a.`position` ASC'
             );
             foreach ($tempAttributes as $key => $attribute) {
@@ -598,40 +596,6 @@ class Block
     }
 
     /**
-     * Get url & meta from layered_indexable_feature_value_lang_value table
-     *
-     * @param int $idFeatureValue
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getFeatureLayeredInfos($idFeatureValue, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
-            (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
-     * Get url & meta from layered_indexable_feature_lang_value table
-     *
-     * @param int $idFeature
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getFeatureValueLayeredInfos($idFeature, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
-            (int) $idFeature . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
      * Get all attributes groups for a given language
      *
      * @param int $idLang Language id
@@ -790,6 +754,55 @@ class Block
     }
 
     /**
+     * Get features with their associated layered information
+     *
+     * @param int $idLang
+     *
+     * @return array|false|\PDOStatement|resource|null
+     */
+    private function getFeatures($idLang)
+    {
+        return Db::getInstance()->executeS(
+            'SELECT DISTINCT f.id_feature, f.*, fl.*, ' .
+            'IF(liflv.`url_name` IS NULL OR liflv.`url_name` = "", NULL, liflv.`url_name`) AS url_name, ' .
+            'IF(liflv.`meta_title` IS NULL OR liflv.`meta_title` = "", NULL, liflv.`meta_title`) AS meta_title, ' .
+            'lif.indexable ' .
+            'FROM `' . _DB_PREFIX_ . 'feature` f ' .
+            '' . Shop::addSqlAssociation('feature', 'f') . ' ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'feature_lang` fl ON (f.`id_feature` = fl.`id_feature` AND fl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature` lif ' .
+            'ON (f.`id_feature` = lif.`id_feature`) ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` liflv ' .
+            'ON (f.`id_feature` = liflv.`id_feature` AND liflv.`id_lang` = ' . (int) $idLang . ') ' .
+            'ORDER BY f.`position` ASC'
+        );
+    }
+
+    /**
+     * Get features values with their associated layered information
+     *
+     * @param int $idFeature
+     * @param int $idLang
+     *
+     * @return array|false|\PDOStatement|resource|null
+     */
+    private function getFeaturesValues($idFeature, $idLang)
+    {
+        return Db::getInstance()->executeS(
+            'SELECT v.*, vl.*, ' .
+            'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
+            'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
+            'FROM `' . _DB_PREFIX_ . 'feature_value` v ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` vl ' .
+            'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
+            'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
+            'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
+            'ORDER BY vl.`value` ASC'
+        );
+    }
+
+    /**
      * Get the features filter block
      *
      * @param array $filter
@@ -818,7 +831,7 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempFeatures = Feature::getFeatures($idLang);
+        $tempFeatures = $this->getFeatures($idLang);
         if (empty($tempFeatures)) {
             return [];
         }
@@ -842,16 +855,9 @@ class Block
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature, true);
+                $tempFeatureValues = $this->getFeaturesValues($idFeature, $idLang);
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
-                }
-
-                $featureLayeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
-                if (!empty($featureLayeredInfos)) {
-                    list($urlName, $metaTitle) = array_values($featureLayeredInfos);
-                } else {
-                    $urlName = $metaTitle = null;
                 }
 
                 $featureBlock[$idFeature] = [
@@ -860,8 +866,8 @@ class Block
                     'id_key' => $idFeature,
                     'values' => [],
                     'name' => $feature['name'],
-                    'url_name' => $urlName,
-                    'meta_title' => $metaTitle,
+                    'url_name' => $feature['url_name'],
+                    'meta_title' => $feature['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
@@ -872,18 +878,11 @@ class Block
                 continue;
             }
 
-            $featureValueLayeredInfos = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
-            if (!empty($featureValueLayeredInfos)) {
-                list($urlName, $metaTitle) = array_values($featureValueLayeredInfos);
-            } else {
-                $urlName = $metaTitle = null;
-            }
-
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
                 'name' => $featureValues[$idFeatureValue]['value'],
-                'url_name' => $urlName,
-                'meta_title' => $metaTitle,
+                'url_name' => $featureValues[$idFeatureValue]['url_name'],
+                'meta_title' => $featureValues[$idFeatureValue]['meta_title'],
             ];
 
             if (array_key_exists('id_feature', $selectedFilters)) {
