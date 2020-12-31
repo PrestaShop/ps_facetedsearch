@@ -561,8 +561,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $values[] = '(' . (int) $idProduct . ',
                         ' . (int) $currency['id_currency'] . ',
                         ' . $idShop . ',
-                        ' . (int) $minPriceValue . ',
-                        ' . (int) $maxPriceValue . ',
+                        ' . (float) $minPriceValue . ',
+                        ' . (float) $maxPriceValue . ',
                         ' . (int) $idCountry . ')';
                 }
             }
