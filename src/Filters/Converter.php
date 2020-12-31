@@ -92,6 +92,7 @@ class Converter
             $facet
                 ->setLabel($filterBlock['name'])
                 ->setProperty('filter_show_limit', $filterBlock['filter_show_limit'])
+                ->setProperty('url_name', isset($filterBlock['url_name']) ? $filterBlock['url_name'] : null)
                 ->setMultipleSelectionAllowed(true);
 
             switch ($filterBlock['type']) {
@@ -302,6 +303,7 @@ class Converter
                     }
                     break;
                 case self::TYPE_FEATURE:
+                    // @TODO get url_name
                     $features = Feature::getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] == $feature['id_feature']
@@ -319,6 +321,7 @@ class Converter
                     }
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
+                    // @TODO get url_name
                     $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
                         if ($filter['id_value'] == $attributeGroup['id_attribute_group']

@@ -89,7 +89,9 @@ class URLSerializer
                 }
 
                 if (!$facet->getProperty('range')) {
-                    $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
+                    $facetName = $facet->getProperty('url_name') ?? $facet->getLabel();
+                    $filterName = $facetFilter->getProperty('url_name') ?? $facetFilter->getLabel();
+                    $facetFilters[$facetName][$filterName] = $filterName;
                 } else {
                     $facetValue = $facetFilter->getValue();
 
