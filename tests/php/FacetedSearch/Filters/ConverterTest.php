@@ -222,8 +222,6 @@ class ConverterTest extends MockeryTestCase
                             'color' => '',
                         ],
                     ],
-                    'url_name' => null,
-                    'meta_title' => null,
                     'filter_show_limit' => '0',
                     'filter_type' => Converter::WIDGET_TYPE_DROPDOWN,
                 ],
@@ -236,7 +234,6 @@ class ConverterTest extends MockeryTestCase
                             'properties' => [
                                 'filter_show_limit' => '0',
                                 'id_attribute_group' => '2',
-                                'url_name' => null,
                             ],
                             'filters' => [
                                 Filter::__set_state(
@@ -347,7 +344,6 @@ class ConverterTest extends MockeryTestCase
                             'displayed' => true,
                             'properties' => [
                                 'filter_show_limit' => 0,
-                                'url_name' => null,
                                 'id_feature' => '2',
                             ],
                             'filters' => [
