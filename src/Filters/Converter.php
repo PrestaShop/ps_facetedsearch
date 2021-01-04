@@ -49,6 +49,10 @@ class Converter
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
 
+    const PROPERTY_URL_NAME = 'url_name';
+    const PROPERTY_COLOR = 'color';
+    const PROPERTY_TEXTURE = 'texture';
+
     /**
      * @var array
      */
@@ -116,13 +120,13 @@ class Converter
                         $type = 'attribute_group';
                         $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
                         if (isset($filterBlock['url_name'])) {
-                            $facet->setLabel($filterBlock['url_name']);
+                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
                         }
                     } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
                         $type = 'feature';
                         $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
                         if (isset($filterBlock['url_name'])) {
-                            $facet->setLabel($filterBlock['url_name']);
+                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
                         }
                     }
 
@@ -135,15 +139,20 @@ class Converter
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id);
+
+                        if (isset($filterArray['url_name'])) {
+                            $filter->setProperty(self::PROPERTY_URL_NAME, $filterArray['url_name']);
+                        }
+
                         if (array_key_exists('checked', $filterArray)) {
                             $filter->setActive($filterArray['checked']);
                         }
 
                         if (isset($filterArray['color'])) {
                             if ($filterArray['color'] != '') {
-                                $filter->setProperty('color', $filterArray['color']);
+                                $filter->setProperty(self::PROPERTY_COLOR, $filterArray['color']);
                             } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
-                                $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
+                                $filter->setProperty(self::PROPERTY_TEXTURE, _THEME_COL_DIR_ . $id . '.jpg');
                             }
                         }
 
@@ -332,7 +341,9 @@ class Converter
 
                         $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
                         foreach ($featureValues as $featureValue) {
-                            if (in_array($featureValue['value'], $featureValueLabels)) {
+                            if (in_array($featureValue['url_name'], $featureValueLabels)
+                                || in_array($featureValue['value'], $featureValueLabels)
+                            ) {
                                 $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                             }
                         }
@@ -353,10 +364,11 @@ class Converter
                             continue;
                         }
 
-
-                        $attributes = $this->dataAccessor->getAttributes($attributeGroup['id_attribute_group'], $idLang);
+                        $attributes = $this->dataAccessor->getAttributes($idLang, $attributeGroup['id_attribute_group']);
                         foreach ($attributes as $attribute) {
-                            if (in_array($attribute['name'], $attributeLabels)) {
+                            if (in_array($attribute['url_name'], $attributeLabels)
+                                || in_array($attribute['name'], $attributeLabels)
+                            ) {
                                 $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
                             }
                         }

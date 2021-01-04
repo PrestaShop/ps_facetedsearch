@@ -586,7 +586,7 @@ class Block
             return $attributesBlock;
         }
 
-        $attributes = $this->dataAccessor->getAttributes($idLang);
+        $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
 
         $filteredSearchAdapter->addOperationsFilter(
             'id_attribute_group_' . $idAttributeGroup,

@@ -49,14 +49,14 @@ class DataAccessor
      *
      * @return array|false|\PDOStatement|resource|null
      */
-    public function getAttributes($idLang)
+    public function getAttributes($idLang, $idAttributeGroup)
     {
         if (!Combination::isFeatureActive()) {
             return [];
         }
 
-        if (!isset($this->attributes[$idLang])) {
-            $this->attributes[$idLang] = [];
+        if (!isset($this->attributes[$idLang][$idAttributeGroup])) {
+            $this->attributes[$idLang] = [$idAttributeGroup => []];
             $tempAttributes = $this->database->executeS(
                 'SELECT DISTINCT a.`id_attribute`, ' .
                 'a.`color`,  ' .
@@ -75,14 +75,16 @@ class DataAccessor
                 Shop::addSqlAssociation('attribute', 'a') . ' ' .
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_attribute_lang_value` lialv ' .
                 'ON (a.`id_attribute` = lialv.`id_attribute` AND lialv.`id_lang` = ' . (int) $idLang . ') ' .
+                'WHERE ag.id_attribute_group = ' . (int) $idAttributeGroup . ' ' .
                 'ORDER BY agl.`name` ASC, a.`position` ASC'
             );
+
             foreach ($tempAttributes as $key => $attribute) {
-                $this->attributes[$idLang][$attribute['id_attribute']] = $attribute;
+                $this->attributes[$idLang][$idAttributeGroup][$attribute['id_attribute']] = $attribute;
             }
         }
 
-        return $this->attributes[$idLang];
+        return $this->attributes[$idLang][$idAttributeGroup];
     }
 
     /**
