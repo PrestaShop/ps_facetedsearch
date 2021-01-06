@@ -32,6 +32,11 @@ class DataAccessor
     /**
      * @var array
      */
+    private $attributesGroup;
+
+    /**
+     * @var array
+     */
     private $attributes;
 
     /**
