@@ -186,8 +186,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             $this->rebuildPriceIndexTable();
 
-            $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
-            $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'friendly_url');
+            $this->getDatabase()->execute('ALTER TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
+            $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_friendly_url');
         } else {
             Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
