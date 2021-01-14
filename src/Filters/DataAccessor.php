@@ -64,8 +64,8 @@ class DataAccessor
             $this->attributes[$idLang] = [$idAttributeGroup => []];
             $tempAttributes = $this->database->executeS(
                 'SELECT DISTINCT a.`id_attribute`, ' .
-                'a.`color`,  ' .
-                'al.`name`,  ' .
+                'a.`color`, ' .
+                'al.`name`, ' .
                 'agl.`id_attribute_group`, ' .
                 'IF(lialv.`url_name` IS NULL OR lialv.`url_name` = "", NULL, lialv.`url_name`) AS url_name, ' .
                 'IF(lialv.`meta_title` IS NULL OR lialv.`meta_title` = "", NULL, lialv.`meta_title`) AS meta_title ' .
