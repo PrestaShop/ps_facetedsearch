@@ -445,6 +445,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
+            // Always display the Availability filter if it exists
             if ($facet->getType() === Filters\Converter::TYPE_AVAILABILITY) {
                 continue;
             }
