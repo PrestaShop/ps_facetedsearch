@@ -445,6 +445,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
+            if ($facet->getType() === 'availability') {
+                continue;
+            }
+
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
