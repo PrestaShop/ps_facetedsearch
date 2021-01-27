@@ -42,7 +42,7 @@
     "css-loader": "^5.0.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-config-prestashop": "0.0.2",
+    "eslint-config-prestashop": "0.1.0",
     "eslint-plugin-import": "^2.22.1",
     "mini-css-extract-plugin": "^1.0.0",
     "mocha": "^8.2.1",
