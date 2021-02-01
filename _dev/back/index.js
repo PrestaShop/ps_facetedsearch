@@ -230,6 +230,7 @@ $(document).on('ready', () => {
   const layeredDefaultCategory = $('input[name="ps_layered_filter_by_default_category"]');
   layeredDefaultCategory.on('change', function initializeOptions(event) {
     const elm = $(this);
+
     if (!elm.prop('checked')) {
       return;
     }
