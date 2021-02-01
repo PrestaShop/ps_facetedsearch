@@ -45,6 +45,7 @@ const refreshSliders = () => {
     const $el = $(this);
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
+
     if (specifications !== null && specifications !== undefined) {
       formatters[$el.data('slider-id')] = NumberFormatter.build(specifications);
     }
