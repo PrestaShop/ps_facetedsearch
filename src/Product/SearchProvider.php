@@ -186,7 +186,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $this->labelRangeFilters($facets);
         $this->addEncodedFacetsToFilters($facets);
-        $this->hideUselessFacets($facets, (int)$result->getTotalProductsCount());
+        $this->hideUselessFacets($facets, (int) $result->getTotalProductsCount());
 
         $facetCollection = new FacetCollection();
         $nextMenu = $facetCollection->setFacets($facets);
