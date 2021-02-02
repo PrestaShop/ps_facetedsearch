@@ -182,6 +182,23 @@
 	</div>
 
 	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Hide the others filters when no results with active filter' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_hide_others_filters" id="ps_layered_hide_others_filters_on" value="1"{if $hide_others_filters} checked="checked"{/if}>
+		  <label for="ps_layered_hide_others_filters_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_hide_others_filters" id="ps_layered_hide_others_filters_off" value="0"{if !$hide_others_filters} checked="checked"{/if}>
+		  <label for="ps_layered_hide_others_filters_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	</div>
+
+	<div class="form-group">
 	  <label class="col-lg-3 control-label">{l s='Category filter depth (0 for no limits, 1 by default)' d='Modules.Facetedsearch.Admin'}</label>
 	  <div class="col-lg-9">
 		<input type="text" name="ps_layered_filter_category_depth" value="{if $category_depth !== false}{$category_depth}{else}1{/if}" class="fixed-width-sm" />

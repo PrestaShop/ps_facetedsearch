@@ -186,7 +186,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $this->labelRangeFilters($facets);
         $this->addEncodedFacetsToFilters($facets);
-        $this->hideUselessFacets($facets, (int) $result->getTotalProductsCount());
+        $this->hideUselessFacets($facets, (int)$result->getTotalProductsCount());
 
         $facetCollection = new FacetCollection();
         $nextMenu = $facetCollection->setFacets($facets);
@@ -464,7 +464,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
             $facet->setDisplayed(
                 // There are two filters displayed
-                $usefulFiltersCount > 1
+                $usefulFiltersCount > Configuration::get('PS_LAYERED_HIDE_OTHERS_FILTERS') ? 1 : 0
                 ||
                 /*
                  * There is only one fitler and the
