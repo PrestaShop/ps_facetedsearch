@@ -26,6 +26,7 @@ use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
@@ -86,7 +87,12 @@ class ConverterTest extends MockeryTestCase
         $this->shopMock = Mockery::mock(Shop::class);
         Shop::setStaticExpectations($this->shopMock);
 
-        $this->converter = new Converter($this->contextMock, $this->dbMock, new URLSerializer());
+        $this->converter = new Converter(
+            $this->contextMock,
+            $this->dbMock,
+            new URLSerializer(),
+            new DataAccessor($this->dbMock)
+        );
     }
 
     public function testGetFacetsFromFilterBlocksWithEmptyArray()
@@ -216,8 +222,6 @@ class ConverterTest extends MockeryTestCase
                             'color' => '',
                         ],
                     ],
-                    'url_name' => null,
-                    'meta_title' => null,
                     'filter_show_limit' => '0',
                     'filter_type' => Converter::WIDGET_TYPE_DROPDOWN,
                 ],
@@ -228,7 +232,7 @@ class ConverterTest extends MockeryTestCase
                             'type' => 'attribute_group',
                             'displayed' => true,
                             'properties' => [
-                                'filter_show_limit' => 0,
+                                'filter_show_limit' => '0',
                                 'id_attribute_group' => '2',
                             ],
                             'filters' => [
@@ -574,7 +578,7 @@ class ConverterTest extends MockeryTestCase
                             'type' => 'condition',
                             'displayed' => true,
                             'properties' => [
-                                'filter_show_limit' => 0,
+                                'filter_show_limit' => '0',
                             ],
                             'filters' => [
                                 Filter::__set_state(
