@@ -364,7 +364,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderField('price');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_max DESC LIMIT 0, 20',
+            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_max DESC, p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -376,7 +376,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('asc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_min ASC LIMIT 0, 20',
+            'SELECT p.id_product FROM ps_product p ORDER BY psi.price_min ASC, p.id_product DESC LIMIT 0, 20',
             $this->adapter->getQuery()
         );
     }
@@ -389,7 +389,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('asc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, m.name FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer)) p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC',
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, m.name FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer)) p INNER JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
@@ -402,7 +402,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC',
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
@@ -426,7 +426,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 0) ASC, p.position DESC',
+            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 0) ASC, p.position DESC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
@@ -450,7 +450,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 1) DESC, p.position DESC',
+            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 1) DESC, p.position DESC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
