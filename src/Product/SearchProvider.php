@@ -464,7 +464,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
             $facet->setDisplayed(
                 // There are two filters displayed
-                $usefulFiltersCount > Configuration::get('PS_LAYERED_HIDE_OTHERS_FILTERS') ? 1 : 0
+                $usefulFiltersCount > (int) Configuration::get('PS_LAYERED_HIDE_OTHERS_FILTERS')
                 ||
                 /*
                  * There is only one fitler and the
