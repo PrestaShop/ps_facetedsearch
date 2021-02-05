@@ -448,7 +448,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         foreach ($facets as $facet) {
             if ($facet->getWidgetType() === 'slider') {
                 $facet->setDisplayed(
-                    $facet->getProperty('min') != $facet->getProperty('max')
+                    !(int) Configuration::get('PS_LAYERED_HIDE_OTHERS_FILTERS')
+                    || $facet->getProperty('min') != $facet->getProperty('max')
                 );
                 continue;
             }
