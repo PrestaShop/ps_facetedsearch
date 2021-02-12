@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/PrestaShop/ps_facetedsearch#readme",
   "devDependencies": {
-    "@babel/cli": "^7.12.13",
+    "@babel/cli": "^7.12.16",
     "@babel/core": "^7.12.13",
     "@babel/node": "^7.12.16",
     "@babel/preset-env": "^7.12.16",
