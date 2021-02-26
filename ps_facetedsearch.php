@@ -389,6 +389,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $shopList = Shop::getShops(false, null, true);
+        $attributes = Db::getInstance()->getValue('SELECT COUNT(*) FROM `'._DB_PREFIX_.'product_attribute` WHERE `id_product` = ' . (int) $idProduct);
 
         foreach ($shopList as $idShop) {
             $currencyList = Currency::getCurrencies(false, 1, new Shop($idShop));
@@ -438,27 +439,72 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Get price by currency & country, without reduction!
                 foreach ($currencyList as $currency) {
-                    $price = Product::priceCalculation(
-                        $idShop,
-                        (int) $idProduct,
-                        null,
-                        $idCountry,
-                        null,
-                        null,
-                        $currency['id_currency'],
-                        null,
-                        null,
-                        false,
-                        6, // Decimals
-                        false,
-                        false,
-                        true,
-                        $specificPriceOutput,
-                        true
-                    );
+                    if ($attributes) {
+                        $minAttribute = Db::getInstance()->getValue('SELECT `id_product_attribute` FROM `'._DB_PREFIX_.'product_attribute` WHERE `id_product` = ' . (int) $idProduct . ' ORDER BY `price` ASC');
+                        $price = Product::priceCalculation(
+                            $idShop,
+                            (int) $idProduct,
+                            (int) $minAttribute,
+                            $idCountry,
+                            null,
+                            null,
+                            $currency['id_currency'],
+                            null,
+                            null,
+                            false,
+                            6, // Decimals
+                            false,
+                            false,
+                            true,
+                            $specificPriceOutput,
+                            true
+                        );
 
-                    $minPrice[$idCountry][$currency['id_currency']] = $price;
-                    $maxPrice[$idCountry][$currency['id_currency']] = $price;
+                        $minPrice[$idCountry][$currency['id_currency']] = $price;
+
+                        $maxAttribute = Db::getInstance()->getValue('SELECT `id_product_attribute` FROM `'._DB_PREFIX_.'product_attribute` WHERE `id_product` = ' . (int) $idProduct . ' ORDER BY `price` DESC');
+                        $price = Product::priceCalculation(
+                            $idShop,
+                            (int) $idProduct,
+                            (int) $maxAttribute,
+                            $idCountry,
+                            null,
+                            null,
+                            $currency['id_currency'],
+                            null,
+                            null,
+                            false,
+                            6, // Decimals
+                            false,
+                            false,
+                            true,
+                            $specificPriceOutput,
+                            true
+                        );
+                        $maxPrice[$idCountry][$currency['id_currency']] = $price;
+                    } else {
+                        $price = Product::priceCalculation(
+                            $idShop,
+                            (int) $idProduct,
+                            null,
+                            $idCountry,
+                            null,
+                            null,
+                            $currency['id_currency'],
+                            null,
+                            null,
+                            false,
+                            6, // Decimals
+                            false,
+                            false,
+                            true,
+                            $specificPriceOutput,
+                            true
+                        );
+
+                        $minPrice[$idCountry][$currency['id_currency']] = $price;
+                        $maxPrice[$idCountry][$currency['id_currency']] = $price;
+                    }
                 }
 
                 foreach ($productMinPrices as $specificPrice) {
