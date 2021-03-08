@@ -45,7 +45,7 @@
     "eslint-config-prestashop": "0.1.0",
     "eslint-plugin-import": "^2.22.1",
     "mini-css-extract-plugin": "^1.0.0",
-    "mocha": "^8.3.0",
+    "mocha": "^8.3.1",
     "node-sass": "^5.0.0",
     "sass-loader": "^11.0.1",
     "style-loader": "^2.0.0",
