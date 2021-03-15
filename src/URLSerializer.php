@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch;
 
+use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
@@ -36,15 +37,18 @@ class URLSerializer
      */
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, Facet $facet)
     {
+        $facetLabel = $this->getFacetLabel($facet);
+        $filterLabel = $this->getFilterLabel($facetFilter);
+
         if ($facet->getProperty('range')) {
             $facetValue = $facet->getProperty('values');
-            $facetFilters[$facet->getLabel()] = [
+            $facetFilters[$facetLabel] = [
                 $facetFilter->getProperty('symbol'),
                 isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
                 isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
             ];
         } else {
-            $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
+            $facetFilters[$facetLabel][$filterLabel] = $filterLabel;
         }
 
         return $facetFilters;
@@ -61,12 +65,15 @@ class URLSerializer
      */
     public function removeFilterFromFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
     {
+        $facetLabel = $this->getFacetLabel($facet);
+
         if ($facet->getProperty('range')) {
-            unset($facetFilters[$facet->getLabel()]);
+            unset($facetFilters[$facetLabel]);
         } else {
-            unset($facetFilters[$facet->getLabel()][$facetFilter->getLabel()]);
-            if (empty($facetFilters[$facet->getLabel()])) {
-                unset($facetFilters[$facet->getLabel()]);
+            $filterLabel = $this->getFilterLabel($facetFilter);
+            unset($facetFilters[$facetLabel][$filterLabel]);
+            if (empty($facetFilters[$facetLabel])) {
+                unset($facetFilters[$facetLabel]);
             }
         }
 
@@ -88,21 +95,55 @@ class URLSerializer
                     continue;
                 }
 
+                $facetLabel = $this->getFacetLabel($facet);
+                $filterLabel = $this->getFilterLabel($facetFilter);
                 if (!$facet->getProperty('range')) {
-                    $facetFilters[$facet->getLabel()][$facetFilter->getLabel()] = $facetFilter->getLabel();
-                } else {
-                    $facetValue = $facetFilter->getValue();
-
-                    $facetFilters[$facet->getLabel()] = [
-                        $facetFilter->getProperty('symbol'),
-                        $facetValue[0],
-                        $facetValue[1],
-                    ];
+                    $facetFilters[$facetLabel][$filterLabel] = $filterLabel;
+                    continue;
                 }
+
+                $facetValue = $facetFilter->getValue();
+                $facetFilters[$facetLabel] = [
+                    $facetFilter->getProperty('symbol'),
+                    $facetValue[0],
+                    $facetValue[1],
+                ];
             }
         }
 
         return $facetFilters;
+    }
+
+    /**
+     * Get Facet label
+     *
+     * @param Facet $facet
+     *
+     * @return string
+     */
+    private function getFacetLabel(Facet $facet)
+    {
+        if ($facet->getProperty(Converter::PROPERTY_URL_NAME) !== null) {
+            return $facet->getProperty(Converter::PROPERTY_URL_NAME);
+        }
+
+        return $facet->getLabel();
+    }
+
+    /**
+     * Get Facet Filter label
+     *
+     * @param Filter $facetFilter
+     *
+     * @return string
+     */
+    private function getFilterLabel(Filter $facetFilter)
+    {
+        if ($facetFilter->getProperty(Converter::PROPERTY_URL_NAME) !== null) {
+            return $facetFilter->getProperty(Converter::PROPERTY_URL_NAME);
+        }
+
+        return $facetFilter->getLabel();
     }
 
     /**

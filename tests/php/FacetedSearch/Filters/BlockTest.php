@@ -24,14 +24,13 @@ use Combination;
 use Configuration;
 use Context;
 use Db;
-use Feature;
-use FeatureValue;
 use Group;
 use Manufacturer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
 use stdClass;
@@ -121,7 +120,12 @@ class BlockTest extends MockeryTestCase
         $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
         $this->adapterMock->resetAll();
 
-        $this->block = new Block($this->adapterMock, $this->contextMock, $this->dbMock);
+        $this->block = new Block(
+            $this->adapterMock,
+            $this->contextMock,
+            $this->dbMock,
+            new DataAccessor($this->dbMock)
+        );
     }
 
     public function testGetEmptyFiltersBlock()
@@ -643,26 +647,36 @@ class BlockTest extends MockeryTestCase
                     'id_attribute_group' => '1',
                     'attribute_group_name' => 'Size',
                     'is_color_group' => '0',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
                 [
                     'id_attribute_group' => '2',
                     'attribute_group_name' => 'Color',
                     'is_color_group' => '1',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
                 [
                     'id_attribute_group' => '3',
                     'attribute_group_name' => 'Dimension',
                     'is_color_group' => '0',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
                 [
                     'id_attribute_group' => '4',
                     'attribute_group_name' => 'Paper Type',
                     'is_color_group' => '0',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
                 [
                     'id_attribute_group' => '5',
                     'attribute_group_name' => 'azdazd',
                     'is_color_group' => '0',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
             ]
         );
@@ -680,17 +694,21 @@ class BlockTest extends MockeryTestCase
                 'color' => '#AAB2BD',
                 'name' => 'Grey',
                 'id_attribute_group' => '2',
+                'url_name' => null,
+                'meta_title' => null,
             ],
             [
                 'id_attribute' => '2',
                 'color' => '#CFC4A6',
                 'name' => 'Taupe',
                 'id_attribute_group' => '2',
+                'url_name' => null,
+                'meta_title' => null,
             ],
         ];
         $this->dbMock->shouldReceive('executeS')
             ->with(
-                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` FROM `ps_attribute_group` ag LEFT JOIN `ps_attribute_group_lang` agl ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = 2) LEFT JOIN `ps_attribute` a ON a.`id_attribute_group` = ag.`id_attribute_group` LEFT JOIN `ps_attribute_lang` al ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = 2)INNER JOIN ps_attribute_group_shop attribute_group_shop ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND attribute_group_shop.id_shop = 1) INNER JOIN ps_attribute_shop attribute_shop ON (attribute_shop.id_attribute = a.id_attribute AND attribute_shop.id_shop = 1) WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ORDER BY agl.`name` ASC, a.`position` ASC'
+                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group`, IF(lialv.`url_name` IS NULL OR lialv.`url_name` = "", NULL, lialv.`url_name`) AS url_name, IF(lialv.`meta_title` IS NULL OR lialv.`meta_title` = "", NULL, lialv.`meta_title`) AS meta_title FROM `ps_attribute_group` ag INNER JOIN `ps_attribute_group_lang` agl ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = 2) INNER JOIN `ps_attribute` a ON a.`id_attribute_group` = ag.`id_attribute_group` INNER JOIN `ps_attribute_lang` al ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = 2)INNER JOIN ps_attribute_group_shop attribute_group_shop ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND attribute_group_shop.id_shop = 1) INNER JOIN ps_attribute_shop attribute_shop ON (attribute_shop.id_attribute = a.id_attribute AND attribute_shop.id_shop = 1) LEFT JOIN `ps_layered_indexable_attribute_lang_value` lialv ON (a.`id_attribute` = lialv.`id_attribute` AND lialv.`id_lang` = 2) WHERE ag.id_attribute_group = 1 ORDER BY agl.`name` ASC, a.`position` ASC'
             )
             ->andReturn($attributes);
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
@@ -768,7 +786,7 @@ class BlockTest extends MockeryTestCase
 
     public function testGetFiltersBlockWithoutFeatures()
     {
-        $this->mockCombination();
+        $this->mockFeatures([]);
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
@@ -777,12 +795,6 @@ class BlockTest extends MockeryTestCase
             ->with('with_features_1')
             ->once()
             ->andReturn($adapterInitialMock);
-
-        $featureMock = Mockery::mock(Feature::class);
-        $featureMock->shouldReceive('getFeatures')
-            ->with(2)
-            ->andReturn([]);
-        Feature::setStaticExpectations($featureMock);
 
         $this->assertEquals(
             [
@@ -800,7 +812,7 @@ class BlockTest extends MockeryTestCase
 
     public function testGetFiltersBlockWithoutFeaturesWithoutSearchFilter()
     {
-        $this->mockCombination();
+        $this->mockFeatures([]);
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
@@ -808,12 +820,6 @@ class BlockTest extends MockeryTestCase
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->once()
             ->andReturn($adapterInitialMock);
-
-        $featureMock = Mockery::mock(Feature::class);
-        $featureMock->shouldReceive('getFeatures')
-            ->with(2)
-            ->andReturn([]);
-        Feature::setStaticExpectations($featureMock);
 
         $this->assertEquals(
             [
@@ -830,7 +836,34 @@ class BlockTest extends MockeryTestCase
 
     public function testGetFiltersBlockWithoutFeaturesWithoutSearchFilterAndFeatures()
     {
-        $this->mockCombination();
+        $this->mockFeatures(
+            [
+                [
+                    'id_feature' => '1',
+                    'position' => '0',
+                    'id_lang' => '1',
+                    'name' => 'Composition',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature' => '2',
+                    'position' => '1',
+                    'id_lang' => '1',
+                    'name' => 'Property',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature' => '9',
+                    'position' => '2',
+                    'id_lang' => '1',
+                    'name' => 'FeatureExample',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+            ]
+        );
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1, 'filter_show_limit' => 2, 'filter_type' => 2]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
@@ -855,127 +888,101 @@ class BlockTest extends MockeryTestCase
             ->once()
             ->andReturn($adapterInitialMock);
 
-        $featureMock = Mockery::mock(Feature::class);
-        $featureMock->shouldReceive('getFeatures')
-            ->with(2)
-            ->andReturn(
+        $this->mockFeatureValues(
+            1,
+            [
                 [
-                    [
-                        'id_feature' => '1',
-                        'position' => '0',
-                        'id_lang' => '1',
-                        'name' => 'Composition',
-                    ],
-                    [
-                        'id_feature' => '2',
-                        'position' => '1',
-                        'id_lang' => '1',
-                        'name' => 'Property',
-                    ],
-                    [
-                        'id_feature' => '9',
-                        'position' => '2',
-                        'id_lang' => '1',
-                        'name' => 'FeatureExample',
-                    ],
-                ]
-            );
-        Feature::setStaticExpectations($featureMock);
-
-        $featureMock = Mockery::mock(FeatureValue::class);
-        $featureMock->shouldReceive('getFeatureValuesWithLang')
-            ->with(2, 1, true)
-            ->andReturn(
+                    'id_feature_value' => '14',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'azdazd',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
                 [
-                    [
-                        'id_feature_value' => '14',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'azdazd',
-                    ],
-                    [
-                        'id_feature_value' => '13',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'azdazd',
-                    ],
-                    [
-                        'id_feature_value' => '16',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'CeciEstUneFutureValue',
-                    ],
-                    [
-                        'id_feature_value' => '3',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Ceramic',
-                    ],
-                    [
-                        'id_feature_value' => '4',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Cotton',
-                    ],
-                    [
-                        'id_feature_value' => '6',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Matt paper',
-                    ],
-                    [
-                        'id_feature_value' => '1',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Polyester',
-                    ],
-                    [
-                        'id_feature_value' => '5',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Recycled cardboard',
-                    ],
-                    [
-                        'id_feature_value' => '2',
-                        'id_feature' => '1',
-                        'custom' => '0',
-                        'id_lang' => '1',
-                        'value' => 'Wool',
-                    ],
-                    [
-                        'id_feature_value' => '21',
-                        'id_feature' => '1',
-                        'custom' => '1',
-                        'id_lang' => '1',
-                        'value' => 'Test Custom value',
-                    ],
-                ]
-            );
-        FeatureValue::setStaticExpectations($featureMock);
-
-        $this->dbMock->shouldReceive('getRow')
-            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_value_lang_value WHERE id_feature_value=1 AND id_lang=2')
-            ->andReturn([]);
-
-        $this->dbMock->shouldReceive('getRow')
-            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_value_lang_value WHERE id_feature_value=21 AND id_lang=2')
-            ->andReturn([]);
-
-        $this->dbMock->shouldReceive('getRow')
-            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_lang_value WHERE id_feature=4 AND id_lang=2')
-            ->andReturn(['something', 'weird']);
-
-        $this->dbMock->shouldReceive('getRow')
-            ->with('SELECT url_name, meta_title FROM ps_layered_indexable_feature_lang_value WHERE id_feature=21 AND id_lang=2')
-            ->andReturn(['url-custom-21', 'title-custom-21']);
+                    'id_feature_value' => '13',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'azdazd',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '16',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'CeciEstUneFutureValue',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '3',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Ceramic',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '4',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Cotton',
+                    'url_name' => 'something',
+                    'meta_title' => 'weird',
+                ],
+                [
+                    'id_feature_value' => '6',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Matt paper',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '1',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Polyester',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '5',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Recycled cardboard',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '2',
+                    'id_feature' => '1',
+                    'custom' => '0',
+                    'id_lang' => '1',
+                    'value' => 'Wool',
+                    'url_name' => null,
+                    'meta_title' => null,
+                ],
+                [
+                    'id_feature_value' => '21',
+                    'id_feature' => '1',
+                    'custom' => '1',
+                    'id_lang' => '1',
+                    'value' => 'Test Custom value',
+                    'url_name' => 'url-custom-21',
+                    'meta_title' => 'title-custom-21',
+                ],
+            ]
+        );
 
         $this->assertEquals(
             [
@@ -1034,18 +1041,83 @@ class BlockTest extends MockeryTestCase
                     'AND attribute_group_shop.id_shop = 1)'
                 );
 
+            $this->shopMock->shouldReceive('addSqlAssociation')
+                ->with('attribute', 'a')
+                ->andReturn(
+                    'INNER JOIN ps_attribute_shop attribute_shop ON ' .
+                    '(attribute_shop.id_attribute = a.id_attribute AND attribute_shop.id_shop = 1)'
+                );
             $this->dbMock->shouldReceive('executeS')
                 ->once()
                 ->with(
-                    'SELECT ag.id_attribute_group, agl.public_name as attribute_group_name, is_color_group ' .
-                    'FROM `ps_attribute_group` ag INNER JOIN ps_attribute_group_shop attribute_group_shop ' .
-                    'ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND ' .
-                    'attribute_group_shop.id_shop = 1) LEFT JOIN `ps_attribute_group_lang` agl ON ' .
-                    '(ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = 2) ' .
+                    'SELECT ag.id_attribute_group, agl.public_name as attribute_group_name, is_color_group, ' .
+                    'IF(liaglv.`url_name` IS NULL OR liaglv.`url_name` = "", NULL, liaglv.`url_name`) AS url_name, ' .
+                    'IF(liaglv.`meta_title` IS NULL OR liaglv.`meta_title` = "", NULL, liaglv.`meta_title`) AS meta_title, ' .
+                    'IFNULL(liag.indexable, TRUE) AS indexable ' .
+                    'FROM `ps_attribute_group` ag ' .
+                    'INNER JOIN ps_attribute_group_shop attribute_group_shop ' .
+                    'ON (attribute_group_shop.id_attribute_group = ag.id_attribute_group AND attribute_group_shop.id_shop = 1) ' .
+                    'LEFT JOIN `ps_attribute_group_lang` agl ' .
+                    'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = 2) ' .
+                    'LEFT JOIN `ps_layered_indexable_attribute_group` liag ' .
+                    'ON (ag.`id_attribute_group` = liag.`id_attribute_group`) ' .
+                    'LEFT JOIN `ps_layered_indexable_attribute_group_lang_value` AS liaglv ' .
+                    'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND agl.`id_lang` = 2) ' .
                     'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
                 )
                 ->andReturn($attributeGroups);
         }
+    }
+
+    private function mockFeatures($features = [])
+    {
+        $this->shopMock
+            ->shouldReceive('addSqlAssociation')
+            ->with('feature', 'f')
+            ->andReturn(
+                'INNER JOIN ps_feature_shop feature_shop ON ' .
+                '(feature_shop.id_feature = f.id_feature AND feature_shop.id_shop = 1)'
+            );
+
+        $this->dbMock
+            ->shouldReceive('executeS')
+            ->once()
+            ->with(
+                'SELECT DISTINCT f.id_feature, f.*, fl.*, ' .
+                'IF(liflv.`url_name` IS NULL OR liflv.`url_name` = "", NULL, liflv.`url_name`) AS url_name, ' .
+                'IF(liflv.`meta_title` IS NULL OR liflv.`meta_title` = "", NULL, liflv.`meta_title`) AS meta_title, ' .
+                'lif.indexable ' .
+                'FROM `ps_feature` f ' .
+                'INNER JOIN ps_feature_shop feature_shop ON ' .
+                '(feature_shop.id_feature = f.id_feature AND feature_shop.id_shop = 1) ' .
+                'LEFT JOIN `ps_feature_lang` fl ON (f.`id_feature` = fl.`id_feature` AND fl.`id_lang` = 2) ' .
+                'LEFT JOIN `ps_layered_indexable_feature` lif ' .
+                'ON (f.`id_feature` = lif.`id_feature`) ' .
+                'LEFT JOIN `ps_layered_indexable_feature_lang_value` liflv ' .
+                'ON (f.`id_feature` = liflv.`id_feature` AND liflv.`id_lang` = 2) ' .
+                'ORDER BY f.`position` ASC'
+            )
+            ->andReturn($features);
+    }
+
+    private function mockFeatureValues($idFeature, $featureValues = [])
+    {
+        $this->dbMock
+            ->shouldReceive('executeS')
+            ->once()
+            ->with(
+                'SELECT v.*, vl.*, ' .
+                'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
+                'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
+                'FROM `ps_feature_value` v ' .
+                'LEFT JOIN `ps_feature_value_lang` vl ' .
+                'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = 2) ' .
+                'LEFT JOIN `ps_layered_indexable_feature_value_lang_value` lifvlv ' .
+                'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = 2) ' .
+                'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
+                'ORDER BY vl.`value` ASC'
+            )
+            ->andReturn($featureValues);
     }
 
     /**

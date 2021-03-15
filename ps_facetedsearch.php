@@ -91,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.7.0';
+        $this->version = '3.7.1';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -186,8 +186,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             $this->rebuildPriceIndexTable();
 
-            $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
-            $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'friendly_url');
+            $this->getDatabase()->execute('ALTER TABLE ' . _DB_PREFIX_ . 'layered_filter CHANGE `filters` `filters` LONGTEXT NULL');
+            $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_friendly_url');
         } else {
             Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', 1);
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', 1);
@@ -507,8 +507,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         $price = Product::priceCalculation(
                             $idShop,
                             (int) $idProduct,
-                            (int) $idCountry,
                             null,
+                            (int) $idCountry,
                             null,
                             null,
                             (int) $currency['id_currency'],
@@ -561,8 +561,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $values[] = '(' . (int) $idProduct . ',
                         ' . (int) $currency['id_currency'] . ',
                         ' . $idShop . ',
-                        ' . $minPriceValue . ',
-                        ' . $maxPriceValue . ',
+                        ' . (float) $minPriceValue . ',
+                        ' . (float) $maxPriceValue . ',
                         ' . (int) $idCountry . ')';
                 }
             }
@@ -1207,12 +1207,10 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $idLang = $language['id_lang'];
             $urlNameLang = Tools::getValue('url_name_' . $idLang);
             if ($urlNameLang && Tools::link_rewrite($urlNameLang) != strtolower($urlNameLang)) {
-                $params['errors'][] = Tools::displayError(
-                    $this->trans(
-                        '"%s" is not a valid url',
-                        [Tools::safeOutput($urlNameLang, true)],
-                        'Modules.Facetedsearch.Admin'
-                    )
+                $params['errors'][] = $this->trans(
+                    '"%s" is not a valid url',
+                    [Tools::safeOutput($urlNameLang, true)],
+                    'Modules.Facetedsearch.Admin'
                 );
             }
         }

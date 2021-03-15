@@ -44,7 +44,7 @@ class URLSerializerTest extends MockeryTestCase
         $facet->shouldReceive('getProperty')
             ->andReturnUsing(
                 function ($arg) use ($properties) {
-                    return $properties[$arg];
+                    return isset($properties[$arg]) ? $properties[$arg] : null;
                 }
             );
 
@@ -67,7 +67,7 @@ class URLSerializerTest extends MockeryTestCase
         $filter->shouldReceive('getProperty')
             ->andReturnUsing(
                 function ($arg) use ($properties) {
-                    return $properties[$arg];
+                    return isset($properties[$arg]) ? $properties[$arg] : null;
                 }
             );
 

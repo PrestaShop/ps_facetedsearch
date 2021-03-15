@@ -20,14 +20,12 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use AttributeGroup;
 use Category;
 use Configuration;
 use Context;
 use Db;
-use Feature;
-use FeatureValue;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
@@ -51,6 +49,10 @@ class Converter
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
 
+    const PROPERTY_URL_NAME = 'url_name';
+    const PROPERTY_COLOR = 'color';
+    const PROPERTY_TEXTURE = 'texture';
+
     /**
      * @var array
      */
@@ -71,11 +73,21 @@ class Converter
      */
     protected $urlSerializer;
 
-    public function __construct(Context $context, Db $database, URLSerializer $urlSerializer)
-    {
+    /**
+     * @var Filters\DataAccessor
+     */
+    private $dataAccessor;
+
+    public function __construct(
+        Context $context,
+        Db $database,
+        URLSerializer $urlSerializer,
+        Filters\DataAccessor $dataAccessor
+    ) {
         $this->context = $context;
         $this->database = $database;
         $this->urlSerializer = $urlSerializer;
+        $this->dataAccessor = $dataAccessor;
     }
 
     public function getFacetsFromFilterBlocks(array $filterBlocks)
@@ -107,9 +119,15 @@ class Converter
                     } elseif ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
                         $type = 'attribute_group';
                         $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
+                        if (isset($filterBlock['url_name'])) {
+                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
+                        }
                     } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
                         $type = 'feature';
                         $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
+                        if (isset($filterBlock['url_name'])) {
+                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
+                        }
                     }
 
                     $facet->setType($type);
@@ -121,15 +139,20 @@ class Converter
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id);
+
+                        if (isset($filterArray['url_name'])) {
+                            $filter->setProperty(self::PROPERTY_URL_NAME, $filterArray['url_name']);
+                        }
+
                         if (array_key_exists('checked', $filterArray)) {
                             $filter->setActive($filterArray['checked']);
                         }
 
                         if (isset($filterArray['color'])) {
                             if ($filterArray['color'] != '') {
-                                $filter->setProperty('color', $filterArray['color']);
+                                $filter->setProperty(self::PROPERTY_COLOR, $filterArray['color']);
                             } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
-                                $filter->setProperty('texture', _THEME_COL_DIR_ . $id . '.jpg');
+                                $filter->setProperty(self::PROPERTY_TEXTURE, _THEME_COL_DIR_ . $id . '.jpg');
                             }
                         }
 
@@ -302,34 +325,51 @@ class Converter
                     }
                     break;
                 case self::TYPE_FEATURE:
-                    $features = Feature::getFeatures($idLang);
+                    $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
-                        if ($filter['id_value'] == $feature['id_feature']
-                            && isset($facetAndFiltersLabels[$feature['name']])
-                        ) {
+                        if ($filter['id_value'] != $feature['id_feature']) {
+                            continue;
+                        }
+
+                        if (isset($facetAndFiltersLabels[$feature['url_name']])) {
+                            $featureValueLabels = $facetAndFiltersLabels[$feature['url_name']];
+                        } elseif (isset($facetAndFiltersLabels[$feature['name']])) {
                             $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
-                            $featureValues = FeatureValue::getFeatureValuesWithLang($idLang, $feature['id_feature'], true);
-                            foreach ($featureValues as $featureValue) {
-                                if (in_array($featureValue['value'], $featureValueLabels)) {
-                                    $searchFilters['id_feature'][$feature['id_feature']][] =
-                                        $featureValue['id_feature_value'];
-                                }
+                        } else {
+                            continue;
+                        }
+
+                        $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
+                        foreach ($featureValues as $featureValue) {
+                            if (in_array($featureValue['url_name'], $featureValueLabels)
+                                || in_array($featureValue['value'], $featureValueLabels)
+                            ) {
+                                $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                             }
                         }
                     }
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
-                    $attributesGroup = AttributeGroup::getAttributesGroups($idLang);
+                    $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
-                        if ($filter['id_value'] == $attributeGroup['id_attribute_group']
-                            && isset($facetAndFiltersLabels[$attributeGroup['public_name']])
-                        ) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['public_name']];
-                            $attributes = AttributeGroup::getAttributes($idLang, $attributeGroup['id_attribute_group']);
-                            foreach ($attributes as $attribute) {
-                                if (in_array($attribute['name'], $attributeLabels)) {
-                                    $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
-                                }
+                        if ($filter['id_value'] != $attributeGroup['id_attribute_group']) {
+                            continue;
+                        }
+
+                        if (isset($facetAndFiltersLabels[$attributeGroup['url_name']])) {
+                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['url_name']];
+                        } elseif (isset($facetAndFiltersLabels[$attributeGroup['attribute_group_name']])) {
+                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['attribute_group_name']];
+                        } else {
+                            continue;
+                        }
+
+                        $attributes = $this->dataAccessor->getAttributes($idLang, $attributeGroup['id_attribute_group']);
+                        foreach ($attributes as $attribute) {
+                            if (in_array($attribute['url_name'], $attributeLabels)
+                                || in_array($attribute['name'], $attributeLabels)
+                            ) {
+                                $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
                             }
                         }
                     }

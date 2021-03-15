@@ -190,16 +190,16 @@ class SearchTest extends MockeryTestCase
                     ],
                 ],
                 'price_min' => [
-                    '>=' => [
+                    '<=' => [
                         [
-                            50.0,
+                            200.0,
                         ],
                     ],
                 ],
                 'price_max' => [
-                    '<=' => [
+                    '>=' => [
                         [
-                            200.0,
+                            50.0,
                         ],
                     ],
                 ],

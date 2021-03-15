@@ -21,12 +21,10 @@
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use Category;
-use Combination;
 use Configuration;
 use Context;
 use Db;
 use Feature;
-use FeatureValue;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
@@ -34,7 +32,6 @@ use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
 use PrestaShopDatabaseException;
-use Shop;
 use Tools;
 
 /**
@@ -73,15 +70,16 @@ class Block
     private $attributesGroup;
 
     /**
-     * @var array
+     * @var DataAccessor
      */
-    private $attributes;
+    private $dataAccessor;
 
-    public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database)
+    public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database, DataAccessor $dataAccessor)
     {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
+        $this->dataAccessor = $dataAccessor;
     }
 
     /**
@@ -197,45 +195,6 @@ class Block
         } catch (PrestaShopDatabaseException $e) {
             // Don't worry if the cache have invalid or duplicate hash
         }
-    }
-
-    /**
-     * @param int $idLang
-     * @param bool $notNull
-     *
-     * @return array|false|\PDOStatement|resource|null
-     */
-    public function getAttributes($idLang, $notNull = true)
-    {
-        if (!Combination::isFeatureActive()) {
-            return [];
-        }
-
-        if (!isset($this->attributes[$idLang])) {
-            $this->attributes[$idLang] = [];
-            $tempAttributes = $this->database->executeS(
-                'SELECT DISTINCT a.`id_attribute`, a.`color`, al.`name`, agl.`id_attribute_group` ' .
-                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute` a ' .
-                'ON a.`id_attribute_group` = ag.`id_attribute_group` ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_lang` al ' .
-                'ON (a.`id_attribute` = al.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . ')' .
-                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-                Shop::addSqlAssociation('attribute', 'a') . ' ' .
-                (
-                    $notNull ?
-                    'WHERE a.`id_attribute` IS NOT NULL AND al.`name` IS NOT NULL AND agl.`id_attribute_group` IS NOT NULL ' :
-                    ''
-                ) . 'ORDER BY agl.`name` ASC, a.`position` ASC'
-            );
-            foreach ($tempAttributes as $key => $attribute) {
-                $this->attributes[$idLang][$attribute['id_attribute']] = $attribute;
-            }
-        }
-
-        return $this->attributes[$idLang];
     }
 
     /**
@@ -595,106 +554,6 @@ class Block
     }
 
     /**
-     * Get url & meta from layered_indexable_attribute_group_lang_value table
-     *
-     * @param int $idAttributeGroup
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getAttributeGroupLayeredInfos($idAttributeGroup, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value WHERE id_attribute_group=' .
-            (int) $idAttributeGroup . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
-     * Get url & meta from layered_indexable_attribute_lang_value table
-     *
-     * @param int $idAttribute
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getAttributeLayeredInfos($idAttribute, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_attribute_lang_value WHERE id_attribute=' .
-            (int) $idAttribute . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
-     * Get url & meta from layered_indexable_feature_value_lang_value table
-     *
-     * @param int $idFeatureValue
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getFeatureLayeredInfos($idFeatureValue, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value WHERE id_feature_value=' .
-            (int) $idFeatureValue . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
-     * Get url & meta from layered_indexable_feature_lang_value table
-     *
-     * @param int $idFeature
-     * @param int $idLang
-     *
-     * @return array
-     */
-    private function getFeatureValueLayeredInfos($idFeature, $idLang)
-    {
-        return $this->database->getRow(
-            'SELECT url_name, meta_title FROM ' .
-            _DB_PREFIX_ . 'layered_indexable_feature_lang_value WHERE id_feature=' .
-            (int) $idFeature . ' AND id_lang=' . (int) $idLang
-        );
-    }
-
-    /**
-     * Get all attributes groups for a given language
-     *
-     * @param int $idLang Language id
-     *
-     * @return array Attributes groups
-     */
-    private function getAttributesGroups($idLang)
-    {
-        if (!Combination::isFeatureActive()) {
-            return [];
-        }
-
-        if (!isset($this->attributesGroup[$idLang])) {
-            $this->attributesGroup[$idLang] = [];
-            $tempAttributesGroup = $this->database->executeS(
-                'SELECT ag.id_attribute_group, agl.public_name as attribute_group_name, is_color_group ' .
-                'FROM `' . _DB_PREFIX_ . 'attribute_group` ag ' .
-                Shop::addSqlAssociation('attribute_group', 'ag') . ' ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl ' .
-                'ON (ag.`id_attribute_group` = agl.`id_attribute_group` AND `id_lang` = ' . (int) $idLang . ') ' .
-                'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
-            );
-
-            foreach ($tempAttributesGroup as $key => $attributeGroup) {
-                $this->attributesGroup[$idLang][$attributeGroup['id_attribute_group']] = $attributeGroup;
-            }
-        }
-
-        return $this->attributesGroup[$idLang];
-    }
-
-    /**
      * Get the attributes filter block
      *
      * @param array $filter
@@ -722,12 +581,12 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $attributesGroup = $this->getAttributesGroups($idLang);
+        $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
         if ($attributesGroup === []) {
             return $attributesBlock;
         }
 
-        $attributes = $this->getAttributes($idLang, true);
+        $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
 
         $filteredSearchAdapter->addOperationsFilter(
             'id_attribute_group_' . $idAttributeGroup,
@@ -746,13 +605,6 @@ class Block
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
-                $attributeGroupLayeredInfos = $this->getAttributeGroupLayeredInfos($idAttributeGroup, $idLang);
-                if (!empty($attributeGroupLayeredInfos)) {
-                    list($urlName, $metaTitle) = array_values($attributeGroupLayeredInfos);
-                } else {
-                    $urlName = $metaTitle = null;
-                }
-
                 $attributesBlock[$idAttributeGroup] = [
                     'type_lite' => 'id_attribute_group',
                     'type' => 'id_attribute_group',
@@ -760,25 +612,18 @@ class Block
                     'name' => $attributeGroup['attribute_group_name'],
                     'is_color_group' => (bool) $attributeGroup['is_color_group'],
                     'values' => [],
-                    'url_name' => $urlName,
-                    'meta_title' => $metaTitle,
+                    'url_name' => $attributeGroup['url_name'],
+                    'meta_title' => $attributeGroup['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
             }
 
-            $attributeLayeredInfos = $this->getAttributeLayeredInfos($idAttribute, $idLang);
-            if (!empty($attributeLayeredInfos)) {
-                list($urlName, $metaTitle) = array_values($attributeLayeredInfos);
-            } else {
-                $urlName = $metaTitle = null;
-            }
-
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'name' => $attribute['name'],
                 'nbr' => $count,
-                'url_name' => $urlName,
-                'meta_title' => $metaTitle,
+                'url_name' => $attribute['url_name'],
+                'meta_title' => $attribute['meta_title'],
             ];
 
             if ($attributesBlock[$idAttributeGroup]['is_color_group'] !== false) {
@@ -854,7 +699,7 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempFeatures = Feature::getFeatures($idLang);
+        $tempFeatures = $this->dataAccessor->getFeatures($idLang);
         if (empty($tempFeatures)) {
             return [];
         }
@@ -878,16 +723,9 @@ class Block
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = FeatureValue::getFeatureValuesWithLang($idLang, $idFeature, true);
+                $tempFeatureValues = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
                 foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
                     $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
-                }
-
-                $featureLayeredInfos = $this->getFeatureLayeredInfos($idFeature, $idLang);
-                if (!empty($featureLayeredInfos)) {
-                    list($urlName, $metaTitle) = array_values($featureLayeredInfos);
-                } else {
-                    $urlName = $metaTitle = null;
                 }
 
                 $featureBlock[$idFeature] = [
@@ -896,8 +734,8 @@ class Block
                     'id_key' => $idFeature,
                     'values' => [],
                     'name' => $feature['name'],
-                    'url_name' => $urlName,
-                    'meta_title' => $metaTitle,
+                    'url_name' => $feature['url_name'],
+                    'meta_title' => $feature['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
@@ -908,18 +746,11 @@ class Block
                 continue;
             }
 
-            $featureValueLayeredInfos = $this->getFeatureValueLayeredInfos($idFeatureValue, $idLang);
-            if (!empty($featureValueLayeredInfos)) {
-                list($urlName, $metaTitle) = array_values($featureValueLayeredInfos);
-            } else {
-                $urlName = $metaTitle = null;
-            }
-
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
                 'name' => $featureValues[$idFeatureValue]['value'],
-                'url_name' => $urlName,
-                'meta_title' => $metaTitle,
+                'url_name' => $featureValues[$idFeatureValue]['url_name'],
+                'meta_title' => $featureValues[$idFeatureValue]['meta_title'],
             ];
 
             if (array_key_exists('id_feature', $selectedFilters)) {
