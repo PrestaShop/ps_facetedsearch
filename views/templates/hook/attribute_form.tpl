@@ -17,10 +17,10 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  *}
 <div class="form-group">
-	<label class="control-label col-lg-3">
+	<label class="control-label col-lg-4">
 		<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="{l s='Invalid characters: <>;=#{}_' d='Modules.Facetedsearch.Admin'}">{l s='URL' d='Modules.Facetedsearch.Admin'}</span>
 	</label>
-	<div class="col-lg-9">
+	<div class="col-lg-8">
 		<div class="row">
 			{foreach $languages as $language}
 			  <div class="translatable-field lang-{$language['id_lang']}" style="display: {if $language['id_lang'] == $default_form_language}block{else}none{/if};">
@@ -47,8 +47,8 @@
 	</div>
 </div>
 <div class="form-group">
-	<label class="control-label col-lg-3">{l s='Meta title' d='Admin.Global'}</label>
-	<div class="col-lg-9">
+	<label class="control-label col-lg-4">{l s='Meta title' d='Admin.Global'}</label>
+	<div class="col-lg-8">
 		<div class="row">
 			{foreach $languages as $language}
 			  <div class="translatable-field lang-{$language['id_lang']}" style="display: {if $language['id_lang'] == $default_form_language}block{else}none{/if};">
