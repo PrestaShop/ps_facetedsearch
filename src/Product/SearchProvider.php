@@ -210,28 +210,28 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         list($activeFilters, $displayedFacets, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
 
-        // No need to render without facets
-        if (empty($facetsVar)) {
-            return '';
-        }
+        // If there are no facets, initialize empty array.
+        if (empty($facetsVar))
+            $this->module->getContext()->smarty->assign('displayedFacets', []);
+        else 
+            $this->module->getContext()->smarty->assign(
+                [
+                    'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
+                    'facets' => $facetsVar,
+                    'js_enabled' => $this->module->isAjax(),
+                    'displayedFacets' => $displayedFacets,
+                    'activeFilters' => $activeFilters,
+                    'sort_order' => $result->getCurrentSortOrder()->toString(),
+                    'clear_all_link' => $this->updateQueryString(
+                        [
+                            'q' => null,
+                            'page' => null,
+                        ]
+                    ),
+                ]
+            );
 
-        $this->module->getContext()->smarty->assign(
-            [
-                'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
-                'facets' => $facetsVar,
-                'js_enabled' => $this->module->isAjax(),
-                'displayedFacets' => $displayedFacets,
-                'activeFilters' => $activeFilters,
-                'sort_order' => $result->getCurrentSortOrder()->toString(),
-                'clear_all_link' => $this->updateQueryString(
-                    [
-                        'q' => null,
-                        'page' => null,
-                    ]
-                ),
-            ]
-        );
-
+        // Always render facets even when they are empty.
         return $this->module->fetch(
             'module:ps_facetedsearch/views/templates/front/catalog/facets.tpl'
         );
