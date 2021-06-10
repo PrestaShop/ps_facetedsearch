@@ -211,9 +211,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         list($activeFilters, $displayedFacets, $facetsVar) = $this->prepareActiveFiltersForRender($context, $result);
 
         // If there are no facets, initialize empty array.
-        if (empty($facetsVar))
+        if (empty($facetsVar)) {
             $this->module->getContext()->smarty->assign('displayedFacets', []);
-        else 
+        } else {
             $this->module->getContext()->smarty->assign(
                 [
                     'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
@@ -230,6 +230,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     ),
                 ]
             );
+        }
 
         // Always render facets even when they are empty.
         return $this->module->fetch(
