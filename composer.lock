@@ -77,16 +77,16 @@
     "packages-dev": [
         {
             "name": "composer/semver",
-            "version": "3.2.4",
+            "version": "3.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/semver.git",
-                "reference": "a02fdf930a3c1c3ed3a49b5f63859c0c20e10464"
+                "reference": "31f3ea725711245195f62e54ffa402d8ef2fdba9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/semver/zipball/a02fdf930a3c1c3ed3a49b5f63859c0c20e10464",
-                "reference": "a02fdf930a3c1c3ed3a49b5f63859c0c20e10464",
+                "url": "https://api.github.com/repos/composer/semver/zipball/31f3ea725711245195f62e54ffa402d8ef2fdba9",
+                "reference": "31f3ea725711245195f62e54ffa402d8ef2fdba9",
                 "shasum": ""
             },
             "require": {
@@ -149,7 +149,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-11-13T08:59:24+00:00"
+            "time": "2021-05-24T12:41:47+00:00"
         },
         {
             "name": "composer/xdebug-handler",
@@ -1407,6 +1407,49 @@
             "time": "2017-06-30T09:13:00+00:00"
         },
         {
+            "name": "prestashop/autoindex",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PrestaShopCorp/autoindex.git",
+                "reference": "92e10242f94a99163dece280f6bd7b7c2b79c158"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PrestaShopCorp/autoindex/zipball/92e10242f94a99163dece280f6bd7b7c2b79c158",
+                "reference": "92e10242f94a99163dece280f6bd7b7c2b79c158",
+                "shasum": ""
+            },
+            "require": {
+                "nikic/php-parser": "^3.1",
+                "php": ">=5.6",
+                "symfony/console": "^3.4",
+                "symfony/finder": "^3.4"
+            },
+            "bin": [
+                "bin/autoindex"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PrestaShop\\AutoIndex\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AFL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "PrestaShop SA",
+                    "email": "contact@prestashop.com"
+                }
+            ],
+            "description": "Automatically add an 'index.php' in all the current or specified directories and all sub-directories.",
+            "homepage": "https://github.com/PrestaShopCorp/autoindex",
+            "time": "2020-03-11T13:37:03+00:00"
+        },
+        {
             "name": "prestashop/header-stamp",
             "version": "v1.7",
             "source": {
@@ -1454,21 +1497,22 @@
         },
         {
             "name": "prestashop/php-dev-tools",
-            "version": "v3.15.1",
+            "version": "v3.16.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/php-dev-tools.git",
-                "reference": "ed7af694ddd0c7d0f712c3e7c07757c80d042755"
+                "reference": "578bffb03fb683fa6f35e07c7c32db8d2781abef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/ed7af694ddd0c7d0f712c3e7c07757c80d042755",
-                "reference": "ed7af694ddd0c7d0f712c3e7c07757c80d042755",
+                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/578bffb03fb683fa6f35e07c7c32db8d2781abef",
+                "reference": "578bffb03fb683fa6f35e07c7c32db8d2781abef",
                 "shasum": ""
             },
             "require": {
                 "friendsofphp/php-cs-fixer": "^2.14",
                 "php": ">=5.6.0",
+                "prestashop/autoindex": "^1.0",
                 "prestashop/header-stamp": "^1.0",
                 "squizlabs/php_codesniffer": "^3.4",
                 "symfony/console": "~3.2 || ~4.0 || ~5.0",
@@ -1491,7 +1535,7 @@
                 "MIT"
             ],
             "description": "PrestaShop coding standards",
-            "time": "2021-05-12T08:40:17+00:00"
+            "time": "2021-06-22T08:28:47+00:00"
         },
         {
             "name": "psr/log",
