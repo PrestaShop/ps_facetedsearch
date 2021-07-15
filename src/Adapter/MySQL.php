@@ -26,6 +26,7 @@ use Db;
 use Doctrine\Common\Collections\ArrayCollection;
 use Product;
 use StockAvailable;
+use Tools;
 
 class MySQL extends AbstractAdapter
 {
@@ -153,6 +154,12 @@ class MySQL extends AbstractAdapter
             'sa'
         );
 
+        $homeCategory = Configuration::get('PS_HOME_CATEGORY');
+        $idCategory = (int) Tools::getValue(
+            'id_category',
+            Tools::getValue('id_category_layered', $homeCategory)
+        );
+
         $filterToTableMapping = [
             'id_product_attribute' => [
                 'tableName' => 'product_attribute',
@@ -202,7 +209,7 @@ class MySQL extends AbstractAdapter
             'position' => [
                 'tableName' => 'category_product',
                 'tableAlias' => 'cp',
-                'joinCondition' => '(p.id_product = cp.id_product)',
+                'joinCondition' => '(p.id_product = cp.id_product AND cp.id_category = ' . $idCategory . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'manufacturer_name' => [
