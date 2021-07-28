@@ -161,7 +161,8 @@ class Search
                     break;
 
                 case 'quantity':
-                    if (count($selectedFilters['quantity']) == 2) {
+                    // If all three are checked, we show everything
+                    if (count($selectedFilters['quantity']) == 3) {
                         break;
                     }
 
@@ -171,10 +172,11 @@ class Search
                     }
 
                     $operationsFilter = [];
-                    if ($filterValues[0]) {
-                        // Filter for available quantity, we must be able to request
-                        // product with out_of_stock at 1 or 2
-                        // which mean we can buy out of stock products
+
+                    // Filter for available products
+                    // We want product with out_of_stock at 1 or 2, which mean we can buy out of stock products
+                    // Or products with positive quantity
+                    if ($filterValues[0] == 1) {
                         $operationsFilter[] = [
                             ['quantity', [0], '>='],
                             ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
@@ -182,6 +184,12 @@ class Search
                         $operationsFilter[] = [
                             ['quantity', [0], '>'],
                         ];
+                    // Filter for products in stock, we want only products with positive quantity
+                    } elseif ($filterValues[0] == 2) {
+                        $operationsFilter[] = [
+                            ['quantity', [0], '>'],
+                        ];
+                    // Filter for products out of stock
                     } else {
                         $operationsFilter[] = [
                             ['quantity', [0], '<='],

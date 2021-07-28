@@ -280,10 +280,15 @@ class Converter
                             'Modules.Facetedsearch.Shop'
                         ) => 0,
                         $this->context->getTranslator()->trans(
-                            'In stock',
+                            'Available',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 1,
+                        $this->context->getTranslator()->trans(
+                            'In stock',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 2,
                     ];
 
                     $searchFilters[$filter['type']] = [];
