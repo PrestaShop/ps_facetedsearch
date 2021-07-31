@@ -339,6 +339,7 @@ class BlockTest extends MockeryTestCase
             [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
+            [['Available', [], 'Modules.Facetedsearch.Shop'], 'Available'],
         ]);
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
