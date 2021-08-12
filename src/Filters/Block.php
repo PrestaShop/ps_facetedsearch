@@ -409,34 +409,6 @@ class Block
      */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
-        $availabilityOptions = [
-            0 => [
-                'name' => $this->context->getTranslator()->trans(
-                    'Not available',
-                    [],
-                    'Modules.Facetedsearch.Shop'
-                ),
-                'nbr' => 0,
-            ],
-            1 => [
-                'name' => $this->context->getTranslator()->trans(
-                    'Available',
-                    [],
-                    'Modules.Facetedsearch.Shop'
-                ),
-                'nbr' => 0,
-            ],
-            2 => [
-                'name' => $this->context->getTranslator()->trans(
-                    'In stock',
-                    [],
-                    'Modules.Facetedsearch.Shop'
-                ),
-                'nbr' => 0,
-            ],
-        ];
-
         if ($this->psStockManagement === null) {
             $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
         }
@@ -445,7 +417,39 @@ class Block
             $this->psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
+        // We only initialize the options if stock management is activated
+        $availabilityOptions = [];
         if ($this->psStockManagement) {
+
+            $availabilityOptions = [
+                0 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'Not available',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+                1 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'Available',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+                2 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'In stock',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+            ];
+
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
+
             // Products without quantity in stock, with out-of-stock ordering disabled
             $filteredSearchAdapter->addOperationsFilter(
                 Search::STOCK_MANAGEMENT_FILTER,
