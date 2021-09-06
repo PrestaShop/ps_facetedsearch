@@ -25,6 +25,6 @@ function upgrade_module_3_8_0($module)
 {
     return Db::getInstance()->execute(
       'ALTER TABLE `' . _DB_PREFIX_ . 'layered_price_index` 
-      CHANGE `price_min` `price_min` decimal(20,6) NOT NULL AFTER `id_shop`,
-      CHANGE `price_max` `price_max` decimal(20,6) NOT NULL AFTER `price_min`;');
+      CHANGE `price_min` `price_min` decimal(20,6) NOT NULL,
+      CHANGE `price_max` `price_max` decimal(20,6) NOT NULL;');
 }
