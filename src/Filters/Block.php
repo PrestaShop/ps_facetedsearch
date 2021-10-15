@@ -420,7 +420,6 @@ class Block
         // We only initialize the options if stock management is activated
         $availabilityOptions = [];
         if ($this->psStockManagement) {
-
             $availabilityOptions = [
                 0 => [
                     'name' => $this->context->getTranslator()->trans(
