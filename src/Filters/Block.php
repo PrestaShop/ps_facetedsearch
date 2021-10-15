@@ -493,8 +493,6 @@ class Block
                 foreach ($availabilityOptions as $key => $values) {
                     if (in_array($key, $selectedFilters['quantity'], true)) {
                         $availabilityOptions[$key]['checked'] = true;
-                    } else {
-                        unset($availabilityOptions[$key]);
                     }
                 }
             }
