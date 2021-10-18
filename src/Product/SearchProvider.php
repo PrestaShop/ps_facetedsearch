@@ -161,7 +161,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $idLang = (int) $context->language->id;
         $idCurrency = (int) $context->currency->id;
         $idCountry = (int) $context->country->id;
-        if ($query->getQueryType() == "category") {
+        if ($query->getQueryType() == 'category') {
             $filterKey = $query->getQueryType() . $query->getIdCategory();
         } else {
             $filterKey = $query->getQueryType();
