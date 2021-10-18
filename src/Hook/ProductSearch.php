@@ -40,8 +40,6 @@ class ProductSearch extends AbstractHook
      */
     public function productSearchProvider(array $params)
     {
-        $query = $params['query'];
-
         $this->context->controller->addJqueryUi('slider');
         $this->context->controller->registerStylesheet(
             'facetedsearch_front',
@@ -68,6 +66,5 @@ class ProductSearch extends AbstractHook
             $dataAccessor
         );
 
-        return null;
     }
 }
