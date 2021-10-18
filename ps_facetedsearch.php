@@ -68,6 +68,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     const DECIMAL_DIGITS = 5;
 
     /**
+     * Controllers where our module can show
+     *
+     * @var array
+     */
+    private $available_controllers = [];
+
+    /**
      * @var bool
      */
     private $ajax;
@@ -103,6 +110,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
         $this->psLayeredFullTree = (int) Configuration::get('PS_LAYERED_FULL_TREE');
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
+
+        $this->available_controllers = [
+            'category' => $this->trans('Category', [], 'Modules.Facetedsearch.Admin'),
+            'search' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin'),
+            'manufacturer' => $this->trans('Manufacturer', [], 'Modules.Facetedsearch.Admin'),
+            'supplier' => $this->trans('Supplier', [], 'Modules.Facetedsearch.Admin'),
+            'new-products' => $this->trans('New products', [], 'Modules.Facetedsearch.Admin'),
+            'best-sales' => $this->trans('Best sales', [], 'Modules.Facetedsearch.Admin'),
+            'prices-drop' => $this->trans('Prices drop', [], 'Modules.Facetedsearch.Admin'),
+        ];
 
         $this->hookDispatcher = new HookDispatcher($this);
     }
@@ -586,10 +603,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $message = '';
 
         if (Tools::isSubmit('SubmitFilter')) {
+            $controllers = Tools::getValue('controllers');
+
             if (!Tools::getValue('layered_tpl_name')) {
                 $message = $this->displayError($this->trans('Filter template name required (cannot be empty)', [], 'Modules.Facetedsearch.Admin'));
-            } elseif (!Tools::getValue('categoryBox')) {
-                $message = $this->displayError($this->trans('You must select at least one category.', [], 'Modules.Facetedsearch.Admin'));
+            } elseif (!$controllers) {
+                $message = $this->displayError($this->trans('You must select at least one page.', [], 'Modules.Facetedsearch.Admin'));
+            } elseif (in_array('category', $controllers) && !Tools::getValue('categoryBox')) {
+                $message = $this->displayError($this->trans('If you want to use the template on category page, you must select at least one category.', [], 'Modules.Facetedsearch.Admin'));
             } else {
                 // Get or generate id
                 $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
@@ -615,78 +636,83 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $shopList = [(int) $this->getContext()->shop->id];
                 }
 
-                if (!empty($_POST['categoryBox']) && is_array($_POST['categoryBox'])) {
-                    /* Clean categoryBox before use */
-                    $_POST['categoryBox'] = array_map('intval', $_POST['categoryBox']);
-                    $filterValues = [
-                        'shop_list' => $shopList,
-                    ];
+                $filterValues = [
+                    'shop_list' => $shopList,
+                    'categories' => [],
+                ];
 
+                /* Clean categoryBox before use */
+                if (isset($_POST['categoryBox']) && !empty($_POST['categoryBox'])) {
+                    $_POST['categoryBox'] = array_map('intval', $_POST['categoryBox']);
                     foreach ($_POST['categoryBox'] as $idCategoryLayered) {
                         $filterValues['categories'][] = $idCategoryLayered;
                     }
-
-                    foreach ($_POST as $key => $value) {
-                        if (!preg_match('~^(?P<key>layered_selection_.*)(?<!_filter_)(?<!type)(?<!show_limit)$~', $key, $matches)) {
-                            continue;
-                        }
-
-                        $filterValues[$matches['key']] = [
-                            'filter_type' => (int) Tools::getValue($matches['key'] . '_filter_type', 0),
-                            'filter_show_limit' => (int) Tools::getValue($matches['key'] . '_filter_show_limit', 0),
-                        ];
-                    }
-
-                    $values = [
-                        'name' => pSQL(Tools::getValue('layered_tpl_name')),
-                        'filters' => pSQL(serialize($filterValues)),
-                        'n_categories' => (int) count($filterValues['categories']),
-                    ];
-
-                    if (!$idLayeredFilter) {
-                        $values['date_add'] = date('Y-m-d H:i:s');
-                        $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter ' .
-                             '(name, filters, n_categories, date_add, id_layered_filter) ' .
-                             'VALUES (' .
-                             '"' . pSQL($values['name']) . '", ' .
-                             '"' . $values['filters'] . '", ' .
-                             '' . (int) $values['n_categories'] . ', ' .
-                             '"' . pSQL($values['date_add']) . '", ' .
-                             '' . $idLayeredFilter . ')';
-                        $this->getDatabase()->execute($sql);
-                        $idLayeredFilter = (int) $this->getDatabase()->Insert_ID();
-                    } else {
-                        $this->getDatabase()->execute(
-                            'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . (int) $idLayeredFilter
-                        );
-                        $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
-                             'SET name = "' . pSQL($values['name']) . '", ' .
-                             'filters = "' . $values['filters'] . '", ' .
-                             'n_categories = ' . (int) $values['n_categories'] . ' ' .
-                             'WHERE id_layered_filter = ' . $idLayeredFilter;
-                        $this->getDatabase()->execute($sql);
-                    }
-
-                    if (isset($assos)) {
-                        foreach ($assos as $asso) {
-                            $this->getDatabase()->execute(
-                                'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
-    VALUES(' . $idLayeredFilter . ', ' . (int) $asso['id_shop'] . ')'
-                            );
-                        }
-                    }
-
-                    $this->buildLayeredCategories();
-                    $message = $this->displayConfirmation(
-                        $this->trans('Your filter', [], 'Modules.Facetedsearch.Admin') . ' "' .
-                        Tools::safeOutput(Tools::getValue('layered_tpl_name')) . '" ' .
-                        (
-                            !empty($_POST['id_layered_filter']) ?
-                            $this->trans('was updated successfully.', [], 'Modules.Facetedsearch.Admin') :
-                            $this->trans('was added successfully.', [], 'Modules.Facetedsearch.Admin')
-                        )
-                    );
                 }
+
+                foreach ($_POST['controllers'] as $controller) {
+                    $filterValues['controllers'][] = $controller;
+                }
+
+                foreach ($_POST as $key => $value) {
+                    if (!preg_match('~^(?P<key>layered_selection_.*)(?<!_filter_)(?<!type)(?<!show_limit)$~', $key, $matches)) {
+                        continue;
+                    }
+
+                    $filterValues[$matches['key']] = [
+                        'filter_type' => (int) Tools::getValue($matches['key'] . '_filter_type', 0),
+                        'filter_show_limit' => (int) Tools::getValue($matches['key'] . '_filter_show_limit', 0),
+                    ];
+                }
+
+                $values = [
+                    'name' => pSQL(Tools::getValue('layered_tpl_name')),
+                    'filters' => pSQL(serialize($filterValues)),
+                    'n_categories' => (int) count($filterValues['categories']),
+                ];
+
+                if (!$idLayeredFilter) {
+                    $values['date_add'] = date('Y-m-d H:i:s');
+                    $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter ' .
+                            '(name, filters, n_categories, date_add, id_layered_filter) ' .
+                            'VALUES (' .
+                            '"' . pSQL($values['name']) . '", ' .
+                            '"' . $values['filters'] . '", ' .
+                            '' . (int) $values['n_categories'] . ', ' .
+                            '"' . pSQL($values['date_add']) . '", ' .
+                            '' . $idLayeredFilter . ')';
+                    $this->getDatabase()->execute($sql);
+                    $idLayeredFilter = (int) $this->getDatabase()->Insert_ID();
+                } else {
+                    $this->getDatabase()->execute(
+                        'DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . (int) $idLayeredFilter
+                    );
+                    $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
+                            'SET name = "' . pSQL($values['name']) . '", ' .
+                            'filters = "' . $values['filters'] . '", ' .
+                            'n_categories = ' . (int) $values['n_categories'] . ' ' .
+                            'WHERE id_layered_filter = ' . $idLayeredFilter;
+                    $this->getDatabase()->execute($sql);
+                }
+
+                if (isset($assos)) {
+                    foreach ($assos as $asso) {
+                        $this->getDatabase()->execute(
+                            'INSERT INTO ' . _DB_PREFIX_ . 'layered_filter_shop (`id_layered_filter`, `id_shop`)
+                                VALUES(' . $idLayeredFilter . ', ' . (int) $asso['id_shop'] . ')'
+                        );
+                    }
+                }
+
+                $this->buildLayeredCategories();
+                $message = $this->displayConfirmation(
+                    $this->trans('Your filter', [], 'Modules.Facetedsearch.Admin') . ' "' .
+                    Tools::safeOutput(Tools::getValue('layered_tpl_name')) . '" ' .
+                    (
+                        !empty($_POST['id_layered_filter']) ?
+                        $this->trans('was updated successfully.', [], 'Modules.Facetedsearch.Admin') :
+                        $this->trans('was added successfully.', [], 'Modules.Facetedsearch.Admin')
+                    )
+                );
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
             Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', (int) Tools::getValue('ps_layered_cache_enabled'));
@@ -760,6 +786,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->context->controller->addJS($this->_path . 'views/dist/back.js');
         $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
 
+        // Available controllers
+        $controller_options = [];
+        foreach ($this->available_controllers as $controller => $name) {
+            $controller_options[$controller] = [
+                'controller' => $controller,
+                'name' => $name,
+                'checked' => false,
+            ];
+        }
+
         if (Tools::getValue('add_new_filters_template')) {
             $this->context->smarty->assign([
                 'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
@@ -769,6 +805,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'attribute_groups' => $attributeGroups,
                 'features' => $features,
                 'total_filters' => 6 + count($attributeGroups) + count($features),
+                'controller_options' => $controller_options,
             ]);
 
             $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
@@ -776,7 +813,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         }
 
+        // Editation of filter template
         if (Tools::getValue('edit_filters_template')) {
+            // Try to get template to edit from database
             $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
             $template = $this->getDatabase()->getRow(
                 'SELECT *
@@ -785,11 +824,21 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             );
 
             if (!empty($template)) {
+                // Get template settings and load it
                 $filters = Tools::unSerialize($template['filters']);
                 $treeCategoriesHelper->setSelectedCategories($filters['categories']);
                 $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
 
-                $selectShops = $filters['shop_list'];
+                // Assign controllers in template settings to currently present options
+                if (!empty($filters['controllers'])) {
+                    foreach ($filters['controllers'] as $controller) {
+                        if (isset($controller_options[$controller])) {
+                            $controller_options[$controller]['checked'] = true;
+                        }
+                    }
+                }
+
+                unset($filters['controllers']);
                 unset($filters['categories']);
                 unset($filters['shop_list']);
 
@@ -803,10 +852,31 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     'filters' => $filters,
                     'total_filters' => 6 + count($attributeGroups) + count($features),
                     'default_filters' => $this->getDefaultFilters(),
+                    'controller_options' => $controller_options,
                 ]);
 
                 return $this->display(__FILE__, 'views/templates/admin/view.tpl');
             }
+        }
+
+        // Get data about current filters in database
+        $filters_templates = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
+        foreach ($filters_templates as $k => $v) {
+            $filters_templates[$k]['controllers'] = '';
+
+            $data = Tools::unSerialize($v['filters']);
+            if (empty($data['controllers'])) {
+                continue;
+            }
+
+            $list = [];
+            foreach ($data['controllers'] as $c) {
+                // If we have a translation for the controller set in the template, we assign it
+                if (isset($this->available_controllers[$c])) {
+                    $list[] = $this->available_controllers[$c];
+                }
+            }
+            $filters_templates[$k]['controllers'] = implode(', ', $list);
         }
 
         $this->context->smarty->assign([
@@ -821,7 +891,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10) . '&full=1',
             'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
-            'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
+            'filters_templates' => $filters_templates,
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
             'full_tree' => $this->psLayeredFullTree,
@@ -878,6 +948,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_category` (
             `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `id_shop` INT(11) UNSIGNED NOT NULL,
+            `controller` VARCHAR(64) NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
             `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
@@ -1103,79 +1174,166 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
     /**
      * Build layered categories
+     * This function gets serialized data from layered_filter table and builds detailed filter information
      */
     public function buildLayeredCategories()
     {
-        // Get all filter template
-        $res = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
-        $categories = [];
+        // Get data for all filter templates in the database
+        $templates = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
+
+        // We will keep track of pages categories where filter was already set, so we don't have multiple
+        // filters for the same category and shop
+        $alreadyAssigned = [];
+
         // Clear cache
         $this->invalidateLayeredFilterBlockCache();
-        // Remove all from layered_category
+
+        // Remove all previous data from layered_category
         $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
 
-        if (!count($res)) { // No filters templates defined, nothing else to do
+        // If no filter templates are defined, nothing else to do here
+        if (!count($templates)) {
             return true;
         }
 
-        $sqlInsertPrefix = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_category (id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
+        // We will insert our queries by batches of hundred queries
+        $sqlInsertPrefix = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_category (controller, id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
         $sqlInsert = '';
         $nbSqlValuesToInsert = 0;
 
-        foreach ($res as $filterTemplate) {
+        // Now we will loop through each filter template
+        foreach ($templates as $filterTemplate) {
+            // We will get it's data and convert it into array
             $data = Tools::unSerialize($filterTemplate['filters']);
             foreach ($data['shop_list'] as $idShop) {
-                if (!isset($categories[$idShop])) {
-                    $categories[$idShop] = [];
+                if (!isset($alreadyAssigned[$idShop])) {
+                    $alreadyAssigned[$idShop] = [];
                 }
 
-                foreach ($data['categories'] as $idCategory) {
-                    $n = 0;
-                    if (in_array($idCategory, $categories[$idShop])) {
-                        continue;
-                    }
-                    // Last definition, erase previous categories defined
+                // TODO - redo this so it does not have duplicate code
+                foreach ($data['controllers'] as $controller) {
+                    // Specific scenario for category, we need to loop through each category
+                    if ($controller == 'category') {
+                        foreach ($data['categories'] as $idCategory) {
+                            $n = 0;
+                            $jobName = 'category' . $idCategory;
 
-                    $categories[$idShop][] = $idCategory;
-
-                    foreach ($data as $key => $value) {
-                        if (substr($key, 0, 17) == 'layered_selection') {
-                            $type = $value['filter_type'];
-                            $limit = $value['filter_show_limit'];
-                            ++$n;
-
-                            if ($key == 'layered_selection_stock') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif ($key == 'layered_selection_subcategories') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif ($key == 'layered_selection_condition') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif ($key == 'layered_selection_weight_slider') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif ($key == 'layered_selection_price_slider') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif ($key == 'layered_selection_manufacturer') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
-\'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
-                            } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
-\'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            // If we already have a filter for this category and shop, we will skip it
+                            if (in_array($jobName, $alreadyAssigned[$idShop])) {
+                                continue;
                             }
 
-                            ++$nbSqlValuesToInsert;
-                            if ($nbSqlValuesToInsert >= 100) {
-                                $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
-                                $sqlInsert = '';
-                                $nbSqlValuesToInsert = 0;
+                            // Save information about this category
+                            $alreadyAssigned[$idShop][] = $jobName;
+
+                            foreach ($data as $key => $value) {
+                                // The template contains some other data than filters, so we clean it up a bit
+                                // All filters begin with layered_selection
+                                if (substr($key, 0, 17) == 'layered_selection') {
+                                    $type = $value['filter_type'];
+                                    $limit = $value['filter_show_limit'];
+                                    ++$n;
+
+                                    if ($key == 'layered_selection_stock') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif ($key == 'layered_selection_subcategories') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif ($key == 'layered_selection_condition') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif ($key == 'layered_selection_weight_slider') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif ($key == 'layered_selection_price_slider') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif ($key == 'layered_selection_manufacturer') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', NULL,
+                                        \'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
+                                        \'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
+                                        $sqlInsert .= "('category', " . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
+                                        \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                    }
+
+                                    ++$nbSqlValuesToInsert;
+
+                                    // If we reached the limit, we will execute it and flush our "cache"
+                                    if ($nbSqlValuesToInsert >= 100) {
+                                        $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
+                                        $sqlInsert = '';
+                                        $nbSqlValuesToInsert = 0;
+                                    }
+                                }
+                            }
+                        }
+
+                        // For all other controllers
+                    } else {
+                        $n = 0;
+
+                        // If we already have a filter for this category and shop, we will skip it
+                        if (in_array($controller, $alreadyAssigned[$idShop])) {
+                            continue;
+                        }
+
+                        // Save information about this category
+                        $alreadyAssigned[$idShop][] = $controller;
+
+                        foreach ($data as $key => $value) {
+                            // The template contains some other data than filters, so we clean it up a bit
+                            // All filters begin with layered_selection
+                            if (substr($key, 0, 17) == 'layered_selection') {
+                                $type = $value['filter_type'];
+                                $limit = $value['filter_show_limit'];
+                                ++$n;
+
+                                if ($key == 'layered_selection_stock') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif ($key == 'layered_selection_subcategories') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif ($key == 'layered_selection_condition') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif ($key == 'layered_selection_weight_slider') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif ($key == 'layered_selection_price_slider') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif ($key == 'layered_selection_manufacturer') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', NULL,
+                                    \'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
+                                    \'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
+                                    $sqlInsert .= "('" . $controller . "', 0 , " . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
+                                    \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                }
+
+                                ++$nbSqlValuesToInsert;
+
+                                // If we reached the limit, we will execute it and flush our "cache"
+                                if ($nbSqlValuesToInsert >= 100) {
+                                    $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
+                                    $sqlInsert = '';
+                                    $nbSqlValuesToInsert = 0;
+                                }
                             }
                         }
                     }
-                }
-            }
-        }
+                } // For each controller
+            } // For each shop
+        } // For each template
 
+        // We will execute remaining queries
         if ($nbSqlValuesToInsert) {
             $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
         }
