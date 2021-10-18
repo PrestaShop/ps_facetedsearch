@@ -120,14 +120,22 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         ProductSearchContext $context,
         ProductSearchQuery $query
     ) {
+        // Backward compatibility, required for versions < 8.0
+        // We need to assign missing queryType to some page types
+        if (empty($query->getQueryType())) {
+            $query = $this->assignMissingQueryType($query);
+        }
+
         $result = new ProductSearchResult();
-        // extract the filter array from the Search query
+
+        // Extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
         $context = $this->module->getContext();
         $facetedSearch = $this->searchFactory->build($context);
-        // init the search with the initial population associated with the current filters
-        $facetedSearch->initSearch($facetedSearchFilters);
+
+        // Init the search with the initial population associated with the current filters
+        $facetedSearch->initSearch($facetedSearchFilters, $query->getQueryType());
 
         $orderBy = $query->getSortOrder()->toLegacyOrderBy(false);
         $orderWay = $query->getSortOrder()->toLegacyOrderWay();
@@ -156,27 +164,30 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $this->dataAccessor
         );
 
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
-        $idCurrency = (int) $context->currency->id;
-        $idCountry = (int) $context->country->id;
-        $idCategory = (int) $query->getIdCategory();
-
+        // Create an unique hash key to cache generated filter in databse
         $filterHash = md5(
             sprintf(
-                '%d-%d-%d-%d-%d-%s',
-                $idShop,
-                $idCurrency,
-                $idLang,
-                $idCategory,
-                $idCountry,
+                '%d-%d-%d-%s-%d-%s',
+                (int) $context->shop->id,
+                (int) $context->currency->id,
+                (int) $context->language->id,
+                $this->generateKeyForQuery($query),
+                (int) $context->country->id,
                 serialize($facetedSearchFilters)
             )
         );
 
+        // Try to get filter block from the cache by using unique hash
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+
+        // If not found in cache, we re-generate it and save it in the cache
         if (empty($filterBlock)) {
-            $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
+            $filterBlock = $filterBlockSearch->getFilterBlock(
+                $productsAndCount['count'],
+                $facetedSearchFilters,
+                $query->getQueryType(),
+                $query->getIdCategory()
+            );
             $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
         }
 
@@ -196,6 +207,53 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $result->setEncodedFacets($this->urlSerializer->serialize($facetFilters));
 
         return $result;
+    }
+
+    /**
+     * Assign missing queryType, required for PS versions < 8.0
+     * Remove few versions later
+     *
+     * @param ProductSearchQuery $query
+     *
+     * @return ProductSearchQuery
+     */
+    private function assignMissingQueryType(ProductSearchQuery $query)
+    {
+        if (!empty($query->getIdCategory())) {
+            $query->setQueryType('category');
+        } elseif (!empty($query->getIdManufacturer())) {
+            $query->setQueryType('manufacturer');
+        } elseif (!empty($query->getIdSupplier())) {
+            $query->setQueryType('supplier');
+        } elseif (!empty($query->getSearchString()) || !empty($query->getSearchTag())) {
+            $query->setQueryType('search');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Generate unique key for storing blocks in cache
+     *
+     * @param ProductSearchQuery $query
+     *
+     * @return string
+     */
+    private function generateKeyForQuery(ProductSearchQuery $query)
+    {
+        if ($query->getQueryType() == 'category') {
+            $filterKey = $query->getQueryType() . $query->getIdCategory();
+        } elseif ($query->getQueryType() == 'manufacturer') {
+            $filterKey = $query->getQueryType() . $query->getIdManufacturer();
+        } elseif ($query->getQueryType() == 'supplier') {
+            $filterKey = $query->getQueryType() . $query->getIdSupplier();
+        } elseif ($query->getQueryType() == 'search') {
+            $filterKey = $query->getQueryType() . $query->getSearchString() . $query->getSearchTag();
+        } else {
+            $filterKey = $query->getQueryType();
+        }
+
+        return $filterKey;
     }
 
     /**

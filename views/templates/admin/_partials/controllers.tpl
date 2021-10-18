@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -16,25 +15,15 @@
  * @author    PrestaShop SA <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- */
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-function upgrade_module_3_8_0($module)
-{
-    Db::getInstance()->execute(
-      'ALTER TABLE `' . _DB_PREFIX_ . 'layered_price_index` 
-      CHANGE `price_min` `price_min` decimal(20,6) NOT NULL,
-      CHANGE `price_max` `price_max` decimal(20,6) NOT NULL;');
-
-    Db::getInstance()->execute(
-    'ALTER TABLE `' . _DB_PREFIX_ . 'layered_category` 
-    ADD `controller` VARCHAR(64) NOT NULL AFTER `id_shop`;');
-
-    Db::getInstance()->execute(
-        'UPDATE `' . _DB_PREFIX_ . "layered_category` 
-        SET `controller`= 'category';");
-
-    return true;
-}
+ *}
+<div class="form-group">
+  <label class="control-label col-lg-3">{l s='Pages using this template:' d='Modules.Facetedsearch.Admin'}</label>
+  <div class="col-lg-9">
+    {foreach from=$controller_options item=option}
+      <div class="checkbox">
+        <label for="{$option.controller}"><input type="checkbox" name="controllers[]" value="{$option.controller}"
+        {if $option.checked == true} checked {/if}>{$option.name}</label>
+      </div>
+    {/foreach}
+  </div>
+</div>

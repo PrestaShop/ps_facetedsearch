@@ -90,21 +90,28 @@ class Block
      */
     public function getFilterBlock(
         $nbProducts,
-        $selectedFilters
+        $selectedFilters,
+        $controller,
+        $idCategory
     ) {
         $idLang = (int) $this->context->language->id;
         $idShop = (int) $this->context->shop->id;
-        $idParent = (int) Tools::getValue(
-            'id_category',
-            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
-        );
+        if (empty($idCategory)) {
+            $idCategory = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
+        }
 
-        /* Get the filters for the current category */
+        if ($controller == 'category') {
+            $where = "WHERE controller = 'category' AND id_category = " . $idCategory;
+        } else {
+            $where = "WHERE controller = '" . $controller . "' AND id_category = 0";
+        }
+
+        /* Get the filters for the current page */
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . $idParent . ' ' .
-            'AND id_shop = ' . $idShop . ' ' .
+            $where .
+            ' AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
@@ -136,7 +143,7 @@ class Block
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
-                    $parent = new Category($idParent, $idLang);
+                    $parent = new Category($idCategory, $idLang);
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }

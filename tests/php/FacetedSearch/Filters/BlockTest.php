@@ -135,7 +135,9 @@ class BlockTest extends MockeryTestCase
             ['filters' => []],
             $this->block->getFilterBlock(
                 10,
-                []
+                [],
+                'category',
+                12
             )
         );
     }
@@ -166,7 +168,9 @@ class BlockTest extends MockeryTestCase
                         '24',
                         '42',
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -248,7 +252,9 @@ class BlockTest extends MockeryTestCase
                         '24',
                         '42',
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -298,7 +304,9 @@ class BlockTest extends MockeryTestCase
                         '24',
                         '42',
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -328,7 +336,9 @@ class BlockTest extends MockeryTestCase
                         '14',
                         '40',
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -393,7 +403,9 @@ class BlockTest extends MockeryTestCase
                     'quantity' => [
                         1,
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -451,7 +463,9 @@ class BlockTest extends MockeryTestCase
                     'condition' => [
                         'new',
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -479,7 +493,9 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'manufacturer' => [1],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -553,7 +569,9 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'manufacturer' => [1],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -580,7 +598,9 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'id_attribute_group' => [1 => 'Something'],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -603,7 +623,9 @@ class BlockTest extends MockeryTestCase
             $this->block->getFilterBlock(
                 10,
                 [
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -633,7 +655,9 @@ class BlockTest extends MockeryTestCase
             $this->block->getFilterBlock(
                 10,
                 [
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -779,7 +803,9 @@ class BlockTest extends MockeryTestCase
                     'id_attribute_group' => [
                         [2],
                     ],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -805,7 +831,9 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'id_feature' => [1 => 'Something'],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -829,7 +857,9 @@ class BlockTest extends MockeryTestCase
             $this->block->getFilterBlock(
                 10,
                 [
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -1018,7 +1048,9 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'id_feature' => [[4]],
-                ]
+                ],
+                'category',
+                12
             )
         );
     }
@@ -1158,7 +1190,7 @@ class BlockTest extends MockeryTestCase
     {
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 12 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->with("SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category  WHERE controller = 'category' AND id_category = 12 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC")
             ->andReturn($result);
     }
 }

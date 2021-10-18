@@ -40,40 +40,30 @@ class ProductSearch extends AbstractHook
      */
     public function productSearchProvider(array $params)
     {
-        $query = $params['query'];
-        // do something with query,
-        // e.g. use $query->getIdCategory()
-        // to choose a template for filters.
-        // Query is an instance of:
-        // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
-        if ($query->getIdCategory()) {
-            $this->context->controller->addJqueryUi('slider');
-            $this->context->controller->registerStylesheet(
-                'facetedsearch_front',
-                '/modules/ps_facetedsearch/views/dist/front.css'
-            );
-            $this->context->controller->registerJavascript(
-                'facetedsearch_front',
-                '/modules/ps_facetedsearch/views/dist/front.js',
-                ['position' => 'bottom', 'priority' => 100]
-            );
+        $this->context->controller->addJqueryUi('slider');
+        $this->context->controller->registerStylesheet(
+            'facetedsearch_front',
+            '/modules/ps_facetedsearch/views/dist/front.css'
+        );
+        $this->context->controller->registerJavascript(
+            'facetedsearch_front',
+            '/modules/ps_facetedsearch/views/dist/front.js',
+            ['position' => 'bottom', 'priority' => 100]
+        );
 
-            $urlSerializer = new URLSerializer();
-            $dataAccessor = new DataAccessor($this->module->getDatabase());
+        $urlSerializer = new URLSerializer();
+        $dataAccessor = new DataAccessor($this->module->getDatabase());
 
-            return new SearchProvider(
-                $this->module,
-                new Converter(
-                    $this->module->getContext(),
-                    $this->module->getDatabase(),
-                    $urlSerializer,
-                    $dataAccessor
-                ),
+        return new SearchProvider(
+            $this->module,
+            new Converter(
+                $this->module->getContext(),
+                $this->module->getDatabase(),
                 $urlSerializer,
                 $dataAccessor
-            );
-        }
-
-        return null;
+            ),
+            $urlSerializer,
+            $dataAccessor
+        );
     }
 }

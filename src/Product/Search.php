@@ -89,7 +89,7 @@ class Search
      *
      * @param array $selectedFilters
      */
-    public function initSearch($selectedFilters)
+    public function initSearch($selectedFilters, $queryType = 'category')
     {
         $homeCategory = Configuration::get('PS_HOME_CATEGORY');
         /* If the current category isn't defined or if it's homepage, we have nothing to display */
@@ -101,12 +101,12 @@ class Search
         $parent = new Category((int) $idParent);
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
-        if (!$psLayeredFullTree) {
+        if (!$psLayeredFullTree && $queryType == 'category') {
             $this->addFilter('id_category', [$parent->id]);
         }
 
         $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
-        if ($psLayeredFilterByDefaultCategory) {
+        if ($psLayeredFilterByDefaultCategory && $queryType == 'category') {
             $this->addFilter('id_category_default', [$parent->id]);
         }
 
