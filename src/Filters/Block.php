@@ -94,7 +94,7 @@ class Block
     ) {
         $idLang = (int) $this->context->language->id;
         $idShop = (int) $this->context->shop->id;
-        $idParent = (int) Tools::getValue(
+        $idCategory = (int) Tools::getValue(
             'id_category',
             Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
         );
@@ -103,7 +103,7 @@ class Block
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . $idParent . ' ' .
+            'WHERE controller = category AND id_category = ' . $idCategory . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
@@ -136,7 +136,7 @@ class Block
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
-                    $parent = new Category($idParent, $idLang);
+                    $parent = new Category($idCategory, $idLang);
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }

@@ -156,11 +156,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $this->dataAccessor
         );
 
+        // Create an unique hash key to cache generated filter in databse
         $idShop = (int) $context->shop->id;
         $idLang = (int) $context->language->id;
         $idCurrency = (int) $context->currency->id;
         $idCountry = (int) $context->country->id;
-        $idCategory = (int) $query->getIdCategory();
+        if ($query->getQueryType() == "category") {
+            $filterKey = $query->getQueryType() . $query->getIdCategory();
+        } else {
+            $filterKey = $query->getQueryType();
+        }
 
         $filterHash = md5(
             sprintf(
@@ -168,7 +173,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $idShop,
                 $idCurrency,
                 $idLang,
-                $idCategory,
+                $filterKey,
                 $idCountry,
                 serialize($facetedSearchFilters)
             )

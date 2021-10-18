@@ -233,17 +233,18 @@ class Converter
         $idShop = (int) $this->context->shop->id;
         $idLang = (int) $this->context->language->id;
 
-        $idParent = $query->getIdCategory();
-        if (empty($idParent)) {
-            $idParent = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
+        $idCategory = $query->getIdCategory();
+        if (empty($idCategory)) {
+            $idCategory = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
         }
 
         $searchFilters = [];
 
-        /* Get the filters for the current category */
+        // TODO - $controller = $query->getQueryType;
+        /* Get the filters for the current page */
         $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . (int) $idParent . '
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . "layered_category
+            WHERE controller = 'category' AND id_category = " . (int) $idCategory . '
             AND id_shop = ' . (int) $idShop . '
             GROUP BY `type`, id_value ORDER BY position ASC'
         );
@@ -389,7 +390,8 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $query->getIdCategory());
+                            $id_category = empty($query->getIdCategory()) ? (int) Configuration::get('PS_HOME_CATEGORY') : (int) $query->getIdCategory();
+                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, $id_category);
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
                             }

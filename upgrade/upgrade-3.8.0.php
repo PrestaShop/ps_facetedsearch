@@ -23,8 +23,18 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_8_0($module)
 {
-    return Db::getInstance()->execute(
+    Db::getInstance()->execute(
       'ALTER TABLE `' . _DB_PREFIX_ . 'layered_price_index` 
       CHANGE `price_min` `price_min` decimal(20,6) NOT NULL,
       CHANGE `price_max` `price_max` decimal(20,6) NOT NULL;');
+
+    Db::getInstance()->execute(
+    'ALTER TABLE `' . _DB_PREFIX_ . 'layered_category` 
+    ADD `controller` VARCHAR(64) NOT NULL AFTER `id_shop`;');
+
+    Db::getInstance()->execute(
+        'UPDATE `' . _DB_PREFIX_ . "layered_category` 
+        SET `controller`= 'category';");
+
+    return true;
 }

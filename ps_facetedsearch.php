@@ -878,6 +878,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_category` (
             `id_layered_category` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `id_shop` INT(11) UNSIGNED NOT NULL,
+            `controller` VARCHAR(64) NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
             `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
@@ -1118,7 +1119,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             return true;
         }
 
-        $sqlInsertPrefix = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_category (id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
+        $sqlInsertPrefix = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_category (controller, id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
         $sqlInsert = '';
         $nbSqlValuesToInsert = 0;
 
@@ -1145,22 +1146,22 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                             ++$n;
 
                             if ($key == 'layered_selection_stock') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_subcategories') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_condition') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'condition\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_weight_slider') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'weight\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_price_slider') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'price\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_manufacturer') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'manufacturer\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif (substr($key, 0, 21) == 'layered_selection_ag_') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_ag_', '', $key) . ',
 \'id_attribute_group\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
+                                $sqlInsert .= '(category, ' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
 \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             }
 
