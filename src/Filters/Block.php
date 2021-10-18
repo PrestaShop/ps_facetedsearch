@@ -103,7 +103,7 @@ class Block
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE controller = category AND id_category = ' . $idCategory . ' ' .
+            "WHERE controller = 'category' AND id_category = " . $idCategory . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
