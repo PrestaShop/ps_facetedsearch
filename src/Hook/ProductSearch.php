@@ -65,6 +65,5 @@ class ProductSearch extends AbstractHook
             $urlSerializer,
             $dataAccessor
         );
-
     }
 }
