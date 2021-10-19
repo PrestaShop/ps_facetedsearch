@@ -788,7 +788,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     public function renderAdminMain()
     {
-
         // General purpose variables
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
         $features = $this->getAvailableFeatures();
@@ -817,7 +816,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
-
     }
 
     /**
@@ -827,6 +825,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         // Get general data for use in template settings
         $id_layered_filter = 0;
+        $filters = [];
         $template_name = sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d'));
         $controller_options = $this->getAvailableControllerOptions();
         $features = $this->getAvailableFeatures();
@@ -837,7 +836,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         // If we are editing an already existing template
         if ($template !== null) {
-            $filters = Tools::unSerialize($template['filters']);            
+            $filters = Tools::unSerialize($template['filters']);
             $treeCategoriesHelper->setSelectedCategories($filters['categories']);
             // Assign controllers in template settings to currently present options
             if (!empty($filters['controllers'])) {
@@ -867,7 +866,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $this->context->smarty->assign([
             'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
-            'id_layered_filter' =>  $id_layered_filter,  
+            'id_layered_filter' => $id_layered_filter,  
             'template_name' => $template_name,
             'attribute_groups' => $attributeGroups,
             'features' => $features,
@@ -960,7 +959,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         return $filters_templates;
     }
- 
 
     public function displayLimitPostWarning($count)
     {
