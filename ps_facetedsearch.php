@@ -866,7 +866,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $this->context->smarty->assign([
             'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
-            'id_layered_filter' => $id_layered_filter,  
+            'id_layered_filter' => $id_layered_filter,
             'template_name' => $template_name,
             'attribute_groups' => $attributeGroups,
             'features' => $features,
