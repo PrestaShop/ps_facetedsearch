@@ -171,7 +171,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $filterHash = md5(
             sprintf(
-                '%d-%d-%d-%d-%d-%s',
+                '%d-%d-%d-%s-%d-%s',
                 $idShop,
                 $idCurrency,
                 $idLang,
