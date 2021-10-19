@@ -599,7 +599,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     public function getContent()
     {
-        global $cookie;
         $message = '';
 
         if (Tools::isSubmit('SubmitFilter')) {
@@ -753,7 +752,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             FROM ' . _DB_PREFIX_ . 'attribute_group ag
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
             LEFT JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
-            WHERE agl.id_lang = ' . (int) $cookie->id_lang . '
+            WHERE agl.id_lang = ' . (int) $this->getContext()->cookie->id_lang . '
             GROUP BY ag.id_attribute_group'
         );
 
@@ -761,7 +760,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
             FROM ' . _DB_PREFIX_ . 'feature_lang fl
             LEFT JOIN ' . _DB_PREFIX_ . 'feature_value fv ON (fv.id_feature = fl.id_feature)
-            WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = ' . (int) $cookie->id_lang . '
+            WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = ' . (int) $this->getContext()->cookie->id_lang . '
             GROUP BY fl.id_feature'
         );
 
