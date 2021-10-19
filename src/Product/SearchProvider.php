@@ -121,13 +121,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         ProductSearchQuery $query
     ) {
         $result = new ProductSearchResult();
-        // extract the filter array from the Search query
+
+        // Extract the filter array from the Search query
         $facetedSearchFilters = $this->filtersConverter->createFacetedSearchFiltersFromQuery($query);
 
         $context = $this->module->getContext();
         $facetedSearch = $this->searchFactory->build($context);
-        // init the search with the initial population associated with the current filters
-        $facetedSearch->initSearch($facetedSearchFilters);
+
+        // Init the search with the initial population associated with the current filters
+        $facetedSearch->initSearch($facetedSearchFilters, $query->getQueryType());
 
         $orderBy = $query->getSortOrder()->toLegacyOrderBy(false);
         $orderWay = $query->getSortOrder()->toLegacyOrderWay();
