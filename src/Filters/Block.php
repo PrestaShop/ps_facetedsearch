@@ -101,9 +101,9 @@ class Block
         }
 
         if ($controller == 'category') {
-            $where = " WHERE controller = 'category' AND id_category = " . $idCategory . ' ';
+            $where = "WHERE controller = 'category' AND id_category = " . $idCategory . ' ';
         } else {
-            $where = " WHERE controller = '" . $controller . "' AND id_category = 0 ";
+            $where = "WHERE controller = '" . $controller . "' AND id_category = 0 ";
         }
 
         /* Get the filters for the current page */
