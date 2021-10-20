@@ -166,24 +166,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         );
 
         // Create an unique hash key to cache generated filter in databse
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
-        $idCurrency = (int) $context->currency->id;
-        $idCountry = (int) $context->country->id;
-        if ($query->getQueryType() == 'category') {
-            $filterKey = $query->getQueryType() . $query->getIdCategory();
-        } else {
-            $filterKey = $query->getQueryType();
-        }
-
         $filterHash = md5(
             sprintf(
                 '%d-%d-%d-%s-%d-%s',
-                $idShop,
-                $idCurrency,
-                $idLang,
-                $filterKey,
-                $idCountry,
+                (int) $context->shop->id,
+                (int) $context->currency->id,
+                (int) $context->language->id,
+                $this->generateKeyForQuery($query),
+                (int) $context->country->id,
                 serialize($facetedSearchFilters)
             )
         );
@@ -241,6 +231,30 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
 
         return $query;
+    }
+
+    /**
+     * Generate unique key for storing blocks in cache
+     *
+     * @param ProductSearchQuery $query
+     * 
+     * @return string
+     */
+    private function generateKeyForQuery(ProductSearchQuery $query)
+    {
+        if ($query->getQueryType() == 'category') {
+            $filterKey = $query->getQueryType() . $query->getIdCategory();
+        } elseif ($query->getQueryType() == 'manufacturer') {
+            $filterKey = $query->getQueryType() . $query->getIdManufacturer();
+        } elseif ($query->getQueryType() == 'supplier') {
+            $filterKey = $query->getQueryType() . $query->getIdSupplier();
+        } elseif ($query->getQueryType() == 'search') {
+            $filterKey = $query->getQueryType() . $query->getSearchString() . $query->getSearchTag();
+        } else {
+            $filterKey = $query->getQueryType();
+        }
+
+        return $filterKey;
     }
 
     /**
