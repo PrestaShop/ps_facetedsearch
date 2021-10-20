@@ -120,7 +120,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         ProductSearchContext $context,
         ProductSearchQuery $query
     ) {
-
         // Backward compatibility, required for versions < 8.0
         // We need to assign missing queryType to some page types
         if (empty($query->getQueryType())) {
@@ -215,7 +214,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Remove few versions later
      *
      * @param ProductSearchQuery $query
-     * 
+     *
      * @return ProductSearchQuery
      */
     private function assignMissingQueryType(ProductSearchQuery $query)
@@ -237,7 +236,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      * Generate unique key for storing blocks in cache
      *
      * @param ProductSearchQuery $query
-     * 
+     *
      * @return string
      */
     private function generateKeyForQuery(ProductSearchQuery $query)
