@@ -120,6 +120,13 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         ProductSearchContext $context,
         ProductSearchQuery $query
     ) {
+
+        // Backward compatibility, required for versions < 8.0
+        // We need to assign missing queryType to some page types
+        if (empty($query->getQueryType())) {
+            $query = $this->assignMissingQueryType($query);
+        }
+
         $result = new ProductSearchResult();
 
         // Extract the filter array from the Search query
@@ -208,6 +215,29 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $result->setEncodedFacets($this->urlSerializer->serialize($facetFilters));
 
         return $result;
+    }
+
+    /**
+     * Assign missing queryType, required for PS versions < 8.0
+     * Remove few versions later
+     *
+     * @param ProductSearchQuery $query
+     * 
+     * @return ProductSearchQuery
+     */
+    private function assignMissingQueryType(ProductSearchQuery $query)
+    {
+        if (!empty($query->getIdCategory())) {
+            $query->setQueryType('category');
+        } else if (!empty($query->getIdManufacturer())) {
+            $query->setQueryType('manufacturer');
+        } else if (!empty($query->getIdSupplier())) {
+            $query->setQueryType('supplier');
+        } else if (!empty($query->getSearchString()) || !empty($query->getSearchTag())) {
+            $query->setQueryType('search');
+        }
+
+        return $query;
     }
 
     /**
