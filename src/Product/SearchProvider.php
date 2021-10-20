@@ -188,7 +188,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             )
         );
 
+        // Try to get filter block from the cache by using unique hash
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+
+        // If not found in cache, we re-generate it and save it in the cache
         if (empty($filterBlock)) {
             $filterBlock = $filterBlockSearch->getFilterBlock(
                 $productsAndCount['count'],
@@ -229,11 +232,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         if (!empty($query->getIdCategory())) {
             $query->setQueryType('category');
-        } else if (!empty($query->getIdManufacturer())) {
+        } elseif (!empty($query->getIdManufacturer())) {
             $query->setQueryType('manufacturer');
-        } else if (!empty($query->getIdSupplier())) {
+        } elseif (!empty($query->getIdSupplier())) {
             $query->setQueryType('supplier');
-        } else if (!empty($query->getSearchString()) || !empty($query->getSearchTag())) {
+        } elseif (!empty($query->getSearchString()) || !empty($query->getSearchTag())) {
             $query->setQueryType('search');
         }
 
