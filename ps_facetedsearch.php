@@ -65,7 +65,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      *
      * @var int
      */
-    const DECIMAL_DIGITS = 5;
+    const DECIMAL_DIGITS = 6;
 
     /**
      * @var bool
