@@ -72,7 +72,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      *
      * @var array
      */
-    private $available_controllers = [];
+    public $available_controllers = [];
 
     /**
      * @var bool
@@ -112,13 +112,34 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
 
         $this->available_controllers = [
-            'category' => $this->trans('Category', [], 'Modules.Facetedsearch.Admin'),
-            'search' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin'),
-            'manufacturer' => $this->trans('Manufacturer', [], 'Modules.Facetedsearch.Admin'),
-            'supplier' => $this->trans('Supplier', [], 'Modules.Facetedsearch.Admin'),
-            'new-products' => $this->trans('New products', [], 'Modules.Facetedsearch.Admin'),
-            'best-sales' => $this->trans('Best sales', [], 'Modules.Facetedsearch.Admin'),
-            'prices-drop' => $this->trans('Prices drop', [], 'Modules.Facetedsearch.Admin'),
+            'category' => [
+                'name' => $this->trans('Category', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => true,
+            ],
+            'search' => [
+                'name' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => true,
+            ],
+            'manufacturer' => [
+                'name' => $this->trans('Manufacturer', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => true,
+            ],
+            'supplier' => [
+                'name' => $this->trans('Supplier', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => true,
+            ],
+            'new-products' => [
+                'name' => $this->trans('New products', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => false,
+            ],
+            'best-sales' => [
+                'name' => $this->trans('Best sales', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => false,
+            ],
+            'prices-drop' => [
+                'name' => $this->trans('Prices drop', [], 'Modules.Facetedsearch.Admin'),
+                'cacheable' => false,
+            ],
         ];
 
         $this->hookDispatcher = new HookDispatcher($this);
@@ -827,7 +848,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $id_layered_filter = 0;
         $filters = [];
         $template_name = sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d'));
-        $controller_options = $this->getAvailableControllerOptions();
+        $controller_options = $this->getAvailableControllers();
         $features = $this->getAvailableFeatures();
         $attributeGroups = $this->getAvailableAttributes();
         $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
@@ -917,19 +938,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     /**
      * Returns array with all available controllers on the shop
      */
-    private function getAvailableControllerOptions()
+    public function getAvailableControllers()
     {
-        // Available controllers
-        $controller_options = [];
-        foreach ($this->available_controllers as $controller => $name) {
-            $controller_options[$controller] = [
-                'controller' => $controller,
-                'name' => $name,
-                'checked' => false,
-            ];
-        }
-
-        return $controller_options;
+        return $this->available_controllers;
     }
 
     /**
@@ -951,7 +962,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             foreach ($data['controllers'] as $c) {
                 // If we have a translation for the controller set in the template, we assign it
                 if (isset($this->available_controllers[$c])) {
-                    $list[] = $this->available_controllers[$c];
+                    $list[] = $this->available_controllers[$c]['name'];
                 }
             }
             $filters_templates[$k]['controllers'] = implode(', ', $list);

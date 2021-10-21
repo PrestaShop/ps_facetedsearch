@@ -19,10 +19,10 @@
 <div class="form-group">
   <label class="control-label col-lg-3">{l s='Pages using this template:' d='Modules.Facetedsearch.Admin'}</label>
   <div class="col-lg-9">
-    {foreach from=$controller_options item=option}
+    {foreach $controller_options as $controller => $data}
       <div class="checkbox">
-        <label for="{$option.controller}"><input type="checkbox" name="controllers[]" value="{$option.controller}"
-        {if $option.checked == true} checked {/if}>{$option.name}</label>
+        <label for="{$controller}"><input type="checkbox" name="controllers[]" value="{$controller}"
+        {if isset($data.checked) && $data.checked == true} checked {/if}>{$data.name}</label>
       </div>
     {/foreach}
   </div>

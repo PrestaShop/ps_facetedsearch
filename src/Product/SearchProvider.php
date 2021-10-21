@@ -178,7 +178,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         );
 
         // Try to get filter block from the cache by using unique hash
-        $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+        // Only if the current controller supports caching
+        if ($this->module->getAvailableControllers()[$query->getQueryType()]['cacheable'] === true) {
+            $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+        } else {
+            $filterBlock = null;
+        }
 
         // If not found in cache, we re-generate it and save it in the cache
         if (empty($filterBlock)) {
@@ -188,7 +193,11 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 $query->getQueryType(),
                 $query->getIdCategory()
             );
-            $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+
+            // If we should cache this controller, we save it
+            if ($this->module->available_controllers[$query->getQueryType()]['cacheable'] === true) {
+                $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+            }
         }
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
