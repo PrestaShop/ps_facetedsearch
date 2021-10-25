@@ -102,7 +102,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
         $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
         $this->psLayeredFullTree = (int) Configuration::get('PS_LAYERED_FULL_TREE');
-        $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.7.6.0', 'max' => _PS_VERSION_];
 
         $this->hookDispatcher = new HookDispatcher($this);
     }
