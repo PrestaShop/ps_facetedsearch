@@ -538,8 +538,6 @@ class Block
             }
         }
 
-        $this->sortByKey($manufacturers, $manufacturersArray);
-
         $manufacturerBlock = [
             'type_lite' => 'manufacturer',
             'type' => 'manufacturer',
@@ -874,8 +872,6 @@ class Block
                 $categoryArray[$idCategory]['checked'] = true;
             }
         }
-
-        $categoryArray = $this->sortByKey($categories, $categoryArray);
 
         $categoryBlock = [
             'type_lite' => 'category',
