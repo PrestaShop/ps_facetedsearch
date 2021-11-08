@@ -146,10 +146,6 @@ class Feature extends AbstractHook
             'WHERE `id_feature` = ' . (int) $params['id_feature']
         );
 
-        // Request failed, force $isIndexable
-        if ($isIndexable === false) {
-            $isIndexable = true;
-        }
         $result = $this->database->executeS(
             'SELECT `url_name`, `meta_title`, `id_lang` ' .
             'FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value ' .
