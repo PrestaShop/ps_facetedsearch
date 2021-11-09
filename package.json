@@ -1,7 +1,6 @@
 {
   "name": "ps_facetedsearch",
-  "version": "1.0.0",
-  "description": "## About",
+  "description": "Displays a block allowing multiple filters.",
   "private": true,
   "directories": {
     "test": "tests"
