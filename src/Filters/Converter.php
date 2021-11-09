@@ -507,6 +507,6 @@ class Converter
      */
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
-        return strnatcmp($a->getLabel(), $b->getLabel());
+        return strnatcasecmp($a->getLabel(), $b->getLabel());
     }
 }
