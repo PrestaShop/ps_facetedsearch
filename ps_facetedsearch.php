@@ -1294,8 +1294,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
         $this->getDatabase()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`
-            SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group`'
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` (id_attribute_group)
+            SELECT id_attribute_group FROM `' . _DB_PREFIX_ . 'attribute_group`'
         );
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
@@ -1332,8 +1332,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         $this->getDatabase()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature`
-            SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature` (id_feature)
+            SELECT id_feature FROM `' . _DB_PREFIX_ . 'feature`'
         );
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');
