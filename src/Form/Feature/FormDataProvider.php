@@ -51,7 +51,7 @@ class FormDataProvider
     {
         $defaultUrl = [];
         $defaultMetaTitle = [];
-        $isIndexable = true;
+        $isIndexable = false;
 
         // if params contains id, gets data for edit form
         if (!empty($params['id'])) {
