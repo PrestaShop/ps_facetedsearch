@@ -29,12 +29,12 @@
   },
   "homepage": "https://github.com/PrestaShop/ps_facetedsearch#readme",
   "devDependencies": {
+    "@babel/eslint-parser": "^7.16.3",
     "@babel/cli": "^7.16.0",
     "@babel/core": "^7.16.0",
     "@babel/node": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
     "@babel/register": "^7.16.0",
-    "babel-eslint": "^10.1.0",
     "babel-loader": "^8.2.3",
     "chai": "^4.3.4",
     "clean-webpack-plugin": "^4.0.0",
