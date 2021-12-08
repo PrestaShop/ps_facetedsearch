@@ -8,7 +8,7 @@ module.exports = {
     mocha: true,
   },
   parserOptions: {
-    parser: 'babel-eslint',
+    parser: '@babel/eslint-parser',
   },
   plugins: [
     'import',
