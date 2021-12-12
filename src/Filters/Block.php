@@ -115,6 +115,9 @@ class Block
                 case 'price':
                     $filterBlocks[] = $this->getPriceRangeBlock($filter, $selectedFilters, $nbProducts);
                     break;
+                case 'review':
+                    $filterBlocks[] = $this->getReviweBlock($filter, $selectedFilters);
+                    break;
                 case 'weight':
                     $filterBlocks[] = $this->getWeightRangeBlock($filter, $selectedFilters, $nbProducts);
                     break;
@@ -963,5 +966,70 @@ class Block
             'currencyCode' => $currency->iso_code,
             'currencySymbol' => $currency->sign,
         ];
+    }
+
+    /**
+     * Get the reviews filter block
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
+    private function getReviweBlock($filter, $selectedFilters)
+    {
+        $values = [
+            '4' => ['name'=>"4"],
+            '3' => ['name'=>"3"],
+            '2' =>  ['name'=>"2"],
+            '1' => ['name'=>"1"],
+        ];
+
+        $query = 'SELECT  count(g.grade) as count ,g.grade FROM (SELECT t.id_product, case 
+when t.avg_grade between 1 and 1.99 then "1"
+when t.avg_grade between 2 and 2.99 then "2"
+when t.avg_grade between 3 and 3.99 then "3"
+when t.avg_grade between 4 and 5 then "4"
+end as grade
+ FROM (SELECT avg(h.grade) as avg_grade,
+ h.id_product FROM 
+ (select pc.id_product, pc.grade from ' . _DB_PREFIX_ . 'product_comment as pc
+inner join (SELECT * FROM ' . _DB_PREFIX_ . 'category_product where id_category = '.$_GET['id_category'].') cp
+on pc.id_product = cp.id_product) h
+group by id_product) t) g
+group by g.grade
+order by g.grade ASC';
+        $gradeCounts = $this->database->executeS($query);
+
+        if (!empty($gradeCounts)){
+            foreach ($values as $value){
+                $nbr = 0;
+                foreach ($gradeCounts as $count){
+                    if ((int)$value['name'] <= $count['grade']){
+                        $nbr += $count['count'];
+                    }
+                }
+                $values[$value['name']]['nbr'] = $nbr;
+            }
+        }
+
+        if (isset($selectedFilters['review'])){
+            $reviewValues = $selectedFilters['review'];
+            foreach ($reviewValues as $rv){
+                $values[$rv]['checked'] = true;
+            }
+        }
+
+        $reviewBlock = [
+            'type_lite' => 'review',
+            'type' => 'review',
+            'id_key' => 0,
+            'name' => $this->context->getTranslator()->trans('Avg. Customer Reviews', [], 'Modules.Facetedsearch.Shop'),
+            'values' => $values,
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
+            'filter_type' => Converter::WIDGET_TYPE_STAR,
+        ];
+
+        return $reviewBlock;
     }
 }
