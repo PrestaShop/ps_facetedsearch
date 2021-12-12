@@ -1547,14 +1547,18 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function indexReviews($full = false)
     {
         if ($full) {
-            $query = 'SELECT avg(`grade`) as avg_grade, sum(`grade`) as sum_grade, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment
-group by id_product';
+            $validateCondition = '';
+            if (Configuration::get('PRODUCT_COMMENTS_MODERATE')){
+                $validateCondition = ' where validate = 1';
+            }
+
+            $query = 'SELECT avg(`grade`) as avg_grade, sum(`grade`) as sum_grade, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment '. $validateCondition .' group by id_product';
 
             foreach ($this->getDatabase()->executeS($query) as $comment) {
                 $this->addCommentIndex($comment);
             }
 
-            $query = 'SELECT `id_product_comment`, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment';
+            $query = 'SELECT `id_product_comment`, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment' . $validateCondition;
 
             foreach ($this->getDatabase()->executeS($query) as $commentLog) {
                 $this->addCommentIndexLog($commentLog);
