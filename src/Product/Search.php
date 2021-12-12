@@ -280,6 +280,18 @@ class Search
                         );
                     }
                     break;
+
+                case 'review':
+                    if (isset($selectedFilters['review'])
+                        && (
+                            $selectedFilters['review'][0] !== ''
+                        )
+                    ) {
+                        $this->addReviewFilter(
+                            (float) $selectedFilters['review'][0]
+                        );
+                    }
+                    break;
             }
         }
 
@@ -328,5 +340,15 @@ class Search
     {
         $this->getSearchAdapter()->addFilter('price_min', [$maxPrice], '<=');
         $this->getSearchAdapter()->addFilter('price_max', [$minPrice], '>=');
+    }
+
+    /**
+     * Add a review filter
+     *
+     * @param float $scoreUp
+     */
+    private function addReviewFilter($scoreUp)
+    {
+        $this->getSearchAdapter()->addFilter('avg_score', [$scoreUp], '>=');
     }
 }
