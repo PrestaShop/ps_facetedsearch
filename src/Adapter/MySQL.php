@@ -301,6 +301,12 @@ class MySQL extends AbstractAdapter
                 'joinCondition' => '(psales.id_product = p.id_product)',
                 'joinType' => self::LEFT_JOIN,
             ],
+            'avg_score' => [
+                'tableName' => 'layered_comment_index',
+                'tableAlias' => 'coms',
+                'joinCondition' => '(coms.id_product = p.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
         ];
 
         return $filterToTableMapping;
