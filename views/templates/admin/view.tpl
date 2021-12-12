@@ -69,6 +69,8 @@
                     <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                     {if !empty($filter['slider'])}
                       <p class="form-control-static">{l s='List of ranges' d='Modules.Facetedsearch.Admin'}</p>
+                    {elseif !empty($filter['star'])}
+                      <p class="form-control-static">{l s='List of stars' d='Modules.Facetedsearch.Admin'}</p>
                     {else}
                       <div class="col-lg-6">
                         <select name="{$filterId}_filter_type">
@@ -80,7 +82,7 @@
                     {/if}
                   </div>
                   <div class="col-lg-3">
-                    {if empty($filter['slider'])}
+                    {if empty($filter['slider']) && empty($filter['star'])}
                       <label class="control-label col-lg-6">{l s='Filter result limit:' d='Modules.Facetedsearch.Admin'}</label>
                       <div class="col-lg-6">
                         {call get_limit_select element=$filterId}
