@@ -168,13 +168,42 @@
                     {$filter.label}
                   </p>
 
-                  <div id="slider-range_{$_expand_id}"></div>
-                </li>
-              </ul>
-            {/foreach}
-          {/block}
-        {/if}
-      </section>
-    {/foreach}
-  </div>
+                                    <div id="slider-range_{$_expand_id}"></div>
+                                </li>
+                            </ul>
+                        {/foreach}
+                    {/block}
+
+                {elseif $facet.widgetType == 'star'}
+                    {block name='facet_item_star'}
+                        <ul id="facet_{$_expand_id}" class="collapse{if !$_collapse} in{/if}">
+                            {foreach from=$facet.filters key=filter_key item="filter"}
+                                {if !$filter.displayed}
+                                    {continue}
+                                {/if}
+                                <li>
+                                    <label class="facet-label{if $filter.active} active {/if}" for="facet_input_{$_expand_id}_{$filter_key}">
+                                        <a
+                                                href="{$filter.nextEncodedFacetsURL}"
+                                                class="_gray-darker search-link js-search-link star-link"
+                                                rel="nofollow"
+                                        >
+
+                                            <div class="grade-stars grade-stars-filter" data-grade="{$filter.value}">
+
+                                            </div>
+                                            {l s='&Up' d='Shop.Theme.Global'}
+                                            {if $filter.magnitude and $show_quantities}
+                                                <span class="magnitude">({$filter.magnitude})</span>
+                                            {/if}
+                                        </a>
+                                    </label>
+                                </li>
+                            {/foreach}
+                        </ul>
+                    {/block}
+                {/if}
+            </section>
+        {/foreach}
+    </div>
 {/if}
