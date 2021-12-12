@@ -39,6 +39,7 @@ class HookDispatcher
         Hook\Product::class,
         Hook\ProductSearch::class,
         Hook\SpecificPrice::class,
+        Hook\ProductComment::class,
     ];
 
     /**
