@@ -62,6 +62,7 @@ class ProductComment extends AbstractHook
                 $this->addCommentIndexLog($grade);
             }
         }
+        $this->module->invalidateLayeredFilterBlockCache();
     }
 
     public function addCommentIndexLog($comment){
