@@ -44,7 +44,7 @@ class ProductComment extends AbstractHook
             $gradeCommentRow = $this->database->executeS('SELECT * FROM `' . _DB_PREFIX_ . 'layered_comment_index`
             WHERE id_product =' . $grade->id_product);
 
-            if (empty($gradeCommentRow) || !$gradeCommentRow){
+            if (empty($gradeCommentRow)){
                 //insert the first index record for this comment
                 $this->database->execute('INSERT INTO `'._DB_PREFIX_.'layered_comment_index` (`id_product`, `score`, `avg_score`) VALUES ('.$grade->id_product.', '.$grade->grade.','.$grade->grade.')');
 
