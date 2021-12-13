@@ -1171,7 +1171,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                                 $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
 \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_review_star') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL,\'review\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL, \'review\', ' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             }
 
                             ++$nbSqlValuesToInsert;
