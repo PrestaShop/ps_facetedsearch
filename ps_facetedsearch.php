@@ -1527,7 +1527,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_comment_index` (
             `id_product` INT  NOT NULL,
             `score` INT NOT NULL,
-            `avg_score` FLOAT NOT NULL,
+            `avg_score` FLOAT(5, 4) NOT NULL,
             PRIMARY KEY (`id_product`),
             INDEX `score` (`score`),
             INDEX `avg_score` (`score`)
