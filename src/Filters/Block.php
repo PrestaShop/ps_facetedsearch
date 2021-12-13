@@ -985,6 +985,11 @@ class Block
             '1' => ['name'=>"1"],
         ];
 
+        $idParent = (int) Tools::getValue(
+            'id_category',
+            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
+        );
+
         $query = 'SELECT  count(g.grade) as count ,g.grade FROM (SELECT t.id_product, case 
 when t.avg_grade between 1 and 1.99 then "1"
 when t.avg_grade between 2 and 2.99 then "2"
@@ -994,7 +999,7 @@ end as grade
  FROM (SELECT avg(h.grade) as avg_grade,
  h.id_product FROM 
  (select pc.id_product, pc.grade from ' . _DB_PREFIX_ . 'product_comment as pc
-inner join (SELECT * FROM ' . _DB_PREFIX_ . 'category_product where id_category = '.$_GET['id_category'].') cp
+inner join (SELECT * FROM ' . _DB_PREFIX_ . 'category_product where id_category = '.$idParent.') cp
 on pc.id_product = cp.id_product) h
 group by id_product) t) g
 group by g.grade
