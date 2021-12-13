@@ -1536,8 +1536,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         $this->getDatabase()->execute(
             'CREATE TABLE `' . _DB_PREFIX_ . 'layered_comment_index_log` (
-            `id_comment` INT  NOT NULL,
-            `id_product` INT  NOT NULL,
+            `id_comment` INT NOT NULL,
+            `id_product` INT NOT NULL,
             `indexed` TINYINT(1) NOT NULL,
             PRIMARY KEY (`id_comment`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
