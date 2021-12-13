@@ -1565,10 +1565,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             }
 
         } else {
-            $query = 'select pc.id_product_comment, pc.id_product, pc.grade from ps_product_comment as pc
-left join ps_layered_comment_index_log as lc
-on pc.id_product_comment = lc.id_comment
-where lc.indexed is null;';
+            $query = 'SELECT pc.id_product_comment, pc.id_product, pc.grade ' .
+                'FROM ' . _DB_PREFIX_ . '_product_comment as pc ' .
+                'LEFT JOIN ' . _DB_PREFIX_ . '_layered_comment_index_log as lc ' .
+                'pc.id_product_comment = lc.id_comment ' .
+                'WHERE lc.indexed IS NULL';
 
             //returns non matching records
             foreach ($this->getDatabase()->executeS($query) as $commentLog) {
