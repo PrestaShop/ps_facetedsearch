@@ -25,6 +25,7 @@ function upgrade_module_3_8_0(Ps_Facetedsearch $module)
 {
     $module->rebuildCommentIndexTable();
     $module->indexReviews(true);
+    $module->rebuildLayeredStructure();
     $module->invalidateLayeredFilterBlockCache();
 
     return $module->registerHook($module->getHookDispatcher()->getAvailableHooks());
