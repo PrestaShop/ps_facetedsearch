@@ -24,6 +24,10 @@ if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('
     exit('Bad token');
 }
 
+if (!Module::isEnabled('productcomments')){
+    exit('Product Comment module is not installed or is disabled.');
+}
+
 Shop::setContext(Shop::CONTEXT_ALL);
 
 $module = new Ps_Facetedsearch();
