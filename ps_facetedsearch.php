@@ -144,7 +144,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     protected function getDefaultFilters()
     {
-        return [
+        $defaultFilters = [
             'layered_selection_subcategories' => [
                 'label' => 'Sub-categories filter',
             ],
@@ -165,11 +165,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'label' => 'Product price filter (slider)',
                 'slider' => true,
             ],
-            'layered_selection_review_star' => [
+        ];
+
+        if (Module::isEnabled('productcomments')){
+            $defaultFilters['layered_selection_review_star'] = [
                 'label' => 'Avg. Customer Review',
                 'star' => true
-            ],
-        ];
+            ];
+        }
+
+        return $defaultFilters;
     }
 
     public function install()
@@ -778,6 +783,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             ]);
 
             $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
+            $this->context->smarty->assign('comment_module_enabled', Module::isEnabled('productcomments'));
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         }
@@ -840,6 +846,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
         ]);
+
+        $this->context->smarty->assign('comment_module_enabled', Module::isEnabled('productcomments'));
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
     }

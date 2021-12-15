@@ -29,8 +29,10 @@
 			<a class="ajaxcall-recurcive btn btn-default" href="{$full_price_indexer_url}">{l s='Rebuild entire price index' d='Modules.Facetedsearch.Admin'}</a>
 			<a class="ajaxcall btn btn-default" href="{$attribute_indexer_url}">{l s='Build attributes and features indexes' d='Modules.Facetedsearch.Admin'}</a>
 			<a class="ajaxcall btn btn-default" href="{$clear_cache_url}">{l s='Clear cache' d='Modules.Facetedsearch.Admin'}</a>
-			<a class="ajaxcall btn btn-default" href="{$index_reviews_full}">{l s='Rebuild entire review index' d='Modules.Facetedsearch.Admin'}</a>
-			<a class="ajaxcall btn btn-default" href="{$index_reviews_missing}">{l s='Index missing reviews' d='Modules.Facetedsearch.Admin'}</a>
+			{if $comment_module_enabled}
+				<a class="ajaxcall btn btn-default" href="{$index_reviews_full}">{l s='Rebuild entire review index' d='Modules.Facetedsearch.Admin'}</a>
+				<a class="ajaxcall btn btn-default" href="{$index_reviews_missing}">{l s='Index missing reviews' d='Modules.Facetedsearch.Admin'}</a>
+			{/if}
 		</p>
 	</div>
 	<div class="row">
