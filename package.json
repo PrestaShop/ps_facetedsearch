@@ -33,7 +33,7 @@
     "@babel/cli": "^7.16.0",
     "@babel/core": "^7.16.5",
     "@babel/node": "^7.16.5",
-    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-env": "^7.16.7",
     "@babel/register": "^7.16.5",
     "babel-loader": "^8.2.3",
     "chai": "^4.3.4",
