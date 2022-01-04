@@ -643,8 +643,9 @@ class SearchTest extends MockeryTestCase
                             'out_of_stock',
                             [
                                 1,
+                                2,
                             ],
-                            '>=',
+                            '=',
                         ],
                     ],
                     [
