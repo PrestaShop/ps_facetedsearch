@@ -603,11 +603,6 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
-                'quantity' => [
-                    '<=' => [
-                        [0],
-                    ],
-                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
