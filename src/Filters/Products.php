@@ -89,7 +89,7 @@ class Products
 
         $this->pricePostFiltering($matchingProductList, $selectedFilters);
 
-        $nbrProducts = count($matchingProductList);
+        $nbrProducts = $this->searchAdapter->count();
 
         if (empty($nbrProducts)) {
             $matchingProductList = [];
