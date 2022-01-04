@@ -204,7 +204,7 @@ class Search
                             ];
                         }
                         // Cases with 2 options selected
-                    } else if (count($filterValues) == 2) {
+                    } elseif (count($filterValues) == 2) {
                         // Not available and available, we show everything
                         if (in_array(0, $filterValues) && in_array(1, $filterValues)) {
                             break;
