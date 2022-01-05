@@ -17,16 +17,22 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
 
-function upgrade_module_3_8_0($module)
+namespace PrestaShop\Module\FacetedSearch\Hook;
+
+class Configuration extends AbstractHook
 {
-    $module->registerHook('actionProductPreferencesPageStockSave');
+    const AVAILABLE_HOOKS = [
+        'actionProductPreferencesPageStockSave',
+    ];
 
-    return Db::getInstance()->execute(
-      'ALTER TABLE `' . _DB_PREFIX_ . 'layered_price_index` 
-      CHANGE `price_min` `price_min` decimal(20,6) NOT NULL,
-      CHANGE `price_max` `price_max` decimal(20,6) NOT NULL;');
+    /**
+     * After save of product stock preferences form
+     *
+     * @param array $params
+     */
+    public function actionProductPreferencesPageStockSave(array $params)
+    {
+        $this->module->invalidateLayeredFilterBlockCache();
+    }
 }

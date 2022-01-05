@@ -77,6 +77,7 @@ class HookDispatcherTest extends MockeryTestCase
                 'productSearchProvider',
                 'actionObjectSpecificPriceRuleUpdateBefore',
                 'actionAdminSpecificPriceRuleControllerSaveAfter',
+                'actionProductPreferencesPageStockSave',
             ],
             $this->dispatcher->getAvailableHooks()
         );
