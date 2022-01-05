@@ -61,6 +61,7 @@ class HookDispatcherTest extends MockeryTestCase
                 'actionCategoryAdd',
                 'actionCategoryDelete',
                 'actionCategoryUpdate',
+                'actionProductPreferencesPageStockSave',
                 'displayLeftColumn',
                 'actionFeatureSave',
                 'actionFeatureDelete',
@@ -77,7 +78,6 @@ class HookDispatcherTest extends MockeryTestCase
                 'productSearchProvider',
                 'actionObjectSpecificPriceRuleUpdateBefore',
                 'actionAdminSpecificPriceRuleControllerSaveAfter',
-                'actionProductPreferencesPageStockSave',
             ],
             $this->dispatcher->getAvailableHooks()
         );
