@@ -161,32 +161,72 @@ class Search
                     break;
 
                 case 'quantity':
-                    if (count($selectedFilters['quantity']) == 2) {
+                    /*
+                    * $filterValues options can have following values:
+                    * 0 - Not available - 0 or less quantity and disabled backorders
+                    * 1 - Available - Positive quantity or enabled backorders
+                    * 2 - In stock - Positive quantity
+                    */
+
+                    // If all three values are checked, we show everything
+                    if (count($filterValues) == 3) {
                         break;
                     }
 
+                    // If stock management is deactivated, we show everything
                     if (!$this->psStockManagement) {
-                        $this->getSearchAdapter()->addFilter('quantity', [0], (!$filterValues[0] ? '<=' : '>'));
                         break;
                     }
 
                     $operationsFilter = [];
-                    if ($filterValues[0]) {
-                        // Filter for available quantity, we must be able to request
-                        // product with out_of_stock at 1 or 2
-                        // which mean we can buy out of stock products
-                        $operationsFilter[] = [
-                            ['quantity', [0], '>='],
-                            ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
-                        ];
-                        $operationsFilter[] = [
-                            ['quantity', [0], '>'],
-                        ];
-                    } else {
-                        $operationsFilter[] = [
-                            ['quantity', [0], '<='],
-                            ['out_of_stock', !$this->psOrderOutOfStock ? [0, 2] : [0], '='],
-                        ];
+
+                    // Simple cases with 1 option selected
+                    if (count($filterValues) == 1) {
+                        // Not available
+                        if ($filterValues[0] == 0) {
+                            $operationsFilter[] = [
+                                ['quantity', [0], '<='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
+                            ];
+                        // Available
+                        } elseif ($filterValues[0] == 1) {
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
+                            ];
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>'],
+                            ];
+                        // In stock
+                        } elseif ($filterValues[0] == 2) {
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>'],
+                            ];
+                        }
+                        // Cases with 2 options selected
+                    } elseif (count($filterValues) == 2) {
+                        // Not available and available, we show everything
+                        if (in_array(0, $filterValues) && in_array(1, $filterValues)) {
+                            break;
+                        // Not available or in stock
+                        } elseif (in_array(0, $filterValues) && in_array(2, $filterValues)) {
+                            $operationsFilter[] = [
+                                ['quantity', [0], '<='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
+                            ];
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>'],
+                            ];
+                        // Available or in stock
+                        } elseif (in_array(1, $filterValues) && in_array(2, $filterValues)) {
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
+                            ];
+                            $operationsFilter[] = [
+                                ['quantity', [0], '>'],
+                            ];
+                        }
                     }
 
                     $this->getSearchAdapter()->addOperationsFilter(
