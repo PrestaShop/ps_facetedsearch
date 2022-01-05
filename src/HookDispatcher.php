@@ -33,6 +33,7 @@ class HookDispatcher
         Hook\Attribute::class,
         Hook\AttributeGroup::class,
         Hook\Category::class,
+        Hook\Configuration::class,
         Hook\Design::class,
         Hook\Feature::class,
         Hook\FeatureValue::class,
