@@ -633,13 +633,6 @@ class SearchTest extends MockeryTestCase
                 'with_stock_management' => [
                     [
                         [
-                            'quantity',
-                            [
-                                0,
-                            ],
-                            '>=',
-                        ],
-                        [
                             'out_of_stock',
                             [
                                 1,

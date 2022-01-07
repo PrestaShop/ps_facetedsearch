@@ -466,8 +466,7 @@ class Block
                 Search::STOCK_MANAGEMENT_FILTER,
                 [
                     [
-                        ['quantity', [0], '>='],
-                        ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
+                        ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                     ],
                     [
                         ['quantity', [0], '>'],
