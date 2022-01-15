@@ -307,6 +307,23 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * Get the joined and escaped value from an multi-dimensional array
+     *
+     * @param string $separator
+     * @param array $values
+     *
+     * @return string Escaped string value
+     */
+    protected function getJoinedEscapedValue($separator, array $values)
+    {
+        return implode($separator, array_map(function ($value) use ($separator) {
+            return is_array($value) ?
+                $this->getJoinedEscapedValue($separator, $value) :
+                (is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'");
+        }, $values));
+    }
+
+    /**
      * Compute the orderby fields, adding the proper alias that will be added to the final query
      *
      * @param array $filterToTableMapping
@@ -477,9 +494,7 @@ class MySQL extends AbstractAdapter
                         $operator = !empty($operation[2]) ? $operation[2] : '=';
                         $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
                     } else {
-                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . implode(', ', array_map(function ($value) {
-                            return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
-                        }, $values)) . ')';
+                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
                     }
                 }
 
@@ -510,9 +525,7 @@ class MySQL extends AbstractAdapter
                                 $selectAlias . '.' . $filterName . $operator . "'" . current($values) . "'";
                         } else {
                             $whereConditions[] =
-                                $selectAlias . '.' . $filterName . ' IN (' . implode(', ', array_map(function ($value) {
-                                    return is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'";
-                                }, $values)) . ')';
+                                $selectAlias . '.' . $filterName . ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
                         }
                     } else {
                         $orConditions = [];
