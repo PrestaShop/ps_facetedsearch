@@ -316,11 +316,17 @@ class MySQL extends AbstractAdapter
      */
     protected function getJoinedEscapedValue($separator, array $values)
     {
-        return implode($separator, array_map(function ($value) use ($separator) {
-            return is_array($value) ?
-                $this->getJoinedEscapedValue($separator, $value) :
-                (is_numeric($value) ? pSQL($value) : "'" . pSQL($value) . "'");
-        }, $values));
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = $this->getJoinedEscapedValue($separator, $value);
+            } elseif (is_numeric($value)) {
+                $values[$key] = pSQL($value);
+            } else {
+                $values[$key] = "'" . pSQL($value) . "'";
+            }
+        }
+
+        return implode($separator, $values);
     }
 
     /**
