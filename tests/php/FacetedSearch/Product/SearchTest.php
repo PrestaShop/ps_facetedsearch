@@ -22,6 +22,8 @@ namespace PrestaShop\Module\FacetedSearch\Tests\Product;
 
 use Configuration;
 use Context;
+use FrontController;
+use Group;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
@@ -53,6 +55,25 @@ class SearchTest extends MockeryTestCase
             });
 
         Configuration::setStaticExpectations($mock);
+
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(true);
+        $groupMock->shouldReceive('getCurrent')
+            ->andReturnUsing(function () {
+                $group = new Group();
+                $group->id = 1;
+
+                return $group;
+            });
+
+        Group::setStaticExpectations($groupMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
 
         $contextMock = Mockery::mock(Context::class);
         $contextMock->shop = new stdClass();
@@ -121,6 +142,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -174,6 +202,13 @@ class SearchTest extends MockeryTestCase
                         [
                             'both',
                             'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
@@ -298,6 +333,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -406,6 +448,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -493,6 +542,13 @@ class SearchTest extends MockeryTestCase
                     '=' => [
                         [
                             null,
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
@@ -600,6 +656,13 @@ class SearchTest extends MockeryTestCase
                         [
                             'both',
                             'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
