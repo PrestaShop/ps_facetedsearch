@@ -48,7 +48,7 @@ function removeFromFsDuringUpgrade(array $files)
 /**
  * This upgrade file removes the folder vendor/phpunit, when added from a previous release installed on the shop.
  *
- * @return true|array
+ * @return bool
  */
 function upgrade_module_3_4_1($module)
 {
