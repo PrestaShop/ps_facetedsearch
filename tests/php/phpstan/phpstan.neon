@@ -9,5 +9,5 @@ parameters:
     - ../../../ps_facetedsearch-clear-cache.php
     - ../../../ps_facetedsearch-price-indexer.php
     - ../../../src/
-  reportUnmatchedIgnoredErrors: false
+    - ../../../upgrade/
   level: 5
