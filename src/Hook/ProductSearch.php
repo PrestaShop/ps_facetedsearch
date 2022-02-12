@@ -46,7 +46,7 @@ class ProductSearch extends AbstractHook
         // to choose a template for filters.
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
-        if ($query->getIdCategory()) {
+        if ($query->getIdCategory() || \Tools::getValue('controller') == 'manufacturer') {
             $this->context->controller->addJqueryUi('slider');
             $this->context->controller->registerStylesheet(
                 'facetedsearch_front',

@@ -107,6 +107,13 @@ class Block
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
+        
+        // Unset some filters for the manufacturer pages
+        if (\Tools::getValue('controller') == 'manufacturer') {
+          foreach($filters as $key => $filter) {
+            if (in_array($filter['type'], ['manufacturer', 'category'])) unset($filters[$key]);
+          }
+        }
 
         $filterBlocks = [];
         // iterate through each filter, and the get corresponding filter block

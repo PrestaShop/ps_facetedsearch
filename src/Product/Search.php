@@ -91,27 +91,36 @@ class Search
      */
     public function initSearch($selectedFilters)
     {
-        $homeCategory = Configuration::get('PS_HOME_CATEGORY');
-        /* If the current category isn't defined or if it's homepage, we have nothing to display */
-        $idParent = (int) Tools::getValue(
-            'id_category',
-            Tools::getValue('id_category_layered', $homeCategory)
-        );
-
-        $parent = new Category((int) $idParent);
-
-        $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
-        if (!$psLayeredFullTree) {
-            $this->addFilter('id_category', [$parent->id]);
+        if (\Tools::getValue('controller') == 'manufacturer') {
+          
+          $manufacturerID = (int)$_GET['id_manufacturer'];
+          $this->addFilter('id_manufacturer', [$manufacturerID]);
+          
+        } else {  
+          
+          $homeCategory = Configuration::get('PS_HOME_CATEGORY');
+          /* If the current category isn't defined or if it's homepage, we have nothing to display */
+          $idParent = (int) Tools::getValue(
+              'id_category',
+              Tools::getValue('id_category_layered', $homeCategory)
+          );
+  
+          $parent = new Category((int) $idParent);
+  
+          $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
+          if (!$psLayeredFullTree) {
+              $this->addFilter('id_category', [$parent->id]);
+          }
+  
+          $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+          if ($psLayeredFilterByDefaultCategory) {
+              $this->addFilter('id_category_default', [$parent->id]);
+          }
+  
+          // Visibility of a product must be in catalog or both (search & catalog)
+          $this->addFilter('visibility', ['both', 'catalog']);
+          
         }
-
-        $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
-        if ($psLayeredFilterByDefaultCategory) {
-            $this->addFilter('id_category_default', [$parent->id]);
-        }
-
-        // Visibility of a product must be in catalog or both (search & catalog)
-        $this->addFilter('visibility', ['both', 'catalog']);
 
         $this->addSearchFilters(
             $selectedFilters,
