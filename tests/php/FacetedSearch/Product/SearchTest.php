@@ -756,6 +756,136 @@ class SearchTest extends MockeryTestCase
         );
     }
 
+    public function testInitSearchWithoutGroupFeature()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(false);
+
+        Group::setStaticExpectations($groupMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithUserBelongingToGroups()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([2, 999]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            2,
+                            999,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+    }
+
     public function testAddFilter()
     {
         $this->search->addFilter('weight', [10, 20]);
