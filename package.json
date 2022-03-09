@@ -38,7 +38,7 @@
     "babel-loader": "^8.2.3",
     "chai": "^4.3.6",
     "clean-webpack-plugin": "^4.0.0",
-    "css-loader": "^6.7.0",
+    "css-loader": "^6.7.1",
     "eslint": "^8.10.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prestashop": "^0.2.1",
