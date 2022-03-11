@@ -23,6 +23,8 @@ namespace PrestaShop\Module\FacetedSearch\Product;
 use Category;
 use Configuration;
 use Context;
+use FrontController;
+use Group;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
 use Tools;
@@ -112,6 +114,13 @@ class Search
 
         // Visibility of a product must be in catalog or both (search & catalog)
         $this->addFilter('visibility', ['both', 'catalog']);
+
+        // User must belong to one of the groups that can access the product
+        if (Group::isFeatureActive()) {
+            $groups = FrontController::getCurrentCustomerGroups();
+
+            $this->addFilter('id_group', empty($groups) ? [Group::getCurrent()->id] : $groups);
+        }
 
         $this->addSearchFilters(
             $selectedFilters,

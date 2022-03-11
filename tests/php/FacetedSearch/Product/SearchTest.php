@@ -22,6 +22,8 @@ namespace PrestaShop\Module\FacetedSearch\Tests\Product;
 
 use Configuration;
 use Context;
+use FrontController;
+use Group;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
@@ -53,6 +55,25 @@ class SearchTest extends MockeryTestCase
             });
 
         Configuration::setStaticExpectations($mock);
+
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(true);
+        $groupMock->shouldReceive('getCurrent')
+            ->andReturnUsing(function () {
+                $group = new Group();
+                $group->id = 1;
+
+                return $group;
+            });
+
+        Group::setStaticExpectations($groupMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
 
         $contextMock = Mockery::mock(Context::class);
         $contextMock->shop = new stdClass();
@@ -121,6 +142,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -174,6 +202,13 @@ class SearchTest extends MockeryTestCase
                         [
                             'both',
                             'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
@@ -298,6 +333,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -406,6 +448,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -493,6 +542,13 @@ class SearchTest extends MockeryTestCase
                     '=' => [
                         [
                             null,
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
@@ -603,6 +659,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -690,6 +753,136 @@ class SearchTest extends MockeryTestCase
                 ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithoutGroupFeature()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(false);
+
+        Group::setStaticExpectations($groupMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithUserBelongingToGroups()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([2, 999]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            2,
+                            999,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
     }
 
