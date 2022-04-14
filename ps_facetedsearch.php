@@ -65,7 +65,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      *
      * @var int
      */
-    const DECIMAL_DIGITS = 5;
+    const DECIMAL_DIGITS = 6;
 
     /**
      * @var bool
@@ -91,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.7.1';
+        $this->version = '3.8.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -102,7 +102,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
         $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
         $this->psLayeredFullTree = (int) Configuration::get('PS_LAYERED_FULL_TREE');
-        $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.7.6.0', 'max' => _PS_VERSION_];
 
         $this->hookDispatcher = new HookDispatcher($this);
     }
@@ -815,12 +815,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'PS_LAYERED_INDEXED' => (int) Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
             'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
             'id_lang' => $this->getContext()->cookie->id_lang,
-            'token' => substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'token' => substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
             'base_folder' => urlencode(_PS_ADMIN_DIR_),
-            'price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-            'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) . '&full=1',
-            'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
-            'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
+            'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10) . '&full=1',
+            'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
+            'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
@@ -1250,8 +1250,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             `id_product` INT  NOT NULL,
             `id_currency` INT NOT NULL,
             `id_shop` INT NOT NULL,
-            `price_min` DECIMAL(11, 5) NOT NULL,
-            `price_max` DECIMAL(11, 5) NOT NULL,
+            `price_min` DECIMAL(20, 6) NOT NULL,
+            `price_max` DECIMAL(20, 6) NOT NULL,
             `id_country` INT NOT NULL,
             PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
             INDEX `id_currency` (`id_currency`),
@@ -1294,8 +1294,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
         $this->getDatabase()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group`
-            SELECT id_attribute_group, 1 FROM `' . _DB_PREFIX_ . 'attribute_group`'
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` (id_attribute_group)
+            SELECT id_attribute_group FROM `' . _DB_PREFIX_ . 'attribute_group`'
         );
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value`');
@@ -1332,8 +1332,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         $this->getDatabase()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature`
-            SELECT id_feature, 1 FROM `' . _DB_PREFIX_ . 'feature`'
+            'INSERT INTO `' . _DB_PREFIX_ . 'layered_indexable_feature` (id_feature)
+            SELECT id_feature FROM `' . _DB_PREFIX_ . 'feature`'
         );
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value`');

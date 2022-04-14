@@ -280,10 +280,15 @@ class Converter
                             'Modules.Facetedsearch.Shop'
                         ) => 0,
                         $this->context->getTranslator()->trans(
-                            'In stock',
+                            'Available',
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 1,
+                        $this->context->getTranslator()->trans(
+                            'In stock',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 2,
                     ];
 
                     $searchFilters[$filter['type']] = [];
@@ -389,7 +394,7 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = Category::searchByName($idLang, $queryFilter, true);
+                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $query->getIdCategory());
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
                             }
@@ -507,6 +512,6 @@ class Converter
      */
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
-        return strnatcmp($a->getLabel(), $b->getLabel());
+        return strnatcasecmp($a->getLabel(), $b->getLabel());
     }
 }

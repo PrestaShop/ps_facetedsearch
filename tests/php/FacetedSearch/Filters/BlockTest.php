@@ -339,6 +339,7 @@ class BlockTest extends MockeryTestCase
             [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
+            [['Available', [], 'Modules.Facetedsearch.Shop'], 'Available'],
         ]);
         $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
@@ -354,9 +355,16 @@ class BlockTest extends MockeryTestCase
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND IFNULL(pac.id_product_attribute, 0) = sa_1.id_product_attribute) WHERE ((sa.quantity>=0 AND sa_1.out_of_stock>=1) OR (sa.quantity>0))')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.out_of_stock IN (1, 2)) OR (sa.quantity>0))')
             ->andReturn([
                 ['c' => 100],
+            ]);
+
+        $this->dbMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>0))')
+            ->andReturn([
+                ['c' => 50],
             ]);
 
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
@@ -377,9 +385,13 @@ class BlockTest extends MockeryTestCase
                                 'nbr' => 1000,
                             ],
                             [
-                                'name' => 'In stock',
+                                'name' => 'Available',
                                 'nbr' => 100,
                                 'checked' => true,
+                            ],
+                            [
+                                'name' => 'In stock',
+                                'nbr' => 50,
                             ],
                         ],
                         'filter_show_limit' => 0,

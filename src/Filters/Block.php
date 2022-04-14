@@ -409,26 +409,6 @@ class Block
      */
     private function getQuantitiesBlock($filter, $selectedFilters)
     {
-        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
-        $quantityArray = [
-            0 => [
-                'name' => $this->context->getTranslator()->trans(
-                    'Not available',
-                    [],
-                    'Modules.Facetedsearch.Shop'
-                ),
-                'nbr' => 0,
-            ],
-            1 => [
-                'name' => $this->context->getTranslator()->trans(
-                    'In stock',
-                    [],
-                    'Modules.Facetedsearch.Shop'
-                ),
-                'nbr' => 0,
-            ],
-        ];
-
         if ($this->psStockManagement === null) {
             $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
         }
@@ -437,8 +417,39 @@ class Block
             $this->psOrderOutOfStock = (bool) Configuration::get('PS_ORDER_OUT_OF_STOCK');
         }
 
+        // We only initialize the options if stock management is activated
+        $availabilityOptions = [];
         if ($this->psStockManagement) {
-            $results = [];
+            $availabilityOptions = [
+                0 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'Not available',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+                1 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'Available',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+                2 => [
+                    'name' => $this->context->getTranslator()->trans(
+                        'In stock',
+                        [],
+                        'Modules.Facetedsearch.Shop'
+                    ),
+                    'nbr' => 0,
+                ],
+            ];
+
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
+
+            // Products without quantity in stock, with out-of-stock ordering disabled
             $filteredSearchAdapter->addOperationsFilter(
                 Search::STOCK_MANAGEMENT_FILTER,
                 [
@@ -448,32 +459,40 @@ class Block
                     ],
                 ]
             );
-            $results[0] = [
-                'c' => $filteredSearchAdapter->count(),
-            ];
+            $availabilityOptions[0]['nbr'] = $filteredSearchAdapter->count();
 
+            // Products in stock, or with out-of-stock ordering enabled
             $filteredSearchAdapter->addOperationsFilter(
                 Search::STOCK_MANAGEMENT_FILTER,
                 [
                     [
-                        ['quantity', [0], '>='],
-                        ['out_of_stock', [1], $this->psOrderOutOfStock ? '>=' : '='],
+                        ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                     ],
                     [
                         ['quantity', [0], '>'],
                     ],
                 ]
             );
-            $results[1] = [
-                'c' => $filteredSearchAdapter->count(),
-            ];
+            $availabilityOptions[1]['nbr'] = $filteredSearchAdapter->count();
 
-            foreach ($results as $key => $values) {
-                $count = $values['c'];
+            // Products in stock
+            $filteredSearchAdapter->addOperationsFilter(
+                Search::STOCK_MANAGEMENT_FILTER,
+                [
+                    [
+                        ['quantity', [0], '>'],
+                    ],
+                ]
+            );
+            $availabilityOptions[2]['nbr'] = $filteredSearchAdapter->count();
 
-                $quantityArray[$key]['nbr'] = $count;
-                if (isset($selectedFilters['quantity']) && in_array($key, $selectedFilters['quantity'], true)) {
-                    $quantityArray[$key]['checked'] = true;
+            // If some filter was selected, we want to show only this single filter, it does not make sense to show others
+            if (isset($selectedFilters['quantity'])) {
+                // We loop through selected filters and assign it to our options and remove the rest
+                foreach ($availabilityOptions as $key => $values) {
+                    if (in_array($key, $selectedFilters['quantity'], true)) {
+                        $availabilityOptions[$key]['checked'] = true;
+                    }
                 }
             }
         }
@@ -483,7 +502,7 @@ class Block
             'type' => 'quantity',
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop'),
-            'values' => $quantityArray,
+            'values' => $availabilityOptions,
             'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => $filter['filter_type'],
         ];
@@ -537,8 +556,6 @@ class Block
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
             }
         }
-
-        $this->sortByKey($manufacturers, $manufacturersArray);
 
         $manufacturerBlock = [
             'type_lite' => 'manufacturer',
@@ -874,8 +891,6 @@ class Block
                 $categoryArray[$idCategory]['checked'] = true;
             }
         }
-
-        $categoryArray = $this->sortByKey($categories, $categoryArray);
 
         $categoryBlock = [
             'type_lite' => 'category',

@@ -20,7 +20,7 @@
 require_once __DIR__ . '/../../config/config.inc.php';
 require_once __DIR__ . '/ps_facetedsearch.php';
 
-if (substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
+if (substr(Tools::hash('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
     exit('Bad token');
 }
 

@@ -17,18 +17,22 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-require_once __DIR__ . '/../../config/config.inc.php';
-require_once __DIR__ . '/ps_facetedsearch.php';
 
-if (substr(Tools::hash('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
-    exit('Bad token');
-}
+namespace PrestaShop\Module\FacetedSearch\Hook;
 
-Shop::setContext(Shop::CONTEXT_ALL);
+class Configuration extends AbstractHook
+{
+    const AVAILABLE_HOOKS = [
+        'actionProductPreferencesPageStockSave',
+    ];
 
-$module = new Ps_Facetedsearch();
-if (Tools::getValue('full')) {
-    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'), true);
-} else {
-    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'));
+    /**
+     * After save of product stock preferences form
+     *
+     * @param array $params
+     */
+    public function actionProductPreferencesPageStockSave(array $params)
+    {
+        $this->module->invalidateLayeredFilterBlockCache();
+    }
 }

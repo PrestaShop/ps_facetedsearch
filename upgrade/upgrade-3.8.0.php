@@ -17,18 +17,16 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-require_once __DIR__ . '/../../config/config.inc.php';
-require_once __DIR__ . '/ps_facetedsearch.php';
-
-if (substr(Tools::hash('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
-    exit('Bad token');
+if (!defined('_PS_VERSION_')) {
+    exit;
 }
 
-Shop::setContext(Shop::CONTEXT_ALL);
+function upgrade_module_3_8_0($module)
+{
+    $module->registerHook('actionProductPreferencesPageStockSave');
 
-$module = new Ps_Facetedsearch();
-if (Tools::getValue('full')) {
-    echo $module->fullPricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'), true);
-} else {
-    echo $module->pricesIndexProcess((int) Tools::getValue('cursor'), (bool) Tools::getValue('ajax'));
+    return Db::getInstance()->execute(
+      'ALTER TABLE `' . _DB_PREFIX_ . 'layered_price_index` 
+      CHANGE `price_min` `price_min` decimal(20,6) NOT NULL,
+      CHANGE `price_max` `price_max` decimal(20,6) NOT NULL;');
 }

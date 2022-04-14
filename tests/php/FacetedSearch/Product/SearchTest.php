@@ -22,6 +22,8 @@ namespace PrestaShop\Module\FacetedSearch\Tests\Product;
 
 use Configuration;
 use Context;
+use FrontController;
+use Group;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
@@ -54,6 +56,25 @@ class SearchTest extends MockeryTestCase
 
         Configuration::setStaticExpectations($mock);
 
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(true);
+        $groupMock->shouldReceive('getCurrent')
+            ->andReturnUsing(function () {
+                $group = new Group();
+                $group->id = 1;
+
+                return $group;
+            });
+
+        Group::setStaticExpectations($groupMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
+
         $contextMock = Mockery::mock(Context::class);
         $contextMock->shop = new stdClass();
         $contextMock->shop->id = 1;
@@ -69,6 +90,69 @@ class SearchTest extends MockeryTestCase
             MySQL::class,
             $this->search->getSearchAdapter()
         );
+    }
+
+    public function testInitSearchWithoutCorrectSelectedFilters()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(['quantity' => []]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
     }
 
     public function testInitSearchWithEmptyFilters()
@@ -118,6 +202,13 @@ class SearchTest extends MockeryTestCase
                         [
                             'both',
                             'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
                         ],
                     ],
                 ],
@@ -242,6 +333,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -350,6 +448,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -440,6 +545,13 @@ class SearchTest extends MockeryTestCase
                         ],
                     ],
                 ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
@@ -470,6 +582,307 @@ class SearchTest extends MockeryTestCase
                 ],
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithQuantityFiltersWithoutStockManagement()
+    {
+        $mock = Mockery::mock(Configuration::class);
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_STOCK_MANAGEMENT' => false,
+                    'PS_ORDER_OUT_OF_STOCK' => true,
+                    'PS_HOME_CATEGORY' => true,
+                    'PS_LAYERED_FULL_TREE' => false,
+                    'PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY' => true,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Configuration::setStaticExpectations($mock);
+
+        $contextMock = Mockery::mock(Context::class);
+        $contextMock->shop = new stdClass();
+        $contextMock->shop->id = 1;
+
+        Context::setStaticExpectations($contextMock);
+
+        $this->search = new Search($contextMock);
+
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(['quantity' => [0]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    public function testInitSearchWithFirstQuantityFilters()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(['quantity' => [1]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'with_stock_management' => [
+                    [
+                        [
+                            'out_of_stock',
+                            [
+                                1,
+                                2,
+                            ],
+                            '=',
+                        ],
+                    ],
+                    [
+                        [
+                            'quantity',
+                            [
+                                0,
+                            ],
+                            '>',
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithSecondQuantityFilters()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'with_stock_management' => [
+                    [
+                        [
+                            'quantity',
+                            [
+                                0,
+                            ],
+                            '>',
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithoutGroupFeature()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('isFeatureActive')
+            ->andReturn(false);
+
+        Group::setStaticExpectations($groupMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithUserBelongingToGroups()
+    {
+        $toolsMock = Mockery::mock(Tools::class);
+        $toolsMock->shouldReceive('getValue')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'id_category' => 12,
+                    'id_category_layered' => 11,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Tools::setStaticExpectations($toolsMock);
+
+        $frontControllerMock = Mockery::mock(FrontController::class);
+        $frontControllerMock->shouldReceive('getCurrentCustomerGroups')
+            ->andReturn([2, 999]);
+
+        FrontController::setStaticExpectations($frontControllerMock);
+
+        $this->search->initSearch(['quantity' => [2]]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_category_default' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_category' => [
+                    '=' => [
+                        [
+                            null,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            2,
+                            999,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
     }
 
