@@ -288,6 +288,7 @@ class Search
             $this->getSearchAdapter()->addFilter('nright', [$parent->nright], '<=');
         }
 
+        $this->getSearchAdapter()->addFilter('id_group', $this->context->customer->getGroups());
         $this->getSearchAdapter()->addFilter('id_shop', [$idShop]);
         $this->getSearchAdapter()->addGroupBy('id_product');
 
