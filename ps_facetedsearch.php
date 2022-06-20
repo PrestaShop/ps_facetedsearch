@@ -1573,11 +1573,16 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             }
 
         } else {
+            $validateCondition = '';
+            if (Configuration::get('PRODUCT_COMMENTS_MODERATE')){
+                $validateCondition = ' AND WHERE validate = 1';
+            }
+
             $query = 'SELECT pc.id_product_comment, pc.id_product, pc.grade ' .
                 'FROM ' . _DB_PREFIX_ . '_product_comment as pc ' .
                 'LEFT JOIN ' . _DB_PREFIX_ . '_layered_comment_index_log as lc ' .
                 'pc.id_product_comment = lc.id_comment ' .
-                'WHERE lc.indexed IS NULL';
+                'WHERE lc.indexed IS NULL' . $validateCondition;
 
             //returns non matching records
             foreach ($this->getDatabase()->executeS($query) as $commentLog) {
