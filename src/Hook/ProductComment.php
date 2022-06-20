@@ -66,12 +66,12 @@ class ProductComment extends AbstractHook
         $comment = $params['object']; $skip = false;
 
         if (\Configuration::get('PRODUCT_COMMENTS_MODERATE')){
-            if ((int)$comment->validate){
+            if (!(int)$comment->validate){
                 $skip = true;
             }
         }
 
-        if ($skip){
+        if (!$skip){
             $gradeCommentRow = $this->database->executeS('SELECT * FROM `' . _DB_PREFIX_ . 'layered_comment_index`
             WHERE id_product =' . $comment->id_product);
 
