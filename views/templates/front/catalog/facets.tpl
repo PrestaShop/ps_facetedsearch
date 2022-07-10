@@ -177,4 +177,7 @@
       </section>
     {/foreach}
   </div>
+{else}
+  <div id="search_filters" class="d-none">
+  </div>  
 {/if}
