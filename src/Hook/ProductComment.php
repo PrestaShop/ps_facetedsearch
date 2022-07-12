@@ -82,10 +82,14 @@ class ProductComment extends AbstractHook
             $count = $productCommentLogRowCount[0]['count'];
             $count--;
 
-            $newGradeValue = (int)$gradeCommentRow[0]['score'] - (int)$comment->grade;
-            $avg_score = $newGradeValue/(((int)$count));
+            if ($count === 0 ){
+                $this->database->execute('DELETE FROM `'._DB_PREFIX_.'layered_comment_index` WHERE id_product = ' . $comment->id_product );
+            } else{
+                $newGradeValue = (int)$gradeCommentRow[0]['score'] - (int)$comment->grade;
+                $avg_score = $newGradeValue/(((int)$count));
 
-            $this->database->execute('update ' . _DB_PREFIX_ . 'layered_comment_index set score='.$newGradeValue.', avg_score= '.$avg_score .' where id_product=' . $comment->id_product);
+                $this->database->execute('update ' . _DB_PREFIX_ . 'layered_comment_index set score='.$newGradeValue.', avg_score= '.$avg_score .' where id_product=' . $comment->id_product);
+            }
 
             $this->deleteCommentIndexLog($comment->id, $comment->id_product);
         }
