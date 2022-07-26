@@ -178,6 +178,6 @@
     {/foreach}
   </div>
 {else}
-  <div id="search_filters" class="d-none">
+  <div id="search_filters" style="display:none;">
   </div>  
 {/if}
