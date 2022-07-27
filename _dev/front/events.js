@@ -19,12 +19,12 @@
 import refreshSliders from './slider';
 import {showOverlay, hideOverlay} from './overlay';
 
-function checkFiltersClearAll() {  
+function checkFiltersClearAll() {
   if ($('#_desktop_search_filters_clear_all').attr('style') === 'display:none;') {
     $('#_mobile_search_filters_clear_all').addClass('hidden-sm-down');
   } else {
     $('#_mobile_search_filters_clear_all').removeClass('hidden-sm-down');
-  }   
+  }
 }
 
 $(document).ready(() => {
@@ -35,9 +35,9 @@ $(document).ready(() => {
   });
 
   refreshSliders();
-  
+
   checkFiltersClearAll();
-  
+
   prestashop.on('updateFacets', () => {
     showOverlay();
   });
