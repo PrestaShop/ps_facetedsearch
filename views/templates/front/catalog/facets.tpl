@@ -30,6 +30,13 @@
             {l s='Clear all' d='Shop.Theme.Actions'}
           </button>
         </div>
+      {else}
+        <div id="_desktop_search_filters_clear_all" style="display:none;">
+          <button data-search-url="{$clear_all_link}" class="btn btn-tertiary js-search-filters-clear-all">
+            <i class="material-icons">&#xE14C;</i>
+            {l s='Clear all' d='Shop.Theme.Actions'}
+          </button>
+        </div>           
       {/if}
     {/block}
 
