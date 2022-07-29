@@ -91,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.8.0';
+        $this->version = '3.9.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -198,6 +198,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
+            Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
 
             $this->psLayeredFullTree = 1;
 
@@ -697,6 +698,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
+            Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -831,6 +833,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
+            'use_jquery_ui_sloder' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');

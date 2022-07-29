@@ -239,6 +239,28 @@
 	  </div>
 	</div>
 
+  <div class="form-group">
+    <label class="col-lg-3 control-label">{l s='Use Jquery UI slider' d='Modules.Facetedsearch.Admin'}</label>
+    <div class="col-lg-9">
+    <span class="switch prestashop-switch fixed-width-lg">
+      <input type="radio" name="ps_use_jquery_ui_slider" id="ps_use_jquery_ui_slider_on" value="1"{if $use_jquery_ui_slider} checked="checked"{/if}>
+      <label for="ps_use_jquery_ui_slider_on" class="radioCheck">
+      <i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+      </label>
+      <input type="radio" name="ps_use_jquery_ui_slider" id="ps_use_jquery_ui_slider_off" value="0"{if !$use_jquery_ui_slider} checked="checked"{/if}>
+      <label for="ps_use_jquery_ui_slider_off" class="radioCheck">
+      <i class="color_danger"></i> {l s='No' d='Admin.Global'}
+      </label>
+      <a class="slide-button btn"></a>
+    </span>
+    </div>
+    <div class="col-lg-9 col-lg-offset-3">
+      <div class="help-block">
+        {l s='Switch this setting if your theme uses the Jquery UI slider. It is recommended to keep it ON when using classic theme.' d='Modules.Facetedsearch.Admin'}
+      </div>
+    </div>
+  </div>
+
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>
 	</div>
