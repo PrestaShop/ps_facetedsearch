@@ -256,7 +256,7 @@
     </div>
     <div class="col-lg-9 col-lg-offset-3">
       <div class="help-block">
-        {l s='Switch this setting if your theme uses the Jquery UI slider. It is recommended to keep it ON when using classic theme.' d='Modules.Facetedsearch.Admin'}
+        {l s='Switch this OFF only if your theme does not use Jquery UI slider. It is recommended to keep it ON when using classic theme.' d='Modules.Facetedsearch.Admin'}
       </div>
     </div>
   </div>
