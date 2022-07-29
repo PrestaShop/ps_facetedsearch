@@ -20,11 +20,11 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Configuration;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
-use Configuration;
 
 class ProductSearch extends AbstractHook
 {
