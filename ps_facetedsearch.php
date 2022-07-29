@@ -833,7 +833,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
-            'use_jquery_ui_sloder' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
+            'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
