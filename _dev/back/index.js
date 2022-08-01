@@ -19,7 +19,7 @@
 import './blocklayered.scss';
 
 /* eslint-disable no-unused-vars, no-alert */
-window.checkForm = function () {
+window.checkForm = function checkForm() {
   let isCategorySelected = false;
   let isFilterSelected = false;
 
