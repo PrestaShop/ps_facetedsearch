@@ -52,7 +52,7 @@ window.checkForm = function checkForm() {
   }
 
   return true;
-}
+};
 
 $(document).ready(() => {
   $('.ajaxcall').click(function onAjaxCall() {
