@@ -91,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.8.0';
+        $this->version = '3.9.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -144,7 +144,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     protected function getDefaultFilters()
     {
-        return [
+        $defaultFilters = [
             'layered_selection_subcategories' => [
                 'label' => 'Sub-categories filter',
             ],
@@ -166,6 +166,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'slider' => true,
             ],
         ];
+
+        if (Module::isEnabled('productcomments')){
+            $defaultFilters['layered_selection_review_star'] = [
+                'label' => 'Avg. Customer Review',
+                'star' => true
+            ];
+        }
+
+        return $defaultFilters;
     }
 
     public function install()
@@ -213,6 +222,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->rebuildPriceIndexTable();
             $this->installIndexableAttributeTable();
             $this->installProductAttributeTable();
+            $this->rebuildCommentIndexTable();
+            $this->indexReviews(true);
 
             if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
                 $this->fullPricesIndexProcess();
@@ -772,6 +783,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             ]);
 
             $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
+            $this->context->smarty->assign('comment_module_enabled', Module::isEnabled('productcomments'));
 
             return $this->display(__FILE__, 'views/templates/admin/add.tpl');
         }
@@ -821,6 +833,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10) . '&full=1',
             'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
+            'index_reviews_full' => $moduleUrl . 'ps_facetedsearch-review-indexer.php' . '?full=true&token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
+            'index_reviews_missing' => $moduleUrl . 'ps_facetedsearch-review-indexer.php' . '?token=' . substr(Tools::encrypt('ps_facetedsearch/index'), 0, 10),
             'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
@@ -832,6 +846,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
         ]);
+
+        $this->context->smarty->assign('comment_module_enabled', Module::isEnabled('productcomments'));
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
     }
@@ -880,7 +896,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             `id_shop` INT(11) UNSIGNED NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
-            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
+            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\',\'review\') NOT NULL,
             `position` INT(10) UNSIGNED NOT NULL,
             `filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
             `filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -1162,6 +1178,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                             } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
                                 $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
 \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_review_star') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', ' . (int) $idShop . ', NULL, \'review\', ' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             }
 
                             ++$nbSqlValuesToInsert;
@@ -1502,5 +1520,95 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function getWidgetVariables($hookName, array $configuration)
     {
         return [];
+    }
+
+    /**
+     * Install review indexes table
+     */
+    public function rebuildCommentIndexTable()
+    {
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_comment_index`');
+
+        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_comment_index_log`');
+
+        $this->getDatabase()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_comment_index` (
+            `id_product` INT NOT NULL,
+            `score` INT NOT NULL,
+            `avg_score` FLOAT(5, 4) NOT NULL,
+            PRIMARY KEY (`id_product`),
+            INDEX `score` (`score`),
+            INDEX `avg_score` (`score`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+
+        $this->getDatabase()->execute(
+            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_comment_index_log` (
+            `id_comment` INT NOT NULL,
+            `id_product` INT NOT NULL,
+            `indexed` TINYINT(1) NOT NULL,
+            PRIMARY KEY (`id_comment`)
+            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
+        );
+    }
+
+    public function indexReviews($full = false)
+    {
+        if ($full) {
+            $validateCondition = '';
+            if (Configuration::get('PRODUCT_COMMENTS_MODERATE')){
+                $validateCondition = ' where validate = 1';
+            }
+
+            $query = 'SELECT avg(`grade`) as avg_grade, sum(`grade`) as sum_grade, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment '. $validateCondition .' group by id_product';
+
+            foreach ($this->getDatabase()->executeS($query) as $comment) {
+                $this->addCommentIndex($comment);
+            }
+
+            $query = 'SELECT `id_product_comment`, `id_product` FROM ' . _DB_PREFIX_ . 'product_comment' . $validateCondition;
+
+            foreach ($this->getDatabase()->executeS($query) as $commentLog) {
+                $this->addCommentIndexLog($commentLog);
+            }
+
+        } else {
+            $validateCondition = '';
+            if (Configuration::get('PRODUCT_COMMENTS_MODERATE')){
+                $validateCondition = ' AND WHERE validate = 1';
+            }
+
+            $query = 'SELECT pc.id_product_comment, pc.id_product, pc.grade ' .
+                'FROM ' . _DB_PREFIX_ . '_product_comment as pc ' .
+                'LEFT JOIN ' . _DB_PREFIX_ . '_layered_comment_index_log as lc ' .
+                'pc.id_product_comment = lc.id_comment ' .
+                'WHERE lc.indexed IS NULL' . $validateCondition;
+
+            //returns non matching records
+            foreach ($this->getDatabase()->executeS($query) as $commentLog) {
+                $gradeCommentRow = $this->database->executeS('SELECT * FROM `' . _DB_PREFIX_ . 'layered_comment_index`
+            WHERE id_product =' . $commentLog['id_product']);
+
+                $productCommentLogRow = $this->database->executeS('SELECT * FROM `' . _DB_PREFIX_ . 'layered_comment_index_log`
+            WHERE id_product = ' . $commentLog['id_product'] . ' AND indexed = 1');
+
+                $newGradeValue = (int)$gradeCommentRow[0]['score'] + (int)$commentLog['grade'];
+                $avg_score = $newGradeValue/(count($productCommentLogRow)+1);
+
+                $this->database->execute('update ' . _DB_PREFIX_ . 'layered_comment_index set score='.$newGradeValue.', avg_score= '.$avg_score .' where id_product=' . $commentLog['id_product']);
+
+                $this->addCommentIndexLog($commentLog);
+            }
+        }
+
+        return "true";
+    }
+
+    public function addCommentIndex($comment){
+        $this->database->execute('INSERT INTO `'._DB_PREFIX_.'layered_comment_index` (`id_product`, `score`, `avg_score`) VALUES ('.$comment['id_product'].', '.$comment['sum_grade'].','.$comment['avg_grade'].')');
+    }
+
+    public function addCommentIndexLog($commentLog){
+        $this->database->execute('INSERT INTO `'._DB_PREFIX_.'layered_comment_index_log` (`id_comment`, `indexed`, `id_product`) VALUES ('.$commentLog['id_product_comment'].', 1,'. $commentLog['id_product'] .')');
     }
 }

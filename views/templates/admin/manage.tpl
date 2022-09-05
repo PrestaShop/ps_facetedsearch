@@ -19,33 +19,37 @@
 {include file='./_partials/messages.tpl'}
 
 <div class="panel">
-  <h3><i class="icon-cogs"></i> {l s='Indexes and caches' d='Modules.Facetedsearch.Admin'}</h3>
-  <div id="indexing-warning" class="alert alert-warning" style="display: none">
-	{l s='Indexing is in progress. Please do not leave this page' d='Modules.Facetedsearch.Admin'}
-  </div>
-  <div class="row">
-	<p>
-	  <a class="ajaxcall-recurcive btn btn-default" href="{$price_indexer_url}">{l s='Index all missing prices' d='Modules.Facetedsearch.Admin'}</a>
-	  <a class="ajaxcall-recurcive btn btn-default" href="{$full_price_indexer_url}">{l s='Rebuild entire price index' d='Modules.Facetedsearch.Admin'}</a>
-	  <a class="ajaxcall btn btn-default" href="{$attribute_indexer_url}">{l s='Build attributes and features indexes' d='Modules.Facetedsearch.Admin'}</a>
-	  <a class="ajaxcall btn btn-default" href="{$clear_cache_url}">{l s='Clear cache' d='Modules.Facetedsearch.Admin'}</a>
-	</p>
-  </div>
-  <div class="row">
-	<div class="alert alert-info">
-	  {l s='You can set a cron job that will rebuild price index using the following URL:' d='Modules.Facetedsearch.Admin'}
-	  <br>
-	  <strong>{$price_indexer_url}</strong>
-	  <br>
-	  <br>
-	  {l s='You can set a cron job that will rebuild attribute index using the following URL:' d='Modules.Facetedsearch.Admin'}
-	  <br>
-	  <strong>{$attribute_indexer_url}</strong>
+	<h3><i class="icon-cogs"></i> {l s='Indexes and caches' d='Modules.Facetedsearch.Admin'}</h3>
+	<div id="indexing-warning" class="alert alert-warning" style="display: none">
+		{l s='Indexing is in progress. Please do not leave this page' d='Modules.Facetedsearch.Admin'}
 	</div>
-  </div>
-  <div class="row">
-	<div class="alert alert-info">{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</div>
-  </div>
+	<div class="row">
+		<p>
+			<a class="ajaxcall-recurcive btn btn-default" href="{$price_indexer_url}">{l s='Index all missing prices' d='Modules.Facetedsearch.Admin'}</a>
+			<a class="ajaxcall-recurcive btn btn-default" href="{$full_price_indexer_url}">{l s='Rebuild entire price index' d='Modules.Facetedsearch.Admin'}</a>
+			<a class="ajaxcall btn btn-default" href="{$attribute_indexer_url}">{l s='Build attributes and features indexes' d='Modules.Facetedsearch.Admin'}</a>
+			<a class="ajaxcall btn btn-default" href="{$clear_cache_url}">{l s='Clear cache' d='Modules.Facetedsearch.Admin'}</a>
+			{if $comment_module_enabled}
+				<a class="ajaxcall btn btn-default" href="{$index_reviews_full}">{l s='Rebuild entire review index' d='Modules.Facetedsearch.Admin'}</a>
+				<a class="ajaxcall btn btn-default" href="{$index_reviews_missing}">{l s='Index missing reviews' d='Modules.Facetedsearch.Admin'}</a>
+			{/if}
+		</p>
+	</div>
+	<div class="row">
+		<div class="alert alert-info">
+			{l s='You can set a cron job that will rebuild price index using the following URL:' d='Modules.Facetedsearch.Admin'}
+			<br>
+			<strong>{$price_indexer_url}</strong>
+			<br>
+			<br>
+			{l s='You can set a cron job that will rebuild attribute index using the following URL:' d='Modules.Facetedsearch.Admin'}
+			<br>
+			<strong>{$attribute_indexer_url}</strong>
+		</div>
+	</div>
+	<div class="row">
+		<div class="alert alert-info">{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</div>
+	</div>
 </div>
 <div class="panel">
   <h3><i class="icon-cogs"></i> {l s='Filters templates' d='Modules.Facetedsearch.Admin'}<span class="badge">{$filters_templates|count}</span></h3>
@@ -252,15 +256,15 @@
   var base_folder = '{$base_folder}';
   var translations = new Object();
 
-  translations.in_progress = '{l s='(in progress)' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.url_indexation_finished = '{l s='URL indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.attribute_indexation_finished = '{l s='Attribute indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.url_indexation_failed = '{l s='URL indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.attribute_indexation_failed = '{l s='Attribute indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.price_indexation_finished = '{l s='Price indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.price_indexation_failed = '{l s='Price indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.price_indexation_in_progress = '{l s='(in progress, %s products price to index)' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.loading = '{l s='Loading...' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.delete_all_filters_templates = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 d='Modules.Facetedsearch.Admin'}';
-  translations.no_selected_categories = '{l s='You must select at least one category' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.in_progress = '{l s='(in progress)' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.url_indexation_finished = '{l s='URL indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.attribute_indexation_finished = '{l s='Indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.url_indexation_failed = '{l s='URL indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.attribute_indexation_failed = '{l s='Indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_finished = '{l s='Price indexing finished' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_failed = '{l s='Price indexing failed' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.price_indexation_in_progress = '{l s='(in progress, %s products price to index)' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.loading = '{l s='Loading...' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.delete_all_filters_templates = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.no_selected_categories = '{l s='You must select at least one category' js=1 d='Modules.Facetedsearch.Admin'}';
 </script>

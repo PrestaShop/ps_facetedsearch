@@ -38,6 +38,7 @@ class Converter
     const WIDGET_TYPE_RADIO = 1;
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
+    const WIDGET_TYPE_STAR = 4;
 
     const TYPE_ATTRIBUTE_GROUP = 'id_attribute_group';
     const TYPE_AVAILABILITY = 'availability';
@@ -48,6 +49,7 @@ class Converter
     const TYPE_MANUFACTURER = 'manufacturer';
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
+    const TYPE_REVIEW = 'review';
 
     const PROPERTY_URL_NAME = 'url_name';
     const PROPERTY_COLOR = 'color';
@@ -196,6 +198,34 @@ class Converter
                     $facet->addFilter($filter);
 
                     break;
+                case self::TYPE_REVIEW:
+                    $type = $filterBlock['type'];
+
+                    $facet
+                        ->setType($type)
+                        ->setMultipleSelectionAllowed(false);
+
+                    $filters = [];
+                    foreach ($filterBlock['values'] as $id => $filterArray) {
+                        $filter = new Filter();
+                        $filter
+                            ->setType($type)
+                            ->setLabel($filterArray['name'])
+                            ->setMagnitude($filterArray['nbr'])
+                            ->setValue($id);
+
+                        if (array_key_exists('checked', $filterArray)) {
+                            $filter->setActive($filterArray['checked']);
+                        }
+
+                        $filters[] = $filter;
+                    }
+
+                    foreach ($filters as $filter) {
+                        $facet->addFilter($filter);
+                    }
+
+                    break;
             }
 
             switch ((int) $filterBlock['filter_type']) {
@@ -214,6 +244,10 @@ class Converter
                 case self::WIDGET_TYPE_SLIDER:
                     $facet->setMultipleSelectionAllowed(false);
                     $facet->setWidgetType('slider');
+                    break;
+                case self::WIDGET_TYPE_STAR:
+                    $facet->setMultipleSelectionAllowed(false);
+                    $facet->setWidgetType('star');
                     break;
             }
 
@@ -438,6 +472,8 @@ class Converter
     private function convertFilterTypeToLabel($filterType)
     {
         switch ($filterType) {
+            case self::TYPE_REVIEW:
+                return $this->context->getTranslator()->trans('Avg. Customer Reviews', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_PRICE:
                 return $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_WEIGHT:

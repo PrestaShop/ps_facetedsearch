@@ -2,7 +2,7 @@
 
 #search_filters .ui-slider-horizontal .ui-slider-handle{margin-left:-1px;cursor:pointer}#search_filters .ui-widget-header{background:#555}#search_filters .ui-slider .ui-slider-handle{top:-.45em;width:0.4em;background:#fff;border:1px solid #555}#search_filters .ui-slider-horizontal{height:.4em}
 
-#search_filters .facet .title{display:flex}#search_filters .facet .title .collapse-icons{margin-left:auto}#search_filters .facet .facet-title{width:calc(100% - 30px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#search_filters .facet .facet-label{width:100%;text-align:left}#search_filters .facet .facet-label .custom-checkbox,#search_filters .facet .facet-label .custom-radio{top:-7px;margin-right:0}#search_filters .facet .facet-label .color{margin-left:0}#search_filters .facet .facet-label a{width:calc(100% - 30px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#search_filters .facet .title{display:flex}#search_filters .facet .title .collapse-icons{margin-left:auto}#search_filters .facet .facet-title{width:calc(100% - 30px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#search_filters .facet .facet-label{width:100%;text-align:left}#search_filters .facet .facet-label .custom-checkbox,#search_filters .facet .facet-label .custom-radio{top:-7px;margin-right:0}#search_filters .facet .facet-label .color{margin-left:0}#search_filters .facet .facet-label a{width:calc(100% - 30px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap} #search_filters .facet .facet-label a.star-link{width: 100%}
 
 
 /*# sourceMappingURL=front.css.map*/
