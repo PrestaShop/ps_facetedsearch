@@ -764,6 +764,7 @@ class MySQL extends AbstractAdapter
         $this->setSelectFields(
             [
                 'id_product',
+                'id_product_attribute',
                 'id_manufacturer',
                 'quantity',
                 'condition',

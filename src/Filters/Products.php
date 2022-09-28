@@ -85,6 +85,8 @@ class Products
             $this->searchAdapter->addSelectField('price_max');
         }
 
+        $this->searchAdapter->addSelectField('id_product_attribute');
+
         $matchingProductList = $this->searchAdapter->execute();
 
         $this->pricePostFiltering($matchingProductList, $selectedFilters);
