@@ -239,6 +239,23 @@
 	  </div>
 	</div>
 
+	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='List combinations as individual products' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_filter_list_combinations_as_products" id="ps_layered_filter_list_combinations_as_products_on" value="1"{if $list_combinations_as_products} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_list_combinations_as_products_on" class="radioCheck">
+			<i></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_filter_list_combinations_as_products" id="ps_layered_filter_list_combinations_as_products_off" value="0"{if !$list_combinations_as_products} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_list_combinations_as_products_off" class="radioCheck">
+			<i></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	</div>
+
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>
 	</div>
