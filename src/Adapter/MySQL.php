@@ -255,8 +255,6 @@ class MySQL extends AbstractAdapter
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
-                'aggregateFunction' => 'SUM',
-                'aggregateFieldName' => 'quantity',
             ],
             'price_min' => [
                 'tableName' => 'layered_price_index',
@@ -760,7 +758,8 @@ class MySQL extends AbstractAdapter
     public function useFiltersAsInitialPopulation()
     {
         $this->setLimit(null);
-        $this->setOrderField('');
+        $this->addGroupBy('p.id_product, pa.id_product_attribute');
+        $this->setOrderField('p.id_product, pa.id_product_attribute, pa.default_on');
         $this->setSelectFields(
             [
                 'id_product',
