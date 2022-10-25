@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Configuration;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
@@ -47,7 +48,9 @@ class ProductSearch extends AbstractHook
         // Query is an instance of:
         // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
         if ($query->getIdCategory()) {
-            $this->context->controller->addJqueryUi('slider');
+            if ((bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER')) {
+                $this->context->controller->addJqueryUi('slider');
+            }
             $this->context->controller->registerStylesheet(
                 'facetedsearch_front',
                 '/modules/ps_facetedsearch/views/dist/front.css'
