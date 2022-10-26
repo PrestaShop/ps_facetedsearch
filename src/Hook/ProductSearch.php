@@ -33,7 +33,7 @@ class ProductSearch extends AbstractHook
     ];
 
     /**
-     * This function returns the search provider to the controller who requested it.
+     * This method returns the search provider to the controller who requested it.
      * Module currently only supports filtering in categories, so in other cases,
      * we don't return anything.
      *
