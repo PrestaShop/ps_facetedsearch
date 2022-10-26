@@ -21,6 +21,7 @@
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use Category;
+use Configuration;
 use Context;
 use Db;
 use Manufacturer;
