@@ -27,7 +27,7 @@ use FrontController;
 use Group;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
-use Tools;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 
 class Search
 {
@@ -52,6 +52,11 @@ class Search
      * @var Context
      */
     protected $context;
+
+    /**
+     * @var ProductSearchQuery
+     */
+    protected $query;
 
     /**
      * Search constructor.
@@ -87,29 +92,46 @@ class Search
     }
 
     /**
+     * @return ProductSearchQuery
+     */
+    public function getQuery()
+    {
+        return $this->query;
+    }
+
+    /**
+     * @param ProductSearchQuery $query
+     *
+     * @return $this
+     */
+    public function setQuery(ProductSearchQuery $query)
+    {
+        $this->query = $query;
+
+        return $this;
+    }
+
+    /**
      * Init the initial population of the search filter
      *
      * @param array $selectedFilters
      */
     public function initSearch($selectedFilters)
     {
-        $homeCategory = Configuration::get('PS_HOME_CATEGORY');
-        /* If the current category isn't defined or if it's homepage, we have nothing to display */
-        $idParent = (int) Tools::getValue(
-            'id_category',
-            Tools::getValue('id_category_layered', $homeCategory)
-        );
-
-        $parent = new Category((int) $idParent);
+        // Get category ID from the query or home category as a fallback
+        $idCategory = (int) $this->query->getIdCategory();
+        if (empty($idCategory)) {
+            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+        }
 
         $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
         if (!$psLayeredFullTree) {
-            $this->addFilter('id_category', [$parent->id]);
+            $this->addFilter('id_category', [$idCategory]);
         }
 
         $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
         if ($psLayeredFilterByDefaultCategory) {
-            $this->addFilter('id_category_default', [$parent->id]);
+            $this->addFilter('id_category_default', [$idCategory]);
         }
 
         // Visibility of a product must be in catalog or both (search & catalog)
@@ -124,7 +146,7 @@ class Search
 
         $this->addSearchFilters(
             $selectedFilters,
-            $psLayeredFullTree ? $parent : null,
+            $psLayeredFullTree ? new Category($idCategory) : null,
             (int) $this->context->shop->id
         );
     }

@@ -31,11 +31,11 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
 use stdClass;
 use StockAvailable;
-use Tools;
 
 class BlockTest extends MockeryTestCase
 {
@@ -102,29 +102,23 @@ class BlockTest extends MockeryTestCase
 
         StockAvailable::setStaticExpectations($mock);
 
-        $toolsMock = Mockery::mock(Tools::class);
-        $toolsMock->shouldReceive('getValue')
-            ->andReturnUsing(function ($arg) {
-                $valueMap = [
-                    'id_category' => 12,
-                    'id_category_layered' => 11,
-                ];
-
-                return $valueMap[$arg];
-            });
-        Tools::setStaticExpectations($toolsMock);
-
         $this->shopMock = Mockery::mock(Shop::class);
         Shop::setStaticExpectations($this->shopMock);
 
         $this->adapterMock = Mockery::mock(MySQL::class)->makePartial();
         $this->adapterMock->resetAll();
 
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')
+            ->andReturn(12);
+
         $this->block = new Block(
             $this->adapterMock,
             $this->contextMock,
             $this->dbMock,
-            new DataAccessor($this->dbMock)
+            new DataAccessor($this->dbMock),
+            $query
         );
     }
 
