@@ -797,7 +797,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     /**
      * Returns content for filter template creation or editing
      */
-    public function renderAdminTemplateEdit($template)
+    public function renderAdminTemplateEdit($template = null)
     {
         // Get general data for use in template settings
         $features = $this->getAvailableFeatures();
@@ -824,7 +824,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         } else {
             $id_layered_filter = 0;
             $filters = [];
-            $template_name = sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d'));    
+            $template_name = sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d'));
         }
 
         // Assign multistore related data
@@ -1160,7 +1160,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * This function gets serialized data of filter templates from layered_filter table and builds detailed 
+     * This function gets serialized data of filter templates from layered_filter table and builds detailed
      * information, one category = one line.
      */
     public function buildLayeredCategories()
@@ -1583,24 +1583,26 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      * Provides data about single template.
      *
      * @param int $idFilterTemplate ID of filter template
-     * 
+     *
      * @return array Filter data
      */
-    public function getFilterTemplate($idFilterTemplate) {
+    public function getFilterTemplate($idFilterTemplate)
+    {
         return $this->getDatabase()->getRow(
             'SELECT *
             FROM `' . _DB_PREFIX_ . 'layered_filter`
             WHERE id_layered_filter = ' . $idFilterTemplate
         );
     }
+
     /**
      * Checks if module is configured to automatically add some filter to new categories.
      * If so, it adds the new category.
      *
      * @param int $idCategory ID of category being created
      */
-    public function addCategoryToDefaultFilter($idCategory) {
-
+    public function addCategoryToDefaultFilter($idCategory)
+    {
         // Get default template
         $defaultFilterTemplateId = (int) Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE');
         if (empty($defaultFilterTemplateId)) {
@@ -1612,7 +1614,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         if (empty($template)) {
             return;
         }
- 
+
         // Unserialize filters, add our category
         $filters = Tools::unSerialize($template['filters']);
         $filters['categories'][] = $idCategory;
