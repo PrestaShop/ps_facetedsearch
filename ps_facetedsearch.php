@@ -1160,7 +1160,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * This function gets serialized data of filter templates from layered_filter table and builds detailed
+     * This method gets serialized data of filter templates from layered_filter table and builds detailed
      * information, one category = one line.
      */
     public function buildLayeredCategories()
