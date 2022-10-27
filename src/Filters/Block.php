@@ -698,7 +698,7 @@ class Block
      */
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
-        $features = $featureBlock = [];
+        $featureBlock = [];
         $idFeature = $filter['id_value'];
         $filteredSearchAdapter = null;
 
@@ -716,13 +716,9 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempFeatures = $this->dataAccessor->getFeatures($idLang);
-        if (empty($tempFeatures)) {
+        $features = $this->dataAccessor->getFeatures($idLang);
+        if (empty($features)) {
             return [];
-        }
-
-        foreach ($tempFeatures as $key => $feature) {
-            $features[$feature['id_feature']] = $feature;
         }
 
         $filteredSearchAdapter->addOperationsFilter(
@@ -740,10 +736,7 @@ class Block
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
-                foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
-                    $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
-                }
+                $features[$idFeature]['featureValues'] = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
