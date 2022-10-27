@@ -37,6 +37,7 @@ class Category extends AbstractHook
      */
     public function actionCategoryAdd(array $params)
     {
+        $this->module->addCategoryToDefaultFilter((int) $params['category']->id);
         $this->module->rebuildLayeredCache([], [(int) $params['category']->id]);
         $this->module->invalidateLayeredFilterBlockCache();
     }

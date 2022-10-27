@@ -199,6 +199,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
+            Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
 
             $this->psLayeredFullTree = 1;
 
@@ -699,6 +700,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
+            Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -741,11 +743,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if (Tools::getValue('edit_filters_template')) {
             // Try to get template to edit from database
             $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
-            $template = $this->getDatabase()->getRow(
-                'SELECT *
-                FROM `' . _DB_PREFIX_ . 'layered_filter`
-                WHERE id_layered_filter = ' . $idLayeredFilter
-            );
+            $template = $this->getFilterTemplate($idLayeredFilter);
             if (!empty($template)) {
                 return $this->renderAdminTemplateEdit($template);
             } else {
@@ -790,6 +788,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
+            'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
@@ -1578,5 +1577,51 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function getWidgetVariables($hookName, array $configuration)
     {
         return [];
+    }
+
+    /**
+     * Provides data about single template.
+     *
+     * @param int $idFilterTemplate ID of filter template
+     * 
+     * @return array Filter data
+     */
+    public function getFilterTemplate($idFilterTemplate) {
+        return $this->getDatabase()->getRow(
+            'SELECT *
+            FROM `' . _DB_PREFIX_ . 'layered_filter`
+            WHERE id_layered_filter = ' . $idFilterTemplate
+        );
+    }
+    /**
+     * Checks if module is configured to automatically add some filter to new categories.
+     * If so, it adds the new category.
+     *
+     * @param int $idCategory ID of category being created
+     */
+    public function addCategoryToDefaultFilter($idCategory) {
+
+        // Get default template
+        $defaultFilterTemplateId = (int) Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE');
+        if (empty($defaultFilterTemplateId)) {
+            return;
+        }
+
+        // Try to get it's data
+        $template = $this->getFilterTemplate($defaultFilterTemplateId);
+        if (empty($template)) {
+            return;
+        }
+ 
+        // Unserialize filters, add our category
+        $filters = Tools::unSerialize($template['filters']);
+        $filters['categories'][] = $idCategory;
+
+        // Update it in database
+        $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
+        'SET filters = "' . pSQL(serialize($filters)) . '", ' .
+        'n_categories = ' . (int) count($filters['categories']) . ' ' .
+        'WHERE id_layered_filter = ' . $defaultFilterTemplateId;
+        $this->getDatabase()->execute($sql);
     }
 }
