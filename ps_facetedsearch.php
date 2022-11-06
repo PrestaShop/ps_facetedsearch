@@ -755,9 +755,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
 
-        if (method_exists($this->context->controller, 'addJquery')) {
-            $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
-        }
+        $this->context->controller->addJS(_PS_JS_DIR_ . 'vendor/Sortable.min.js');
 
         $this->context->controller->addJS($this->_path . 'views/dist/back.js');
         $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
