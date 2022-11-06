@@ -6,6 +6,7 @@ module.exports = {
     es6: true,
     jquery: true,
     mocha: true,
+    Sortable: true,
   },
   parserOptions: {
     parser: '@babel/eslint-parser',
