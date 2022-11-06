@@ -6,7 +6,6 @@ module.exports = {
     es6: true,
     jquery: true,
     mocha: true,
-    Sortable: true,
   },
   parserOptions: {
     parser: '@babel/eslint-parser',
@@ -22,6 +21,7 @@ module.exports = {
     filters: true,
     prestashop: true,
     translations: true,
+    Sortable: true,
   },
   rules: {
     'no-new': 0,
