@@ -192,7 +192,7 @@ $(document).ready(() => {
     $('#full-index').click();
   }
 
-  let list_filters = document.getElementById('list-filters');
+  const list_filters = document.getElementById('list-filters');
   if (list_filters !== null) {
     new Sortable(list_filters, {
 	  animation: 150,
