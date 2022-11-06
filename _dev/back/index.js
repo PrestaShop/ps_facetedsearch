@@ -192,9 +192,13 @@ $(document).ready(() => {
     $('#full-index').click();
   }
 
-  $('.sortable').sortable({
-    forcePlaceholderSize: true,
-  });
+  let list_filters = document.getElementById('list-filters');
+  if (list_filters !== null) {
+    new Sortable(list_filters, {
+	  animation: 150,
+	  ghostClass: "sortable-ghost",
+    });
+  }
 
   $('.filter_list_item input[type=checkbox]').click(function onFilterLickItemCheckboxesClicked() {
     const currentSelectedFiltersCount = parseInt($('#selected_filters').html(), 10);
