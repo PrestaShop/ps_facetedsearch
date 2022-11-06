@@ -46,7 +46,7 @@
             </span>
           </header>
           <section class="filter_list">
-            <ul class="list-unstyled sortable">
+            <ul class="list-unstyled sortable" id="list-filters">
               <li class="filter_list_item row" draggable="true">
                 <div class="col-lg-2">
                   <label class="switch-light prestashop-switch fixed-width-lg">
