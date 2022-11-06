@@ -46,7 +46,7 @@
             </span>
           </header>
           <section class="filter_list">
-            <ul id="" class="list-unstyled sortable">
+            <ul id="" class="list-unstyled sortable" id="list-filters">
 
               {foreach from=$default_filters item=filter key=filterId}
                 <li class="filter_list_item row" draggable="true">
