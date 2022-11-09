@@ -194,6 +194,7 @@ $(document).ready(() => {
 
   if (typeof Sortable !== 'undefined') {
     const listFilters = document.getElementById('list-filters');
+
     if (listFilters !== null) {
       new Sortable(listFilters, {
         animation: 150,
@@ -201,9 +202,9 @@ $(document).ready(() => {
       });
     }
   } else {
-      $('.sortable').sortable({
-        forcePlaceholderSize: true,
-      });
+    $('.sortable').sortable({
+      forcePlaceholderSize: true,
+    });
   }
 
   $('.filter_list_item input[type=checkbox]').click(function onFilterLickItemCheckboxesClicked() {
