@@ -192,13 +192,18 @@ $(document).ready(() => {
     $('#full-index').click();
   }
 
-  const listFilters = document.getElementById('list-filters');
-
-  if (listFilters !== null) {
-    new Sortable(listFilters, {
-      animation: 150,
-      ghostClass: 'sortable-ghost',
-    });
+  if (typeof Sortable !== 'undefined') {
+    const listFilters = document.getElementById('list-filters');
+    if (listFilters !== null) {
+      new Sortable(listFilters, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+      });
+    }
+  } else {
+      $('.sortable').sortable({
+        forcePlaceholderSize: true,
+      });
   }
 
   $('.filter_list_item input[type=checkbox]').click(function onFilterLickItemCheckboxesClicked() {
