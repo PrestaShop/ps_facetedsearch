@@ -1024,64 +1024,65 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $filterData['shop_list'] = $shopList;
 
             foreach ($c as $idCategory => $category) {
+                $idCategory = (int) $idCategory;
                 if (!in_array($idCategory, $filterData['categories'])) {
                     $filterData['categories'][] = $idCategory;
                 }
 
-                if (!isset($nCategories[(int) $idCategory])) {
-                    $nCategories[(int) $idCategory] = 1;
+                if (!isset($nCategories[$idCategory])) {
+                    $nCategories[$idCategory] = 1;
                 }
-                if (!isset($doneCategories[(int) $idCategory]['cat'])) {
+                if (!isset($doneCategories[$idCategory]['cat'])) {
                     $filterData['layered_selection_subcategories'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['cat'] = true;
+                    $doneCategories[$idCategory]['cat'] = true;
                     $toInsert = true;
                 }
                 if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
                     foreach ($a as $kAttribute => $attribute) {
-                        if (!isset($doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
+                        if (!isset($doneCategories[$idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
                             $filterData['layered_selection_ag_' . (int) $attributeGroupsById[(int) $kAttribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                            $doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]] = true;
+                            $doneCategories[$idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]] = true;
                             $toInsert = true;
                         }
                     }
                 }
                 if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
                     foreach ($f as $kFeature => $feature) {
-                        if (!isset($doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
+                        if (!isset($doneCategories[$idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
                             $filterData['layered_selection_feat_' . (int) $featuresById[(int) $kFeature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                            $doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]] = true;
+                            $doneCategories[$idCategory]['f' . (int) $featuresById[(int) $kFeature]] = true;
                             $toInsert = true;
                         }
                     }
                 }
 
-                if (!isset($doneCategories[(int) $idCategory]['q'])) {
+                if (!isset($doneCategories[$idCategory]['q'])) {
                     $filterData['layered_selection_stock'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['q'] = true;
+                    $doneCategories[$idCategory]['q'] = true;
                     $toInsert = true;
                 }
 
-                if (!isset($doneCategories[(int) $idCategory]['m'])) {
+                if (!isset($doneCategories[$idCategory]['m'])) {
                     $filterData['layered_selection_manufacturer'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['m'] = true;
+                    $doneCategories[$idCategory]['m'] = true;
                     $toInsert = true;
                 }
 
-                if (!isset($doneCategories[(int) $idCategory]['c'])) {
+                if (!isset($doneCategories[$idCategory]['c'])) {
                     $filterData['layered_selection_condition'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['c'] = true;
+                    $doneCategories[$idCategory]['c'] = true;
                     $toInsert = true;
                 }
 
-                if (!isset($doneCategories[(int) $idCategory]['w'])) {
+                if (!isset($doneCategories[$idCategory]['w'])) {
                     $filterData['layered_selection_weight_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['w'] = true;
+                    $doneCategories[$idCategory]['w'] = true;
                     $toInsert = true;
                 }
 
-                if (!isset($doneCategories[(int) $idCategory]['p'])) {
+                if (!isset($doneCategories[$idCategory]['p'])) {
                     $filterData['layered_selection_price_slider'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['p'] = true;
+                    $doneCategories[$idCategory]['p'] = true;
                     $toInsert = true;
                 }
             }
