@@ -1417,7 +1417,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         );
 
         if (($nbProducts > 0 && !$full || $cursor != $lastCursor && $full) && !$ajax) {
-            return $this->indexPrices((int) $cursor, $full, $ajax, $smart);
+            return $this->indexPrices($cursor, $full, $ajax, $smart);
         }
 
         if ($ajax && $nbProducts > 0 && $cursor != $lastCursor && $full) {
