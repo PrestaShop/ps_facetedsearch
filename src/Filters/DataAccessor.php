@@ -32,12 +32,22 @@ class DataAccessor
     /**
      * @var array
      */
-    private $attributesGroup;
+    private $attributesGroup = [];
 
     /**
      * @var array
      */
-    private $attributes;
+    private $attributes = [];
+
+    /**
+     * @var array
+     */
+    private $features = [];
+
+    /**
+     * @var array
+     */
+    private $featureValues = [];
 
     /**
      * @var Db
@@ -50,9 +60,11 @@ class DataAccessor
     }
 
     /**
+     * Get all attributes for a given language and attribute group.
+     *
      * @param int $idLang
      *
-     * @return array|false|\PDOStatement|resource|null
+     * @return array Attributes
      */
     public function getAttributes($idLang, $idAttributeGroup)
     {
@@ -84,7 +96,7 @@ class DataAccessor
                 'ORDER BY agl.`name` ASC, a.`position` ASC'
             );
 
-            foreach ($tempAttributes as $key => $attribute) {
+            foreach ($tempAttributes as $attribute) {
                 $this->attributes[$idLang][$idAttributeGroup][$attribute['id_attribute']] = $attribute;
             }
         }
@@ -93,7 +105,7 @@ class DataAccessor
     }
 
     /**
-     * Get all attributes groups for a given language
+     * Get all attributes groups for a given language.
      *
      * @param int $idLang Language id
      *
@@ -125,7 +137,7 @@ class DataAccessor
                 'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
             );
 
-            foreach ($tempAttributesGroup as $key => $attributeGroup) {
+            foreach ($tempAttributesGroup as $attributeGroup) {
                 $this->attributesGroup[$idLang][$attributeGroup['id_attribute_group']] = $attributeGroup;
             }
         }
@@ -134,51 +146,69 @@ class DataAccessor
     }
 
     /**
-     * Get features with their associated layered information
+     * Get features with their associated layered information.
      *
      * @param int $idLang
      *
-     * @return array|false|\PDOStatement|resource|null
+     * @return array Features
      */
     public function getFeatures($idLang)
     {
-        return $this->database->executeS(
-            'SELECT DISTINCT f.id_feature, f.*, fl.*, ' .
-            'IF(liflv.`url_name` IS NULL OR liflv.`url_name` = "", NULL, liflv.`url_name`) AS url_name, ' .
-            'IF(liflv.`meta_title` IS NULL OR liflv.`meta_title` = "", NULL, liflv.`meta_title`) AS meta_title, ' .
-            'lif.indexable ' .
-            'FROM `' . _DB_PREFIX_ . 'feature` f ' .
-            '' . Shop::addSqlAssociation('feature', 'f') . ' ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'feature_lang` fl ON (f.`id_feature` = fl.`id_feature` AND fl.`id_lang` = ' . (int) $idLang . ') ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature` lif ' .
-            'ON (f.`id_feature` = lif.`id_feature`) ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` liflv ' .
-            'ON (f.`id_feature` = liflv.`id_feature` AND liflv.`id_lang` = ' . (int) $idLang . ') ' .
-            'ORDER BY f.`position` ASC'
-        );
+        if (!isset($this->features[$idLang])) {
+            $this->features[$idLang] = [];
+            $tempFeatures = $this->database->executeS(
+                'SELECT DISTINCT f.id_feature, f.*, fl.*, ' .
+                'IF(liflv.`url_name` IS NULL OR liflv.`url_name` = "", NULL, liflv.`url_name`) AS url_name, ' .
+                'IF(liflv.`meta_title` IS NULL OR liflv.`meta_title` = "", NULL, liflv.`meta_title`) AS meta_title, ' .
+                'lif.indexable ' .
+                'FROM `' . _DB_PREFIX_ . 'feature` f ' .
+                '' . Shop::addSqlAssociation('feature', 'f') . ' ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'feature_lang` fl ON (f.`id_feature` = fl.`id_feature` AND fl.`id_lang` = ' . (int) $idLang . ') ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature` lif ' .
+                'ON (f.`id_feature` = lif.`id_feature`) ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_lang_value` liflv ' .
+                'ON (f.`id_feature` = liflv.`id_feature` AND liflv.`id_lang` = ' . (int) $idLang . ') ' .
+                'ORDER BY f.`position` ASC'
+            );
+
+            foreach ($tempFeatures as $feature) {
+                $this->features[$idLang][$feature['id_feature']] = $feature;
+            }
+        }
+
+        return $this->features[$idLang];
     }
 
     /**
-     * Get feature values with their associated layered information
+     * Get feature values for given feature, with their associated layered information.
      *
      * @param int $idFeature
      * @param int $idLang
      *
-     * @return array|false|\PDOStatement|resource|null
+     * @return array Feature values
      */
     public function getFeatureValues($idFeature, $idLang)
     {
-        return $this->database->executeS(
-            'SELECT v.*, vl.*, ' .
-            'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
-            'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
-            'FROM `' . _DB_PREFIX_ . 'feature_value` v ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` vl ' .
-            'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = ' . (int) $idLang . ') ' .
-            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
-            'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
-            'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
-            'ORDER BY vl.`value` ASC'
-        );
+        if (!isset($this->featureValues[$idLang][$idFeature])) {
+            $this->featureValues[$idLang] = [$idFeature => []];
+            $tempFeatureValues = $this->database->executeS(
+                'SELECT v.*, vl.*, ' .
+                'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
+                'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
+                'FROM `' . _DB_PREFIX_ . 'feature_value` v ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` vl ' .
+                'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = ' . (int) $idLang . ') ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
+                'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
+                'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
+                'ORDER BY vl.`value` ASC'
+            );
+
+            foreach ($tempFeatureValues as $feature) {
+                $this->featureValues[$idLang][$idFeature][$feature['id_feature_value']] = $feature;
+            }
+        }
+
+        return $this->featureValues[$idLang][$idFeature];
     }
 }
