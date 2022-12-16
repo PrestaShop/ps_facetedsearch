@@ -32,7 +32,6 @@ use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use Shop;
 use stdClass;
-use Tools;
 
 class ConverterTest extends MockeryTestCase
 {
@@ -72,17 +71,6 @@ class ConverterTest extends MockeryTestCase
         $this->contextMock->language->id = 2;
 
         $this->dbMock = Mockery::mock(Db::class);
-        $toolsMock = Mockery::mock(Tools::class);
-        $toolsMock->shouldReceive('getValue')
-            ->andReturnUsing(function ($arg) {
-                $valueMap = [
-                    'id_category' => 12,
-                    'id_category_layered' => 11,
-                ];
-
-                return $valueMap[$arg];
-            });
-        Tools::setStaticExpectations($toolsMock);
 
         $this->shopMock = Mockery::mock(Shop::class);
         Shop::setStaticExpectations($this->shopMock);
