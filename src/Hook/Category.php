@@ -86,7 +86,8 @@ class Category extends AbstractHook
                 unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
                 $this->database->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
-                    SET `filters` = \'' . pSQL(serialize($data)) . '\'
+                    SET `filters` = \'' . pSQL(serialize($data)) . '\',
+                    n_categories = ' . (int) count($data['categories']) . ' 
                     WHERE `id_layered_filter` = ' . (int) $layeredFilter['id_layered_filter']
                 );
             }
