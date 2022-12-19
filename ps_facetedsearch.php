@@ -803,13 +803,14 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $features = $this->getAvailableFeatures();
         $attributeGroups = $this->getAvailableAttributes();
 
-        // Initialize category tree
+        // Initialize category tree component
         $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
         $treeCategoriesHelper
             ->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
             ->setUseCheckBox(true);
 
-        // If we are editing an already existing template
+        // If we are editing an already existing template, we will load its data,
+        // check categories and add selected filters. Otherwise, we prepare empty template.
         if ($template !== null) {
             $filters = Tools::unSerialize($template['filters']);
             $id_layered_filter = $template['id_layered_filter'];
@@ -837,7 +838,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         }
 
         $this->context->smarty->assign([
-            'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
+            'current_url' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name, 'tab_module' => $this->tab, 'module_name' => $this->name]),
             'id_layered_filter' => $id_layered_filter,
             'template_name' => $template_name,
             'attribute_groups' => $attributeGroups,
@@ -879,7 +880,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     }
 
     /**
-     * Returns array with all available attributes on the shop
+     * Returns array with all available attributes on the shop. Only used in backoffice.
      */
     private function getAvailableAttributes()
     {
@@ -894,7 +895,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     }
 
     /**
-     * Returns array with all available features on the shop
+     * Returns array with all available features on the shop. Only used in backoffice.
      */
     private function getAvailableFeatures()
     {
@@ -1580,7 +1581,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * Provides data about single template.
+     * Provides data about single filter template.
      *
      * @param int $idFilterTemplate ID of filter template
      *
@@ -1591,7 +1592,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         return $this->getDatabase()->getRow(
             'SELECT *
             FROM `' . _DB_PREFIX_ . 'layered_filter`
-            WHERE id_layered_filter = ' . $idFilterTemplate
+            WHERE id_layered_filter = ' . (int) $idFilterTemplate
         );
     }
 
