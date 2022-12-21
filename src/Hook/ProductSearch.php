@@ -26,6 +26,8 @@ use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use PrestaShop\PrestaShop\Core\Product\Search\SortOrder;
 
 class ProductSearch extends AbstractHook
 {
@@ -35,8 +37,6 @@ class ProductSearch extends AbstractHook
 
     /**
      * This method returns the search provider to the controller who requested it.
-     * Module currently only supports filtering in categories, so in other cases,
-     * we don't return anything.
      *
      * @param array $params
      *
@@ -44,8 +44,29 @@ class ProductSearch extends AbstractHook
      */
     public function productSearchProvider(array $params)
     {
-        if (!$params['query']->getIdCategory()) {
+        /*
+         * Backward compatibility, required for versions < 8.0
+         * We need to assign missing queryType to some controllers, which don't report it.
+         * Remove when module minimum compatibility reaches 8.0.
+         */
+        if (empty($params['query']->getQueryType())) {
+            $params['query'] = $this->assignMissingQueryType($params['query']);
+        }
+
+        /*
+         * Check if the type of query (controller) is supported by our module. If not, we
+         * let the core do the search.
+         */
+        if ($this->module->isControllerSupported($params['query']->getQueryType()) === false) {
             return null;
+        }
+
+        /*
+         * Fix wrong reporting of desired best sales order. BestSalesProductSearchProvider overrides
+         * the sort set on the query in BestSalesControllerCore.
+         */
+        if ($params['query']->getQueryType() == 'best-sales') {
+            $params['query']->setSortOrder(new SortOrder('product', 'sales', 'desc'));
         }
 
         // Assign assets
@@ -81,5 +102,27 @@ class ProductSearch extends AbstractHook
             null,
             $provider
         );
+    }
+
+    /**
+     * Assign missing queryType, required for PS versions < 8.0
+     *
+     * @param ProductSearchQuery $query
+     *
+     * @return ProductSearchQuery
+     */
+    private function assignMissingQueryType(ProductSearchQuery $query)
+    {
+        if (!empty($query->getIdCategory())) {
+            $query->setQueryType('category');
+        } elseif (!empty($query->getIdManufacturer())) {
+            $query->setQueryType('manufacturer');
+        } elseif (!empty($query->getIdSupplier())) {
+            $query->setQueryType('supplier');
+        } elseif (!empty($query->getSearchString()) || !empty($query->getSearchTag())) {
+            $query->setQueryType('search');
+        }
+
+        return $query;
     }
 }

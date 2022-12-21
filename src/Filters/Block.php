@@ -536,7 +536,14 @@ class Block
     private function getManufacturersBlock($filter, $selectedFilters, $idLang)
     {
         $manufacturersArray = $manufacturers = [];
-        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_manufacturer');
+
+        // TODO - Needed to make manufacturer filter work (=disappear) on manufacturer page, not sure how it works.
+        // (Manufacturer's page is the only page having id_manufacturer as the initial filter, that's why.)
+        if ($this->query->getQueryType() == 'manufacturer') {
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
+        } else {
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('id_manufacturer');
+        }
 
         $tempManufacturers = Manufacturer::getManufacturers(false, $idLang);
         if (empty($tempManufacturers)) {

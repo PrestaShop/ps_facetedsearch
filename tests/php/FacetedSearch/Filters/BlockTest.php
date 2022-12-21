@@ -84,6 +84,8 @@ class BlockTest extends MockeryTestCase
         $this->contextMock->currency->iso_code = 'EUR';
         $this->contextMock->currency->sign = '€';
         $this->contextMock->currency->id = 4;
+        $this->contextMock->customer = new stdClass();
+        $this->contextMock->customer->id_default_group = 5;
 
         $this->contextMock->shouldReceive('getContext')
             ->andReturn($this->contextMock);
@@ -113,6 +115,8 @@ class BlockTest extends MockeryTestCase
         $query = Mockery::mock(ProductSearchQuery::class);
         $query->shouldReceive('getIdCategory')
             ->andReturn(12);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('category');
 
         $this->block = new Block(
             $this->adapterMock,
@@ -1167,7 +1171,8 @@ class BlockTest extends MockeryTestCase
         $this->dbMock->shouldReceive('executeS')
             ->once()
             ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
-            WHERE id_category = 12
+            WHERE controller = \'category\'
+            AND id_category = 12
             AND id_shop = 1
             GROUP BY `type`, id_value ORDER BY position ASC')
             ->andReturn($result);
