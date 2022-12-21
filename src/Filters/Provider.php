@@ -56,7 +56,8 @@ class Provider
         if (empty($this->filters)) {
             $this->filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . (int) $query->getIdCategory() . '
+            WHERE controller = \'' . $query->getQueryType() . '\'
+            AND id_category = ' . ($query->getQueryType() == 'category' ? (int) $query->getIdCategory() : 0) . '
             AND id_shop = ' . $idShop . '
             GROUP BY `type`, id_value ORDER BY position ASC'
             );
