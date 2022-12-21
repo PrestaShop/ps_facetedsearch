@@ -261,6 +261,21 @@
     </div>
   </div>
 
+	<div class="form-group">
+		<label class="control-label col-lg-3">{l s='Default filter template for new categories' d='Modules.Facetedsearch.Admin'}</label>				
+		<div class="col-lg-9">
+			<select class="form-control fixed-width-xxl" name="ps_layered_default_category_template" id="ps_layered_default_category_template">
+				<option value="0" {if empty($default_category_template)} selected="selected" {/if}>{l s='None' d='Admin.Global'}</option>
+				{foreach $filters_templates as $template}
+					<option value="{$template['id_layered_filter']}" {if $default_category_template == $template['id_layered_filter']} selected="selected" {/if}>{$template['name']}</option>
+				{/foreach}
+			</select>
+		</div>
+		<div class="col-lg-9 col-lg-offset-3">
+			<div class="help-block">{l s='If you want to automatically assign a filter template to new categories, select it here.' d='Modules.Facetedsearch.Admin'}</div>
+		</div>
+	</div>
+
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>
 	</div>
