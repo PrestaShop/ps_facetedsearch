@@ -30,7 +30,6 @@ use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use Tools;
 
 class Converter
 {
@@ -233,22 +232,27 @@ class Converter
         $idShop = (int) $this->context->shop->id;
         $idLang = (int) $this->context->language->id;
 
-        $idParent = $query->getIdCategory();
-        if (empty($idParent)) {
-            $idParent = (int) Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'));
+        // Get category ID from the query or home category as a fallback
+        $idCategory = (int) $query->getIdCategory();
+        if (empty($idCategory)) {
+            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
         }
 
         $searchFilters = [];
 
-        /* Get the filters for the current category */
+        // Get filters configured for the current category
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . (int) $idParent . '
-            AND id_shop = ' . (int) $idShop . '
+            WHERE id_category = ' . $idCategory . '
+            AND id_shop = ' . $idShop . '
             GROUP BY `type`, id_value ORDER BY position ASC'
         );
 
+        // Parse currently selected filters from URL into a nice array
         $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
+
+        // Go through filters that are configured and find out which should be activated,
+        // depending on what was provided in the URL
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 

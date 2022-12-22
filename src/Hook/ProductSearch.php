@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Configuration;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
@@ -32,7 +33,9 @@ class ProductSearch extends AbstractHook
     ];
 
     /**
-     * Hook project search provider
+     * This method returns the search provider to the controller who requested it.
+     * Module currently only supports filtering in categories, so in other cases,
+     * we don't return anything.
      *
      * @param array $params
      *
@@ -40,40 +43,38 @@ class ProductSearch extends AbstractHook
      */
     public function productSearchProvider(array $params)
     {
-        $query = $params['query'];
-        // do something with query,
-        // e.g. use $query->getIdCategory()
-        // to choose a template for filters.
-        // Query is an instance of:
-        // PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery
-        if ($query->getIdCategory()) {
-            $this->context->controller->addJqueryUi('slider');
-            $this->context->controller->registerStylesheet(
-                'facetedsearch_front',
-                '/modules/ps_facetedsearch/views/dist/front.css'
-            );
-            $this->context->controller->registerJavascript(
-                'facetedsearch_front',
-                '/modules/ps_facetedsearch/views/dist/front.js',
-                ['position' => 'bottom', 'priority' => 100]
-            );
-
-            $urlSerializer = new URLSerializer();
-            $dataAccessor = new DataAccessor($this->module->getDatabase());
-
-            return new SearchProvider(
-                $this->module,
-                new Converter(
-                    $this->module->getContext(),
-                    $this->module->getDatabase(),
-                    $urlSerializer,
-                    $dataAccessor
-                ),
-                $urlSerializer,
-                $dataAccessor
-            );
+        if (!$params['query']->getIdCategory()) {
+            return null;
         }
 
-        return null;
+        // Assign assets
+        if ((bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER')) {
+            $this->context->controller->addJqueryUi('slider');
+        }
+        $this->context->controller->registerStylesheet(
+            'facetedsearch_front',
+            '/modules/ps_facetedsearch/views/dist/front.css'
+        );
+        $this->context->controller->registerJavascript(
+            'facetedsearch_front',
+            '/modules/ps_facetedsearch/views/dist/front.js',
+            ['position' => 'bottom', 'priority' => 100]
+        );
+
+        $urlSerializer = new URLSerializer();
+        $dataAccessor = new DataAccessor($this->module->getDatabase());
+
+        // Return an instance of our searcher, ready to accept requests
+        return new SearchProvider(
+            $this->module,
+            new Converter(
+                $this->module->getContext(),
+                $this->module->getDatabase(),
+                $urlSerializer,
+                $dataAccessor
+            ),
+            $urlSerializer,
+            $dataAccessor
+        );
     }
 }

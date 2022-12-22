@@ -7,4 +7,3 @@ parameters:
     - '~^Parameter #2 \$active of static method CurrencyCore::getCurrencies\(\) expects bool, int given\.$~'
     - '~^Parameter #3 \$groupBy of static method CurrencyCore::getCurrencies\(\) expects bool, Shop given\.$~'
     - '~^Parameter #\d+ \$\w+ of static method ProductCore::priceCalculation\(\) expects \w+, \w+ given\.$~'
-    - '~^Access to an undefined property Cookie::\$id_lang\.$~'

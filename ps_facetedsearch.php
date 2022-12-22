@@ -91,7 +91,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.8.0';
+        $this->version = '3.9.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -198,6 +198,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
+            Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
+            Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
 
             $this->psLayeredFullTree = 1;
 
@@ -697,6 +699,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
+            Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
+            Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -721,97 +725,49 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
-        $categoryBox = [];
-        $attributeGroups = $this->getDatabase()->executeS(
-            'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
-            FROM ' . _DB_PREFIX_ . 'attribute_group ag
-            LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
-            LEFT JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
-            WHERE agl.id_lang = ' . (int) $cookie->id_lang . '
-            GROUP BY ag.id_attribute_group'
-        );
+        // Assign general variables
+        $this->context->smarty->assign('uri', $this->getPathUri());
 
-        $features = $this->getDatabase()->executeS(
-            'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
-            FROM ' . _DB_PREFIX_ . 'feature_lang fl
-            LEFT JOIN ' . _DB_PREFIX_ . 'feature_value fv ON (fv.id_feature = fl.id_feature)
-            WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = ' . (int) $cookie->id_lang . '
-            GROUP BY fl.id_feature'
-        );
-
-        if (Shop::isFeatureActive() && count(Shop::getShops(true, null, true)) > 1) {
-            $helper = new HelperForm();
-            $helper->id = Tools::getValue('id_layered_filter', null);
-            $helper->table = 'layered_filter';
-            $helper->identifier = 'id_layered_filter';
-            $this->context->smarty->assign('asso_shops', $helper->renderAssoShop());
-        }
-
-        $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
-        $treeCategoriesHelper->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
-                                                                     ->setUseCheckBox(true);
-
-        $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
-
+        // Assign assets
         if (method_exists($this->context->controller, 'addJquery')) {
             $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
         }
-
         $this->context->controller->addJS($this->_path . 'views/dist/back.js');
         $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
 
+        // Render screen for adding new template
         if (Tools::getValue('add_new_filters_template')) {
-            $this->context->smarty->assign([
-                'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
-                'uri' => $this->getPathUri(),
-                'id_layered_filter' => 0,
-                'template_name' => sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')),
-                'attribute_groups' => $attributeGroups,
-                'features' => $features,
-                'total_filters' => 6 + count($attributeGroups) + count($features),
-            ]);
-
-            $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
-
-            return $this->display(__FILE__, 'views/templates/admin/add.tpl');
+            return $this->renderAdminTemplateEdit();
         }
 
         if (Tools::getValue('edit_filters_template')) {
+            // Try to get template to edit from database
             $idLayeredFilter = (int) Tools::getValue('id_layered_filter');
-            $template = $this->getDatabase()->getRow(
-                'SELECT *
-                FROM `' . _DB_PREFIX_ . 'layered_filter`
-                WHERE id_layered_filter = ' . $idLayeredFilter
-            );
-
+            $template = $this->getFilterTemplate($idLayeredFilter);
             if (!empty($template)) {
-                $filters = Tools::unSerialize($template['filters']);
-                $treeCategoriesHelper->setSelectedCategories($filters['categories']);
-                $this->context->smarty->assign('categories_tree', $treeCategoriesHelper->render());
-
-                $selectShops = $filters['shop_list'];
-                unset($filters['categories']);
-                unset($filters['shop_list']);
-
-                $this->context->smarty->assign([
-                    'current_url' => $this->context->link->getAdminLink('AdminModules') . '&configure=ps_facetedsearch&tab_module=front_office_features&module_name=ps_facetedsearch',
-                    'uri' => $this->getPathUri(),
-                    'id_layered_filter' => $idLayeredFilter,
-                    'template_name' => $template['name'],
-                    'attribute_groups' => $attributeGroups,
-                    'features' => $features,
-                    'filters' => $filters,
-                    'total_filters' => 6 + count($attributeGroups) + count($features),
-                    'default_filters' => $this->getDefaultFilters(),
-                ]);
-
-                return $this->display(__FILE__, 'views/templates/admin/view.tpl');
+                return $this->renderAdminTemplateEdit($template);
+            } else {
+                $message = $this->displayError($this->trans('Filter template not found', [], 'Modules.Facetedsearch.Admin'));
             }
         }
 
+        $this->context->smarty->assign('message', $message);
+
+        // Render general admin screen
+        return $this->renderAdminMain();
+    }
+
+    /**
+     * Returns content for main module configuration screen
+     */
+    public function renderAdminMain()
+    {
+        // General purpose variables
+        $moduleUrl = Tools::getProtocol(Tools::usingSecureMode()) . $_SERVER['HTTP_HOST'] . $this->getPathUri();
+        $features = $this->getAvailableFeatures();
+        $attributeGroups = $this->getAvailableAttributes();
+
         $this->context->smarty->assign([
-            'message' => $message,
-            'uri' => $this->getPathUri(),
             'PS_LAYERED_INDEXED' => (int) Configuration::getGlobalValue('PS_LAYERED_INDEXED'),
             'current_url' => Tools::safeOutput(preg_replace('/&deleteFilterTemplate=[0-9]*&id_layered_filter=[0-9]*/', '', $_SERVER['REQUEST_URI'])),
             'id_lang' => $this->getContext()->cookie->id_lang,
@@ -821,7 +777,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'full_price_indexer_url' => $moduleUrl . 'ps_facetedsearch-price-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10) . '&full=1',
             'attribute_indexer_url' => $moduleUrl . 'ps_facetedsearch-attribute-indexer.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
             'clear_cache_url' => $moduleUrl . 'ps_facetedsearch-clear-cache.php' . '?token=' . substr(Tools::hash('ps_facetedsearch/index'), 0, 10),
-            'filters_templates' => $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC'),
+            'filters_templates' => $this->getExistingFiltersOverview(),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
             'full_tree' => $this->psLayeredFullTree,
@@ -831,9 +787,74 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
+            'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
+            'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
+    }
+
+    /**
+     * Returns content for filter template creation or editing
+     */
+    public function renderAdminTemplateEdit($template = null)
+    {
+        // Get general data for use in template settings
+        $features = $this->getAvailableFeatures();
+        $attributeGroups = $this->getAvailableAttributes();
+
+        // Initialize category tree component
+        $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
+        $treeCategoriesHelper
+            ->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
+            ->setUseCheckBox(true);
+
+        // If we are editing an already existing template, we will load its data,
+        // check categories and add selected filters. Otherwise, we prepare empty template.
+        if ($template !== null) {
+            $filters = Tools::unSerialize($template['filters']);
+            $id_layered_filter = $template['id_layered_filter'];
+            $template_name = $template['name'];
+
+            // Check categories
+            $treeCategoriesHelper->setSelectedCategories($filters['categories']);
+
+            // We need to clear all data except the filters themselves, due to JS processing them
+            unset($filters['categories']);
+            unset($filters['shop_list']);
+        } else {
+            $id_layered_filter = 0;
+            $filters = [];
+            $template_name = sprintf($this->trans('My template - %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d'));
+        }
+
+        // Assign multistore related data
+        if (Shop::isFeatureActive() && count(Shop::getShops(true, null, true)) > 1) {
+            $helper = new HelperForm();
+            $helper->id = Tools::getValue('id_layered_filter', null);
+            $helper->table = 'layered_filter';
+            $helper->identifier = 'id_layered_filter';
+            $this->context->smarty->assign('asso_shops', $helper->renderAssoShop());
+        }
+
+        $this->context->smarty->assign([
+            'current_url' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name, 'tab_module' => $this->tab, 'module_name' => $this->name]),
+            'id_layered_filter' => $id_layered_filter,
+            'template_name' => $template_name,
+            'attribute_groups' => $attributeGroups,
+            'features' => $features,
+            'filters' => $filters,
+            'total_filters' => 6 + count($attributeGroups) + count($features),
+            'default_filters' => $this->getDefaultFilters(),
+            'categories_tree' => $treeCategoriesHelper->render(),
+        ]);
+
+        // We are using two separate templates depending on context
+        if ($template !== null) {
+            return $this->display(__FILE__, 'views/templates/admin/view.tpl');
+        } else {
+            return $this->display(__FILE__, 'views/templates/admin/add.tpl');
+        }
     }
 
     public function displayLimitPostWarning($count)
@@ -856,6 +877,44 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     private function query($sqlQuery)
     {
         return $this->getDatabase()->query($sqlQuery);
+    }
+
+    /**
+     * Returns array with all available attributes on the shop. Only used in backoffice.
+     */
+    private function getAvailableAttributes()
+    {
+        return $this->getDatabase()->executeS(
+            'SELECT ag.id_attribute_group, ag.is_color_group, agl.name, COUNT(DISTINCT(a.id_attribute)) n
+            FROM ' . _DB_PREFIX_ . 'attribute_group ag
+            LEFT JOIN ' . _DB_PREFIX_ . 'attribute_group_lang agl ON (agl.id_attribute_group = ag.id_attribute_group)
+            LEFT JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute_group = ag.id_attribute_group)
+            WHERE agl.id_lang = ' . (int) $this->getContext()->cookie->id_lang . '
+            GROUP BY ag.id_attribute_group'
+        );
+    }
+
+    /**
+     * Returns array with all available features on the shop. Only used in backoffice.
+     */
+    private function getAvailableFeatures()
+    {
+        return $this->getDatabase()->executeS(
+            'SELECT fl.id_feature, fl.name, COUNT(DISTINCT(fv.id_feature_value)) n
+            FROM ' . _DB_PREFIX_ . 'feature_lang fl
+            LEFT JOIN ' . _DB_PREFIX_ . 'feature_value fv ON (fv.id_feature = fl.id_feature)
+            WHERE (fv.custom IS NULL OR fv.custom = 0) AND fl.id_lang = ' . (int) $this->getContext()->cookie->id_lang . '
+            GROUP BY fl.id_feature'
+        );
+    }
+
+    /**
+     * Returns array with existing filters set up in the module, for overview on a main page
+     */
+    private function getExistingFiltersOverview()
+    {
+        // Get data about current filters in database
+        return $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
     }
 
     /**
@@ -1102,43 +1161,57 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     }
 
     /**
-     * Build layered categories
+     * This method gets serialized data of filter templates from layered_filter table and builds detailed
+     * information, one category = one line.
      */
     public function buildLayeredCategories()
     {
-        // Get all filter template
-        $res = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
-        $categories = [];
+        // Get data for all filter templates in the database
+        $templates = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
+
+        // We will keep track of pages categories where filter was already set, so we don't have multiple
+        // filters for the same category and shop.
+        $alreadyAssigned = [];
+
         // Clear cache
         $this->invalidateLayeredFilterBlockCache();
-        // Remove all from layered_category
+
+        // Remove all previous data from layered_category
         $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
 
-        if (!count($res)) { // No filters templates defined, nothing else to do
+        // If no filter templates are defined, nothing else to do here
+        if (!count($templates)) {
             return true;
         }
 
+        // We will insert our queries by batches of hundred queries
         $sqlInsertPrefix = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_category (id_category, id_shop, id_value, type, position, filter_show_limit, filter_type) VALUES ';
         $sqlInsert = '';
         $nbSqlValuesToInsert = 0;
 
-        foreach ($res as $filterTemplate) {
+        // Now we will loop through each filter template
+        foreach ($templates as $filterTemplate) {
+            // We will get it's data and convert it into array
             $data = Tools::unSerialize($filterTemplate['filters']);
             foreach ($data['shop_list'] as $idShop) {
-                if (!isset($categories[$idShop])) {
-                    $categories[$idShop] = [];
+                if (!isset($alreadyAssigned[$idShop])) {
+                    $alreadyAssigned[$idShop] = [];
                 }
 
                 foreach ($data['categories'] as $idCategory) {
                     $n = 0;
-                    if (in_array($idCategory, $categories[$idShop])) {
+
+                    // If we already have a filter for this category and shop, we will skip it
+                    if (in_array($idCategory, $alreadyAssigned[$idShop])) {
                         continue;
                     }
-                    // Last definition, erase previous categories defined
 
-                    $categories[$idShop][] = $idCategory;
+                    // Save information, that this category already has a filter assigned, so we skip it next time
+                    $alreadyAssigned[$idShop][] = $idCategory;
 
                     foreach ($data as $key => $value) {
+                        // The template contains some other data than filters, so we clean it up a bit
+                        // All filters begin with layered_selection
                         if (substr($key, 0, 17) == 'layered_selection') {
                             $type = $value['filter_type'];
                             $limit = $value['filter_show_limit'];
@@ -1165,6 +1238,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                             }
 
                             ++$nbSqlValuesToInsert;
+
+                            // If we reached the limit, we will execute it and flush our "cache"
                             if ($nbSqlValuesToInsert >= 100) {
                                 $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
                                 $sqlInsert = '';
@@ -1176,6 +1251,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             }
         }
 
+        // We will execute remaining queries because we almost certainly didn't reach 100 in the batch
         if ($nbSqlValuesToInsert) {
             $this->getDatabase()->execute($sqlInsertPrefix . rtrim($sqlInsert, ','));
         }
@@ -1502,5 +1578,53 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
     public function getWidgetVariables($hookName, array $configuration)
     {
         return [];
+    }
+
+    /**
+     * Provides data about single filter template.
+     *
+     * @param int $idFilterTemplate ID of filter template
+     *
+     * @return array Filter data
+     */
+    public function getFilterTemplate($idFilterTemplate)
+    {
+        return $this->getDatabase()->getRow(
+            'SELECT *
+            FROM `' . _DB_PREFIX_ . 'layered_filter`
+            WHERE id_layered_filter = ' . (int) $idFilterTemplate
+        );
+    }
+
+    /**
+     * Checks if module is configured to automatically add some filter to new categories.
+     * If so, it adds the new category.
+     *
+     * @param int $idCategory ID of category being created
+     */
+    public function addCategoryToDefaultFilter($idCategory)
+    {
+        // Get default template
+        $defaultFilterTemplateId = (int) Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE');
+        if (empty($defaultFilterTemplateId)) {
+            return;
+        }
+
+        // Try to get it's data
+        $template = $this->getFilterTemplate($defaultFilterTemplateId);
+        if (empty($template)) {
+            return;
+        }
+
+        // Unserialize filters, add our category
+        $filters = Tools::unSerialize($template['filters']);
+        $filters['categories'][] = $idCategory;
+
+        // Update it in database
+        $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
+        'SET filters = "' . pSQL(serialize($filters)) . '", ' .
+        'n_categories = ' . (int) count($filters['categories']) . ' ' .
+        'WHERE id_layered_filter = ' . $defaultFilterTemplateId;
+        $this->getDatabase()->execute($sql);
     }
 }

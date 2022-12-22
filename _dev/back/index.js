@@ -19,7 +19,7 @@
 import './blocklayered.scss';
 
 /* eslint-disable no-unused-vars, no-alert */
-function checkForm() {
+window.checkForm = function checkForm() {
   let isCategorySelected = false;
   let isFilterSelected = false;
 
@@ -52,7 +52,7 @@ function checkForm() {
   }
 
   return true;
-}
+};
 
 $(document).ready(() => {
   $('.ajaxcall').click(function onAjaxCall() {

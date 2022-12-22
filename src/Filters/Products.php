@@ -23,6 +23,7 @@ namespace PrestaShop\Module\FacetedSearch\Filters;
 use Configuration;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Product\Search;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use Product;
 use Validate;
 
@@ -53,27 +54,28 @@ class Products
     }
 
     /**
-     * Get the products associated with the current filters
+     * Get the products associated with the current filters.
      *
-     * @param int $productsPerPage
-     * @param int $page
-     * @param string $orderBy
-     * @param string $orderWay
+     * @param ProductSearchQuery $query
      * @param array $selectedFilters
      *
      * @return array
      */
     public function getProductByFilters(
-        $productsPerPage,
-        $page,
-        $orderBy,
-        $orderWay,
-        $selectedFilters = []
+        ProductSearchQuery $query,
+        array $selectedFilters = []
     ) {
+        // Get pagination
+        $productsPerPage = (int) $query->getResultsPerPage();
+        $page = (int) $query->getPage();
+
+        // Load sorting type and direction, validate it and apply fallback if needed
+        $orderBy = $query->getSortOrder()->toLegacyOrderBy(false);
+        $orderWay = $query->getSortOrder()->toLegacyOrderWay();
         $orderWay = Validate::isOrderWay($orderWay) ? $orderWay : 'ASC';
         $orderBy = Validate::isOrderBy($orderBy) ? $orderBy : 'position';
 
-        $this->searchAdapter->setLimit((int) $productsPerPage, ((int) $page - 1) * $productsPerPage);
+        $this->searchAdapter->setLimit($productsPerPage, ($page - 1) * $productsPerPage);
         $this->searchAdapter->setOrderField($orderBy);
         $this->searchAdapter->setOrderDirection($orderWay);
 

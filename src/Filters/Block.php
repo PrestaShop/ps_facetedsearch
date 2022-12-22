@@ -31,8 +31,8 @@ use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopDatabaseException;
-use Tools;
 
 /**
  * Display filters block on navigation
@@ -74,12 +74,23 @@ class Block
      */
     private $dataAccessor;
 
-    public function __construct(InterfaceAdapter $searchAdapter, Context $context, Db $database, DataAccessor $dataAccessor)
-    {
+    /**
+     * @var ProductSearchQuery
+     */
+    private $query;
+
+    public function __construct(
+        InterfaceAdapter $searchAdapter,
+        Context $context,
+        Db $database,
+        DataAccessor $dataAccessor,
+        ProductSearchQuery $query
+        ) {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
         $this->dataAccessor = $dataAccessor;
+        $this->query = $query;
     }
 
     /**
@@ -94,16 +105,18 @@ class Block
     ) {
         $idLang = (int) $this->context->language->id;
         $idShop = (int) $this->context->shop->id;
-        $idParent = (int) Tools::getValue(
-            'id_category',
-            Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY'))
-        );
+
+        // Get category ID from the query or home category as a fallback
+        $idCategory = (int) $this->query->getIdCategory();
+        if (empty($idCategory)) {
+            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+        }
 
         /* Get the filters for the current category */
         $filters = $this->database->executeS(
             'SELECT type, id_value, filter_show_limit, filter_type ' .
             'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . $idParent . ' ' .
+            'WHERE id_category = ' . $idCategory . ' ' .
             'AND id_shop = ' . $idShop . ' ' .
             'GROUP BY `type`, id_value ORDER BY position ASC'
         );
@@ -136,7 +149,7 @@ class Block
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
-                    $parent = new Category($idParent, $idLang);
+                    $parent = new Category($idCategory, $idLang);
                     $filterBlocks[] = $this->getCategoriesBlock($filter, $selectedFilters, $idLang, $parent);
             }
         }
@@ -698,7 +711,7 @@ class Block
      */
     private function getFeaturesBlock($filter, $selectedFilters, $idLang)
     {
-        $features = $featureBlock = [];
+        $featureBlock = [];
         $idFeature = $filter['id_value'];
         $filteredSearchAdapter = null;
 
@@ -716,13 +729,9 @@ class Block
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
         }
 
-        $tempFeatures = $this->dataAccessor->getFeatures($idLang);
-        if (empty($tempFeatures)) {
+        $features = $this->dataAccessor->getFeatures($idLang);
+        if (empty($features)) {
             return [];
-        }
-
-        foreach ($tempFeatures as $key => $feature) {
-            $features[$feature['id_feature']] = $feature;
         }
 
         $filteredSearchAdapter->addOperationsFilter(
@@ -740,10 +749,7 @@ class Block
             $feature = $features[$idFeature];
 
             if (!isset($featureBlock[$idFeature])) {
-                $tempFeatureValues = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
-                foreach ($tempFeatureValues as $featureValueKey => $featureValue) {
-                    $features[$idFeature]['featureValues'][$featureValue['id_feature_value']] = $featureValue;
-                }
+                $features[$idFeature]['featureValues'] = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
