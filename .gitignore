@@ -1,4 +1,4 @@
-/build/clover.xml
+/views/dist
 /vendor
 /node_modules
 tests/php/coverage
