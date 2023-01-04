@@ -22,6 +22,7 @@ namespace PrestaShop\Module\FacetedSearch\Filters;
 
 use Combination;
 use Db;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use Shop;
 
 /**
@@ -210,5 +211,23 @@ class DataAccessor
         }
 
         return $this->featureValues[$idLang][$idFeature];
+    }
+
+    /**
+     * Get filters for current search query
+     *
+     * @param ProductSearchQuery $query
+     * @param int $idShop
+     *
+     * @return array Filters
+     */
+    public function getFiltersForQuery(ProductSearchQuery $query, int $idShop)
+    {
+        return $this->database->executeS(
+            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
+            WHERE id_category = ' . (int) $query->getIdCategory() . '
+            AND id_shop = ' . $idShop . '
+            GROUP BY `type`, id_value ORDER BY position ASC'
+        );
     }
 }

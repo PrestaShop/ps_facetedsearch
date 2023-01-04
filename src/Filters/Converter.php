@@ -240,13 +240,8 @@ class Converter
 
         $searchFilters = [];
 
-        // Get filters configured for the current category
-        $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type FROM ' . _DB_PREFIX_ . 'layered_category
-            WHERE id_category = ' . $idCategory . '
-            AND id_shop = ' . $idShop . '
-            GROUP BY `type`, id_value ORDER BY position ASC'
-        );
+        // Get filters configured for the current query
+        $filters = $this->dataAccessor->getFiltersForQuery($query, $idShop);
 
         // Parse currently selected filters from URL into a nice array
         $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
@@ -398,7 +393,7 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $query->getIdCategory());
+                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
                             }

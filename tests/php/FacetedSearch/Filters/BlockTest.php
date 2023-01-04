@@ -1164,7 +1164,10 @@ class BlockTest extends MockeryTestCase
     {
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 12 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
+            WHERE id_category = 12
+            AND id_shop = 1
+            GROUP BY `type`, id_value ORDER BY position ASC')
             ->andReturn($result);
     }
 }

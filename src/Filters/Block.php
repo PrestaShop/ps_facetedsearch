@@ -112,14 +112,8 @@ class Block
             $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
         }
 
-        /* Get the filters for the current category */
-        $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type ' .
-            'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . $idCategory . ' ' .
-            'AND id_shop = ' . $idShop . ' ' .
-            'GROUP BY `type`, id_value ORDER BY position ASC'
-        );
+        // Get filters configured for the current query
+        $filters = $this->dataAccessor->getFiltersForQuery($this->query, $idShop);
 
         $filterBlocks = [];
         // iterate through each filter, and the get corresponding filter block
