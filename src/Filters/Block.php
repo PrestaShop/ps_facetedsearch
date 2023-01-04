@@ -75,6 +75,11 @@ class Block
     private $dataAccessor;
 
     /**
+     * @var Provider
+     */
+    private $provider;
+
+    /**
      * @var ProductSearchQuery
      */
     private $query;
@@ -84,13 +89,15 @@ class Block
         Context $context,
         Db $database,
         DataAccessor $dataAccessor,
-        ProductSearchQuery $query
+        ProductSearchQuery $query,
+        Provider $provider
         ) {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
         $this->dataAccessor = $dataAccessor;
         $this->query = $query;
+        $this->provider = $provider;
     }
 
     /**
@@ -112,14 +119,8 @@ class Block
             $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
         }
 
-        /* Get the filters for the current category */
-        $filters = $this->database->executeS(
-            'SELECT type, id_value, filter_show_limit, filter_type ' .
-            'FROM ' . _DB_PREFIX_ . 'layered_category ' .
-            'WHERE id_category = ' . $idCategory . ' ' .
-            'AND id_shop = ' . $idShop . ' ' .
-            'GROUP BY `type`, id_value ORDER BY position ASC'
-        );
+        // Get filters configured for the current query
+        $filters = $this->provider->getFiltersForQuery($this->query, $idShop);
 
         $filterBlocks = [];
         // iterate through each filter, and the get corresponding filter block

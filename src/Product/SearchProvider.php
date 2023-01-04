@@ -61,18 +61,25 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private $searchFactory;
 
+    /**
+     * @var Filters\Provider
+     */
+    private $provider;
+
     public function __construct(
         Ps_Facetedsearch $module,
         Filters\Converter $converter,
         URLSerializer $serializer,
         Filters\DataAccessor $dataAccessor,
-        SearchFactory $searchFactory = null
+        SearchFactory $searchFactory = null,
+        Filters\Provider $provider
     ) {
         $this->module = $module;
         $this->filtersConverter = $converter;
         $this->urlSerializer = $serializer;
         $this->dataAccessor = $dataAccessor;
         $this->searchFactory = $searchFactory === null ? new SearchFactory() : $searchFactory;
+        $this->provider = $provider;
     }
 
     /**
@@ -163,30 +170,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $context,
             $this->module->getDatabase(),
             $this->dataAccessor,
-            $query
+            $query,
+            $this->provider
         );
 
-        // Get basic information about the context and see if we have these filters cached
-        $idShop = (int) $context->shop->id;
-        $idLang = (int) $context->language->id;
-        $idCurrency = (int) $context->currency->id;
-        $idCountry = (int) $context->country->id;
-        $idCategory = (int) $query->getIdCategory();
-
-        $filterHash = md5(
-            sprintf(
-                '%d-%d-%d-%d-%d-%s',
-                $idShop,
-                $idCurrency,
-                $idLang,
-                $idCategory,
-                $idCountry,
-                serialize($facetedSearchFilters)
-            )
-        );
-
-        // If not, we regenerate it and cache it
+        // Let's try to get filters from cache
+        $filterHash = $this->generateCacheKeyForQuery($query, $facetedSearchFilters);
         $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+
+        // If not there, we regenerate it and cache it
         if (empty($filterBlock)) {
             $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
             $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
@@ -208,6 +200,32 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $result->setEncodedFacets($this->urlSerializer->serialize($facetFilters));
 
         return $result;
+    }
+
+    /**
+     * Generate unique cache hash to store blocks in cache
+     *
+     * @param ProductSearchQuery $query
+     * @param array $facetedSearchFilters
+     *
+     * @return string
+     */
+    private function generateCacheKeyForQuery(ProductSearchQuery $query, array $facetedSearchFilters)
+    {
+        $context = $this->module->getContext();
+        $filterHash = md5(
+            sprintf(
+                '%d-%d-%d-%d-%d-%s',
+                (int) $context->shop->id,
+                (int) $context->currency->id,
+                (int) $context->language->id,
+                (int) $query->getIdCategory(),
+                (int) $context->country->id,
+                serialize($facetedSearchFilters)
+            )
+        );
+
+        return $filterHash;
     }
 
     /**
