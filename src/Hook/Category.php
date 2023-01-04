@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use Configuration;
 use Tools;
 
 class Category extends AbstractHook
@@ -37,9 +38,7 @@ class Category extends AbstractHook
      */
     public function actionCategoryAdd(array $params)
     {
-        $this->module->addCategoryToDefaultFilter((int) $params['category']->id);
-        $this->module->rebuildLayeredCache([], [(int) $params['category']->id]);
-        $this->module->invalidateLayeredFilterBlockCache();
+        $this->addCategoryToDefaultFilter((int) $params['category']->id);
     }
 
     /**
@@ -51,10 +50,10 @@ class Category extends AbstractHook
     {
         /*
          * The category status might (active, inactive) have changed,
-         * we have to update the layered cache table structure
+         * we have to update the layered cache table structure.
          */
         if (isset($params['category']) && !$params['category']->active) {
-            $this->cleanAndRebuildCategoryFilters($params);
+            $this->removeCategoryFromFilterTemplates((int) $params['category']->id);
         }
     }
 
@@ -65,15 +64,15 @@ class Category extends AbstractHook
      */
     public function actionCategoryDelete(array $params)
     {
-        $this->cleanAndRebuildCategoryFilters($params);
+        $this->removeCategoryFromFilterTemplates((int) $params['category']->id);
     }
 
     /**
      * Clean and rebuild category filters
      *
-     * @param array $params
+     * @param int $idCategory
      */
-    private function cleanAndRebuildCategoryFilters(array $params)
+    private function removeCategoryFromFilterTemplates(int $idCategory)
     {
         $layeredFilterList = $this->database->executeS(
             'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
@@ -82,8 +81,8 @@ class Category extends AbstractHook
         foreach ($layeredFilterList as $layeredFilter) {
             $data = Tools::unSerialize($layeredFilter['filters']);
 
-            if (in_array((int) $params['category']->id, $data['categories'])) {
-                unset($data['categories'][array_search((int) $params['category']->id, $data['categories'])]);
+            if (in_array((int) $idCategory, $data['categories'])) {
+                unset($data['categories'][array_search((int) $idCategory, $data['categories'])]);
                 $this->database->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'layered_filter`
                     SET `filters` = \'' . pSQL(serialize($data)) . '\',
@@ -92,6 +91,41 @@ class Category extends AbstractHook
                 );
             }
         }
+
+        $this->module->invalidateLayeredFilterBlockCache();
+        $this->module->buildLayeredCategories();
+    }
+
+    /**
+     * Checks if module is configured to automatically add some filter to new categories.
+     * If so, it adds the new category.
+     *
+     * @param int $idCategory ID of category being created
+     */
+    public function addCategoryToDefaultFilter(int $idCategory)
+    {
+        // Get default template
+        $defaultFilterTemplateId = (int) Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE');
+        if (empty($defaultFilterTemplateId)) {
+            return;
+        }
+
+        // Try to get it's data
+        $template = $this->module->getFilterTemplate($defaultFilterTemplateId);
+        if (empty($template)) {
+            return;
+        }
+
+        // Unserialize filters, add our category
+        $filters = Tools::unSerialize($template['filters']);
+        $filters['categories'][] = $idCategory;
+
+        // Update it in database
+        $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
+        'SET filters = "' . pSQL(serialize($filters)) . '", ' .
+        'n_categories = ' . (int) count($filters['categories']) . ' ' .
+        'WHERE id_layered_filter = ' . $defaultFilterTemplateId;
+        $this->database->execute($sql);
 
         $this->module->invalidateLayeredFilterBlockCache();
         $this->module->buildLayeredCategories();
