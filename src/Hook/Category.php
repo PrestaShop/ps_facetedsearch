@@ -39,6 +39,9 @@ class Category extends AbstractHook
     public function actionCategoryAdd(array $params)
     {
         $this->addCategoryToDefaultFilter((int) $params['category']->id);
+
+        // Flush filter block cache in all cases, so a new category shows up
+        $this->module->invalidateLayeredFilterBlockCache();
     }
 
     /**
@@ -127,7 +130,6 @@ class Category extends AbstractHook
         'WHERE id_layered_filter = ' . $defaultFilterTemplateId;
         $this->database->execute($sql);
 
-        $this->module->invalidateLayeredFilterBlockCache();
         $this->module->buildLayeredCategories();
     }
 }
