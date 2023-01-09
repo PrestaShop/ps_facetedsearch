@@ -101,12 +101,13 @@ class Category extends AbstractHook
             );
         }
 
-        if (!$rebuildNeeded) {
-            return;
+        // Rebuild filter table only if a category was removed from a filter
+        if ($rebuildNeeded) {
+            $this->module->buildLayeredCategories();
         }
 
+        // Flush cache all the time, because the category could be cached in a category filter block
         $this->module->invalidateLayeredFilterBlockCache();
-        $this->module->buildLayeredCategories();
     }
 
     /**
