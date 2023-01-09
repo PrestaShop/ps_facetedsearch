@@ -1595,36 +1595,4 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             WHERE id_layered_filter = ' . (int) $idFilterTemplate
         );
     }
-
-    /**
-     * Checks if module is configured to automatically add some filter to new categories.
-     * If so, it adds the new category.
-     *
-     * @param int $idCategory ID of category being created
-     */
-    public function addCategoryToDefaultFilter($idCategory)
-    {
-        // Get default template
-        $defaultFilterTemplateId = (int) Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE');
-        if (empty($defaultFilterTemplateId)) {
-            return;
-        }
-
-        // Try to get it's data
-        $template = $this->getFilterTemplate($defaultFilterTemplateId);
-        if (empty($template)) {
-            return;
-        }
-
-        // Unserialize filters, add our category
-        $filters = Tools::unSerialize($template['filters']);
-        $filters['categories'][] = $idCategory;
-
-        // Update it in database
-        $sql = 'UPDATE ' . _DB_PREFIX_ . 'layered_filter ' .
-        'SET filters = "' . pSQL(serialize($filters)) . '", ' .
-        'n_categories = ' . (int) count($filters['categories']) . ' ' .
-        'WHERE id_layered_filter = ' . $defaultFilterTemplateId;
-        $this->getDatabase()->execute($sql);
-    }
 }
