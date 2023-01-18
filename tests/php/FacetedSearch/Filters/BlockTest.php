@@ -31,6 +31,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
+use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
@@ -118,7 +119,8 @@ class BlockTest extends MockeryTestCase
             $this->contextMock,
             $this->dbMock,
             new DataAccessor($this->dbMock),
-            $query
+            $query,
+            new Provider($this->dbMock)
         );
     }
 
@@ -1164,7 +1166,10 @@ class BlockTest extends MockeryTestCase
     {
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category WHERE id_category = 12 AND id_shop = 1 GROUP BY `type`, id_value ORDER BY position ASC')
+            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
+            WHERE id_category = 12
+            AND id_shop = 1
+            GROUP BY `type`, id_value ORDER BY position ASC')
             ->andReturn($result);
     }
 }

@@ -27,6 +27,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
+use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
@@ -147,7 +148,9 @@ class SearchProviderTest extends MockeryTestCase
             $this->module,
             $this->converter,
             $this->serializer,
-            new DataAccessor($this->database)
+            new DataAccessor($this->database),
+            null,
+            new Provider($this->database)
         );
     }
 
