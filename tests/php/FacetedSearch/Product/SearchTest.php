@@ -149,6 +149,9 @@ class SearchTest extends MockeryTestCase
         $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
     }
 
+    /**
+     * Tests basic initial load of category, when full tree is disabled and we want only products from default category
+     */
     public function testInitSearchWithEmptyFilters()
     {
         $this->search->initSearch([]);
@@ -199,6 +202,78 @@ class SearchTest extends MockeryTestCase
         $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
     }
 
+    /**
+     * Tests basic initial load of category, when full tree is enabled
+     */
+    public function testInitSearchWithEmptyFiltersAndFullTree()
+    {
+        $mock = Mockery::mock(Configuration::class);
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_STOCK_MANAGEMENT' => true,
+                    'PS_ORDER_OUT_OF_STOCK' => true,
+                    'PS_HOME_CATEGORY' => true,
+                    'PS_LAYERED_FULL_TREE' => true,
+                    'PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY' => false,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Configuration::setStaticExpectations($mock);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'nleft' => [
+                    '>=' => [
+                        [
+                            101,
+                        ],
+                    ],
+                ],
+                'nright' => [
+                    '<=' => [
+                        [
+                            102,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /**
+     * Tests filtering with user filters, including a specific selected category
+     */
     public function testInitSearchWithAllFilters()
     {
         $this->search->initSearch(
@@ -293,9 +368,6 @@ class SearchTest extends MockeryTestCase
                 ],
                 'id_category' => [
                     '=' => [
-                        [
-                            12,
-                        ],
                         [
                             6,
                         ],

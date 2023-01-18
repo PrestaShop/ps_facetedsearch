@@ -118,47 +118,27 @@ class Search
      */
     public function initSearch($selectedFilters)
     {
-        // Get category ID from the query or home category as a fallback
-        $idCategory = (int) $this->query->getIdCategory();
-        if (empty($idCategory)) {
-            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
-        }
+        // Adds basic filters that are common for every search, like shop and group limitations
+        $this->addCommonFilters();
 
-        $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
-        if (!$psLayeredFullTree) {
-            $this->addFilter('id_category', [$idCategory]);
-        }
+        // Add filters that the user has selected for current query
+        $this->addSearchFilters($selectedFilters);
 
-        $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
-        if ($psLayeredFilterByDefaultCategory) {
-            $this->addFilter('id_category_default', [$idCategory]);
-        }
+        // Adds filters that specific for category page
+        $this->addControllerSpecificFilters();
 
-        // Visibility of a product must be in catalog or both (search & catalog)
-        $this->addFilter('visibility', ['both', 'catalog']);
-
-        // User must belong to one of the groups that can access the product
-        if (Group::isFeatureActive()) {
-            $groups = FrontController::getCurrentCustomerGroups();
-
-            $this->addFilter('id_group', empty($groups) ? [Group::getCurrent()->id] : $groups);
-        }
-
-        $this->addSearchFilters(
-            $selectedFilters,
-            $psLayeredFullTree ? new Category($idCategory) : null,
-            (int) $this->context->shop->id
-        );
+        // Add group by and flush it, let's go
+        $this->getSearchAdapter()->addGroupBy('id_product');
+        $this->getSearchAdapter()->useFiltersAsInitialPopulation();
     }
 
     /**
+     * Adds filters that the user has specifically selected for current query
+     *
      * @param array $selectedFilters
-     * @param Category $parent
-     * @param int $idShop
      */
-    private function addSearchFilters($selectedFilters, $parent, $idShop)
+    private function addSearchFilters($selectedFilters)
     {
-        $hasCategory = false;
         foreach ($selectedFilters as $key => $filterValues) {
             if (!count($filterValues)) {
                 continue;
@@ -187,8 +167,6 @@ class Search
 
                 case 'category':
                     $this->addFilter('id_category', $filterValues);
-                    $this->getSearchAdapter()->resetFilter('id_category_default');
-                    $hasCategory = true;
                     break;
 
                 case 'quantity':
@@ -304,16 +282,58 @@ class Search
                     break;
             }
         }
+    }
 
-        if (!$hasCategory && $parent !== null) {
-            $this->getSearchAdapter()->addFilter('nleft', [$parent->nleft], '>=');
-            $this->getSearchAdapter()->addFilter('nright', [$parent->nright], '<=');
+    /**
+     * Adds filters that are common for every search
+     */
+    private function addCommonFilters()
+    {
+        // Setting proper shop
+        $this->getSearchAdapter()->addFilter('id_shop', [(int) $this->context->shop->id]);
+
+        // Visibility of a product must be in catalog or both (search & catalog)
+        $this->addFilter('visibility', ['both', 'catalog']);
+
+        // User must belong to one of the groups that can access the product
+        // (Actually it's categories that define access to a product, user must have access to at least
+        // one category the product is assigned to.)
+        if (Group::isFeatureActive()) {
+            $groups = FrontController::getCurrentCustomerGroups();
+            $this->addFilter('id_group', empty($groups) ? [Group::getCurrent()->id] : $groups);
+        }
+    }
+
+    /**
+     * Adds filters that specific for category page
+     */
+    private function addControllerSpecificFilters()
+    {
+        // If any category filter was user selected, we don't have anything to do here
+        if (!empty($this->getSearchAdapter()->getFilter('id_category'))) {
+            return;
         }
 
-        $this->getSearchAdapter()->addFilter('id_shop', [$idShop]);
-        $this->getSearchAdapter()->addGroupBy('id_product');
+        // Get category ID from the query or home category as a fallback
+        $idCategory = (int) $this->query->getIdCategory();
+        if (empty($idCategory)) {
+            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+        }
+        $category = new Category((int) $idCategory);
 
-        $this->getSearchAdapter()->useFiltersAsInitialPopulation();
+        // If we want to display only products from this category AND not it's subcategories,
+        // we add this one specific category ID, otherwise, we will add everything using nleft and nright
+        if (Configuration::get('PS_LAYERED_FULL_TREE')) {
+            $this->getSearchAdapter()->addFilter('nleft', [$category->nleft], '>=');
+            $this->getSearchAdapter()->addFilter('nright', [$category->nright], '<=');
+        } else {
+            $this->addFilter('id_category', [$idCategory]);
+        }
+
+        // If we want to display products, which have this category as their default category
+        if (Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY')) {
+            $this->addFilter('id_category_default', [$idCategory]);
+        }
     }
 
     /**

@@ -84,6 +84,17 @@ class Category extends MockProxy
     protected static $mock;
 
     public $id = null;
+    public $nleft = null;
+    public $nright = null;
+
+    public function __construct($id)
+    {
+        if ($id === 12) {
+            $this->id = 12;
+            $this->nleft = 101;
+            $this->nright = 102;
+        }
+    }
 }
 
 class Group extends MockProxy
