@@ -74,6 +74,14 @@ class Search
                 $this->searchAdapter = new MySQLAdapter();
         }
 
+        // Set context data to adapter
+        $this->searchAdapter->setContextData([
+            'id_shop' => $context->shop->id,
+            'id_language' => $context->language->id,
+            'id_currency' => $context->currency->id,
+            'id_country' => $context->country->id,
+        ]);
+
         if ($this->psStockManagement === null) {
             $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
         }

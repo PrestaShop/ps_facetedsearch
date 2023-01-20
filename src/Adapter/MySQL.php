@@ -21,7 +21,6 @@
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
 use Configuration;
-use Context;
 use Db;
 use Doctrine\Common\Collections\ArrayCollection;
 use Product;
@@ -45,6 +44,19 @@ class MySQL extends AbstractAdapter
     const INNER_JOIN = 'INNER JOIN';
 
     /**
+     * @var array|null $contextData
+     */
+    private $contextData = null;
+
+    /**
+     * @param array $contextData
+     */
+    public function setContextData($contextData)
+    {
+        $this->contextData = $contextData;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
@@ -66,6 +78,7 @@ class MySQL extends AbstractAdapter
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
         $mysqlAdapter = new self();
+        $mysqlAdapter->setContextData($this->contextData);
         if ($this->getInitialPopulation() !== null && !$skipInitialPopulation) {
             $mysqlAdapter->initialPopulation = clone $this->getInitialPopulation();
             if ($resetFilter) {
@@ -184,7 +197,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
                 'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
-                $this->getContext()->shop->id . ' AND ps.active = TRUE)',
+                $this->contextData['id_shop'] . ' AND ps.active = TRUE)',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_feature_value' => [
@@ -216,7 +229,7 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'product_lang',
                 'tableAlias' => 'pl',
                 'joinCondition' => '(p.id_product = pl.id_product AND pl.id_shop = ' .
-                $this->getContext()->shop->id . ' AND pl.id_lang = ' . $this->getContext()->language->id . ')',
+                $this->contextData['id_shop'] . ' AND pl.id_lang = ' . $this->contextData['id_language'] . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'nleft' => [
@@ -261,29 +274,29 @@ class MySQL extends AbstractAdapter
             'price_min' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->contextData['id_shop'] . ' AND psi.id_currency = ' .
+                $this->contextData['id_currency'] . ' AND psi.id_country = ' . $this->contextData['id_country'] . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->contextData['id_shop'] . ' AND psi.id_currency = ' .
+                $this->contextData['id_currency'] . ' AND psi.id_country = ' . $this->contextData['id_country'] . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->contextData['id_shop'] . ' AND psi.id_currency = ' .
+                $this->contextData['id_currency'] . ' AND psi.id_country = ' . $this->contextData['id_country'] . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->contextData['id_shop'] . ' AND psi.id_currency = ' .
+                $this->contextData['id_currency'] . ' AND psi.id_country = ' . $this->contextData['id_country'] . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_group' => [
@@ -775,14 +788,6 @@ class MySQL extends AbstractAdapter
         $this->initialPopulation = clone $this;
         $this->resetAll();
         $this->addSelectField('id_product');
-    }
-
-    /**
-     * @return Context
-     */
-    protected function getContext()
-    {
-        return Context::getContext();
     }
 
     /**

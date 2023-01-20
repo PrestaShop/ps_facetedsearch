@@ -21,14 +21,12 @@
 namespace PrestaShop\Module\FacetedSearch\Tests\Adapter;
 
 use Configuration;
-use Context;
 use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use Product;
-use stdClass;
 use StockAvailable;
 
 class MySQLTest extends MockeryTestCase
@@ -38,6 +36,12 @@ class MySQLTest extends MockeryTestCase
     protected function setUp()
     {
         $this->adapter = new MySQL();
+        $this->adapter->setContextData([
+            'id_shop' => 1,
+            'id_language' => 2,
+            'id_currency' => 4,
+            'id_country' => 3,
+        ]);
 
         $mock = Mockery::mock(StockAvailable::class);
         $mock->shouldReceive('addSqlShopRestriction')
@@ -45,21 +49,6 @@ class MySQLTest extends MockeryTestCase
             ->andReturn('');
 
         StockAvailable::setStaticExpectations($mock);
-
-        $stdClass = new stdClass();
-        $stdClass->shop = new stdClass();
-        $stdClass->shop->id = 1;
-        $stdClass->language = new stdClass();
-        $stdClass->language->id = 2;
-        $stdClass->country = new stdClass();
-        $stdClass->country->id = 3;
-        $stdClass->currency = new stdClass();
-        $stdClass->currency->id = 4;
-
-        $contextMock = Mockery::mock(Context::class);
-        $contextMock->shouldReceive('getContext')
-            ->andReturn($stdClass);
-        Context::setStaticExpectations($contextMock);
 
         $configurationMock = Mockery::mock(Configuration::class);
         $configurationMock->shouldReceive('get')
