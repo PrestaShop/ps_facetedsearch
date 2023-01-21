@@ -21,7 +21,7 @@
  <div class="col-lg-9">
    {foreach $controller_options as $controller => $data}
      <div class="checkbox">
-       <label for="{$controller}"><input type="checkbox" name="controllers[]" value="{$controller}"
+       <label for="fs_controller_{$controller}"><input id="fs_controller_{$controller}" type="checkbox" name="controllers[]" value="{$controller}"
        {if isset($data.checked) && $data.checked == true} checked {/if}>{$data.name}</label>
      </div>
    {/foreach}
