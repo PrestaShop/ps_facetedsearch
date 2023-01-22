@@ -1678,7 +1678,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function shouldCacheController(string $controller)
     {
-        return $this->supportedControllers[$controller]['cacheable'] ?? false;
+        return $this->supportedControllers[$controller]['cacheable'];
     }
 
     public function initializeSupportedControllers()

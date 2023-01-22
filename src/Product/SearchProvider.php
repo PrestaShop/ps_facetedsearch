@@ -240,8 +240,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             $filterKey .= $query->getIdManufacturer();
         } elseif ($query->getQueryType() == 'supplier') {
             $filterKey .= $query->getIdSupplier();
-        } elseif ($query->getQueryType() == 'search') {
-            $filterKey .= $query->getSearchString() . $query->getSearchTag();
         }
 
         $filterHash = md5(
