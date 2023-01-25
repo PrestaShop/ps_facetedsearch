@@ -232,7 +232,7 @@ class Feature extends AbstractHook
             $name = $formData['name'][$langId] ?: $formData['name'][$defaultLangId];
 
             if (!empty($seoUrl)) {
-                $seoUrl = pSQL(Tools::link_rewrite($seoUrl));
+                $seoUrl = pSQL(Tools::str2url($seoUrl));
             }
 
             $this->database->execute(
