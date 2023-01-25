@@ -60,7 +60,7 @@ class Attribute extends AbstractHook
                 (`id_attribute`, `id_lang`, `url_name`, `meta_title`)
                 VALUES (
                 ' . (int) $params['id_attribute'] . ', ' . (int) $language['id_lang'] . ',
-                \'' . pSQL(Tools::link_rewrite($seoUrl)) . '\',
+                \'' . pSQL(Tools::str2url($seoUrl)) . '\',
                 \'' . pSQL($metaTitle, true) . '\')'
             );
         }

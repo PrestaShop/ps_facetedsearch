@@ -1282,7 +1282,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         foreach (Language::getLanguages(false) as $language) {
             $idLang = $language['id_lang'];
             $urlNameLang = Tools::getValue('url_name_' . $idLang);
-            if ($urlNameLang && Tools::link_rewrite($urlNameLang) != strtolower($urlNameLang)) {
+            if ($urlNameLang && Tools::str2url($urlNameLang) != strtolower($urlNameLang)) {
                 $params['errors'][] = $this->trans(
                     '"%s" is not a valid url',
                     [Tools::safeOutput($urlNameLang, true)],
