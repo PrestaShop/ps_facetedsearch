@@ -43,7 +43,15 @@ function upgrade_module_3_11_0($module)
     Db::getInstance()->execute('ALTER TABLE `' . _DB_PREFIX_ . 'layered_category` ADD `controller` VARCHAR(64) NOT NULL AFTER `id_shop`;');
     Db::getInstance()->execute('UPDATE `' . _DB_PREFIX_ . "layered_category` SET `controller`= 'category';");
 
-    // Flush block cache - the cache key changed a bit with this version anyway
+    // Change quantity naming to availability in existing filters
+    Db::getInstance()->execute(
+        'ALTER TABLE `' . _DB_PREFIX_ . 'layered_category` 
+        CHANGE `type` `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'availability\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL;');
+
+    Db::getInstance()->execute(
+        'UPDATE `' . _DB_PREFIX_ . 'layered_category` SET type=\'availability\' WHERE type=\'quantity\';');
+
+    // Flush block cache
     $module->invalidateLayeredFilterBlockCache();
 
     return true;
