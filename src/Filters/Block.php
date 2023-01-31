@@ -135,8 +135,8 @@ class Block
                 case 'condition':
                     $filterBlocks[] = $this->getConditionsBlock($filter, $selectedFilters);
                     break;
-                case 'quantity':
-                    $filterBlocks[] = $this->getQuantitiesBlock($filter, $selectedFilters);
+                case 'availability':
+                    $filterBlocks[] = $this->getAvailabilitiesBlock($filter, $selectedFilters);
                     break;
                 case 'manufacturer':
                     $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters, $idLang);
@@ -421,7 +421,7 @@ class Block
      *
      * @return array
      */
-    private function getQuantitiesBlock($filter, $selectedFilters)
+    private function getAvailabilitiesBlock($filter, $selectedFilters)
     {
         if ($this->psStockManagement === null) {
             $this->psStockManagement = (bool) Configuration::get('PS_STOCK_MANAGEMENT');
@@ -501,10 +501,10 @@ class Block
             $availabilityOptions[2]['nbr'] = $filteredSearchAdapter->count();
 
             // If some filter was selected, we want to show only this single filter, it does not make sense to show others
-            if (isset($selectedFilters['quantity'])) {
+            if (isset($selectedFilters['availability'])) {
                 // We loop through selected filters and assign it to our options and remove the rest
                 foreach ($availabilityOptions as $key => $values) {
-                    if (in_array($key, $selectedFilters['quantity'], true)) {
+                    if (in_array($key, $selectedFilters['availability'], true)) {
                         $availabilityOptions[$key]['checked'] = true;
                     }
                 }
@@ -512,8 +512,8 @@ class Block
         }
 
         $quantityBlock = [
-            'type_lite' => 'quantity',
-            'type' => 'quantity',
+            'type_lite' => 'availability',
+            'type' => 'availability',
             'id_key' => 0,
             'name' => $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop'),
             'values' => $availabilityOptions,
