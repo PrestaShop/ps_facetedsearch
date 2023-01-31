@@ -38,7 +38,6 @@ class URLSerializer
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, Facet $facet)
     {
         $facetLabel = $this->getFacetLabel($facet);
-        $filterLabel = $this->getFilterLabel($facetFilter);
 
         if ($facet->getProperty('range')) {
             $facetValue = $facet->getProperty('values');
@@ -48,7 +47,7 @@ class URLSerializer
                 isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
             ];
         } else {
-            $facetFilters[$facetLabel][$filterLabel] = $filterLabel;
+            $facetFilters[$facetLabel][$facetFilter->getValue()] = $facetFilter->getValue();
         }
 
         return $facetFilters;
@@ -70,8 +69,7 @@ class URLSerializer
         if ($facet->getProperty('range')) {
             unset($facetFilters[$facetLabel]);
         } else {
-            $filterLabel = $this->getFilterLabel($facetFilter);
-            unset($facetFilters[$facetLabel][$filterLabel]);
+            unset($facetFilters[$facetLabel][$facetFilter->getValue()]);
             if (empty($facetFilters[$facetLabel])) {
                 unset($facetFilters[$facetLabel]);
             }
@@ -96,9 +94,8 @@ class URLSerializer
                 }
 
                 $facetLabel = $this->getFacetLabel($facet);
-                $filterLabel = $this->getFilterLabel($facetFilter);
                 if (!$facet->getProperty('range')) {
-                    $facetFilters[$facetLabel][$filterLabel] = $filterLabel;
+                    $facetFilters[$facetLabel][$facetFilter->getValue()] = $facetFilter->getValue();
                     continue;
                 }
 

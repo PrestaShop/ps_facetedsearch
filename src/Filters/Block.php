@@ -28,6 +28,7 @@ use Feature;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
+use PrestaShop\Module\FacetedSearch\Definition\AvailabilityType;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
@@ -435,7 +436,7 @@ class Block
         $availabilityOptions = [];
         if ($this->psStockManagement) {
             $availabilityOptions = [
-                0 => [
+                AvailabilityType::AVAILABILITY_NOT_AVAILABLE => [
                     'name' => $this->context->getTranslator()->trans(
                         'Not available',
                         [],
@@ -443,7 +444,7 @@ class Block
                     ),
                     'nbr' => 0,
                 ],
-                1 => [
+                AvailabilityType::AVAILABILITY_AVAILABLE => [
                     'name' => $this->context->getTranslator()->trans(
                         'Available',
                         [],
@@ -451,7 +452,7 @@ class Block
                     ),
                     'nbr' => 0,
                 ],
-                2 => [
+                AvailabilityType::AVAILABILITY_IN_STOCK => [
                     'name' => $this->context->getTranslator()->trans(
                         'In stock',
                         [],
@@ -473,7 +474,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[0]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions[AvailabilityType::AVAILABILITY_NOT_AVAILABLE]['nbr'] = $filteredSearchAdapter->count();
 
             // Products in stock, or with out-of-stock ordering enabled
             $filteredSearchAdapter->addOperationsFilter(
@@ -487,7 +488,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[1]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions[AvailabilityType::AVAILABILITY_AVAILABLE]['nbr'] = $filteredSearchAdapter->count();
 
             // Products in stock
             $filteredSearchAdapter->addOperationsFilter(
@@ -498,7 +499,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[2]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions[AvailabilityType::AVAILABILITY_IN_STOCK]['nbr'] = $filteredSearchAdapter->count();
 
             // If some filter was selected, we want to show only this single filter, it does not make sense to show others
             if (isset($selectedFilters['availability'])) {

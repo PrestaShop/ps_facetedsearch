@@ -76,15 +76,15 @@ class URLSerializerTest extends MockeryTestCase
 
     public function testGetActiveFilters()
     {
-        $first = $this->mockFilter('Tops', true);
-        $second = $this->mockFilter('Robes', false);
+        $first = $this->mockFilter('Tops', true, 123);
+        $second = $this->mockFilter('Robes', false, 124);
 
         $facet = $this->mockFacet('Categories', ['range' => false]);
         $facet->shouldReceive('getFilters')
             ->andReturn([$first, $second]);
 
         $this->assertEquals(
-            ['Categories' => ['Tops' => 'Tops']],
+            ['Categories' => [123 => 123]],
             $this->serializer->getActiveFacetFiltersFromFacets([$facet])
         );
     }
@@ -104,7 +104,7 @@ class URLSerializerTest extends MockeryTestCase
 
     public function testAddAndRemoveFiltersWithoutRange()
     {
-        $filter = $this->mockFilter('Tops');
+        $filter = $this->mockFilter('Tops', false, 123);
         $facet = $this->mockFacet('Categories', ['range' => false]);
         $facetsFilters = $this->serializer->addFilterToFacetFilters(
             [],
@@ -112,7 +112,7 @@ class URLSerializerTest extends MockeryTestCase
             $facet
         );
         $this->assertEquals(
-            ['Categories' => ['Tops' => 'Tops']],
+            ['Categories' => [123 => 123]],
             $facetsFilters
         );
         $facetsFilters = $this->serializer->removeFilterFromFacetFilters(
