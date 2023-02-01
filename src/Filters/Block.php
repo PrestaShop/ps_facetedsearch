@@ -320,8 +320,8 @@ class Block
             'max' => '0',
             'min' => null,
             'unit' => Configuration::get('PS_WEIGHT_UNIT'),
-            'specifications' => null,
-            // 'specifications' => $this->prepareNumberSpecifications(),
+            // 'specifications' => null,
+            'specifications' => $this->prepareNumberSpecifications(),
             'filter_show_limit' => (int) $filter['filter_show_limit'],
             'filter_type' => Converter::WIDGET_TYPE_SLIDER,
             'value' => null,
@@ -954,7 +954,7 @@ class Block
     {
         /* @var PriceSpecification */
         $numberSpecification = $this->context->currentLocale->getNumberSpecification();
-        
+
         /* @var NumberSymbolList */
         $symbolList = $numberSpecification->getSymbolsByNumberingSystem(Locale::NUMBERING_SYSTEM_LATIN);
 
