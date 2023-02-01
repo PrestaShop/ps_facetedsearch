@@ -392,10 +392,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     $unit = Configuration::get('PS_WEIGHT_UNIT');
                     $filter->setLabel(
                         sprintf(
-                            '%1$s%2$s - %3$s%4$s',
-                            Tools::displayNumber($min),
+                            '%1$s %2$s - %3$s %4$s',
+                            $context->getCurrentLocale()->formatNumber($min),
                             $unit,
-                            Tools::displayNumber($max),
+                            $context->getCurrentLocale()->formatNumber($max),
                             $unit
                         )
                     );
