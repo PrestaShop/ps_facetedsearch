@@ -137,6 +137,7 @@ class Search
     public function getProductIdsUsingCoreSearch()
     {
         // Search using the core functionality
+        // It doesn't provide a function to disable a limit, so we use maximum integer of the platform
         $result = SearchCore::find(
             $this->context->language->id,
             Tools::replaceAccentedChars(urldecode($this->query->getSearchString())),
@@ -149,7 +150,9 @@ class Search
             null
         );
 
-        // Extract IDs, return some nonsense
+        // Extract IDs from the result
+        // If nothing is found, we return a value (NULL string) that will ensure empty result
+        // It would be better to stop the search sooner in  the logic, in the future.
         $product_ids = array_column($result['result'], 'id_product');
         if (empty($product_ids)) {
             return ['NULL'];
