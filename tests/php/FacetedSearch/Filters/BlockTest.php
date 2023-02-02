@@ -25,6 +25,7 @@ use Configuration;
 use Context;
 use Db;
 use Group;
+use Locale;
 use Manufacturer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
@@ -56,6 +57,7 @@ class BlockTest extends MockeryTestCase
     {
         $mock = Mockery::mock(Configuration::class);
 
+        // Mock configuration
         $mock->shouldReceive('get')
             ->andReturnUsing(function ($arg) {
                 $valueMap = [
@@ -72,6 +74,14 @@ class BlockTest extends MockeryTestCase
 
         Configuration::setStaticExpectations($mock);
 
+        // Mock locale
+        $locale = Mockery::mock(Locale::class);
+        $locale->shouldReceive('getPriceSpecification')->with('EUR')->andReturn($this->getPriceSpecificationMock());
+
+        // TODO - How to mock this into the fake Locale class?
+        // public const NUMBERING_SYSTEM_LATIN = 'latn';
+
+        // Mock context
         $this->contextMock = Mockery::mock(Context::class);
         $this->contextMock->shop = new stdClass();
         $this->contextMock->shop->id = 1;
@@ -86,6 +96,7 @@ class BlockTest extends MockeryTestCase
         $this->contextMock->currency->id = 4;
         $this->contextMock->customer = new stdClass();
         $this->contextMock->customer->id_default_group = 5;
+        $this->contextMock->currentLocale = $locale;
 
         $this->contextMock->shouldReceive('getContext')
             ->andReturn($this->contextMock);
@@ -126,6 +137,53 @@ class BlockTest extends MockeryTestCase
             $query,
             new Provider($this->dbMock)
         );
+    }
+
+    private function getPriceSpecificationMock()
+    {
+        // Mock symbols
+        $symbolList = Mockery::mock(SymbolList::class);
+        $symbolList->shouldReceive('getDecimal')->andReturn('.');
+        $symbolList->shouldReceive('getGroup')->andReturn(',');
+        $symbolList->shouldReceive('getList')->andReturn(';');
+        $symbolList->shouldReceive('getPercentSign')->andReturn('%');
+        $symbolList->shouldReceive('getMinusSign')->andReturn('-');
+        $symbolList->shouldReceive('getPlusSign')->andReturn('+');
+        $symbolList->shouldReceive('getExponential')->andReturn('E');
+        $symbolList->shouldReceive('getSuperscriptingExponent')->andReturn('×');
+        $symbolList->shouldReceive('getPerMille')->andReturn('‰');
+        $symbolList->shouldReceive('getInfinity')->andReturn('∞');
+        $symbolList->shouldReceive('getNaN')->andReturn('NaN');
+
+        // Mock specification of prices
+        $priceSpecification = Mockery::mock(PriceSpecification::class);
+        $priceSpecification->shouldReceive('getSymbolsByNumberingSystem')->andReturn($symbolList);
+        $priceSpecification->shouldReceive('toArray')->andReturn([
+            'currencyCode' => 'EUR',
+            'currencySymbol' => '€',
+            'numberSymbols' => [
+                '.',
+                ',',
+                ';',
+                '%',
+                '-',
+                '+',
+                'E',
+                '×',
+                '‰',
+                '∞',
+                'NaN',
+            ],
+            'positivePattern' => '##,##',
+            'negativePattern' => '##,##',
+            'maxFractionDigits' => 2,
+            'minFractionDigits' => 2,
+            'groupingUsed' => true,
+            'primaryGroupSize' => 3,
+            'secondaryGroupSize' => 3,
+        ]);
+
+        return $priceSpecification;
     }
 
     public function testGetEmptyFiltersBlock()
@@ -226,6 +284,19 @@ class BlockTest extends MockeryTestCase
                             'secondaryGroupSize' => 3,
                             'currencyCode' => 'EUR',
                             'currencySymbol' => '€',
+                            'numberSymbols' => [
+                                '.',
+                                ',',
+                                ';',
+                                '%',
+                                '-',
+                                '+',
+                                'E',
+                                '×',
+                                '‰',
+                                '∞',
+                                'NaN',
+                            ],
                         ],
                         'filter_show_limit' => 0,
                         'filter_type' => 3,
