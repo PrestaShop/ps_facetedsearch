@@ -55,6 +55,8 @@ class MySQLTest extends MockeryTestCase
         $stdClass->country->id = 3;
         $stdClass->currency = new stdClass();
         $stdClass->currency->id = 4;
+        $stdClass->customer = new stdClass();
+        $stdClass->customer->id_default_group = 5;
 
         $contextMock = Mockery::mock(Context::class);
         $contextMock->shouldReceive('getContext')

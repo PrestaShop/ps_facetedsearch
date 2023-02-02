@@ -88,6 +88,9 @@ class SearchTest extends MockeryTestCase
         $query = Mockery::mock(ProductSearchQuery::class);
         $query->shouldReceive('getIdCategory')
             ->andReturn(12);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('category');
+
         $this->search->setQuery($query);
     }
 
@@ -629,6 +632,8 @@ class SearchTest extends MockeryTestCase
         $query = Mockery::mock(ProductSearchQuery::class);
         $query->shouldReceive('getIdCategory')
             ->andReturn(12);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('category');
         $this->search->setQuery($query);
 
         $this->search->initSearch(['quantity' => [0]]);
@@ -839,6 +844,340 @@ class SearchTest extends MockeryTestCase
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
         );
+    }
+
+    /* Test initial filters on manufacturer controller */
+    public function testInitSearchWithEmptyFiltersOnManufacturerController()
+    {
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdManufacturer')
+            ->andReturn(100);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('manufacturer');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_manufacturer' => [
+                    '=' => [
+                        [
+                            100,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /* Test initial filters on supplier controller */
+    public function testInitSearchWithEmptyFiltersOnSupplierController()
+    {
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdSupplier')
+            ->andReturn(100);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('supplier');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'id_supplier' => [
+                    '=' => [
+                        [
+                            100,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /* Test initial filters on pricesdrop controller */
+    public function testInitSearchWithEmptyFiltersOnPricesdropController()
+    {
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('prices-drop');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'reduction' => [
+                    '>' => [
+                        [
+                            0,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /* Test initial filters on bestsales controller */
+    public function testInitSearchWithEmptyFiltersOnBestsalesController()
+    {
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('best-sales');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'sales' => [
+                    '>' => [
+                        [
+                            0,
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /* Test initial filters on newproducts controller with days new product set to 30 */
+    public function testInitSearchWithEmptyFiltersOnNewproductsController()
+    {
+        $mock = Mockery::mock(Configuration::class);
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_STOCK_MANAGEMENT' => true,
+                    'PS_ORDER_OUT_OF_STOCK' => true,
+                    'PS_HOME_CATEGORY' => true,
+                    'PS_NB_DAYS_NEW_PRODUCT' => 30,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Configuration::setStaticExpectations($mock);
+
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('new-products');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'date_add' => [
+                    '>' => [
+                        [
+                            "'" . date('Y-m-d 00:00:00', strtotime('-29 days')) . "'",
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
+    }
+
+    /* Test initial filters on newproducts controller, with days new product set to 0 */
+    public function testInitSearchWithEmptyFiltersOnNewproductsControllerZero()
+    {
+        $mock = Mockery::mock(Configuration::class);
+        $mock->shouldReceive('get')
+            ->andReturnUsing(function ($arg) {
+                $valueMap = [
+                    'PS_STOCK_MANAGEMENT' => true,
+                    'PS_ORDER_OUT_OF_STOCK' => true,
+                    'PS_HOME_CATEGORY' => true,
+                    'PS_NB_DAYS_NEW_PRODUCT' => 0,
+                ];
+
+                return $valueMap[$arg];
+            });
+
+        Configuration::setStaticExpectations($mock);
+
+        // Initialize fake query
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getQueryType')
+            ->andReturn('new-products');
+        $this->search->setQuery($query);
+
+        $this->search->initSearch([]);
+
+        $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
+        $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
+        $this->assertEquals(
+            [
+                'date_add' => [
+                    '>' => [
+                        [
+                            "'" . date('Y-m-d 00:00:00', strtotime('+ 1 days')) . "'",
+                        ],
+                    ],
+                ],
+                'id_shop' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+                'visibility' => [
+                    '=' => [
+                        [
+                            'both',
+                            'catalog',
+                        ],
+                    ],
+                ],
+                'id_group' => [
+                    '=' => [
+                        [
+                            1,
+                        ],
+                    ],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray()
+        );
+        $this->assertEquals([], $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray());
     }
 
     public function testAddFilter()

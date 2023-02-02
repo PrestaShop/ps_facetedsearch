@@ -56,6 +56,7 @@
 		  <tr>
 			<th class="fixed-width-xs center"><span class="title_box">{l s='ID' d='Admin.Global'}</span></th>
 			<th><span class="title_box text-left">{l s='Name' d='Admin.Global'}</span></th>
+			<th><span class="title_box">{l s='Pages' d='Admin.Global'}</span></th>
 			<th class="fixed-width-sm center"><span class="title_box">{l s='Categories' d='Admin.Global'}</span></th>
 			<th class="fixed-width-lg"><span class="title_box">{l s='Created on' d='Modules.Facetedsearch.Admin'}</span></th>
 			<th class="fixed-width-sm"><span class="title_box text-right">{l s='Actions' d='Modules.Facetedsearch.Admin'}</span></th>
@@ -66,6 +67,7 @@
 			<tr>
 			  <td class="center">{(int)$template['id_layered_filter']}</td>
 			  <td class="text-left">{$template['name']}</td>
+			  <td>{$template['controllers']}</td>
 			  <td class="center">{(int)$template['n_categories']}</td>
 			  <td>{Tools::displayDate($template['date_add'],null , true)}</td>
 			  <td>

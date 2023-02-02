@@ -26,6 +26,7 @@
     <input type="hidden" name="id_layered_filter" id="id_layered_filter" value="{$id_layered_filter}" />
 
     {include file='./_partials/header.tpl'}
+    {include file='./_partials/controllers.tpl'}
     {include file='./_partials/categories-tree.tpl'}
     {include file='./_partials/shops.tpl'}
 
