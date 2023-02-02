@@ -23,8 +23,28 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_11_0($module)
 {
+    // Get all filter templates
+    $filterTemplates = Db::getInstance()->executeS(
+        'SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter'
+    );
+
+    // Add controller info to each of the configuration
+    foreach ($filterTemplates as $template) {
+        $filters = Tools::unSerialize($template['filters']);
+        $filters['controllers'] = ['category'];
+        Db::getInstance()->execute(
+            'UPDATE `' . _DB_PREFIX_ . 'layered_filter` 
+            SET `filters` = "' . pSQL(serialize($filters)) . '"
+            WHERE `id_layered_filter` = ' . (int) $template['id_layered_filter']
+        );
+    }
+
+    // Add new column to generated filters and fill it with a category controller
     Db::getInstance()->execute('ALTER TABLE `' . _DB_PREFIX_ . 'layered_category` ADD `controller` VARCHAR(64) NOT NULL AFTER `id_shop`;');
     Db::getInstance()->execute('UPDATE `' . _DB_PREFIX_ . "layered_category` SET `controller`= 'category';");
+
+    // Flush block cache - the cache key changed a bit with this version anyway
+    $module->invalidateLayeredFilterBlockCache();
 
     return true;
 }
