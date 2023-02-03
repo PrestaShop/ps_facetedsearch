@@ -28,6 +28,8 @@ use Group;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use Search as SearchCore;
+use Tools;
 
 class Search
 {
@@ -118,47 +120,54 @@ class Search
      */
     public function initSearch($selectedFilters)
     {
-        // Get category ID from the query or home category as a fallback
-        $idCategory = (int) $this->query->getIdCategory();
-        if (empty($idCategory)) {
-            $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
-        }
+        // Adds basic filters that are common for every search, like shop and group limitations
+        $this->addCommonFilters();
 
-        $psLayeredFullTree = Configuration::get('PS_LAYERED_FULL_TREE');
-        if (!$psLayeredFullTree) {
-            $this->addFilter('id_category', [$idCategory]);
-        }
+        // Add filters that the user has selected for current query
+        $this->addSearchFilters($selectedFilters);
 
-        $psLayeredFilterByDefaultCategory = Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
-        if ($psLayeredFilterByDefaultCategory) {
-            $this->addFilter('id_category_default', [$idCategory]);
-        }
+        // Adds filters that specific for category page
+        $this->addControllerSpecificFilters();
 
-        // Visibility of a product must be in catalog or both (search & catalog)
-        $this->addFilter('visibility', ['both', 'catalog']);
+        // Add group by and flush it, let's go
+        $this->getSearchAdapter()->addGroupBy('id_product');
+        $this->getSearchAdapter()->useFiltersAsInitialPopulation();
+    }
 
-        // User must belong to one of the groups that can access the product
-        if (Group::isFeatureActive()) {
-            $groups = FrontController::getCurrentCustomerGroups();
-
-            $this->addFilter('id_group', empty($groups) ? [Group::getCurrent()->id] : $groups);
-        }
-
-        $this->addSearchFilters(
-            $selectedFilters,
-            $psLayeredFullTree ? new Category($idCategory) : null,
-            (int) $this->context->shop->id
+    public function getProductIdsUsingCoreSearch()
+    {
+        // Search using the core functionality
+        // It doesn't provide a function to disable a limit, so we use maximum integer of the platform
+        $result = SearchCore::find(
+            $this->context->language->id,
+            Tools::replaceAccentedChars(urldecode($this->query->getSearchString())),
+            1,
+            PHP_INT_MAX,
+            'position',
+            'desc',
+            false,
+            false,
+            null
         );
+
+        // Extract IDs from the result
+        // If nothing is found, we return a value (NULL string) that will ensure empty result
+        // It would be better to stop the search sooner in  the logic, in the future.
+        $product_ids = array_column($result['result'], 'id_product');
+        if (empty($product_ids)) {
+            return ['NULL'];
+        }
+
+        return $product_ids;
     }
 
     /**
+     * Adds filters that the user has specifically selected for current query
+     *
      * @param array $selectedFilters
-     * @param Category $parent
-     * @param int $idShop
      */
-    private function addSearchFilters($selectedFilters, $parent, $idShop)
+    private function addSearchFilters($selectedFilters)
     {
-        $hasCategory = false;
         foreach ($selectedFilters as $key => $filterValues) {
             if (!count($filterValues)) {
                 continue;
@@ -187,8 +196,6 @@ class Search
 
                 case 'category':
                     $this->addFilter('id_category', $filterValues);
-                    $this->getSearchAdapter()->resetFilter('id_category_default');
-                    $hasCategory = true;
                     break;
 
                 case 'quantity':
@@ -304,16 +311,113 @@ class Search
                     break;
             }
         }
+    }
 
-        if (!$hasCategory && $parent !== null) {
-            $this->getSearchAdapter()->addFilter('nleft', [$parent->nleft], '>=');
-            $this->getSearchAdapter()->addFilter('nright', [$parent->nright], '<=');
+    /**
+     * Adds filters that are common for every search
+     */
+    private function addCommonFilters()
+    {
+        // Setting proper shop
+        $this->getSearchAdapter()->addFilter('id_shop', [(int) $this->context->shop->id]);
+
+        // Visibility of a product must be in catalog or both (search & catalog)
+        $this->addFilter('visibility', ['both', 'catalog']);
+
+        // User must belong to one of the groups that can access the product
+        // (Actually it's categories that define access to a product, user must have access to at least
+        // one category the product is assigned to.)
+        if (Group::isFeatureActive()) {
+            $groups = FrontController::getCurrentCustomerGroups();
+            $this->addFilter('id_group', empty($groups) ? [Group::getCurrent()->id] : $groups);
+        }
+    }
+
+    /**
+     * Adds filters that specific for category page
+     */
+    private function addControllerSpecificFilters()
+    {
+        // Category page
+        if ($this->query->getQueryType() == 'category') {
+            // If any category filter was user selected, we don't have anything to do here
+            if (!empty($this->getSearchAdapter()->getFilter('id_category'))) {
+                return;
+            }
+
+            // Get category ID from the query or home category as a fallback
+            $idCategory = (int) $this->query->getIdCategory();
+            if (empty($idCategory)) {
+                $idCategory = (int) Configuration::get('PS_HOME_CATEGORY');
+            }
+            $category = new Category((int) $idCategory);
+
+            // If we want to display only products from this category AND not it's subcategories,
+            // we add this one specific category ID, otherwise, we will add everything using nleft and nright
+            if (Configuration::get('PS_LAYERED_FULL_TREE')) {
+                $this->getSearchAdapter()->addFilter('nleft', [$category->nleft], '>=');
+                $this->getSearchAdapter()->addFilter('nright', [$category->nright], '<=');
+            } else {
+                $this->addFilter('id_category', [$idCategory]);
+            }
+
+            // If we want to display products, which have this category as their default category
+            if (Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY')) {
+                $this->addFilter('id_category_default', [$idCategory]);
+            }
         }
 
-        $this->getSearchAdapter()->addFilter('id_shop', [$idShop]);
-        $this->getSearchAdapter()->addGroupBy('id_product');
+        // Manufacturer controller
+        if ($this->query->getQueryType() == 'manufacturer') {
+            $this->getSearchAdapter()->addFilter('id_manufacturer', [$this->query->getIdManufacturer()]);
+        }
 
-        $this->getSearchAdapter()->useFiltersAsInitialPopulation();
+        // Supplier controller
+        if ($this->query->getQueryType() == 'supplier') {
+            $this->getSearchAdapter()->addFilter('id_supplier', [$this->query->getIdSupplier()]);
+        }
+
+        /*
+         * New products controller
+         *
+         * Comparsion works works on a day basis, not 24 hours.
+         * If you set 1 day, only products created TODAY will be new.
+         * If there is a zero set to disable this feature, it creates unreachable condition.
+         */
+        if ($this->query->getQueryType() == 'new-products') {
+            $timeCondition = date(
+                'Y-m-d 00:00:00',
+                strtotime(
+                    ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                    '+ 1 days')
+                )
+            );
+            $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+        }
+
+        /*
+         * Bestsellers controller
+         *
+         * We are selecting all products from product_sale table.
+         */
+        if ($this->query->getQueryType() == 'best-sales') {
+            $this->getSearchAdapter()->addFilter('sales', [0], '>');
+        }
+
+        /*
+         * Prices drop controller
+         *
+         * We are selecting products that have a specific price created meeting certain conditions.
+         */
+        if ($this->query->getQueryType() == 'prices-drop') {
+            $this->getSearchAdapter()->addFilter('reduction', [0], '>');
+        }
+
+        // Search
+        if ($this->query->getQueryType() == 'search') {
+            $this->getSearchAdapter()->addFilter('id_product', $this->getProductIdsUsingCoreSearch());
+        }
     }
 
     /**
