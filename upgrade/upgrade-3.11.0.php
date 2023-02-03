@@ -29,14 +29,16 @@ function upgrade_module_3_11_0($module)
     );
 
     // Add controller info to each of the configuration
-    foreach ($filterTemplates as $template) {
-        $filters = Tools::unSerialize($template['filters']);
-        $filters['controllers'] = ['category'];
-        Db::getInstance()->execute(
-            'UPDATE `' . _DB_PREFIX_ . 'layered_filter` 
-            SET `filters` = "' . pSQL(serialize($filters)) . '"
-            WHERE `id_layered_filter` = ' . (int) $template['id_layered_filter']
-        );
+    if (!empty($filterTemplates)) {
+        foreach ($filterTemplates as $template) {
+            $filters = Tools::unSerialize($template['filters']);
+            $filters['controllers'] = ['category'];
+            Db::getInstance()->execute(
+                'UPDATE `' . _DB_PREFIX_ . 'layered_filter` 
+                SET `filters` = "' . pSQL(serialize($filters)) . '"
+                WHERE `id_layered_filter` = ' . (int) $template['id_layered_filter']
+            );
+        }
     }
 
     // Add new column to generated filters and fill it with a category controller
