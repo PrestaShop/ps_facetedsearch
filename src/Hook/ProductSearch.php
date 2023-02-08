@@ -53,11 +53,15 @@ class ProductSearch extends AbstractHook
             $params['query'] = $this->assignMissingQueryType($params['query']);
         }
 
+        // Initialize provider, we will need it right away to check if there are filters setup
+        $provider = new Provider($this->module->getDatabase());
+
         /*
          * Check if the type of query (controller) is supported by our module. If not, we
          * let the core do the search.
          */
-        if ($this->module->isControllerSupported($params['query']->getQueryType()) === false) {
+        if ($this->module->isControllerSupported($params['query']->getQueryType()) === false
+            || empty($provider->getFiltersForQuery($params['query'], (int) $this->context->shop->id))) {
             return null;
         }
 
@@ -85,7 +89,6 @@ class ProductSearch extends AbstractHook
 
         $urlSerializer = new URLSerializer();
         $dataAccessor = new DataAccessor($this->module->getDatabase());
-        $provider = new Provider($this->module->getDatabase());
 
         // Return an instance of our searcher, ready to accept requests
         return new SearchProvider(
