@@ -61,6 +61,18 @@ class ProductSearch extends AbstractHook
             return null;
         }
 
+        // Initialize provider, we will need it right away to check if there are filters setup
+        $provider = new Provider($this->module->getDatabase());
+
+        /*
+         * If search controller is not specifically enabled, we don't return the instance.
+         * This condition will be removed when search controller support is fully implemented.
+         */
+        if ($params['query']->getQueryType() === 'search'
+            && empty($provider->getFiltersForQuery($params['query'], (int) $this->context->shop->id))) {
+            return null;
+        }
+
         /*
          * Fix wrong reporting of desired best sales order. BestSalesProductSearchProvider overrides
          * the sort set on the query in BestSalesControllerCore.
@@ -85,7 +97,6 @@ class ProductSearch extends AbstractHook
 
         $urlSerializer = new URLSerializer();
         $dataAccessor = new DataAccessor($this->module->getDatabase());
-        $provider = new Provider($this->module->getDatabase());
 
         // Return an instance of our searcher, ready to accept requests
         return new SearchProvider(
