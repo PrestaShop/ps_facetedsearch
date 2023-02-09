@@ -12,3 +12,4 @@ parameters:
     - '~^Parameter #\d+ \$(.+?) of class Category constructor expects null, int given\.$~'
     - '~^Access to an undefined property Cookie::\$id_lang\.$~'
     - '~^Parameter #1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer::unserialize\(\) expects string, array given\.$~'
+    - '~^Call to an undefined static method Search::findClosestWeightestWord\(\)\.$~'
