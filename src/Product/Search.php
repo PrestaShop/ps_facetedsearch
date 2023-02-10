@@ -396,7 +396,7 @@ class Search
         if ($this->query->getQueryType() == 'search') {
             $productPool = (new CoreSearchBackport())->getProductPool($this->query);
             $this->getSearchAdapter()->addFilter(
-                'id_product', 
+                'id_product',
                 empty($productPool) ? ['NULL'] : $productPool
             );
         }

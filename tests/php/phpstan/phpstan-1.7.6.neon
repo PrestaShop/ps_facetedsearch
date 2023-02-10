@@ -13,3 +13,4 @@ parameters:
     - '~^Access to an undefined property Cookie::\$id_lang\.$~'
     - '~^Parameter #1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer::unserialize\(\) expects string, array given\.$~'
     - '~^Call to an undefined static method Search::findClosestWeightestWord\(\)\.$~'
+    - '~^Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.$~'
