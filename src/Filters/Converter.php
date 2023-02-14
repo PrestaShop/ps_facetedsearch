@@ -400,7 +400,11 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
+                            if ($query->getQueryType() == 'category') {
+                                $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
+                            } else {
+                                $categories = Category::searchByName($idLang, $queryFilter, true, false);
+                            }
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
                             }
