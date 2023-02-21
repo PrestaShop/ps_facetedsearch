@@ -43,7 +43,6 @@ class Converter
     const TYPE_CATEGORY = 'category';
     const TYPE_CONDITION = 'condition';
     const TYPE_FEATURE = 'id_feature';
-    const TYPE_QUANTITY = 'quantity';
     const TYPE_MANUFACTURER = 'manufacturer';
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
@@ -116,13 +115,11 @@ class Converter
                 case self::TYPE_CATEGORY:
                 case self::TYPE_CONDITION:
                 case self::TYPE_MANUFACTURER:
-                case self::TYPE_QUANTITY:
+                case self::TYPE_AVAILABILITY:
                 case self::TYPE_ATTRIBUTE_GROUP:
                 case self::TYPE_FEATURE:
                     $type = $filterBlock['type'];
-                    if ($filterBlock['type'] === self::TYPE_QUANTITY) {
-                        $type = 'availability';
-                    } elseif ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
+                    if ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
                         $type = 'attribute_group';
                         $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
                         if (isset($filterBlock['url_name'])) {
@@ -230,6 +227,16 @@ class Converter
     }
 
     /**
+     * This method is responsible of parsing the search filters sent in the query.
+     * These filters come from the URL in 99 % of cases.
+     *
+     * It will unserialize it and convert it to actual unique and valid values that
+     * we will later use to construct the database query. All invalid filters in the
+     * query (unknown value, deleted in shop etc.) are ignored.
+     *
+     * Filters that are found (if any) will be later used in initSearch method, along
+     * with some predefined ones related the the controller we are on.
+     *
      * @param ProductSearchQuery $query
      *
      * @return array
@@ -247,14 +254,20 @@ class Converter
 
         $searchFilters = [];
 
-        // Get filters configured for the current query
+        // Get filters configured in module settings for the current query
         $filters = $this->provider->getFiltersForQuery($query, $idShop);
 
-        // Parse currently selected filters from URL into a nice array
+        /*
+         * Parses submitted encoded facets from (URL) string into a nice array.
+         *
+         * Facets are set to the URL with a textual representation. This unfortunately does not
+         * work very well, because there could be duplicate values for both facet and filter.
+         * For example, if there are two features, feature values or categories with the same name.
+         */
         $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
 
         // Go through filters that are configured and find out which should be activated,
-        // depending on what was provided in the URL
+        // depending on what was provided in the encodedFacets.
         foreach ($filters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 
@@ -273,7 +286,7 @@ class Converter
                         }
                     }
                     break;
-                case self::TYPE_QUANTITY:
+                case self::TYPE_AVAILABILITY:
                     if (!isset($facetAndFiltersLabels[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
@@ -400,6 +413,11 @@ class Converter
                 case self::TYPE_CATEGORY:
                     if (isset($facetAndFiltersLabels[$filterLabel])) {
                         foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                            /*
+                             * This works only for categories that are child of the category we are browsing (or home category).
+                             * Categories deeper in the tree will never be found. This could be fixed by providing a unique ID
+                             * to the URL.
+                             */
                             $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
                             if ($categories) {
                                 $searchFilters[$filter['type']][] = $categories['id_category'];
@@ -450,7 +468,7 @@ class Converter
                 return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_CONDITION:
                 return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
-            case self::TYPE_QUANTITY:
+            case self::TYPE_AVAILABILITY:
                 return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_MANUFACTURER:
                 return $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');

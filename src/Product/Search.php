@@ -169,7 +169,7 @@ class Search
                     $this->addFilter('id_category', $filterValues);
                     break;
 
-                case 'quantity':
+                case 'availability':
                     /*
                     * $filterValues options can have following values:
                     * 0 - Not available - 0 or less quantity and disabled backorders

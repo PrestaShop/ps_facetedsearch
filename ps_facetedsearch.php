@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.11.1';
+        $this->version = '3.12.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -986,7 +986,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             `controller` VARCHAR(64) NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
-            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'quantity\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
+            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'availability\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
             `position` INT(10) UNSIGNED NOT NULL,
             `filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
             `filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -1274,7 +1274,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                             ++$n;
 
                             if ($key == 'layered_selection_stock') {
-                                $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', NULL,\'quantity\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                                $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', NULL,\'availability\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_subcategories') {
                                 $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', NULL,\'category\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             } elseif ($key == 'layered_selection_condition') {
