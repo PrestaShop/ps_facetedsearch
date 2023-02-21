@@ -34,7 +34,7 @@
     "@babel/core": "^7.21.0",
     "@babel/node": "^7.20.7",
     "@babel/preset-env": "^7.20.2",
-    "@babel/register": "^7.17.7",
+    "@babel/register": "^7.21.0",
     "babel-loader": "^9.1.2",
     "chai": "^4.3.7",
     "clean-webpack-plugin": "^4.0.0",
