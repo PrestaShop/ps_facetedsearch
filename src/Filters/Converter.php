@@ -52,11 +52,6 @@ class Converter
     const PROPERTY_COLOR = 'color';
     const PROPERTY_TEXTURE = 'texture';
 
-    // Availability
-    const AVAILABILITY_IN_STOCK = 2;
-    const AVAILABILITY_AVAILABLE = 1;
-    const AVAILABILITY_NOT_AVAILABLE = 0;
-
     /**
      * @var array
      */
