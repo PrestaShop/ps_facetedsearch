@@ -651,8 +651,8 @@ class Block
                     'name' => $attributeGroup['attribute_group_name'],
                     'is_color_group' => (bool) $attributeGroup['is_color_group'],
                     'values' => [],
-                    'url_name' => $attributeGroup['attribute_group_name'],
-                    'meta_title' => $attributeGroup['attribute_group_name'],
+                    'url_name' => null,
+                    'meta_title' => null,
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
@@ -661,8 +661,8 @@ class Block
             $attributesBlock[$idAttributeGroup]['values'][$idAttribute] = [
                 'name' => $attribute['name'],
                 'nbr' => $count,
-                'url_name' => $attribute['name'],
-                'meta_title' => $attribute['name'],
+                'url_name' => null,
+                'meta_title' => null,
             ];
 
             if ($attributesBlock[$idAttributeGroup]['is_color_group'] !== false) {
@@ -766,8 +766,8 @@ class Block
                     'id_key' => $idFeature,
                     'values' => [],
                     'name' => $feature['name'],
-                    'url_name' => $feature['name'],
-                    'meta_title' => $feature['name'],
+                    'url_name' => null,
+                    'meta_title' => null,
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
                 ];
@@ -781,8 +781,8 @@ class Block
             $featureBlock[$idFeature]['values'][$idFeatureValue] = [
                 'nbr' => $count,
                 'name' => $featureValues[$idFeatureValue]['value'],
-                'url_name' => $featureValues[$idFeatureValue]['value'],
-                'meta_title' => $featureValues[$idFeatureValue]['value'],
+                'url_name' => null,
+                'meta_title' => null,
             ];
 
             if (array_key_exists('id_feature', $selectedFilters)) {

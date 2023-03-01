@@ -307,7 +307,6 @@ class Converter
                     // Load all features on the shop
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
-
                         // Check if this filter is the one from the filter
                         if ($filter['id_value'] != $feature['id_feature']) {
                             continue;
@@ -333,7 +332,6 @@ class Converter
                     // Load all atrributes on the shop
                     $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
-
                         // Check if this attribute is the one from the filter
                         if ($filter['id_value'] != $attributeGroup['id_attribute_group']) {
                             continue;
