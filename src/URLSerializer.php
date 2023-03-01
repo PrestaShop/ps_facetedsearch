@@ -20,7 +20,6 @@
 
 namespace PrestaShop\Module\FacetedSearch;
 
-use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 
