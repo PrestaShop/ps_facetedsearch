@@ -37,17 +37,17 @@ class URLSerializer
      */
     public function addFilterToFacetFilters(array $facetFilters, Filter $facetFilter, Facet $facet)
     {
-        $facetLabel = $this->getFacetLabel($facet);
+        $facetIdentifier = $this->getFacetIdentifier($facet);
 
         if ($facet->getProperty('range')) {
             $facetValue = $facet->getProperty('values');
-            $facetFilters[$facetLabel] = [
+            $facetFilters[$facetIdentifier] = [
                 $facetFilter->getProperty('symbol'),
                 isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
                 isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
             ];
         } else {
-            $facetFilters[$facetLabel][$facetFilter->getValue()] = $facetFilter->getValue();
+            $facetFilters[$facetIdentifier][$facetFilter->getValue()] = $facetFilter->getValue();
         }
 
         return $facetFilters;
@@ -64,14 +64,14 @@ class URLSerializer
      */
     public function removeFilterFromFacetFilters(array $facetFilters, Filter $facetFilter, $facet)
     {
-        $facetLabel = $this->getFacetLabel($facet);
+        $facetIdentifier = $this->getFacetIdentifier($facet);
 
         if ($facet->getProperty('range')) {
-            unset($facetFilters[$facetLabel]);
+            unset($facetFilters[$facetIdentifier]);
         } else {
-            unset($facetFilters[$facetLabel][$facetFilter->getValue()]);
-            if (empty($facetFilters[$facetLabel])) {
-                unset($facetFilters[$facetLabel]);
+            unset($facetFilters[$facetIdentifier][$facetFilter->getValue()]);
+            if (empty($facetFilters[$facetIdentifier])) {
+                unset($facetFilters[$facetIdentifier]);
             }
         }
 
@@ -93,14 +93,14 @@ class URLSerializer
                     continue;
                 }
 
-                $facetLabel = $this->getFacetLabel($facet);
+                $facetIdentifier = $this->getFacetIdentifier($facet);
                 if (!$facet->getProperty('range')) {
-                    $facetFilters[$facetLabel][$facetFilter->getValue()] = $facetFilter->getValue();
+                    $facetFilters[$facetIdentifier][$facetFilter->getValue()] = $facetFilter->getValue();
                     continue;
                 }
 
                 $facetValue = $facetFilter->getValue();
-                $facetFilters[$facetLabel] = [
+                $facetFilters[$facetIdentifier] = [
                     $facetFilter->getProperty('symbol'),
                     $facetValue[0],
                     $facetValue[1],
@@ -118,29 +118,17 @@ class URLSerializer
      *
      * @return string
      */
-    private function getFacetLabel(Facet $facet)
+    private function getFacetIdentifier(Facet $facet)
     {
-        if ($facet->getProperty(Converter::PROPERTY_URL_NAME) !== null) {
-            return $facet->getProperty(Converter::PROPERTY_URL_NAME);
+        $identifier = $facet->getType();
+        if ($identifier === 'attribute_group') {
+            $identifier .= '_' . $facet->getProperty('id_attribute_group');
+        }
+        if ($identifier === 'feature') {
+            $identifier .= '_' . $facet->getProperty('id_feature');
         }
 
-        return $facet->getLabel();
-    }
-
-    /**
-     * Get Facet Filter label
-     *
-     * @param Filter $facetFilter
-     *
-     * @return string
-     */
-    private function getFilterLabel(Filter $facetFilter)
-    {
-        if ($facetFilter->getProperty(Converter::PROPERTY_URL_NAME) !== null) {
-            return $facetFilter->getProperty(Converter::PROPERTY_URL_NAME);
-        }
-
-        return $facetFilter->getLabel();
+        return $identifier;
     }
 
     /**

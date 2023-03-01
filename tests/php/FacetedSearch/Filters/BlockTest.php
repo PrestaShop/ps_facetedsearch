@@ -945,8 +945,8 @@ class BlockTest extends MockeryTestCase
                     'custom' => '0',
                     'id_lang' => '1',
                     'value' => 'Cotton',
-                    'url_name' => 'something',
-                    'meta_title' => 'weird',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
                 [
                     'id_feature_value' => '6',
@@ -990,8 +990,8 @@ class BlockTest extends MockeryTestCase
                     'custom' => '1',
                     'id_lang' => '1',
                     'value' => 'Test Custom value',
-                    'url_name' => 'url-custom-21',
-                    'meta_title' => 'title-custom-21',
+                    'url_name' => null,
+                    'meta_title' => null,
                 ],
             ]
         );
@@ -1007,15 +1007,15 @@ class BlockTest extends MockeryTestCase
                             4 => [
                                 'nbr' => '2',
                                 'name' => 'Cotton',
-                                'url_name' => 'something',
-                                'meta_title' => 'weird',
+                                'url_name' => null,
+                                'meta_title' => null,
                                 'checked' => true,
                             ],
                             21 => [
                                 'nbr' => '3',
                                 'name' => 'Test Custom value',
-                                'url_name' => 'url-custom-21',
-                                'meta_title' => 'title-custom-21',
+                                'url_name' => null,
+                                'meta_title' => null,
                             ],
                         ],
                         'name' => 'Composition',

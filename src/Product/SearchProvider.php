@@ -451,7 +451,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     {
         // first get the currently active facetFilter in an array
         $originalFacetFilters = $this->urlSerializer->getActiveFacetFiltersFromFacets($facets);
-
+        
         foreach ($facets as $facet) {
             $activeFacetFilters = $originalFacetFilters;
             // If only one filter can be selected, we keep track of

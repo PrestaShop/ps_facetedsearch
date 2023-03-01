@@ -123,15 +123,9 @@ class Converter
                     if ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
                         $type = 'attribute_group';
                         $facet->setProperty(self::TYPE_ATTRIBUTE_GROUP, $filterBlock['id_key']);
-                        if (isset($filterBlock['url_name'])) {
-                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
-                        }
                     } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
                         $type = 'feature';
                         $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
-                        if (isset($filterBlock['url_name'])) {
-                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
-                        }
                     }
 
                     $facet->setType($type);
@@ -143,10 +137,6 @@ class Converter
                             ->setLabel($filterArray['name'])
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id);
-
-                        if (isset($filterArray['url_name'])) {
-                            $filter->setProperty(self::PROPERTY_URL_NAME, $filterArray['url_name']);
-                        }
 
                         if (array_key_exists('checked', $filterArray)) {
                             $filter->setActive($filterArray['checked']);
@@ -264,7 +254,7 @@ class Converter
         // Go through filters that are configured and find out which should be activated,
         // depending on what was provided in the encodedFacets.
         foreach ($configuredFilters as $filter) {
-            $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
+            $filterLabel = $this->getExpectedIdentifier($filter);
 
             switch ($filter['type']) {
                 case self::TYPE_MANUFACTURER:
@@ -314,47 +304,52 @@ class Converter
                     }
                     break;
                 case self::TYPE_FEATURE:
+                    // Load all features on the shop
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
+
+                        // Check if this filter is the one from the filter
                         if ($filter['id_value'] != $feature['id_feature']) {
                             continue;
                         }
 
-                        if (isset($receivedFilters[$feature['url_name']])) {
-                            $featureValueLabels = $receivedFilters[$feature['url_name']];
-                        } elseif (isset($receivedFilters[$feature['name']])) {
-                            $featureValueLabels = $receivedFilters[$feature['name']];
+                        // If this feature is in received filters
+                        if (isset($receivedFilters[$filterLabel])) {
+                            $receivedFilterValues = $receivedFilters[$filterLabel];
                         } else {
                             continue;
                         }
 
+                        // Get all feature values from the shop and check if they are in the received filter values
                         $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
                         foreach ($featureValues as $featureValue) {
-                            if (in_array($featureValue['id_feature_value'], $featureValueLabels)) {
+                            if (in_array($featureValue['id_feature_value'], $receivedFilterValues)) {
                                 $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                             }
                         }
                     }
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
+                    // Load all atrributes on the shop
                     $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
                     foreach ($attributesGroup as $attributeGroup) {
+
+                        // Check if this attribute is the one from the filter
                         if ($filter['id_value'] != $attributeGroup['id_attribute_group']) {
                             continue;
                         }
 
-                        if (isset($receivedFilters[$attributeGroup['url_name']])) {
-                            $attributeLabels = $receivedFilters[$attributeGroup['url_name']];
-                        } elseif (isset($receivedFilters[$attributeGroup['attribute_group_name']])) {
-                            $attributeLabels = $receivedFilters[$attributeGroup['attribute_group_name']];
+                        // If this attribute is in received filters
+                        if (isset($receivedFilters[$filterLabel])) {
+                            $receivedFilterValues = $receivedFilters[$filterLabel];
                         } else {
                             continue;
                         }
 
+                        // Get all attribute values from the shop and check if they are in the received filter values
                         $attributes = $this->dataAccessor->getAttributes($idLang, $attributeGroup['id_attribute_group']);
-
                         foreach ($attributes as $attribute) {
-                            if (in_array($attribute['id_attribute'], $attributeLabels)) {
+                            if (in_array($attribute['id_attribute'], $receivedFilterValues)) {
                                 $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
                             }
                         }
@@ -411,25 +406,28 @@ class Converter
     /**
      * Convert filter type to label
      *
-     * @param string $filterType
+     * @param array $filter
      */
-    private function convertFilterTypeToLabel($filterType)
+    private function getExpectedIdentifier($filter)
     {
+        $filterType = $filter['type'];
         switch ($filterType) {
             case self::TYPE_PRICE:
-                return $this->context->getTranslator()->trans('Price', [], 'Modules.Facetedsearch.Shop');
+                return 'price';
             case self::TYPE_WEIGHT:
-                return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
+                return 'weight';
             case self::TYPE_CONDITION:
-                return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
+                return 'condition';
             case self::TYPE_AVAILABILITY:
-                return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
+                return 'availability';
             case self::TYPE_MANUFACTURER:
-                return $this->context->getTranslator()->trans('Brand', [], 'Modules.Facetedsearch.Shop');
+                return 'manufacturer';
             case self::TYPE_CATEGORY:
-                return $this->context->getTranslator()->trans('Categories', [], 'Modules.Facetedsearch.Shop');
+                return 'category';
             case self::TYPE_FEATURE:
+                return 'feature_' . $filter['id_value'];
             case self::TYPE_ATTRIBUTE_GROUP:
+                return 'attribute_group_' . $filter['id_value'];
             default:
                 return null;
         }
