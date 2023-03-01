@@ -250,7 +250,7 @@ class Converter
         $searchFilters = [];
 
         // Get filters configured in module settings for the current query
-        $filters = $this->provider->getFiltersForQuery($query, $idShop);
+        $configuredFilters = $this->provider->getFiltersForQuery($query, $idShop);
 
         /*
          * Parses submitted encoded facets from (URL) string into a nice array.
@@ -259,16 +259,16 @@ class Converter
          * work very well, because there could be duplicate values for both facet and filter.
          * For example, if there are two features, feature values or categories with the same name.
          */
-        $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
+        $receivedFilters = $this->urlSerializer->unserialize($query->getEncodedFacets());
 
         // Go through filters that are configured and find out which should be activated,
         // depending on what was provided in the encodedFacets.
-        foreach ($filters as $filter) {
+        foreach ($configuredFilters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 
             switch ($filter['type']) {
                 case self::TYPE_MANUFACTURER:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -276,13 +276,13 @@ class Converter
                     $manufacturers = Manufacturer::getManufacturers(false, $idLang);
                     $searchFilters[$filter['type']] = [];
                     foreach ($manufacturers as $manufacturer) {
-                        if (in_array($manufacturer['id_manufacturer'], $facetAndFiltersLabels[$filterLabel])) {
+                        if (in_array($manufacturer['id_manufacturer'], $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][] = $manufacturer['id_manufacturer'];
                         }
                     }
                     break;
                 case self::TYPE_AVAILABILITY:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -294,13 +294,13 @@ class Converter
                     ];
                     $searchFilters[$filter['type']] = [];
                     foreach ($quantityArray as $quantityId) {
-                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($quantityId, $facetAndFiltersLabels[$filterLabel])) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($quantityId, $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][] = $quantityId;
                         }
                     }
                     break;
                 case self::TYPE_CONDITION:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -308,7 +308,7 @@ class Converter
                     $conditionArray = ['new', 'used', 'refurbished'];
                     $searchFilters[$filter['type']] = [];
                     foreach ($conditionArray as $conditionId) {
-                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($conditionId, $facetAndFiltersLabels[$filterLabel])) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($conditionId, $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][] = $conditionId;
                         }
                     }
@@ -320,10 +320,10 @@ class Converter
                             continue;
                         }
 
-                        if (isset($facetAndFiltersLabels[$feature['url_name']])) {
-                            $featureValueLabels = $facetAndFiltersLabels[$feature['url_name']];
-                        } elseif (isset($facetAndFiltersLabels[$feature['name']])) {
-                            $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
+                        if (isset($receivedFilters[$feature['url_name']])) {
+                            $featureValueLabels = $receivedFilters[$feature['url_name']];
+                        } elseif (isset($receivedFilters[$feature['name']])) {
+                            $featureValueLabels = $receivedFilters[$feature['name']];
                         } else {
                             continue;
                         }
@@ -343,10 +343,10 @@ class Converter
                             continue;
                         }
 
-                        if (isset($facetAndFiltersLabels[$attributeGroup['url_name']])) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['url_name']];
-                        } elseif (isset($facetAndFiltersLabels[$attributeGroup['attribute_group_name']])) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['attribute_group_name']];
+                        if (isset($receivedFilters[$attributeGroup['url_name']])) {
+                            $attributeLabels = $receivedFilters[$attributeGroup['url_name']];
+                        } elseif (isset($receivedFilters[$attributeGroup['attribute_group_name']])) {
+                            $attributeLabels = $receivedFilters[$attributeGroup['attribute_group_name']];
                         } else {
                             continue;
                         }
@@ -362,19 +362,16 @@ class Converter
                     break;
                 case self::TYPE_PRICE:
                 case self::TYPE_WEIGHT:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        $filters = $facetAndFiltersLabels[$filterLabel];
-                        if (isset($filters[1]) && isset($filters[2])) {
-                            $from = $filters[1];
-                            $to = $filters[2];
-                            $searchFilters[$filter['type']][0] = $from;
-                            $searchFilters[$filter['type']][1] = $to;
+                    if (isset($receivedFilters[$filterLabel])) {
+                        if (isset($receivedFilters[$filterLabel][1]) && isset($receivedFilters[$filterLabel][2])) {
+                            $searchFilters[$filter['type']][0] = $receivedFilters[$filterLabel][1];
+                            $searchFilters[$filter['type']][1] = $receivedFilters[$filterLabel][2];
                         }
                     }
                     break;
                 case self::TYPE_CATEGORY:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                    if (isset($receivedFilters[$filterLabel])) {
+                        foreach ($receivedFilters[$filterLabel] as $queryFilter) {
                             $category = new Category($queryFilter, $idLang);
                             if (Validate::isLoadedObject($category)) {
                                 $searchFilters[$filter['type']][] = $category->id;
@@ -383,8 +380,8 @@ class Converter
                     }
                     break;
                 default:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                    if (isset($receivedFilters[$filterLabel])) {
+                        foreach ($receivedFilters[$filterLabel] as $queryFilter) {
                             $searchFilters[$filter['type']][] = $queryFilter;
                         }
                     }
