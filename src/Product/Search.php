@@ -28,8 +28,6 @@ use Group;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
-use Search as SearchCore;
-use Tools;
 
 class Search
 {
@@ -134,33 +132,6 @@ class Search
         $this->getSearchAdapter()->useFiltersAsInitialPopulation();
     }
 
-    public function getProductIdsUsingCoreSearch()
-    {
-        // Search using the core functionality
-        // It doesn't provide a function to disable a limit, so we use maximum integer of the platform
-        $result = SearchCore::find(
-            $this->context->language->id,
-            Tools::replaceAccentedChars(urldecode($this->query->getSearchString())),
-            1,
-            PHP_INT_MAX,
-            'position',
-            'desc',
-            false,
-            false,
-            null
-        );
-
-        // Extract IDs from the result
-        // If nothing is found, we return a value (NULL string) that will ensure empty result
-        // It would be better to stop the search sooner in  the logic, in the future.
-        $product_ids = array_column($result['result'], 'id_product');
-        if (empty($product_ids)) {
-            return ['NULL'];
-        }
-
-        return $product_ids;
-    }
-
     /**
      * Adds filters that the user has specifically selected for current query
      *
@@ -198,7 +169,7 @@ class Search
                     $this->addFilter('id_category', $filterValues);
                     break;
 
-                case 'quantity':
+                case 'availability':
                     /*
                     * $filterValues options can have following values:
                     * 0 - Not available - 0 or less quantity and disabled backorders
@@ -414,9 +385,20 @@ class Search
             $this->getSearchAdapter()->addFilter('reduction', [0], '>');
         }
 
-        // Search
+        /*
+         * Search controller
+         *
+         * We are using a fast backport to get a product pool, which is then passed to the query.
+         * Core search provider does simmilar thing. If nothing is found, we return a value
+         * (NULL string) that will ensure empty result. It would be better to stop the search
+         * sooner in the logic, in the future.
+         */
         if ($this->query->getQueryType() == 'search') {
-            $this->getSearchAdapter()->addFilter('id_product', $this->getProductIdsUsingCoreSearch());
+            $productPool = (new CoreSearchBackport())->getProductPool($this->query);
+            $this->getSearchAdapter()->addFilter(
+                'id_product',
+                empty($productPool) ? ['NULL'] : $productPool
+            );
         }
     }
 

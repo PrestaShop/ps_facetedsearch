@@ -417,11 +417,11 @@ class ConverterTest extends MockeryTestCase
                 ],
             ],
 
-            // Quantity
+            // Availability
             [
                 [
-                    'type_lite' => 'quantity',
-                    'type' => 'quantity',
+                    'type_lite' => 'availability',
+                    'type' => 'availability',
                     'id_key' => 0, 'name' => 'Availability',
                     'values' => [
                         0 => [

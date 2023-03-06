@@ -336,12 +336,12 @@ class BlockTest extends MockeryTestCase
     public function testGetFiltersBlockWithQuantities()
     {
         $this->mockTranslator([
-            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Quantity'],
+            [['Availability', [], 'Modules.Facetedsearch.Shop'], 'Availability'],
             [['Not available', [], 'Modules.Facetedsearch.Shop'], 'Not available'],
             [['In stock', [], 'Modules.Facetedsearch.Shop'], 'In stock'],
             [['Available', [], 'Modules.Facetedsearch.Shop'], 'Available'],
         ]);
-        $this->mockLayeredCategory([['type' => 'quantity', 'filter_show_limit' => 0, 'filter_type' => 1]]);
+        $this->mockLayeredCategory([['type' => 'availability', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
@@ -375,10 +375,10 @@ class BlockTest extends MockeryTestCase
             [
                 'filters' => [
                     [
-                        'type_lite' => 'quantity',
-                        'type' => 'quantity',
+                        'type_lite' => 'availability',
+                        'type' => 'availability',
                         'id_key' => 0,
-                        'name' => 'Quantity',
+                        'name' => 'Availability',
                         'values' => [
                             [
                                 'name' => 'Not available',
@@ -402,7 +402,7 @@ class BlockTest extends MockeryTestCase
             $this->block->getFilterBlock(
                 10,
                 [
-                    'quantity' => [
+                    'availability' => [
                         1,
                     ],
                 ]
