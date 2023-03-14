@@ -605,7 +605,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             } elseif (empty($controllers)) {
                 $message = $this->displayError($this->trans('You must select at least one page.', [], 'Modules.Facetedsearch.Admin'));
             } elseif (in_array('category', $controllers) && (empty($categoryBox) || !is_array($categoryBox))) {
-                $message = $this->displayError($this->trans('You must select at least one category, if you want to use this filter template on category pages.', [], 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayError($this->trans('You must select at least one category if you want to use this filter template on category pages.', [], 'Modules.Facetedsearch.Admin'));
             } else {
                 // Prepare values
                 $filterValues = [
