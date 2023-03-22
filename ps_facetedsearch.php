@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.12.0';
+        $this->version = '3.12.1';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -605,7 +605,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             } elseif (empty($controllers)) {
                 $message = $this->displayError($this->trans('You must select at least one page.', [], 'Modules.Facetedsearch.Admin'));
             } elseif (in_array('category', $controllers) && (empty($categoryBox) || !is_array($categoryBox))) {
-                $message = $this->displayError($this->trans('You must select at least one category, if you want to use this filter template on category pages.', [], 'Modules.Facetedsearch.Admin'));
+                $message = $this->displayError($this->trans('You must select at least one category if you want to use this filter template on category pages.', [], 'Modules.Facetedsearch.Admin'));
             } else {
                 // Prepare values
                 $filterValues = [
