@@ -21,6 +21,7 @@ module.exports = {
     filters: true,
     prestashop: true,
     translations: true,
+    Sortable: true,
   },
   rules: {
     'no-new': 0,
