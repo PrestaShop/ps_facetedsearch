@@ -187,6 +187,13 @@ class MySQL extends AbstractAdapter
                 $this->getContext()->shop->id . ' AND ps.active = TRUE)',
                 'joinType' => self::INNER_JOIN,
             ],
+            'visibility' => [
+                'tableName' => 'product_shop',
+                'tableAlias' => 'ps',
+                'joinCondition' => '(p.id_product = ps.id_product AND ps.id_shop = ' .
+                    $this->getContext()->shop->id . ' AND ps.active = TRUE)',
+                'joinType' => self::INNER_JOIN,
+            ],
             'id_feature_value' => [
                 'tableName' => 'feature_product',
                 'tableAlias' => 'fp',
