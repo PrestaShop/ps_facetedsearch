@@ -45,7 +45,7 @@
     "eslint-plugin-import": "^2.27.5",
     "mini-css-extract-plugin": "^1.0.0",
     "mocha": "^10.2.0",
-    "node-sass": "^8.0.0",
+    "node-sass": "^9.0.0",
     "sass-loader": "^13.3.2",
     "style-loader": "^2.0.0",
     "webpack": "^5.87.0",
