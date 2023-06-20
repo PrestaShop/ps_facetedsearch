@@ -327,6 +327,8 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::INNER_JOIN,
             ],
         ];
+        
+        \Hook::exec('actionFSQueryBuilderModifier', ['filterToTableMapping' => &$filterToTableMapping]);
 
         return $filterToTableMapping;
     }
