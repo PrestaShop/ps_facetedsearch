@@ -47,7 +47,7 @@ class HookDispatcherTest extends MockeryTestCase
 
     public function testGetAvailableHooks()
     {
-        $this->assertCount(28, $this->dispatcher->getAvailableHooks());
+        $this->assertCount(31, $this->dispatcher->getAvailableHooks());
         $this->assertEquals(
             [
                 'actionAttributeGroupDelete',
@@ -70,6 +70,9 @@ class HookDispatcherTest extends MockeryTestCase
                 'actionFeatureFormBuilderModifier',
                 'actionAfterCreateFeatureFormHandler',
                 'actionAfterUpdateFeatureFormHandler',
+                'actionFeatureValueFormBuilderModifier',
+                'actionAfterCreateFeatureValueFormHandler',
+                'actionAfterUpdateFeatureValueFormHandler',
                 'actionFeatureValueSave',
                 'actionFeatureValueDelete',
                 'displayFeatureValueForm',
