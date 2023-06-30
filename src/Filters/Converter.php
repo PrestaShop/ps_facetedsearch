@@ -172,6 +172,10 @@ class Converter
                         usort($filters, [$this, 'sortFiltersByLabel']);
                     }
 
+                    /* Slider hack */
+                    if ($filterBlock['filter_type'] == self::WIDGET_TYPE_SLIDER) {
+                        $filters = $this->modifyFacetToSlider($facet, $filters, $type); // Slider should have only one filter
+                    }
                     // No method available to add all filters
                     foreach ($filters as $filter) {
                         $facet->addFilter($filter);
@@ -224,6 +228,56 @@ class Converter
         }
 
         return $facets;
+    }
+
+    public function modifyFacetToSlider(Facet $facet, $filters, $type)
+    {
+        $unit = $this->sliderUnit($facet);
+
+        $values = [];
+        $actives = [];
+        foreach($filters as $filt) {
+            $values[] = $filt->getLabel();
+            if ($filt->isActive())
+                $actives[] = $filt->getLabel();
+            $magnitude = $filt->getMagnitude();
+        }
+        if (!count($actives)) {
+            $actives2 = [$values[0], $values[count($values)-1]];
+        }
+        else {
+            $actives2 = [$actives[0], $actives[count($actives)-1]];
+        }
+        if (count($values)) {
+            $facet
+                ->setProperty('min', $values[0])        // global min value
+                ->setProperty('max', $values[count($values)-1]) // global max value
+                ->setProperty('unit', $unit)            // unit (e.g. kg, meter) must be !empty
+                ->setProperty('specifications', null)
+                ->setMultipleSelectionAllowed(false)
+                ->setProperty('range', true);
+            $filter = new Filter();
+            $filter
+                ->setActive(!empty($actives))
+                ->setType($type)
+                ->setMagnitude($magnitude)
+                ->setProperty('symbol', $unit)          // same as facet unit
+                ->setValue($actives2)                   // must be 2 items long array containing currently selected min and max values
+                ->setLabel(sprintf('%1$s - %2$s %3$s', $actives2[0], $actives2[1], $unit)); // format of label, which is updated by JS
+            $facet->addFilter($filter);
+        }
+        return $filter;
+    }
+
+
+    public function sliderUnit(Facet $facet)
+    {
+        $default = ' ';
+        $type = $facet->getType();
+        $cfg_key = 'PS_FACETEDSEARCH_SLIDER_' . strtoupper($type) . '_' . $facet->getProperty('id_' . $type) . '_UNIT';
+
+        $unit = Configuration::get($cfg_key);
+        return !empty($unit) ? $unit : $default;
     }
 
     /**
@@ -367,6 +421,10 @@ class Converter
                         foreach ($featureValues as $featureValue) {
                             if (in_array($featureValue['url_name'], $featureValueLabels)
                                 || in_array($featureValue['value'], $featureValueLabels)
+                                || ($filter['filter_type'] == self::WIDGET_TYPE_SLIDER
+                                    && $featureValue['value'] >= $featureValueLabels[1]  /* FIXME: Works for numeric values only */
+                                    && $featureValue['value'] <= $featureValueLabels[2]
+                                    )
                             ) {
                                 $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                             }

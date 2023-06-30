@@ -10,6 +10,20 @@
 
 Filter your catalog to help visitors picture the category tree and browse your store easily.
 
+## About this fork
+
+This fork adds JS Slider for Features and Attribute Groups.
+It is experimental version. Stable for ordered numeric values. Untested for anything else.
+
+### Configuration
+
+1. In PrestaShop Back Office go to _Modules > Module Manager > Modules (tab) > Faceted search > Configure (button) > Filters templates (table) > Edit (button)_ of desired Template.
+2. Select "Slider (experimental)" as Filter style of desired Feature or Attribute group.
+
+If you wish to show units within a Slider, then create new key `PS_FACETEDSEARCH_SLIDER_FEATURE_<feature id>_UNIT` in PrestaShop Config table (in Database).
+
+Note: Order of values in the slider are taken from the Feature / Attribute group.
+
 ## Multistore compatibility
 
 This module is partially compatible with the multistore feature. Some of its options might not be available.
