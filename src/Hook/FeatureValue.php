@@ -21,6 +21,9 @@
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
 use Language;
+use PrestaShop\Module\FacetedSearch\Form\FeatureValue\FormDataProvider;
+use PrestaShop\Module\FacetedSearch\Form\FeatureValue\FormModifier;
+use Ps_Facetedsearch;
 use Tools;
 
 class FeatureValue extends AbstractHook
@@ -30,7 +33,64 @@ class FeatureValue extends AbstractHook
         'actionFeatureValueDelete',
         'displayFeatureValueForm',
         'displayFeatureValuePostProcess',
+        'actionFeatureValueFormBuilderModifier',
+        'actionAfterCreateFeatureValueFormHandler',
+        'actionAfterUpdateFeatureValueFormHandler',
     ];
+
+    /**
+     * @var FormModifier
+     */
+    private $formModifier;
+
+    /**
+     * @var FormDataProvider
+     */
+    private $dataProvider;
+
+    public function __construct(Ps_Facetedsearch $module)
+    {
+        parent::__construct($module);
+
+        $this->formModifier = new FormModifier($module->getContext());
+        $this->dataProvider = new FormDataProvider($module->getDatabase());
+    }
+
+    /**
+     * Hook for modifying feature form formBuilder
+     *
+     * @since PrestaShop 9.0
+     *
+     * @param array $params
+     */
+    public function actionFeatureValueFormBuilderModifier(array $params)
+    {
+        $this->formModifier->modify($params['form_builder'], $this->dataProvider->getData($params));
+    }
+
+    /**
+     * Hook after create feature.
+     *
+     * @since PrestaShop 9.0
+     *
+     * @param array $params
+     */
+    public function actionAfterCreateFeatureValueFormHandler(array $params)
+    {
+        $this->save($params['id'], $params['form_data']);
+    }
+
+    /**
+     * Hook after update feature.
+     *
+     * @since PrestaShop 9.0
+     *
+     * @param array $params
+     */
+    public function actionAfterUpdateFeatureValueFormHandler(array $params)
+    {
+        $this->save($params['id'], $params['form_data']);
+    }
 
     /**
      * After save feature value
@@ -125,5 +185,40 @@ class FeatureValue extends AbstractHook
         ]);
 
         return $this->module->render('feature_value_form.tpl');
+    }
+
+    private function save($featureValueId, array $formData)
+    {
+        $featureValueId = (int) $featureValueId;
+        $this->database->execute(
+            'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
+            WHERE `id_feature_value` = ' . $featureValueId
+        );
+
+        $query = 'INSERT INTO ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value ' .
+            '(`id_feature_value`, `id_lang`, `url_name`, `meta_title`) ' .
+            'VALUES (%d, %d, \'%s\', \'%s\')';
+
+        foreach (Language::getLanguages(false) as $language) {
+            $langId = (int) $language['id_lang'];
+            $metaTitle = pSQL($formData['meta_title'][$langId]);
+            $seoUrl = $formData['url_name'][$langId];
+
+            if (!empty($seoUrl)) {
+                $seoUrl = pSQL(Tools::str2url($seoUrl));
+            }
+
+            $this->database->execute(
+                sprintf(
+                    $query,
+                    $featureValueId,
+                    $langId,
+                    $seoUrl,
+                    $metaTitle
+                )
+            );
+        }
+
+        $this->module->invalidateLayeredFilterBlockCache();
     }
 }
