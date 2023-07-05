@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/PrestaShop/ps_facetedsearch#readme",
   "devDependencies": {
-    "@babel/eslint-parser": "^7.22.5",
+    "@babel/eslint-parser": "^7.22.6",
     "@babel/cli": "^7.22.6",
     "@babel/core": "^7.22.1",
     "@babel/node": "^7.22.6",
