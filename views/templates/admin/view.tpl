@@ -53,7 +53,7 @@
                 <li class="filter_list_item row" draggable="true">
                   <div class="col-lg-2">
                     <label class="switch-light prestashop-switch fixed-width-lg">
-                      <input name="{$filterId}" id="{$filterId}" type="checkbox" />
+                      <input name="{$filterId}" id="{$filterId}" type="checkbox" {if array_key_exists($filterId, $filters)} checked="checked"{/if}/>
                       <span>
                         <span>{l s='Yes' d='Admin.Global'}</span>
                         <span>{l s='No' d='Admin.Global'}</span>
@@ -95,8 +95,9 @@
                 {foreach $attribute_groups as $attribute_group}
                   <li class="filter_list_item row" draggable="true">
                     <div class="col-lg-2">
+                      {$filter_id="layered_selection_ag_`$attribute_group['id_attribute_group']`"}
                       <label class="switch-light prestashop-switch fixed-width-lg">
-                        <input name="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" id="layered_selection_ag_{(int)$attribute_group['id_attribute_group']}" type="checkbox" />
+                        <input name="{$filter_id}" id="{$filter_id}" type="checkbox" {if array_key_exists($filter_id, $filters)} checked="checked"{/if}/>
                         <span>
                           <span>{l s='Yes' d='Admin.Global'}</span>
                           <span>{l s='No' d='Admin.Global'}</span>
