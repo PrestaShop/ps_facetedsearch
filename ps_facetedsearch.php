@@ -172,6 +172,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'label' => 'Product price filter (slider)',
                 'slider' => true,
             ],
+            'layered_selection_highlights' => [
+                'label' => 'Product highlights filter',
+            ],
         ];
     }
 
@@ -990,7 +993,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             `controller` VARCHAR(64) NOT NULL,
             `id_category` INT(10) UNSIGNED NOT NULL,
             `id_value` INT(10) UNSIGNED NULL DEFAULT \'0\',
-            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'availability\',\'condition\',\'manufacturer\',\'weight\',\'price\') NOT NULL,
+            `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'availability\',\'condition\',\'manufacturer\',\'weight\',\'price\',\'highlights\') NOT NULL,
             `position` INT(10) UNSIGNED NOT NULL,
             `filter_type` int(10) UNSIGNED NOT NULL DEFAULT 0,
             `filter_show_limit` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -1191,6 +1194,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                     $doneCategories[(int) $idCategory]['p'] = true;
                     $toInsert = true;
                 }
+
+                if (!isset($doneCategories[(int) $idCategory]['q'])) {
+                    $filterData['layered_selection_highlights'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
+                    $doneCategories[(int) $idCategory]['e'] = true;
+                    $toInsert = true;
+                }
             }
         }
 
@@ -1295,6 +1304,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                             } elseif (substr($key, 0, 23) == 'layered_selection_feat_') {
                                 $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', ' . (int) str_replace('layered_selection_feat_', '', $key) . ',
     \'id_feature\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
+                            } elseif ($key == 'layered_selection_highlights') {
+                                $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', NULL,\'highlights\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
                             }
 
                             ++$nbSqlValuesToInsert;

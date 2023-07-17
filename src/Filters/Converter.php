@@ -46,6 +46,7 @@ class Converter
     const TYPE_MANUFACTURER = 'manufacturer';
     const TYPE_PRICE = 'price';
     const TYPE_WEIGHT = 'weight';
+    const TYPE_HIGHLIGHTS = 'highlights';
 
     const PROPERTY_URL_NAME = 'url_name';
     const PROPERTY_COLOR = 'color';
@@ -114,6 +115,7 @@ class Converter
             switch ($filterBlock['type']) {
                 case self::TYPE_CATEGORY:
                 case self::TYPE_CONDITION:
+                case self::TYPE_HIGHLIGHTS:
                 case self::TYPE_MANUFACTURER:
                 case self::TYPE_AVAILABILITY:
                 case self::TYPE_ATTRIBUTE_GROUP:
@@ -348,6 +350,37 @@ class Converter
                         }
                     }
                     break;
+                case self::TYPE_HIGHLIGHTS:
+                        if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                            // No need to filter if no information
+                            continue 2;
+                        }
+
+                        $highlightsOptions = [
+                            $this->context->getTranslator()->trans(
+                                'New product',
+                                [],
+                                'Modules.Facetedsearch.Shop'
+                            ) => 'new',
+                            $this->context->getTranslator()->trans(
+                                'On sale',
+                                [],
+                                'Modules.Facetedsearch.Shop'
+                            ) => 'sale',
+                            $this->context->getTranslator()->trans(
+                                'Discounted',
+                                [],
+                                'Modules.Facetedsearch.Shop'
+                            ) => 'discount',
+                        ];
+
+                        $searchFilters[$filter['type']] = [];
+                        foreach ($highlightsOptions as $highlightsOption => $optionId) {
+                            if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($highlightsOption, $facetAndFiltersLabels[$filterLabel])) {
+                                $searchFilters[$filter['type']][] = $optionId;
+                            }
+                        }
+                        break;
                 case self::TYPE_FEATURE:
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
@@ -468,6 +501,8 @@ class Converter
                 return $this->context->getTranslator()->trans('Weight', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_CONDITION:
                 return $this->context->getTranslator()->trans('Condition', [], 'Modules.Facetedsearch.Shop');
+            case self::TYPE_HIGHLIGHTS:
+                return $this->context->getTranslator()->trans('Highlights', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_AVAILABILITY:
                 return $this->context->getTranslator()->trans('Availability', [], 'Modules.Facetedsearch.Shop');
             case self::TYPE_MANUFACTURER:
