@@ -139,6 +139,9 @@ class Block
                 case 'availability':
                     $filterBlocks[] = $this->getAvailabilitiesBlock($filter, $selectedFilters);
                     break;
+                case 'highlights':
+                    $filterBlocks[] = $this->getHighlightsBlock($filter, $selectedFilters);
+                    break;
                 case 'manufacturer':
                     $filterBlocks[] = $this->getManufacturersBlock($filter, $selectedFilters, $idLang);
                     break;
@@ -530,6 +533,99 @@ class Block
         ];
 
         return $quantityBlock;
+    }
+
+    /**
+     * Gets block for extra product properties like "new", "on sale" and "discounted"
+     *
+     * @param array $filter
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
+    private function getHighlightsBlock($filter, $selectedFilters)
+    {
+        // Prepare array with options
+        $highlightsOptions = [];
+
+        // Products on sale - available everywhere
+        $highlightsOptions['sale'] = [
+            'name' => $this->context->getTranslator()->trans(
+                'On sale',
+                [],
+                'Modules.Facetedsearch.Shop'
+            ),
+            'nbr' => 0,
+        ];
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('on_sale');
+        $filteredSearchAdapter->addFilter('on_sale', [1], '=');
+        // We need to add the field to initial population of the filter, because we won't be joining any additional tables
+        $filteredSearchAdapter->getInitialPopulation()->addSelectField('on_sale');
+        $highlightsOptions['sale']['nbr'] = $filteredSearchAdapter->count();
+
+        // New products - available everywhere except that page
+        if ($this->query->getQueryType() != 'new-products') {
+            $highlightsOptions['new'] = [
+                'name' => $this->context->getTranslator()->trans(
+                    'New product',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0,
+            ];
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('date_add');
+            $timeCondition = date(
+                'Y-m-d 00:00:00',
+                strtotime(
+                    ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                    '+ 1 days')
+                )
+            );
+            $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+            // We need to add the field to initial population of the filter, because we won't be joining any additional tables
+            $filteredSearchAdapter->getInitialPopulation()->addSelectField('date_add');
+            $highlightsOptions['new']['nbr'] = $filteredSearchAdapter->count();
+        }
+
+        // Discounted products - available everywhere except that page
+        if ($this->query->getQueryType() != 'prices-drop') {
+            $highlightsOptions['discount'] = [
+                'name' => $this->context->getTranslator()->trans(
+                    'Discounted',
+                    [],
+                    'Modules.Facetedsearch.Shop'
+                ),
+                'nbr' => 0,
+            ];
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('reduction');
+            $filteredSearchAdapter->addFilter('reduction', [0], '>');
+            // No need to add any selects here, because the initial population doesn't change
+            // and the where condition will operate over externally joined table
+            $highlightsOptions['discount']['nbr'] = $filteredSearchAdapter->count();
+        }
+
+        // If some filters are selected, we mark them as such
+        if (isset($selectedFilters['highlights'])) {
+            // We loop through selected filters and assign it to our options and remove the rest
+            foreach ($highlightsOptions as $key => $values) {
+                if (in_array($key, $selectedFilters['highlights'], true)) {
+                    $highlightsOptions[$key]['checked'] = true;
+                }
+            }
+        }
+
+        $conditionBlock = [
+            'type_lite' => 'highlights',
+            'type' => 'highlights',
+            'id_key' => 0,
+            'name' => $this->context->getTranslator()->trans('Highlights', [], 'Modules.Facetedsearch.Shop'),
+            'values' => $highlightsOptions,
+            'filter_show_limit' => (int) $filter['filter_show_limit'],
+            'filter_type' => $filter['filter_type'],
+        ];
+
+        return $conditionBlock;
     }
 
     /**
