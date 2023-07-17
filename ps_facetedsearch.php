@@ -739,7 +739,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->context->smarty->assign('uri', $this->getPathUri());
 
         // Assign assets
-        if (file_exists(_PS_ROOT_DIR_ . _PS_JS_DIR_ . 'vendor/Sortable.min.js')) {
+        if (file_exists(_PS_ROOT_DIR_ . '/js/vendor/Sortable.min.js')) {
             $this->context->controller->addJS(_PS_JS_DIR_ . 'vendor/Sortable.min.js');
         } else {
             if (method_exists($this->context->controller, 'addJquery')) {
