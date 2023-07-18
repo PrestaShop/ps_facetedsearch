@@ -499,7 +499,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
     /**
      * Remove the facet when there's only 1 result.
-     * Keep facet status when it's a slider
+     * Keep facet status when it's a slider.
+     * Keep facet status if it's a highlights facet.
      *
      * @param array $facets
      * @param int $totalProducts
@@ -507,10 +508,24 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function hideUselessFacets(array $facets, $totalProducts)
     {
         foreach ($facets as $facet) {
+            // If the facet is a slider type, we hide it ONLY if the MIN and MAX value match
             if ($facet->getWidgetType() === 'slider') {
                 $facet->setDisplayed(
                     $facet->getProperty('min') != $facet->getProperty('max')
                 );
+                continue;
+            }
+
+            // If the facet type is highlights (discounted, new, on sale), we don't hide it if there is a single value left
+            if ($facet->getType() == 'highlights') {
+                foreach ($facet->getFilters() as $filter) {
+                    // If ANY filter from these has some products available, we display the group
+                    if ($filter->getMagnitude() > 0 && $filter->isDisplayed()) {
+                        $facet->setDisplayed(true);
+                        continue 2;
+                    }
+                }
+                $facet->setDisplayed(false);
                 continue;
             }
 
