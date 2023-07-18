@@ -506,7 +506,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
     /**
      * Remove the facet when there's only 1 result.
-     * Keep facet status when it's a slider
+     * Keep facet status when it's a slider.
+     * Keep facet status if it's a highlights facet.
      *
      * @param array $facets
      * @param int $totalProducts
@@ -524,11 +525,10 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
             // We won't apply this to availability facet, let's keep the value displayed
             // Don't worry, the facet will be hidden if there are no values with products
-            if ($facet->getType() == 'availability') {
+            if ($facet->getType() == 'availability' || $facet->getType() == 'highlights') {
                 continue;
             }
 
-            // Now the rest of facets - we apply this logic
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
