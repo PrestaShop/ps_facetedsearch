@@ -435,9 +435,9 @@ class Block
         $availabilityOptions = [];
         if ($this->psStockManagement) {
             $availabilityOptions = [
-                0 => [
+                2 => [
                     'name' => $this->context->getTranslator()->trans(
-                        'Not available',
+                        'In stock',
                         [],
                         'Modules.Facetedsearch.Shop'
                     ),
@@ -451,9 +451,9 @@ class Block
                     ),
                     'nbr' => 0,
                 ],
-                2 => [
+                0 => [
                     'name' => $this->context->getTranslator()->trans(
-                        'In stock',
+                        'Not available',
                         [],
                         'Modules.Facetedsearch.Shop'
                     ),
@@ -508,6 +508,13 @@ class Block
                         $availabilityOptions[$key]['checked'] = true;
                     }
                 }
+            }
+
+            // Hide Available option if the count is the same as In stock, it doesn't make no sense
+            // Product count is a reliable indicator here, because there can never be product IN STOCK that is not AVAILABLE
+            // So if the counts match, it MUST BE the same products
+            if ($availabilityOptions[1]['nbr'] == $availabilityOptions[2]['nbr']) {
+                unset($availabilityOptions[1]);
             }
         }
 

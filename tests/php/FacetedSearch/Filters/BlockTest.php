@@ -380,18 +380,18 @@ class BlockTest extends MockeryTestCase
                         'id_key' => 0,
                         'name' => 'Availability',
                         'values' => [
-                            [
-                                'name' => 'Not available',
-                                'nbr' => 1000,
+                            2 => [
+                                'name' => 'In stock',
+                                'nbr' => 50,
                             ],
-                            [
+                            1 => [
                                 'name' => 'Available',
                                 'nbr' => 100,
                                 'checked' => true,
                             ],
-                            [
-                                'name' => 'In stock',
-                                'nbr' => 50,
+                            0 => [
+                                'name' => 'Not available',
+                                'nbr' => 1000,
                             ],
                         ],
                         'filter_show_limit' => 0,

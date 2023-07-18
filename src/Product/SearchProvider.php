@@ -507,6 +507,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function hideUselessFacets(array $facets, $totalProducts)
     {
         foreach ($facets as $facet) {
+            // If the facet is a slider type, we hide it ONLY if the MIN and MAX value match
             if ($facet->getWidgetType() === 'slider') {
                 $facet->setDisplayed(
                     $facet->getProperty('min') != $facet->getProperty('max')
@@ -514,6 +515,13 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
+            // We won't apply this to availability facet, let's keep the value displayed
+            // Don't worry, the facet will be hidden if there are no values with products
+            if ($facet->getType() == 'availability') {
+                continue;
+            }
+
+            // Now the rest of facets - we apply this logic
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
