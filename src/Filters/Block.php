@@ -557,10 +557,11 @@ class Block
             ),
             'nbr' => 0,
         ];
-        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('on_sale');
-        $filteredSearchAdapter->addFilter('on_sale', [1], '=');
-        // We need to add the field to initial population of the filter, because we won't be joining any additional tables
-        $filteredSearchAdapter->getInitialPopulation()->addSelectField('on_sale');
+        $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::HIGHLIGHTS_FILTER);
+        $filteredSearchAdapter->addOperationsFilter(
+            Search::HIGHLIGHTS_FILTER,
+            [[['on_sale', [1], '=']]]
+        );
         $highlightsOptions['sale']['nbr'] = $filteredSearchAdapter->count();
 
         // New products - available everywhere except that page
@@ -598,10 +599,11 @@ class Block
                 ),
                 'nbr' => 0,
             ];
-            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('reduction');
-            $filteredSearchAdapter->addFilter('reduction', [0], '>');
-            // No need to add any selects here, because the initial population doesn't change
-            // and the where condition will operate over externally joined table
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::HIGHLIGHTS_FILTER);
+            $filteredSearchAdapter->addOperationsFilter(
+                Search::HIGHLIGHTS_FILTER,
+                [[['reduction', [0], '>']]]
+            );
             $highlightsOptions['discount']['nbr'] = $filteredSearchAdapter->count();
         }
 

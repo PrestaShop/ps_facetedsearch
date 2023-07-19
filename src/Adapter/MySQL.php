@@ -324,7 +324,7 @@ class MySQL extends AbstractAdapter
                     (sp.from = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' >= sp.from) AND 
                     (sp.to = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' <= sp.to) 
                 )',
-                'joinType' => self::INNER_JOIN,
+                'joinType' => self::LEFT_JOIN,
             ],
         ];
 
@@ -795,6 +795,7 @@ class MySQL extends AbstractAdapter
                 'weight',
                 'price',
                 'sales',
+                'on_sale',
             ]
         );
         $this->initialPopulation = clone $this;

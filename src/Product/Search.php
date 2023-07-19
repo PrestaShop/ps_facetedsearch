@@ -33,6 +33,7 @@ use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 class Search
 {
     const STOCK_MANAGEMENT_FILTER = 'with_stock_management';
+    const HIGHLIGHTS_FILTER = 'highlights';
 
     /**
      * @var bool
@@ -171,6 +172,7 @@ class Search
                     break;
 
                 case 'highlights':
+                    // Filter for new products
                     if (in_array('new', $filterValues)) {
                         $timeCondition = date(
                             'Y-m-d 00:00:00',
@@ -183,12 +185,25 @@ class Search
                         // Reset filter to prevent two same filters if we are on new products page
                         $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
                     }
+
+                    // Filter for discounts - they must work as OR
+                    $operationsFilter = [];
                     if (in_array('discount', $filterValues)) {
-                        // Reset filter to prevent two same filters if we are on "prices-drop" page
-                        $this->getSearchAdapter()->addFilter('reduction', [0], '>');
+                        $operationsFilter[] = [
+                            ['reduction', [0], '>'],
+                        ];
                     }
                     if (in_array('sale', $filterValues)) {
-                        $this->getSearchAdapter()->addFilter('on_sale', [1], '=');
+                        $operationsFilter[] = [
+                            ['on_sale', [1], '='],
+                        ];
+                    }
+                    if (!empty($operationsFilter)) {
+                        $this->getSearchAdapter()->addSelectField('on_sale');
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            self::HIGHLIGHTS_FILTER,
+                            $operationsFilter
+                        );
                     }
                     break;
 
