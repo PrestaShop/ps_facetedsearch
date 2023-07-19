@@ -23,11 +23,6 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_3_13_0(Ps_Facetedsearch $module)
 {
-    // Add new filter type into database
-    Db::getInstance()->execute(
-        'ALTER TABLE `' . _DB_PREFIX_ . 'layered_category`
-        CHANGE `type` `type` ENUM(\'category\',\'id_feature\',\'id_attribute_group\',\'availability\',\'condition\',\'manufacturer\',\'weight\',\'price\',\'highlights\') NOT NULL;');
-
     $newHooks = [
         'actionFeatureValueFormBuilderModifier',
         'actionAfterCreateFeatureValueFormHandler',

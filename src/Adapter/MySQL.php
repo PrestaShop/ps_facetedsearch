@@ -784,8 +784,11 @@ class MySQL extends AbstractAdapter
      */
     public function useFiltersAsInitialPopulation()
     {
+        // Initial population has NO LIMIT and no ORDER BY
         $this->setLimit(null);
         $this->setOrderField('');
+
+        // We add basic select fields we will need to matter what
         $this->setSelectFields(
             [
                 'id_product',
@@ -796,9 +799,14 @@ class MySQL extends AbstractAdapter
                 'price',
                 'sales',
                 'on_sale',
+                'date_add',
             ]
         );
+
+        // Clone it, add it to initial population
         $this->initialPopulation = clone $this;
+
+        // Reset all filters so we start clean and add only the base select, we don't need anything else
         $this->resetAll();
         $this->addSelectField('id_product');
     }

@@ -523,12 +523,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
-            // We won't apply this to availability facet, let's keep the value displayed
-            // Don't worry, the facet will be hidden if there are no values with products
-            if ($facet->getType() == 'availability' || $facet->getType() == 'highlights') {
-                continue;
-            }
-
+            // Now the rest of facets - we apply this logic
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
             foreach ($facet->getFilters() as $filter) {
@@ -542,16 +537,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 // There are two filters displayed
                 $usefulFiltersCount > 1
                 ||
-                /*
-                 * There is only one fitler and the
-                 * magnitude is different than the
-                 * total products
-                 */
+                // There is only one filter, but it reduces the product selection
                 (
                     count($facet->getFilters()) === 1
                     && $totalFacetProducts < $totalProducts
                     && $usefulFiltersCount > 0
                 )
+                ||
+                // There is only one filter, but it's availability or highlights
+                ($usefulFiltersCount === 1 && ($facet->getType() == 'availability' || $facet->getType() == 'highlights'))
             );
         }
     }

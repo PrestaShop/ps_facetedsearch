@@ -354,7 +354,7 @@ class Converter
                     }
                     break;
                 case self::TYPE_HIGHLIGHTS:
-                        if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                        if (!isset($receivedFilters[$filterLabel])) {
                             // No need to filter if no information
                             continue 2;
                         }
@@ -379,7 +379,7 @@ class Converter
 
                         $searchFilters[$filter['type']] = [];
                         foreach ($highlightsOptions as $highlightsOption => $optionId) {
-                            if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($highlightsOption, $facetAndFiltersLabels[$filterLabel])) {
+                            if (isset($receivedFilters[$filterLabel]) && in_array($highlightsOption, $receivedFilters[$filterLabel])) {
                                 $searchFilters[$filter['type']][] = $optionId;
                             }
                         }

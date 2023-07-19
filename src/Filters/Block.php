@@ -562,6 +562,7 @@ class Block
             Search::HIGHLIGHTS_FILTER,
             [[['on_sale', [1], '=']]]
         );
+        $filteredSearchAdapter->getInitialPopulation()->addSelectField('on_sale');
         $highlightsOptions['sale']['nbr'] = $filteredSearchAdapter->count();
 
         // New products - available everywhere except that page

@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.13.1';
+        $this->version = '3.14.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -594,7 +594,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     public function getContent()
     {
-        global $cookie;
         $message = '';
 
         if (Tools::isSubmit('SubmitFilter')) {
@@ -1197,7 +1196,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 if (!isset($doneCategories[(int) $idCategory]['q'])) {
                     $filterData['layered_selection_highlights'] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
-                    $doneCategories[(int) $idCategory]['e'] = true;
+                    $doneCategories[(int) $idCategory]['h'] = true;
                     $toInsert = true;
                 }
             }

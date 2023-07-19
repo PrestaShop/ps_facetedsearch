@@ -129,8 +129,11 @@ class Search
         // Adds filters that specific for this controller
         $this->addControllerSpecificFilters();
 
-        // Add group by and flush it, let's go
+        // Add group by to remove duplicate values
         $this->getSearchAdapter()->addGroupBy('id_product');
+
+        // Move the current search into the "initialPopulation"
+        // This initialPopulation will be used to generate the base table in the final query
         $this->getSearchAdapter()->useFiltersAsInitialPopulation();
     }
 
