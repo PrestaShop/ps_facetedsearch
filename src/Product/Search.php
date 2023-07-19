@@ -199,7 +199,6 @@ class Search
                         ];
                     }
                     if (!empty($operationsFilter)) {
-                        $this->getSearchAdapter()->addSelectField('on_sale');
                         $this->getSearchAdapter()->addOperationsFilter(
                             self::HIGHLIGHTS_FILTER,
                             $operationsFilter
