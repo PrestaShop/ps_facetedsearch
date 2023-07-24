@@ -29,5 +29,8 @@ function upgrade_module_3_13_0(Ps_Facetedsearch $module)
         'actionAfterUpdateFeatureValueFormHandler',
     ];
 
+    // Flush block cache, we changed availability logic a bit
+    $module->invalidateLayeredFilterBlockCache();
+
     return $module->registerHook($newHooks);
 }
