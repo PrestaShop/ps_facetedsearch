@@ -168,7 +168,9 @@ class Converter
 
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
 
-                    if ((int) $filterBlock['filter_show_limit'] !== 0 || $filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP) {
+                    if ((int) $filterBlock['filter_show_limit'] !== 0 ||
+                        ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY)
+                    ) {
                         usort($filters, [$this, 'sortFiltersByLabel']);
                     }
 

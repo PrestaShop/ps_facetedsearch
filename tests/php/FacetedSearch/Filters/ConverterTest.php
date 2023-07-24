@@ -424,13 +424,13 @@ class ConverterTest extends MockeryTestCase
                     'type' => 'availability',
                     'id_key' => 0, 'name' => 'Availability',
                     'values' => [
-                        0 => [
-                            'name' => 'Not available',
-                            'nbr' => 0,
-                        ],
                         1 => [
                             'name' => 'In stock',
                             'nbr' => 11,
+                        ],
+                        0 => [
+                            'name' => 'Not available',
+                            'nbr' => 0,
                         ],
                     ],
                     'filter_show_limit' => '0',
