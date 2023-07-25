@@ -380,16 +380,16 @@ class BlockTest extends MockeryTestCase
                         'id_key' => 0,
                         'name' => 'Availability',
                         'values' => [
-                            2 => [
+                            'in_stock' => [
                                 'name' => 'In stock',
                                 'nbr' => 50,
                             ],
-                            1 => [
+                            'available' => [
                                 'name' => 'Available',
                                 'nbr' => 100,
                                 'checked' => true,
                             ],
-                            0 => [
+                            'not_available' => [
                                 'name' => 'Not available',
                                 'nbr' => 1000,
                             ],
@@ -403,7 +403,7 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'availability' => [
-                        1,
+                        'available',
                     ],
                 ]
             )

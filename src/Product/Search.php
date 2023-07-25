@@ -192,13 +192,13 @@ class Search
                     // Simple cases with 1 option selected
                     if (count($filterValues) == 1) {
                         // Not available
-                        if ($filterValues[0] == 0) {
+                        if ($filterValues[0] == 'not_available') {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
                                 ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
                             ];
                         // Available
-                        } elseif ($filterValues[0] == 1) {
+                        } elseif ($filterValues[0] == 'available') {
                             $operationsFilter[] = [
                                 ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];
@@ -206,7 +206,7 @@ class Search
                                 ['quantity', [0], '>'],
                             ];
                         // In stock
-                        } elseif ($filterValues[0] == 2) {
+                        } elseif ($filterValues[0] == 'in_stock') {
                             $operationsFilter[] = [
                                 ['quantity', [0], '>'],
                             ];
@@ -214,10 +214,10 @@ class Search
                         // Cases with 2 options selected
                     } elseif (count($filterValues) == 2) {
                         // Not available and available, we show everything
-                        if (in_array(0, $filterValues) && in_array(1, $filterValues)) {
+                        if (in_array('not_available', $filterValues) && in_array('available', $filterValues)) {
                             break;
                         // Not available or in stock
-                        } elseif (in_array(0, $filterValues) && in_array(2, $filterValues)) {
+                        } elseif (in_array('not_available', $filterValues) && in_array('in_stock', $filterValues)) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
                                 ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
@@ -226,7 +226,7 @@ class Search
                                 ['quantity', [0], '>'],
                             ];
                         // Available or in stock
-                        } elseif (in_array(1, $filterValues) && in_array(2, $filterValues)) {
+                        } elseif (in_array('available', $filterValues) && in_array('in_stock', $filterValues)) {
                             $operationsFilter[] = [
                                 ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];

@@ -291,7 +291,7 @@ class SearchTest extends MockeryTestCase
                     [6],
                 ],
                 'availability' => [
-                    0,
+                    'not_available',
                 ],
                 'weight' => [
                     '10',
@@ -636,7 +636,7 @@ class SearchTest extends MockeryTestCase
             ->andReturn('category');
         $this->search->setQuery($query);
 
-        $this->search->initSearch(['availability' => [0]]);
+        $this->search->initSearch(['availability' => ['not_available']]);
 
         $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
@@ -686,7 +686,7 @@ class SearchTest extends MockeryTestCase
 
     public function testInitSearchWithFirstQuantityFilters()
     {
-        $this->search->initSearch(['availability' => [1]]);
+        $this->search->initSearch(['availability' => ['available']]);
 
         $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
@@ -720,7 +720,7 @@ class SearchTest extends MockeryTestCase
 
     public function testInitSearchWithSecondQuantityFilters()
     {
-        $this->search->initSearch(['availability' => [2]]);
+        $this->search->initSearch(['availability' => ['in_stock']]);
 
         $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
@@ -750,7 +750,7 @@ class SearchTest extends MockeryTestCase
 
         Group::setStaticExpectations($groupMock);
 
-        $this->search->initSearch(['availability' => [2]]);
+        $this->search->initSearch(['availability' => ['in_stock']]);
 
         $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());
@@ -798,7 +798,7 @@ class SearchTest extends MockeryTestCase
 
         FrontController::setStaticExpectations($frontControllerMock);
 
-        $this->search->initSearch(['availability' => [2]]);
+        $this->search->initSearch(['availability' => ['in_stock']]);
 
         $this->assertEquals([], $this->search->getSearchAdapter()->getFilters()->toArray());
         $this->assertEquals([], $this->search->getSearchAdapter()->getOperationsFilters()->toArray());

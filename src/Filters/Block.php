@@ -435,7 +435,7 @@ class Block
         $availabilityOptions = [];
         if ($this->psStockManagement) {
             $availabilityOptions = [
-                2 => [
+                'in_stock' => [
                     'name' => $this->context->getTranslator()->trans(
                         'In stock',
                         [],
@@ -443,7 +443,7 @@ class Block
                     ),
                     'nbr' => 0,
                 ],
-                1 => [
+                'available' => [
                     'name' => $this->context->getTranslator()->trans(
                         'Available',
                         [],
@@ -451,7 +451,7 @@ class Block
                     ),
                     'nbr' => 0,
                 ],
-                0 => [
+                'not_available' => [
                     'name' => $this->context->getTranslator()->trans(
                         'Not available',
                         [],
@@ -473,7 +473,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[0]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions['not_available']['nbr'] = $filteredSearchAdapter->count();
 
             // Products in stock, or with out-of-stock ordering enabled
             $filteredSearchAdapter->addOperationsFilter(
@@ -487,7 +487,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[1]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions['available']['nbr'] = $filteredSearchAdapter->count();
 
             // Products in stock
             $filteredSearchAdapter->addOperationsFilter(
@@ -498,7 +498,7 @@ class Block
                     ],
                 ]
             );
-            $availabilityOptions[2]['nbr'] = $filteredSearchAdapter->count();
+            $availabilityOptions['in_stock']['nbr'] = $filteredSearchAdapter->count();
 
             // If some filter was selected, we want to show only this single filter, it does not make sense to show others
             if (isset($selectedFilters['availability'])) {
