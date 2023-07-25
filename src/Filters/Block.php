@@ -513,8 +513,8 @@ class Block
             // Hide Available option if the count is the same as In stock, it doesn't make no sense
             // Product count is a reliable indicator here, because there can never be product IN STOCK that is not AVAILABLE
             // So if the counts match, it MUST BE the same products
-            if ($availabilityOptions[1]['nbr'] == $availabilityOptions[2]['nbr']) {
-                unset($availabilityOptions[1]);
+            if ($availabilityOptions['available']['nbr'] == $availabilityOptions['in_stock']['nbr']) {
+                unset($availabilityOptions['available']);
             }
         }
 
