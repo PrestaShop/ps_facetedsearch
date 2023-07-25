@@ -27,6 +27,7 @@ use FrontController;
 use Group;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
+use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 
 class Search
@@ -192,13 +193,13 @@ class Search
                     // Simple cases with 1 option selected
                     if (count($filterValues) == 1) {
                         // Not available
-                        if ($filterValues[0] == 0) {
+                        if ($filterValues[0] == Availability::NOT_AVAILABLE) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
                                 ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
                             ];
                         // Available
-                        } elseif ($filterValues[0] == 1) {
+                        } elseif ($filterValues[0] == Availability::AVAILABLE) {
                             $operationsFilter[] = [
                                 ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];
@@ -206,7 +207,7 @@ class Search
                                 ['quantity', [0], '>'],
                             ];
                         // In stock
-                        } elseif ($filterValues[0] == 2) {
+                        } elseif ($filterValues[0] == Availability::IN_STOCK) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '>'],
                             ];
@@ -214,10 +215,10 @@ class Search
                         // Cases with 2 options selected
                     } elseif (count($filterValues) == 2) {
                         // Not available and available, we show everything
-                        if (in_array(0, $filterValues) && in_array(1, $filterValues)) {
+                        if (in_array(Availability::NOT_AVAILABLE, $filterValues) && in_array(Availability::AVAILABLE, $filterValues)) {
                             break;
                         // Not available or in stock
-                        } elseif (in_array(0, $filterValues) && in_array(2, $filterValues)) {
+                        } elseif (in_array(Availability::NOT_AVAILABLE, $filterValues) && in_array(Availability::IN_STOCK, $filterValues)) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
                                 ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
@@ -226,7 +227,7 @@ class Search
                                 ['quantity', [0], '>'],
                             ];
                         // Available or in stock
-                        } elseif (in_array(1, $filterValues) && in_array(2, $filterValues)) {
+                        } elseif (in_array(Availability::AVAILABLE, $filterValues) && in_array(Availability::IN_STOCK, $filterValues)) {
                             $operationsFilter[] = [
                                 ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];
