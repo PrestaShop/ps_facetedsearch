@@ -164,6 +164,13 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         // Init the search with the initial population associated with the current filters
         $facetedSearch->initSearch($facetedSearchFilters);
 
+        // Request combination IDs if we have some attributes to search by.
+        // If not, we won't use this to let the core select the default combination.
+        if ($this->shouldPassCombinationIds($facetedSearchFilters)) {
+            $facetedSearch->getSearchAdapter()->getInitialPopulation()->addSelectField('id_product_attribute');
+            $facetedSearch->getSearchAdapter()->addSelectField('id_product_attribute');
+        }
+
         // Load the product searcher, it gets the Adapter through Search object
         $filterProductSearch = new Filters\Products($facetedSearch);
 
@@ -585,5 +592,17 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $queryString = str_replace('%2F', '/', http_build_query($params, '', '&'));
 
         return $url . ($queryString ? "?$queryString" : '');
+    }
+
+    /**
+     * Checks if we should return information about combinations to the core
+     *
+     * @param array $facetedSearchFilters filters passed in the query and parsed by our module
+     *
+     * @return bool if should add attributes to the select
+     */
+    private function shouldPassCombinationIds(array $facetedSearchFilters)
+    {
+        return !empty($facetedSearchFilters['id_attribute_group']);
     }
 }
