@@ -192,9 +192,20 @@ $(document).ready(() => {
     $('#full-index').click();
   }
 
-  $('.sortable').sortable({
-    forcePlaceholderSize: true,
-  });
+  if (typeof Sortable !== 'undefined') {
+    const listFilters = document.getElementById('list-filters');
+
+    if (listFilters !== null) {
+      new Sortable(listFilters, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+      });
+    }
+  } else {
+    $('.sortable').sortable({
+      forcePlaceholderSize: true,
+    });
+  }
 
   $('.filter_list_item input[type=checkbox]').click(function onFilterLickItemCheckboxesClicked() {
     const currentSelectedFiltersCount = parseInt($('#selected_filters').html(), 10);

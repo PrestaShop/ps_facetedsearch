@@ -10,6 +10,10 @@
 
 Filter your catalog to help visitors picture the category tree and browse your store easily.
 
+## Compatibility
+
+PrestaShop: 1.7.6.0 or later
+
 ## Multistore compatibility
 
 This module is partially compatible with the multistore feature. Some of its options might not be available.
