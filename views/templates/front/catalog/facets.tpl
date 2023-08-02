@@ -34,7 +34,7 @@
     {/block}
 
     {foreach from=$displayedFacets item="facet"}
-      <section class="facet clearfix">
+      <section class="facet clearfix" data-type="{$facet.type}">
         <p class="h6 facet-title hidden-sm-down">{$facet.label}</p>
         {assign var=_expand_id value=10|mt_rand:100000}
         {assign var=_collapse value=true}
