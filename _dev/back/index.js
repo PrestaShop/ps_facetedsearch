@@ -21,6 +21,8 @@ import './blocklayered.scss';
 /* eslint-disable no-unused-vars, no-alert */
 window.checkForm = function checkForm() {
   let isCategorySelected = false;
+  let isCategoryControllerSelected = false;
+  let isControllerSelected = false;
   let isFilterSelected = false;
 
   $('#categories-treeview input[type=checkbox]').each(function checkCategoriesCheckboxes() {
@@ -31,6 +33,15 @@ window.checkForm = function checkForm() {
     return true;
   });
 
+  $('input[name="controllers[]"]').each(function checkPagesCheckboxes() {
+    if ($(this).prop('checked')) {
+      isControllerSelected = true;
+      if ($(this).val() === 'category') {
+        isCategoryControllerSelected = true;
+      }
+    }
+  });
+
   $('.filter_list_item input[type=checkbox]').each(function checkFilterListCheckboxes() {
     if ($(this).prop('checked')) {
       isFilterSelected = true;
@@ -39,12 +50,20 @@ window.checkForm = function checkForm() {
     return true;
   });
 
-  if (!isCategorySelected) {
+  // If no controller is selected at all
+  if (!isControllerSelected) {
+    alert(translations.no_selected_controllers);
+    return false;
+  }
+
+  // If category controller was checked, but no category is selected
+  if (isCategoryControllerSelected && !isCategorySelected) {
     alert(translations.no_selected_categories);
     $('#categories-treeview input[type=checkbox]').first().focus();
     return false;
   }
 
+  // If no filter is selected at all
   if (!isFilterSelected) {
     alert(translations.no_selected_filters);
     $('#filter_list_item input[type=checkbox]').first().focus();

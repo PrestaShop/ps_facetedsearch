@@ -16,7 +16,7 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  *}
-<div class="form-group">
+<div class="form-group form-group-categories">
   <label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.Facetedsearch.Admin'}</label>
   <div class="col-lg-9">
     {if trim($categories_tree) != ''}
@@ -26,5 +26,6 @@
         {l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.Facetedsearch.Admin'}
       </div>
     {/if}
+    <p class="help-block">{l s='Effective only if category pages are selected above.' d='Modules.Facetedsearch.Admin'}</p>
   </div>
 </div>

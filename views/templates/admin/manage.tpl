@@ -33,18 +33,19 @@
   </div>
   <div class="row">
 	<div class="alert alert-info">
-	  {l s='You can set a cron job that will rebuild price index using the following URL:' d='Modules.Facetedsearch.Admin'}
+		<p>{l s='We recommend to set regular cron tasks to manage the indexes and cache on daily/weekly basis.' d='Modules.Facetedsearch.Admin'}</p>
+		<br>
+	  {l s='Add missing products to price index:' d='Modules.Facetedsearch.Admin'} <strong>{$price_indexer_url}</strong>
 	  <br>
-	  <strong>{$price_indexer_url}</strong>
+		{l s='Rebuild price index:' d='Modules.Facetedsearch.Admin'} <strong>{$full_price_indexer_url}</strong>
 	  <br>
-	  <br>
-	  {l s='You can set a cron job that will rebuild attribute index using the following URL:' d='Modules.Facetedsearch.Admin'}
-	  <br>
-	  <strong>{$attribute_indexer_url}</strong>
+		{l s='Rebuild attribute index:' d='Modules.Facetedsearch.Admin'} <strong>{$attribute_indexer_url}</strong>
+		<br>
+		{l s='Flush block cache:' d='Modules.Facetedsearch.Admin'} <strong>{$clear_cache_url}</strong>
+		<br>
+		<br>
+		<p>{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</p>
 	</div>
-  </div>
-  <div class="row">
-	<div class="alert alert-info">{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</div>
   </div>
 </div>
 <div class="panel">
@@ -125,6 +126,11 @@
 		  <a class="slide-button btn"></a>
 		</span>
 	  </div>
+		<div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='This option caches filtering blocks, so the module does not have to query for matching products all the time. The cache is invalidated on every modification on your store. If you encounter some incosistencies, disable this cache or make sure to flush it if needed.' d='Modules.Facetedsearch.Admin'}
+		</div>
+	  </div>
 	</div>
 
 	<div class="form-group">
@@ -142,6 +148,11 @@
 		  <a class="slide-button btn"></a>
 		</span>
 	  </div>
+		<div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='Enable or disable display of matching products after filters. Disabling this won\'t bring any performance benefit, because matching products need to be calculated anyway.' d='Modules.Facetedsearch.Admin'}
+		</div>
+	  </div>
 	</div>
 
 	<div class="form-group">
@@ -158,6 +169,11 @@
 		  </label>
 		  <a class="slide-button btn"></a>
 		</span>
+	  </div>
+		<div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='Enable this, if you want to display products from subcategories, even if they are not specifically assigned to the currently browsed category.' d='Modules.Facetedsearch.Admin'}
+		</div>
 	  </div>
 	</div>
 
@@ -184,9 +200,14 @@
 	</div>
 
 	<div class="form-group">
-	  <label class="col-lg-3 control-label">{l s='Category filter depth (0 for no limits, 1 by default)' d='Modules.Facetedsearch.Admin'}</label>
+	  <label class="col-lg-3 control-label">{l s='Category filter depth' d='Modules.Facetedsearch.Admin'}</label>
 	  <div class="col-lg-9">
 		<input type="text" name="ps_layered_filter_category_depth" value="{if $category_depth !== false}{$category_depth}{else}1{/if}" class="fixed-width-sm" />
+	  </div>
+		<div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='This option controls the behavior of category filter block - how deep children of the currently browsed category you want to display? The default value is 1 - only the direct children. Use 0 for unlimited depth.' d='Modules.Facetedsearch.Admin'}
+		</div>
 	  </div>
 	</div>
 
@@ -302,4 +323,5 @@
   translations.loading = '{l s='Loading...' js=1 d='Modules.Facetedsearch.Admin'}';
   translations.delete_all_filters_templates = '{l s='You selected -All categories-: all existing filter templates will be deleted. Is it OK?' js=1 d='Modules.Facetedsearch.Admin'}';
   translations.no_selected_categories = '{l s='You must select at least one category' js=1 d='Modules.Facetedsearch.Admin'}';
+	translations.no_selected_controllers = '{l s='You must select at least one page' js=1 d='Modules.Facetedsearch.Admin'}';
 </script>
