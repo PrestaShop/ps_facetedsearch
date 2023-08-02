@@ -446,7 +446,7 @@ class Block
                 ],
                 Availability::AVAILABLE => [
                     'name' => $this->context->getTranslator()->trans(
-                        Availability::AVAILABLE,
+                        'Available',
                         [],
                         'Modules.Facetedsearch.Shop'
                     ),
