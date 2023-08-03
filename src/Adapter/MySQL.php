@@ -93,23 +93,26 @@ class MySQL extends AbstractAdapter
      */
     public function getQuery()
     {
+        // Prepare mapping for joined tables
         $filterToTableMapping = $this->getFieldMapping();
+
+        // Process and generate all fields for the SQL query below
         $orderField = $this->computeOrderByField($filterToTableMapping);
-
-        if ($this->getInitialPopulation() === null) {
-            $referenceTable = _DB_PREFIX_ . 'product';
-        } else {
-            $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
-        }
-
-        $query = 'SELECT ';
-
         $selectFields = $this->computeSelectFields($filterToTableMapping);
         $whereConditions = $this->computeWhereConditions($filterToTableMapping);
         $joinConditions = $this->computeJoinConditions($filterToTableMapping);
         $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
-        $query .= implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
+        // Now, let's build the query...
+        // If this query IS the initial population (the base table), we are selecting from product table
+        if ($this->getInitialPopulation() === null) {
+            $referenceTable = _DB_PREFIX_ . 'product';
+        // If not, we will call this function again but for the initial population
+        } else {
+            $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
+        }
+
+        $query = 'SELECT ' . implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
         foreach ($joinConditions as $joinAliasInfos) {
             foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
@@ -218,6 +221,7 @@ class MySQL extends AbstractAdapter
                 'fieldName' => 'name',
                 'joinCondition' => '(p.id_manufacturer = m.id_manufacturer)',
                 'joinType' => self::LEFT_JOIN,
+                'dependencyField' => 'id_manufacturer',
             ],
             'name' => [
                 'tableName' => 'product_lang',
@@ -365,23 +369,26 @@ class MySQL extends AbstractAdapter
     {
         $orderField = $this->getOrderField();
 
-        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
+		// If we have set an initial population, add this field into initial population selects
+		if ($this->getInitialPopulation() !== null && !empty($orderField)) {
             $this->getInitialPopulation()->addSelectField($orderField);
         }
-
-        // do not try to process the orderField if it already has an alias, or if it's a group function
+    
+        // Do not try to process the orderField if it already has an alias, or if it's a group function
         if (empty($orderField) || strpos($orderField, '.') !== false
             || strpos($orderField, '(') !== false) {
             return $orderField;
         }
 
+        // Alter order by field if it's a price column
         if ($orderField === 'price') {
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
+        // Add table mapping or p. prefix depending on field type
         $orderField = $this->computeFieldName($orderField, $filterToTableMapping, true);
 
-        // put some products at the end of the list
+        // Alter order by field and add some products to the end of the list, if required
         $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
 
         return $orderField;
@@ -485,6 +492,7 @@ class MySQL extends AbstractAdapter
      */
     protected function computeSelectFields(array $filterToTableMapping)
     {
+        // Add already added select fields to current query
         $selectFields = [];
         foreach ($this->getSelectFields() as $key => $selectField) {
             $selectFields[] = $this->computeFieldName($selectField, $filterToTableMapping);
