@@ -562,7 +562,6 @@ class Block
             Search::HIGHLIGHTS_FILTER,
             [[['on_sale', [1], '=']]]
         );
-        $filteredSearchAdapter->getInitialPopulation()->addSelectField('on_sale');
         $highlightsOptions['sale']['nbr'] = $filteredSearchAdapter->count();
 
         // New products - available everywhere except that page
@@ -585,8 +584,6 @@ class Block
                 )
             );
             $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
-            // We need to add the field to initial population of the filter, because we won't be joining any additional tables
-            $filteredSearchAdapter->getInitialPopulation()->addSelectField('date_add');
             $highlightsOptions['new']['nbr'] = $filteredSearchAdapter->count();
         }
 
