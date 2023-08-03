@@ -27,5 +27,6 @@
   var translations = new Array();
   {if isset($filters)}var filters = '{$filters|@json_encode}';{/if}
   translations['no_selected_categories'] = "{l s='You must select at least one category' d='Modules.Facetedsearch.Admin'}";
+  translations['no_selected_controllers'] = "{l s='You must select at least one page' d='Modules.Facetedsearch.Admin'}";
   translations['no_selected_filters'] = "{l s='You must select at least one filter' d='Modules.Facetedsearch.Admin'}";
 </script>
