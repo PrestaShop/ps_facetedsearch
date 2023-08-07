@@ -83,7 +83,7 @@ class ProductSearch extends AbstractHook
 
         // Assign assets
         if ((bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER')) {
-            $this->context->controller->addJqueryUi('slider');
+            $this->context->controller->addJqueryUi('ui.slider');
         }
         $this->context->controller->registerStylesheet(
             'facetedsearch_front',
