@@ -29,6 +29,7 @@ use Manufacturer;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
+use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
@@ -380,16 +381,16 @@ class BlockTest extends MockeryTestCase
                         'id_key' => 0,
                         'name' => 'Availability',
                         'values' => [
-                            2 => [
+                            Availability::IN_STOCK => [
                                 'name' => 'In stock',
                                 'nbr' => 50,
                             ],
-                            1 => [
+                            Availability::AVAILABLE => [
                                 'name' => 'Available',
                                 'nbr' => 100,
                                 'checked' => true,
                             ],
-                            0 => [
+                            Availability::NOT_AVAILABLE => [
                                 'name' => 'Not available',
                                 'nbr' => 1000,
                             ],
@@ -403,7 +404,7 @@ class BlockTest extends MockeryTestCase
                 10,
                 [
                     'availability' => [
-                        1,
+                        Availability::AVAILABLE,
                     ],
                 ]
             )

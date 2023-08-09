@@ -1,4 +1,5 @@
-{**
+<?php
+/**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -15,17 +16,13 @@
  * @author    PrestaShop SA <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- *}
-<div class="form-group form-group-categories">
-  <label class="control-label col-lg-3">{l s='Categories used for this template:' d='Modules.Facetedsearch.Admin'}</label>
-  <div class="col-lg-9">
-    {if trim($categories_tree) != ''}
-      {$categories_tree}
-    {else}
-      <div class="alert alert-warning">
-        {l s='Categories selection is disabled because you have no categories or you are in a "all shops" context.' d='Modules.Facetedsearch.Admin'}
-      </div>
-    {/if}
-    <p class="help-block">{l s='Effective only if category pages are selected above.' d='Modules.Facetedsearch.Admin'}</p>
-  </div>
-</div>
+ */
+
+namespace PrestaShop\Module\FacetedSearch\Definition;
+
+class Availability
+{
+    const IN_STOCK = 2;
+    const AVAILABLE = 1;
+    const NOT_AVAILABLE = 0;
+}

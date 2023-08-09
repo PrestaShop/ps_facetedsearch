@@ -25,6 +25,7 @@ use Configuration;
 use Context;
 use Db;
 use Manufacturer;
+use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
@@ -257,7 +258,7 @@ class Converter
         $searchFilters = [];
 
         // Get filters configured in module settings for the current query
-        $filters = $this->provider->getFiltersForQuery($query, $idShop);
+        $configuredFilters = $this->provider->getFiltersForQuery($query, $idShop);
 
         /*
          * Parses submitted encoded facets from (URL) string into a nice array.
@@ -266,16 +267,16 @@ class Converter
          * work very well, because there could be duplicate values for both facet and filter.
          * For example, if there are two features, feature values or categories with the same name.
          */
-        $facetAndFiltersLabels = $this->urlSerializer->unserialize($query->getEncodedFacets());
+        $receivedFilters = $this->urlSerializer->unserialize($query->getEncodedFacets());
 
         // Go through filters that are configured and find out which should be activated,
         // depending on what was provided in the encodedFacets.
-        foreach ($filters as $filter) {
+        foreach ($configuredFilters as $filter) {
             $filterLabel = $this->convertFilterTypeToLabel($filter['type']);
 
             switch ($filter['type']) {
                 case self::TYPE_MANUFACTURER:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -283,13 +284,13 @@ class Converter
                     $manufacturers = Manufacturer::getManufacturers(false, $idLang);
                     $searchFilters[$filter['type']] = [];
                     foreach ($manufacturers as $manufacturer) {
-                        if (in_array($manufacturer['name'], $facetAndFiltersLabels[$filterLabel])) {
+                        if (in_array($manufacturer['name'], $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][$manufacturer['name']] = $manufacturer['id_manufacturer'];
                         }
                     }
                     break;
                 case self::TYPE_AVAILABILITY:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -299,28 +300,28 @@ class Converter
                             'Not available',
                             [],
                             'Modules.Facetedsearch.Shop'
-                        ) => 0,
+                        ) => Availability::NOT_AVAILABLE,
                         $this->context->getTranslator()->trans(
                             'Available',
                             [],
                             'Modules.Facetedsearch.Shop'
-                        ) => 1,
+                        ) => Availability::AVAILABLE,
                         $this->context->getTranslator()->trans(
                             'In stock',
                             [],
                             'Modules.Facetedsearch.Shop'
-                        ) => 2,
+                        ) => Availability::IN_STOCK,
                     ];
 
                     $searchFilters[$filter['type']] = [];
                     foreach ($quantityArray as $quantityName => $quantityId) {
-                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($quantityName, $facetAndFiltersLabels[$filterLabel])) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($quantityName, $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][] = $quantityId;
                         }
                     }
                     break;
                 case self::TYPE_CONDITION:
-                    if (!isset($facetAndFiltersLabels[$filterLabel])) {
+                    if (!isset($receivedFilters[$filterLabel])) {
                         // No need to filter if no information
                         continue 2;
                     }
@@ -345,7 +346,7 @@ class Converter
 
                     $searchFilters[$filter['type']] = [];
                     foreach ($conditionArray as $conditionName => $conditionId) {
-                        if (isset($facetAndFiltersLabels[$filterLabel]) && in_array($conditionName, $facetAndFiltersLabels[$filterLabel])) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($conditionName, $receivedFilters[$filterLabel])) {
                             $searchFilters[$filter['type']][] = $conditionId;
                         }
                     }
@@ -357,10 +358,10 @@ class Converter
                             continue;
                         }
 
-                        if (isset($facetAndFiltersLabels[$feature['url_name']])) {
-                            $featureValueLabels = $facetAndFiltersLabels[$feature['url_name']];
-                        } elseif (isset($facetAndFiltersLabels[$feature['name']])) {
-                            $featureValueLabels = $facetAndFiltersLabels[$feature['name']];
+                        if (isset($receivedFilters[$feature['url_name']])) {
+                            $featureValueLabels = $receivedFilters[$feature['url_name']];
+                        } elseif (isset($receivedFilters[$feature['name']])) {
+                            $featureValueLabels = $receivedFilters[$feature['name']];
                         } else {
                             continue;
                         }
@@ -382,10 +383,10 @@ class Converter
                             continue;
                         }
 
-                        if (isset($facetAndFiltersLabels[$attributeGroup['url_name']])) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['url_name']];
-                        } elseif (isset($facetAndFiltersLabels[$attributeGroup['attribute_group_name']])) {
-                            $attributeLabels = $facetAndFiltersLabels[$attributeGroup['attribute_group_name']];
+                        if (isset($receivedFilters[$attributeGroup['url_name']])) {
+                            $attributeLabels = $receivedFilters[$attributeGroup['url_name']];
+                        } elseif (isset($receivedFilters[$attributeGroup['attribute_group_name']])) {
+                            $attributeLabels = $receivedFilters[$attributeGroup['attribute_group_name']];
                         } else {
                             continue;
                         }
@@ -402,8 +403,8 @@ class Converter
                     break;
                 case self::TYPE_PRICE:
                 case self::TYPE_WEIGHT:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        $filters = $facetAndFiltersLabels[$filterLabel];
+                    if (isset($receivedFilters[$filterLabel])) {
+                        $filters = $receivedFilters[$filterLabel];
                         if (isset($filters[1]) && isset($filters[2])) {
                             $from = $filters[1];
                             $to = $filters[2];
@@ -413,8 +414,8 @@ class Converter
                     }
                     break;
                 case self::TYPE_CATEGORY:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                    if (isset($receivedFilters[$filterLabel])) {
+                        foreach ($receivedFilters[$filterLabel] as $queryFilter) {
                             /*
                              * This works only for categories that are child of the category we are browsing (or home category).
                              * Categories deeper in the tree will never be found. This could be fixed by providing a unique ID
@@ -428,8 +429,8 @@ class Converter
                     }
                     break;
                 default:
-                    if (isset($facetAndFiltersLabels[$filterLabel])) {
-                        foreach ($facetAndFiltersLabels[$filterLabel] as $queryFilter) {
+                    if (isset($receivedFilters[$filterLabel])) {
+                        foreach ($receivedFilters[$filterLabel] as $queryFilter) {
                             $searchFilters[$filter['type']][] = $queryFilter;
                         }
                     }
