@@ -597,7 +597,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         if (Tools::isSubmit('SubmitFilter')) {
             // Get filter data
             $templateName = Tools::getValue('layered_tpl_name');
-            $controllers = Tools::getValue('controllers');
+            $controllers = Tools::getValue('controllers')?Tools::getValue('controllers'):array_keys($this->supportedControllers);
             $categoryBox = Tools::getValue('categoryBox');
 
             if (empty($templateName)) {
