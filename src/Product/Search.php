@@ -125,11 +125,14 @@ class Search
         // Add filters that the user has selected for current query
         $this->addSearchFilters($selectedFilters);
 
-        // Adds filters that specific for category page
+        // Adds filters that specific for this controller
         $this->addControllerSpecificFilters();
 
-        // Add group by and flush it, let's go
+        // Add group by to remove duplicate values
         $this->getSearchAdapter()->addGroupBy('id_product');
+
+        // Move the current search into the "initialPopulation"
+        // This initialPopulation will be used to generate the base table in the final query
         $this->getSearchAdapter()->useFiltersAsInitialPopulation();
     }
 
@@ -312,7 +315,7 @@ class Search
     {
         // Category page
         if ($this->query->getQueryType() == 'category') {
-            // If any category filter was user selected, we don't have anything to do here
+            // We check if some specific filter of this type wasn't added before by the customer
             if (!empty($this->getSearchAdapter()->getFilter('id_category'))) {
                 return;
             }

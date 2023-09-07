@@ -169,7 +169,7 @@ interface InterfaceAdapter
     public function addOperationsFilter($filterName, array $operations);
 
     /**
-     * Add fieldName in the current search result
+     * Add fieldName in the current search result. If the field already exists, it's skipped.
      *
      * @param string $fieldName
      *
