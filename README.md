@@ -16,7 +16,17 @@ PrestaShop: 1.7.6.0 or later
 
 ## Multistore compatibility
 
+
 This module is partially compatible with the multistore feature. Some of its options might not be available.
+
+## How to test
+
+
+Link to specs : https://docs.prestashop-project.org/functional-documentation/functional-documentation/ux-ui/back-office/improve/modules/faceted-search-ps_facetedsearch
+
+ you can have all the scenarios related to this module : 
+
+Link to scenarios  : https://build.prestashop-project.org/test-scenarios/scenarios/modules/ps-facetedsearch.html 
 
 ## Reporting issues
 
