@@ -506,7 +506,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
     /**
      * Remove the facet when there's only 1 result.
-     * Keep facet status when it's a slider
+     * Keep facet status when it's a slider.
+     * Keep facet status if it's a availability facet.
      *
      * @param array $facets
      * @param int $totalProducts
@@ -522,12 +523,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
-            // We won't apply this to availability facet, let's keep the value displayed
-            // Don't worry, the facet will be hidden if there are no values with products
-            if ($facet->getType() == 'availability') {
-                continue;
-            }
-
             // Now the rest of facets - we apply this logic
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
@@ -538,21 +533,22 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 }
             }
 
+            // We display the facet in several cases
             $facet->setDisplayed(
-                // There are two filters displayed
+                // If there are two filters available
                 $usefulFiltersCount > 1
                 ||
-                /*
-                 * There is only one fitler and the
-                 * magnitude is different than the
-                 * total products
-                 */
+                // There is only one filter available, but it furhter reduces the product selection
                 (
                     count($facet->getFilters()) === 1
                     && $totalFacetProducts < $totalProducts
                     && $usefulFiltersCount > 0
                 )
+                ||
+                // If there is only one filter, but it's availability filter - we want this one to be displayed all the time
+                ($usefulFiltersCount === 1 && $facet->getType() == 'availability')
             );
+            // Other cases - hidden by default
         }
     }
 
