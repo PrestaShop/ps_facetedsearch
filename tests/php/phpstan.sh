@@ -14,7 +14,7 @@ docker run -tid --rm -v ps-volume:/var/www/html --name temp-ps prestashop/presta
 # Clear previous instance of the module in the PrestaShop volume
 echo "Clear previous module"
 
-docker exec -t temp-ps rm -rf /var/www/html/modules/ps_facetedsearch
+docker exec -t --user root temp-ps sh -c 'find /var/www/html/modules/ps_facetedsearch -type f -exec rm {} +'
 
 # Run a container for PHPStan, having access to the module content and PrestaShop sources.
 # This tool is outside the composer.json because of the compatibility with PHP 5.6
