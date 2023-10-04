@@ -33,6 +33,7 @@ use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 class Search
 {
     const STOCK_MANAGEMENT_FILTER = 'with_stock_management';
+    const HIGHLIGHTS_FILTER = 'extras';
 
     /**
      * @var bool
@@ -171,6 +172,41 @@ class Search
 
                 case 'category':
                     $this->addFilter('id_category', $filterValues);
+                    break;
+
+                case 'extras':
+                    // Filter for new products
+                    if (in_array('new', $filterValues)) {
+                        $timeCondition = date(
+                            'Y-m-d 00:00:00',
+                            strtotime(
+                                ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                                '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                                '+ 1 days')
+                            )
+                        );
+                        // Reset filter to prevent two same filters if we are on new products page
+                        $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+                    }
+
+                    // Filter for discounts - they must work as OR
+                    $operationsFilter = [];
+                    if (in_array('discount', $filterValues)) {
+                        $operationsFilter[] = [
+                            ['reduction', [0], '>'],
+                        ];
+                    }
+                    if (in_array('sale', $filterValues)) {
+                        $operationsFilter[] = [
+                            ['on_sale', [1], '='],
+                        ];
+                    }
+                    if (!empty($operationsFilter)) {
+                        $this->getSearchAdapter()->addOperationsFilter(
+                            self::HIGHLIGHTS_FILTER,
+                            $operationsFilter
+                        );
+                    }
                     break;
 
                 case 'availability':
@@ -360,6 +396,11 @@ class Search
          * If there is a zero set to disable this feature, it creates unreachable condition.
          */
         if ($this->query->getQueryType() == 'new-products') {
+            // We check if some specific filter of this type wasn't added before
+            if (!empty($this->getSearchAdapter()->getFilter('date_add'))) {
+                return;
+            }
+
             $timeCondition = date(
                 'Y-m-d 00:00:00',
                 strtotime(
@@ -386,6 +427,11 @@ class Search
          * We are selecting products that have a specific price created meeting certain conditions.
          */
         if ($this->query->getQueryType() == 'prices-drop') {
+            // We check if some specific filter of this type wasn't added before
+            if (!empty($this->getSearchAdapter()->getFilter('reduction'))) {
+                return;
+            }
+
             $this->getSearchAdapter()->addFilter('reduction', [0], '>');
         }
 

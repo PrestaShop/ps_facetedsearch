@@ -515,7 +515,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     /**
      * Remove the facet when there's only 1 result.
      * Keep facet status when it's a slider.
-     * Keep facet status if it's a availability facet.
+     * Keep facet status if it's a availability or extras facet.
      *
      * @param array $facets
      * @param int $totalProducts
@@ -553,8 +553,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     && $usefulFiltersCount > 0
                 )
                 ||
-                // If there is only one filter, but it's availability filter - we want this one to be displayed all the time
-                ($usefulFiltersCount === 1 && $facet->getType() == 'availability')
+                // If there is only one filter, but it's availability or extras filter - we want this one to be displayed all the time
+                ($usefulFiltersCount === 1 && ($facet->getType() == 'availability' || $facet->getType() == 'extras'))
             );
             // Other cases - hidden by default
         }

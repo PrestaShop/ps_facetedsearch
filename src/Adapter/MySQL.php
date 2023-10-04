@@ -98,19 +98,19 @@ class MySQL extends AbstractAdapter
 
         // Process and generate all fields for the SQL query below
         $orderField = $this->computeOrderByField($filterToTableMapping);
+        $selectFields = $this->computeSelectFields($filterToTableMapping);
+        $whereConditions = $this->computeWhereConditions($filterToTableMapping);
+        $joinConditions = $this->computeJoinConditions($filterToTableMapping);
+        $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
         // Now, let's build the query...
         // If this query IS the initial population (the base table), we are selecting from product table
         if ($this->getInitialPopulation() === null) {
             $referenceTable = _DB_PREFIX_ . 'product';
+        // If not, we will call this function again but for the initial population
         } else {
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
-
-        $selectFields = $this->computeSelectFields($filterToTableMapping);
-        $whereConditions = $this->computeWhereConditions($filterToTableMapping);
-        $joinConditions = $this->computeJoinConditions($filterToTableMapping);
-        $groupFields = $this->computeGroupByFields($filterToTableMapping);
 
         $query = 'SELECT ' . implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
@@ -327,7 +327,7 @@ class MySQL extends AbstractAdapter
                     (sp.from = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' >= sp.from) AND 
                     (sp.to = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' <= sp.to) 
                 )',
-                'joinType' => self::INNER_JOIN,
+                'joinType' => self::LEFT_JOIN,
             ],
         ];
 
@@ -805,6 +805,8 @@ class MySQL extends AbstractAdapter
                 'weight',
                 'price',
                 'sales',
+                'on_sale',
+                'date_add',
             ]
         );
 
