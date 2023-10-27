@@ -97,6 +97,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $sortPriceDesc = new SortOrder('product', 'price', 'desc');
         $sortDateAsc = new SortOrder('product', 'date_add', 'asc');
         $sortDateDesc = new SortOrder('product', 'date_add', 'desc');
+        $sortRefAsc = new SortOrder('product', 'reference', 'asc');
+        $sortRefDesc = new SortOrder('product', 'reference', 'desc');
         $translator = $this->module->getTranslator();
 
         $sortOrders = [
@@ -117,6 +119,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ),
             $sortPriceDesc->setLabel(
                 $translator->trans('Price, high to low', [], 'Shop.Theme.Catalog')
+            ),
+            $sortRefAsc->setLabel(
+                $translator->trans('Reference, A to Z', [], 'Shop.Theme.Catalog')
+            ),
+            $sortRefDesc->setLabel(
+                $translator->trans('Reference, Z to A', [], 'Shop.Theme.Catalog')
             ),
         ];
 
@@ -507,7 +515,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     /**
      * Remove the facet when there's only 1 result.
      * Keep facet status when it's a slider.
-     * Keep facet status if it's a availability facet.
+     * Keep facet status if it's a availability or extras facet.
      *
      * @param array $facets
      * @param int $totalProducts
@@ -545,8 +553,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     && $usefulFiltersCount > 0
                 )
                 ||
-                // If there is only one filter, but it's availability filter - we want this one to be displayed all the time
-                ($usefulFiltersCount === 1 && $facet->getType() == 'availability')
+                // If there is only one filter, but it's availability or extras filter - we want this one to be displayed all the time
+                ($usefulFiltersCount === 1 && ($facet->getType() == 'availability' || $facet->getType() == 'extras'))
             );
             // Other cases - hidden by default
         }
