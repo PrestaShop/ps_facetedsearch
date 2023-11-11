@@ -964,6 +964,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $tmp[] = (isset($supportedControllers[$c]) ? $supportedControllers[$c]['name'] : $c);
             }
             $filters_templates[$k]['controllers'] = implode(', ', $tmp);
+
+            // Format date for different core versions. Since 8.0, it has only two arguments.
+            // PHPStan ignores are added because it doesn't seem to understand the condition.
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                /** @phpstan-ignore-next-line */
+                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
+            } else {
+                /** @phpstan-ignore-next-line */
+                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], null, true);
+            }
         }
 
         return $filters_templates;
