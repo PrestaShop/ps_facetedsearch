@@ -66,11 +66,11 @@
 		<tbody>
 		  {foreach $filters_templates as $template}
 			<tr>
-			  <td class="center">{(int)$template['id_layered_filter']}</td>
+			  <td class="center">{$template['id_layered_filter']}</td>
 			  <td class="text-left">{$template['name']}</td>
 			  <td>{$template['controllers']}</td>
-			  <td class="center">{(int)$template['n_categories']}</td>
-			  <td>{Tools::displayDate($template['date_add'],null , true)}</td>
+			  <td class="center">{$template['n_categories']}</td>
+			  <td>{$template['date_add']}</td>
 			  <td>
 				{if empty($limit_warning)}
 				  <div class="btn-group-action">

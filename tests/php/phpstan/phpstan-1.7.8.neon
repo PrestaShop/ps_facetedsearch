@@ -9,3 +9,4 @@ parameters:
     - '~^Parameter #\d+ \$\w+ of static method ProductCore::priceCalculation\(\) expects \w+, \w+ given\.$~'
     - '~^Access to an undefined property Cookie::\$id_lang\.$~'
     - '~^Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.$~'
+    - '~^Parameter #2 \$id_lang of static method ToolsCore::displayDate\(\) expects int|null, true given\.$~'
