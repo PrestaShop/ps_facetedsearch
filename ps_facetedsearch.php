@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.14.0';
+        $this->version = '3.14.1';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -964,6 +964,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 $tmp[] = (isset($supportedControllers[$c]) ? $supportedControllers[$c]['name'] : $c);
             }
             $filters_templates[$k]['controllers'] = implode(', ', $tmp);
+
+            // Format date for different core versions. Since 8.0, it has only two arguments.
+            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
+                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
+            } else {
+                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], null, true);
+            }
         }
 
         return $filters_templates;
