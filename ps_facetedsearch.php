@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '3.14.1';
+        $this->version = '4.0.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -107,7 +107,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->displayName = $this->trans('Faceted search', [], 'Modules.Facetedsearch.Admin');
         $this->description = $this->trans('Filter your catalog to help visitors picture the category tree and browse your store easily.', [], 'Modules.Facetedsearch.Admin');
         $this->psLayeredFullTree = (int) Configuration::get('PS_LAYERED_FULL_TREE');
-        $this->ps_versions_compliancy = ['min' => '1.7.6.0', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.7.7', 'max' => _PS_VERSION_];
 
         $this->hookDispatcher = new HookDispatcher($this);
 
