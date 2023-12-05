@@ -35,7 +35,7 @@ class MySQLTest extends MockeryTestCase
 {
     private $adapter;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->adapter = new MySQL();
 
