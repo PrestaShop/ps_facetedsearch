@@ -489,7 +489,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             null,
                             null,
                             $currency['id_currency'],
-                            (($specificPrice['id_group'] == 0) ? null : $specificPrice['id_group']),
+                            ($specificPrice['id_group'] == 0) ? null : $specificPrice['id_group'],
                             $specificPrice['from_quantity'],
                             false,
                             6,
@@ -825,7 +825,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // Initialize category tree component
         $treeCategoriesHelper = new HelperTreeCategories('categories-treeview');
         $treeCategoriesHelper
-            ->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
+            ->setRootCategory(Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0)
             ->setUseCheckBox(true);
 
         // If we are editing an already existing template, we will load its data,
@@ -1648,7 +1648,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         $lastIdProduct = 0;
         foreach ($this->getDatabase()->executeS($query) as $product) {
-            $this->indexProductPrices((int) $product['id_product'], ($smart && $full));
+            $this->indexProductPrices((int) $product['id_product'], $smart && $full);
             $lastIdProduct = $product['id_product'];
         }
 

@@ -354,36 +354,36 @@ class Converter
                     }
                     break;
                 case self::TYPE_EXTRAS:
-                        if (!isset($receivedFilters[$filterLabel])) {
-                            // No need to filter if no information
-                            continue 2;
-                        }
+                    if (!isset($receivedFilters[$filterLabel])) {
+                        // No need to filter if no information
+                        continue 2;
+                    }
 
-                        $extrasOptions = [
-                            $this->context->getTranslator()->trans(
-                                'New product',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'new',
-                            $this->context->getTranslator()->trans(
-                                'On sale',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'sale',
-                            $this->context->getTranslator()->trans(
-                                'Discounted',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'discount',
-                        ];
+                    $extrasOptions = [
+                        $this->context->getTranslator()->trans(
+                            'New product',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'new',
+                        $this->context->getTranslator()->trans(
+                            'On sale',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'sale',
+                        $this->context->getTranslator()->trans(
+                            'Discounted',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'discount',
+                    ];
 
-                        $searchFilters[$filter['type']] = [];
-                        foreach ($extrasOptions as $extrasOption => $optionId) {
-                            if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
-                                $searchFilters[$filter['type']][] = $optionId;
-                            }
+                    $searchFilters[$filter['type']] = [];
+                    foreach ($extrasOptions as $extrasOption => $optionId) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
+                            $searchFilters[$filter['type']][] = $optionId;
                         }
-                        break;
+                    }
+                    break;
                 case self::TYPE_FEATURE:
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {

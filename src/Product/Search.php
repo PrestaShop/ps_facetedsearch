@@ -180,9 +180,9 @@ class Search
                         $timeCondition = date(
                             'Y-m-d 00:00:00',
                             strtotime(
-                                ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                                (int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
                                 '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                                '+ 1 days')
+                                '+ 1 days'
                             )
                         );
                         // Reset filter to prevent two same filters if we are on new products page
@@ -251,7 +251,7 @@ class Search
                                 ['quantity', [0], '>'],
                             ];
                         }
-                        // Cases with 2 options selected
+                    // Cases with 2 options selected
                     } elseif (count($filterValues) == 2) {
                         // Not available and available, we show everything
                         if (in_array(Availability::NOT_AVAILABLE, $filterValues) && in_array(Availability::AVAILABLE, $filterValues)) {
@@ -404,9 +404,9 @@ class Search
             $timeCondition = date(
                 'Y-m-d 00:00:00',
                 strtotime(
-                    ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                    (int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
                     '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                    '+ 1 days')
+                    '+ 1 days'
                 )
             );
             $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');

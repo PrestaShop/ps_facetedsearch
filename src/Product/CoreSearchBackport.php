@@ -172,10 +172,10 @@ class CoreSearchBackport
 
             while (!($result = $db->executeS($sql . "'" . $sql_param_search . "';", true, false))) {
                 if (
-          !$psFuzzySearch
-          || $fuzzyLoop++ > $fuzzyMaxLoop
-          || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
-        ) {
+                    !$psFuzzySearch
+                    || $fuzzyLoop++ > $fuzzyMaxLoop
+                    || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
+                ) {
                     break;
                 }
             }
@@ -204,19 +204,19 @@ class CoreSearchBackport
         }
 
         $results = $db->executeS(
-      'SELECT DISTINCT cp.`id_product` ' .
-        'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
-        (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
-        Shop::addSqlAssociation('product', 'p', false) . ' ' .
-        'WHERE c.`active` = 1 ' .
-        'AND product_shop.`active` = 1 ' .
-        'AND product_shop.`visibility` IN ("both", "search") ' .
-        'AND product_shop.indexed = 1 ' . $sqlGroups,
-      true,
-      false
-    );
+            'SELECT DISTINCT cp.`id_product` ' .
+              'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
+              (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
+              Shop::addSqlAssociation('product', 'p', false) . ' ' .
+              'WHERE c.`active` = 1 ' .
+              'AND product_shop.`active` = 1 ' .
+              'AND product_shop.`visibility` IN ("both", "search") ' .
+              'AND product_shop.indexed = 1 ' . $sqlGroups,
+            true,
+            false
+        );
 
         $eligibleProducts = array_column($results, 'id_product');
 
@@ -262,10 +262,10 @@ class CoreSearchBackport
 
             while (!($result = $db->executeS($sql . "'" . $sql_param_search . "';", true, false))) {
                 if (
-          !$psFuzzySearch
-          || $fuzzyLoop++ > $fuzzyMaxLoop
-          || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
-        ) {
+                    !$psFuzzySearch
+                    || $fuzzyLoop++ > $fuzzyMaxLoop
+                    || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
+                ) {
                     break;
                 }
             }
@@ -294,20 +294,20 @@ class CoreSearchBackport
         }
 
         $results = $db->executeS(
-      'SELECT DISTINCT cp.`id_product` ' .
-        'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
-        (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
-        Shop::addSqlAssociation('product', 'p', false) . ' ' .
-        'WHERE c.`active` = 1 ' .
-        'AND product_shop.`active` = 1 ' .
-        'AND product_shop.`visibility` IN ("both", "search") ' .
-        'AND product_shop.indexed = 1 ' .
-        'AND cp.id_product IN (' . implode(',', $eligibleProducts2) . ')' . $sqlGroups,
-      true,
-      false
-    );
+            'SELECT DISTINCT cp.`id_product` ' .
+              'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
+              (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
+              Shop::addSqlAssociation('product', 'p', false) . ' ' .
+              'WHERE c.`active` = 1 ' .
+              'AND product_shop.`active` = 1 ' .
+              'AND product_shop.`visibility` IN ("both", "search") ' .
+              'AND product_shop.indexed = 1 ' .
+              'AND cp.id_product IN (' . implode(',', $eligibleProducts2) . ')' . $sqlGroups,
+            true,
+            false
+        );
 
         return array_column($results, 'id_product');
     }
@@ -354,10 +354,10 @@ class CoreSearchBackport
 
                 while (!($result = $db->executeS($sql . "'" . $sql_param_search . "';", true, false))) {
                     if (
-            !$psFuzzySearch
-            || $fuzzyLoop++ > $fuzzyMaxLoop
-            || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
-          ) {
+                        !$psFuzzySearch
+                        || $fuzzyLoop++ > $fuzzyMaxLoop
+                        || !($sql_param_search = Search::findClosestWeightestWord($context, $word))
+                    ) {
                         break;
                     }
                 }
@@ -393,20 +393,20 @@ class CoreSearchBackport
         }
 
         $results = $db->executeS(
-      'SELECT DISTINCT cp.`id_product` ' .
-        'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
-        (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
-        Shop::addSqlAssociation('product', 'p', false) . ' ' .
-        'WHERE c.`active` = 1 ' .
-        'AND product_shop.`active` = 1 ' .
-        'AND product_shop.`visibility` IN ("both", "search") ' .
-        'AND product_shop.indexed = 1 ' .
-        'AND cp.id_product IN (' . implode(',', $eligibleProducts2Full) . ')' . $sqlGroups,
-      true,
-      false
-    );
+            'SELECT DISTINCT cp.`id_product` ' .
+              'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
+              (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
+              'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
+              Shop::addSqlAssociation('product', 'p', false) . ' ' .
+              'WHERE c.`active` = 1 ' .
+              'AND product_shop.`active` = 1 ' .
+              'AND product_shop.`visibility` IN ("both", "search") ' .
+              'AND product_shop.indexed = 1 ' .
+              'AND cp.id_product IN (' . implode(',', $eligibleProducts2Full) . ')' . $sqlGroups,
+            true,
+            false
+        );
 
         return array_column($results, 'id_product');
     }
