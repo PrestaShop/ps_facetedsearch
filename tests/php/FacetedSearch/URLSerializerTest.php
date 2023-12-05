@@ -30,7 +30,7 @@ class URLSerializerTest extends MockeryTestCase
 {
     private $serializer;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->serializer = new URLSerializer();
     }

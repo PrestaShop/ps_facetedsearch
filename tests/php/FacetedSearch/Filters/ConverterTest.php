@@ -45,7 +45,7 @@ class ConverterTest extends MockeryTestCase
     /** @var Block */
     private $converter;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $mock = Mockery::mock(Configuration::class);
 
