@@ -97,8 +97,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $sortPriceDesc = new SortOrder('product', 'price', 'desc');
         $sortDateAsc = new SortOrder('product', 'date_add', 'asc');
         $sortDateDesc = new SortOrder('product', 'date_add', 'desc');
-        $sortRefAsc = new SortOrder('product', 'reference', 'asc');
-        $sortRefDesc = new SortOrder('product', 'reference', 'desc');
         $translator = $this->module->getTranslator();
 
         $sortOrders = [
@@ -119,12 +117,6 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ),
             $sortPriceDesc->setLabel(
                 $translator->trans('Price, high to low', [], 'Shop.Theme.Catalog')
-            ),
-            $sortRefAsc->setLabel(
-                $translator->trans('Reference, A to Z', [], 'Shop.Theme.Catalog')
-            ),
-            $sortRefDesc->setLabel(
-                $translator->trans('Reference, Z to A', [], 'Shop.Theme.Catalog')
             ),
         ];
 
@@ -205,18 +197,23 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         );
 
         // Let's try to get filters from cache, if the controller is supported
-        $filterHash = $this->generateCacheKeyForQuery($query, $facetedSearchFilters);
-        if ($this->module->shouldCacheController($query->getQueryType())) {
-            $filterBlock = $filterBlockSearch->getFromCache($filterHash);
-        }
+$filterHash = $this->generateCacheKeyForQuery($query, $facetedSearchFilters);
 
-        // If not, we regenerate it and cache it
-        if (empty($filterBlock)) {
-            $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
-            if ($this->module->shouldCacheController($query->getQueryType())) {
-                $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
-            }
-        }
+// Check if $queryType is not null before calling shouldCacheController
+$queryType = $query->getQueryType();
+if ($queryType !== null && $this->module->shouldCacheController($queryType)) {
+    $filterBlock = $filterBlockSearch->getFromCache($filterHash);
+}
+
+// If not, we regenerate it and cache it
+if (empty($filterBlock)) {
+    $filterBlock = $filterBlockSearch->getFilterBlock($productsAndCount['count'], $facetedSearchFilters);
+    
+    // Check if $queryType is not null before calling shouldCacheController
+    if ($queryType !== null && $this->module->shouldCacheController($queryType)) {
+        $filterBlockSearch->insertIntoCache($filterHash, $filterBlock);
+    }
+}
 
         $facets = $this->filtersConverter->getFacetsFromFilterBlocks(
             $filterBlock['filters']
@@ -514,8 +511,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
     /**
      * Remove the facet when there's only 1 result.
-     * Keep facet status when it's a slider.
-     * Keep facet status if it's a availability or extras facet.
+     * Keep facet status when it's a slider
      *
      * @param array $facets
      * @param int $totalProducts
@@ -531,6 +527,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 continue;
             }
 
+            // We won't apply this to availability facet, let's keep the value displayed
+            // Don't worry, the facet will be hidden if there are no values with products
+            if ($facet->getType() == 'availability') {
+                continue;
+            }
+
             // Now the rest of facets - we apply this logic
             $totalFacetProducts = 0;
             $usefulFiltersCount = 0;
@@ -541,22 +543,21 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 }
             }
 
-            // We display the facet in several cases
             $facet->setDisplayed(
-                // If there are two filters available
+                // There are two filters displayed
                 $usefulFiltersCount > 1
                 ||
-                // There is only one filter available, but it furhter reduces the product selection
+                /*
+                 * There is only one fitler and the
+                 * magnitude is different than the
+                 * total products
+                 */
                 (
                     count($facet->getFilters()) === 1
                     && $totalFacetProducts < $totalProducts
                     && $usefulFiltersCount > 0
                 )
-                ||
-                // If there is only one filter, but it's availability or extras filter - we want this one to be displayed all the time
-                ($usefulFiltersCount === 1 && ($facet->getType() == 'availability' || $facet->getType() == 'extras'))
             );
-            // Other cases - hidden by default
         }
     }
 
