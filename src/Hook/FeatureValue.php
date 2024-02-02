@@ -103,7 +103,7 @@ class FeatureValue extends AbstractHook
             return;
         }
 
-        //Removing all indexed language data for this attribute value id
+        // Removing all indexed language data for this attribute value id
         $this->database->execute(
             'DELETE FROM ' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value
             WHERE `id_feature_value` = ' . (int) $params['id_feature_value']

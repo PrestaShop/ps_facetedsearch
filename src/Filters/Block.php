@@ -92,7 +92,7 @@ class Block
         DataAccessor $dataAccessor,
         ProductSearchQuery $query,
         Provider $provider
-        ) {
+    ) {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
@@ -578,9 +578,9 @@ class Block
             $timeCondition = date(
                 'Y-m-d 00:00:00',
                 strtotime(
-                    ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
+                    (int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
                     '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                    '+ 1 days')
+                    '+ 1 days'
                 )
             );
             $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
@@ -911,7 +911,7 @@ class Block
      */
     private function sortFeatureBlock($featureBlock)
     {
-        //Natural sort
+        // Natural sort
         foreach ($featureBlock as $key => $value) {
             $temp = [];
             foreach ($featureBlock[$key]['values'] as $idFeatureValue => $featureValueInfos) {

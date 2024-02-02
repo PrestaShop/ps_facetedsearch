@@ -115,8 +115,8 @@ class Products
             return;
         }
 
-        $priceFilter['min'] = (float) ($selectedFilters['price'][0]);
-        $priceFilter['max'] = (float) ($selectedFilters['price'][1]);
+        $priceFilter['min'] = (float) $selectedFilters['price'][0];
+        $priceFilter['max'] = (float) $selectedFilters['price'][1];
 
         if ($this->psLayeredFilterPriceUsetax === null) {
             $this->psLayeredFilterPriceUsetax = (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX');

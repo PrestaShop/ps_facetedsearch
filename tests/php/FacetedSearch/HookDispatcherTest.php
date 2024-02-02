@@ -32,7 +32,7 @@ class HookDispatcherTest extends MockeryTestCase
     private $module;
     private $dispatcher;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->module = Mockery::mock(Ps_Facetedsearch::class);
         $contextMock = Mockery::mock(Context::class);

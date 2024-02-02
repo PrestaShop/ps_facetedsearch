@@ -39,7 +39,7 @@ class SearchTest extends MockeryTestCase
      */
     private $search;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $mock = Mockery::mock(Configuration::class);
         $mock->shouldReceive('get')

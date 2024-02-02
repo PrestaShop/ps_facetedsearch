@@ -110,7 +110,7 @@ class SearchProviderTest extends MockeryTestCase
         return $filter;
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->database = Mockery::mock(Db::class);
         $this->context = Mockery::mock(Context::class);

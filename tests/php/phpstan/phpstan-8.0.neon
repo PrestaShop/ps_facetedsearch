@@ -1,0 +1,11 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    # module specific
+    - '~^Parameter #2 \$active of static method CurrencyCore::getCurrencies\(\) expects bool, int given\.$~'
+    - '~^Parameter #3 \$groupBy of static method CurrencyCore::getCurrencies\(\) expects bool, Shop given\.$~'
+    - '~^Parameter #\d+ \$\w+ of static method ProductCore::priceCalculation\(\) expects \w+, \w+ given\.$~'
+    - '~^Parameter #2 \$full of static method ToolsCore::displayDate\(\) expects bool, null given\.$~'
+    - '~^Static method ToolsCore::displayDate\(\) invoked with 3 parameters, 1-2 required\.$~'

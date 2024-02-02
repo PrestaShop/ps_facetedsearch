@@ -53,7 +53,7 @@ class BlockTest extends MockeryTestCase
     /** @var Block */
     private $block;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $mock = Mockery::mock(Configuration::class);
 
