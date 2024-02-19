@@ -17,20 +17,23 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-
-/*
- * This standalone endpoint is deprecated, it should not be used anymore and should be removed along with the
- * htaccess file that still allows it to work despite the security policy from the core forbidding this kind
- * of file to be executed.
- */
-@trigger_error('This endpoint has been deprecated and will be removed in the next major version for this module, you should rely on Ps_FacetedSearchCronModuleFrontController instead.', E_USER_DEPRECATED);
-
-require_once __DIR__ . '/../../config/config.inc.php';
-require_once __DIR__ . '/ps_facetedsearch.php';
-
-if (substr(Tools::hash('ps_facetedsearch/index'), 0, 10) != Tools::getValue('token') || !Module::isInstalled('ps_facetedsearch')) {
-    exit('Bad token');
+if (!defined('_PS_VERSION_')) {
+    exit;
 }
 
-$psFacetedsearch = new Ps_Facetedsearch();
-echo $psFacetedsearch->invalidateLayeredFilterBlockCache();
+function upgrade_module_3_15_0(Ps_Facetedsearch $module)
+{
+    // New hooks for migrated attribute page
+    $newHooks = [
+        'actionAttributeFormBuilderModifier',
+        'actionAttributeFormDataProviderData',
+        'actionAfterCreateAttributeFormHandler',
+        'actionAfterUpdateAttributeFormHandler',
+        'actionAttributeGroupFormBuilderModifier',
+        'actionAttributeGroupFormDataProviderData',
+        'actionAfterCreateAttributeGroupFormHandler',
+        'actionAfterUpdateAttributeGroupFormHandler',
+    ];
+
+    return $module->registerHook($newHooks);
+}
