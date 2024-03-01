@@ -23,6 +23,7 @@ namespace PrestaShop\Module\FacetedSearch\Form\FeatureValue;
 use Context;
 use PrestaShop\Module\FacetedSearch\Constraint\UrlSegment;
 use PrestaShopBundle\Form\Admin\Type\TranslatableType;
+use PrestaShopBundle\Translation\DataCollectorTranslator;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Symfony\Component\Form\FormBuilderInterface;
 
@@ -45,9 +46,7 @@ class FormModifier
         FormBuilderInterface $formBuilder,
         array $data
     ) {
-        /**
-         * @var TranslatorComponent
-         */
+        /** @var DataCollectorTranslator|TranslatorComponent $translator */
         $translator = $this->context->getTranslator();
         $invalidCharsHint = $translator->trans(
             'Invalid characters: <>;=#{}_',
