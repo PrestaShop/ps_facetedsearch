@@ -330,6 +330,8 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::LEFT_JOIN,
             ],
         ];
+        
+        \Hook::exec('actionFSQueryBuilderModifier', ['filterToTableMapping' => &$filterToTableMapping]);
 
         return $filterToTableMapping;
     }
