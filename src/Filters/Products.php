@@ -101,7 +101,7 @@ class Products
         );
 
         // And run post filter
-        $this->pricePostFiltering($cutMatchingProductList, $selectedFilters);
+        $this->pricePostFiltering($finalProductList, $selectedFilters);
 
         return [
             'products' => $finalProductList,
