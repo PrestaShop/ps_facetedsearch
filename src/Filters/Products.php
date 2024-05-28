@@ -65,17 +65,13 @@ class Products
         ProductSearchQuery $query,
         array $selectedFilters = []
     ) {
-        // Get pagination
-        $productsPerPage = (int) $query->getResultsPerPage();
-        $page = (int) $query->getPage();
-
         // Load sorting type and direction, validate it and apply fallback if needed
         $orderBy = $query->getSortOrder()->toLegacyOrderBy(false);
         $orderWay = $query->getSortOrder()->toLegacyOrderWay();
         $orderWay = Validate::isOrderWay($orderWay) ? $orderWay : 'ASC';
         $orderBy = Validate::isOrderBy($orderBy) ? $orderBy : 'position';
 
-        $this->searchAdapter->setLimit($productsPerPage, ($page - 1) * $productsPerPage);
+        // Apply it to the filter
         $this->searchAdapter->setOrderField($orderBy);
         $this->searchAdapter->setOrderDirection($orderWay);
 
@@ -87,19 +83,29 @@ class Products
             $this->searchAdapter->addSelectField('price_max');
         }
 
-        $matchingProductList = $this->searchAdapter->execute();
+        // Get full list of matching products
+        $fullProductList = $this->searchAdapter->execute();
 
-        $this->pricePostFiltering($matchingProductList, $selectedFilters);
+        // Count them
+        $totalProductCount = count($fullProductList);
 
-        $nbrProducts = $this->searchAdapter->count();
+        // Get pagination
+        $productsPerPage = (int) $query->getResultsPerPage();
+        $page = (int) $query->getPage();
 
-        if (empty($nbrProducts)) {
-            $matchingProductList = [];
-        }
+        // Cut them down by pagination
+        $finalProductList = array_slice(
+            $fullProductList,
+            ($page - 1) * $productsPerPage,
+            $productsPerPage
+        );
+
+        // And run post filter
+        $this->pricePostFiltering($finalProductList, $selectedFilters);
 
         return [
-            'products' => $matchingProductList,
-            'count' => $nbrProducts,
+            'products' => $finalProductList,
+            'count' => $totalProductCount,
         ];
     }
 
