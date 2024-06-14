@@ -574,7 +574,7 @@ class Block
                 ),
                 'nbr' => 0,
             ];
-            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('date_add');
+            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('date_new');
             $timeCondition = date(
                 'Y-m-d 00:00:00',
                 strtotime(
@@ -583,7 +583,7 @@ class Block
                     '+ 1 days')
                 )
             );
-            $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+            $filteredSearchAdapter->addFilter('date_new', ["'" . $timeCondition . "'"], '>');
             $extrasOptions['new']['nbr'] = $filteredSearchAdapter->count();
         }
 
