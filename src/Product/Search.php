@@ -322,6 +322,16 @@ class Search
                     break;
             }
         }
+        // Show only products in stock
+        if (Configuration::get('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK')=== '1'){
+            $operationsFilter[] = [
+                ['quantity', [0], '>'],
+            ];
+            $this->getSearchAdapter()->addOperationsFilter(
+                self::STOCK_MANAGEMENT_FILTER,
+                $operationsFilter
+            );
+        }
     }
 
     /**
