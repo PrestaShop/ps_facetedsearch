@@ -324,6 +324,7 @@ class CoreSearchBackport
         $context = Context::getContext();
         $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
 
+        $scoreArray = [];
         $fuzzyLoop = 0;
         $wordCnt = 0;
         $eligibleProducts2Full = [];
@@ -342,15 +343,15 @@ class CoreSearchBackport
 
                 $sql_param_search = Search::getSearchParamFromWord($word);
                 $sql = 'SELECT DISTINCT si.id_product ' .
-          'FROM ' . _DB_PREFIX_ . 'search_word sw ' .
-          'LEFT JOIN ' . _DB_PREFIX_ . 'search_index si ON sw.id_word = si.id_word ' .
-          'LEFT JOIN ' . _DB_PREFIX_ . 'product_shop product_shop ON (product_shop.`id_product` = si.`id_product`) ' .
-          'WHERE sw.id_lang = ' . (int) $context->language->id . ' ' .
-          'AND sw.id_shop = ' . $context->shop->id . ' ' .
-          'AND product_shop.`active` = 1 ' .
-          'AND product_shop.`visibility` IN ("both", "search") ' .
-          'AND product_shop.indexed = 1 ' .
-          'AND sw.word LIKE ';
+                'FROM ' . _DB_PREFIX_ . 'search_word sw ' .
+                'LEFT JOIN ' . _DB_PREFIX_ . 'search_index si ON sw.id_word = si.id_word ' .
+                'LEFT JOIN ' . _DB_PREFIX_ . 'product_shop product_shop ON (product_shop.`id_product` = si.`id_product`) ' .
+                'WHERE sw.id_lang = ' . (int) $context->language->id . ' ' .
+                'AND sw.id_shop = ' . $context->shop->id . ' ' .
+                'AND product_shop.`active` = 1 ' .
+                'AND product_shop.`visibility` IN ("both", "search") ' .
+                'AND product_shop.indexed = 1 ' .
+                'AND sw.word LIKE ';
 
                 while (!($result = $db->executeS($sql . "'" . $sql_param_search . "';", true, false))) {
                     if (
@@ -373,6 +374,8 @@ class CoreSearchBackport
                 } else {
                     $eligibleProducts2 = array_intersect($eligibleProducts2, $productIds);
                 }
+
+                $scoreArray[] = 'sw.word LIKE \'' . $sql_param_search . '\'';
             }
             $wordCnt += count($words);
             if ($eligibleProducts2) {
@@ -386,6 +389,19 @@ class CoreSearchBackport
             return [];
         }
 
+        $sqlScore = '';
+        if (!empty($scoreArray) && is_array($scoreArray)) {
+            $sqlScore = ',( ' .
+                'SELECT SUM(weight) ' .
+                'FROM ' . _DB_PREFIX_ . 'search_word sw ' .
+                'LEFT JOIN ' . _DB_PREFIX_ . 'search_index si ON sw.id_word = si.id_word ' .
+                'WHERE sw.id_lang = ' . (int) $context->language->id . ' ' .
+                'AND sw.id_shop = ' . $context->shop->id . ' ' .
+                'AND si.id_product = p.id_product ' .
+                'AND (' . implode(' OR ', $scoreArray) . ') ' .
+                ') position';
+        }
+
         $sqlGroups = '';
         if (Group::isFeatureActive()) {
             $groups = FrontController::getCurrentCustomerGroups();
@@ -393,20 +409,21 @@ class CoreSearchBackport
         }
 
         $results = $db->executeS(
-      'SELECT DISTINCT cp.`id_product` ' .
-        'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
-        (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
-        'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
-        Shop::addSqlAssociation('product', 'p', false) . ' ' .
-        'WHERE c.`active` = 1 ' .
-        'AND product_shop.`active` = 1 ' .
-        'AND product_shop.`visibility` IN ("both", "search") ' .
-        'AND product_shop.indexed = 1 ' .
-        'AND cp.id_product IN (' . implode(',', $eligibleProducts2Full) . ')' . $sqlGroups,
-      true,
-      false
-    );
+            'SELECT DISTINCT cp.`id_product` ' . $sqlScore . ' ' .
+            'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
+            (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
+            'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
+            'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
+            Shop::addSqlAssociation('product', 'p', false) . ' ' .
+            'WHERE c.`active` = 1 ' .
+            'AND product_shop.`active` = 1 ' .
+            'AND product_shop.`visibility` IN ("both", "search") ' .
+            'AND product_shop.indexed = 1 ' .
+            'AND cp.id_product IN (' . implode(',', $eligibleProducts2Full) . ')' . $sqlGroups . '
+            ORDER BY position DESC, p.id_product ASC',
+        true,
+        false
+        );
 
         return array_column($results, 'id_product');
     }
