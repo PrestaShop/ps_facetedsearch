@@ -201,7 +201,7 @@ class DataAccessor
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
                 'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
                 'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
-                'ORDER BY vl.`value` ASC'
+                'ORDER BY v.`position` ASC'
             );
 
             foreach ($tempFeatureValues as $feature) {
