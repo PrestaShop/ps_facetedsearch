@@ -262,6 +262,23 @@
 	  </div>
 	</div>
 
+	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Hide out of stock' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_filter_hide_out_of_stock" id="ps_layered_filter_hide_out_of_stock_on" value="1"{if $hide_out_of_stock} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_hide_out_of_stock_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_filter_hide_out_of_stock" id="ps_layered_filter_hide_out_of_stock_off" value="0"{if !$hide_out_of_stock} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_hide_out_of_stock_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	</div>
+
   <div class="form-group">
     <label class="col-lg-3 control-label">{l s='Use Jquery UI slider' d='Modules.Facetedsearch.Admin'}</label>
     <div class="col-lg-9">
