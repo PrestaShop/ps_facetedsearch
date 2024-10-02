@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
+use Configuration;
 use Combination;
 use Db;
 use Shop;
@@ -191,6 +192,13 @@ class DataAccessor
     {
         if (!isset($this->featureValues[$idLang][$idFeature])) {
             $this->featureValues[$idLang] = [$idFeature => []];
+
+            if ((bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')) {
+                $order = 'ORDER BY v.`position` ASC';
+            } else {
+                $order = 'ORDER BY vl.`value` ASC';
+            }
+
             $tempFeatureValues = $this->database->executeS(
                 'SELECT v.*, vl.*, ' .
                 'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
@@ -201,7 +209,7 @@ class DataAccessor
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
                 'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
                 'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
-                'ORDER BY v.`position` ASC'
+                $order
             );
 
             foreach ($tempFeatureValues as $feature) {
