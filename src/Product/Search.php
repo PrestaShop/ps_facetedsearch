@@ -329,11 +329,10 @@ class Search
      */
     private function addCommonFilters()
     {
-        // Setting proper shop
-        $this->getSearchAdapter()->addFilter('id_shop', [(int) $this->context->shop->id]);
-
-        // Visibility of a product must be in catalog or both (search & catalog)
-        $this->addFilter('visibility', ['both', 'catalog']);
+        // Setting proper shop if multishop is enabled
+        if (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE')) {
+            $this->getSearchAdapter()->addFilter('id_shop', [(int) $this->context->shop->id]);
+        }
 
         // User must belong to one of the groups that can access the product
         // (Actually it's categories that define access to a product, user must have access to at least
