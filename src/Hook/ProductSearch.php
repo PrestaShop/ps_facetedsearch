@@ -96,6 +96,9 @@ class ProductSearch extends AbstractHook
             ['position' => 'bottom', 'priority' => 100]
         );
 
+        $urlSerializer = new URLSerializer();
+        $dataAccessor = new DataAccessor($this->module->getDatabase());
+
         // Return an instance of our searcher, ready to accept requests
         return new SearchProvider(
             $this->module,
@@ -106,8 +109,8 @@ class ProductSearch extends AbstractHook
                 $dataAccessor,
                 $provider
             ),
-            new URLSerializer(),
-            new DataAccessor($this->module->getDatabase()),
+            $urlSerializer,
+            $dataAccessor,
             new SearchFactory(),
             $provider
         );
