@@ -24,6 +24,7 @@ use Configuration;
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
+use PrestaShop\Module\FacetedSearch\Product\SearchFactory;
 use PrestaShop\Module\FacetedSearch\Product\SearchProvider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
@@ -95,9 +96,6 @@ class ProductSearch extends AbstractHook
             ['position' => 'bottom', 'priority' => 100]
         );
 
-        $urlSerializer = new URLSerializer();
-        $dataAccessor = new DataAccessor($this->module->getDatabase());
-
         // Return an instance of our searcher, ready to accept requests
         return new SearchProvider(
             $this->module,
@@ -108,9 +106,9 @@ class ProductSearch extends AbstractHook
                 $dataAccessor,
                 $provider
             ),
-            $urlSerializer,
-            $dataAccessor,
-            null,
+            new URLSerializer(),
+            new DataAccessor($this->module->getDatabase()),
+            new SearchFactory(),
             $provider
         );
     }
