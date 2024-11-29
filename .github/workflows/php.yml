@@ -2,7 +2,7 @@ name: PHP tests
 on: [push, pull_request]
 jobs:
   php-linter:
-    name: PHP Syntax check 7.1 => 8.2
+    name: PHP Syntax check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,6 +29,11 @@ jobs:
       - name: PHP syntax checker 8.2
         uses: prestashop/github-action-php-lint/8.2@master
 
+      - name: PHP syntax checker 8.3
+        uses: prestashop/github-action-php-lint/8.3@master
+
+      - name: PHP syntax checker 8.4
+        uses: prestashop/github-action-php-lint/8.4@master
 
   # Check the PHP code follow the coding standards
   php-cs-fixer:
