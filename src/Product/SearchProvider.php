@@ -71,14 +71,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         Filters\Converter $converter,
         URLSerializer $serializer,
         Filters\DataAccessor $dataAccessor,
-        SearchFactory $searchFactory = null,
+        SearchFactory $searchFactory,
         Filters\Provider $provider
     ) {
         $this->module = $module;
         $this->filtersConverter = $converter;
         $this->urlSerializer = $serializer;
         $this->dataAccessor = $dataAccessor;
-        $this->searchFactory = $searchFactory === null ? new SearchFactory() : $searchFactory;
+        $this->searchFactory = $searchFactory;
         $this->provider = $provider;
     }
 
