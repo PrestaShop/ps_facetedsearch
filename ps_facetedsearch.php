@@ -873,7 +873,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'attribute_groups' => $attributeGroups,
             'features' => $features,
             'filters' => $filters,
-            'total_filters' => 6 + count($attributeGroups) + count($features),
+            'total_filters' => 7 + count($attributeGroups) + count($features),
             'default_filters' => $this->getDefaultFilters(),
             'categories_tree' => $treeCategoriesHelper->render(),
             'controller_options' => $controller_options,
