@@ -103,37 +103,37 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $sortOrders = [
             $sortSalesDesc->setLabel(
-                $translator->trans('Sales, highest to lowest', [], 'Shop.Theme.Catalog')
+                $translator->trans('Sales, highest to lowest', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortPosAsc->setLabel(
-                $translator->trans('Relevance', [], 'Shop.Theme.Catalog')
+                $translator->trans('Relevance', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortNameAsc->setLabel(
-                $translator->trans('Name, A to Z', [], 'Shop.Theme.Catalog')
+                $translator->trans('Name, A to Z', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortNameDesc->setLabel(
-                $translator->trans('Name, Z to A', [], 'Shop.Theme.Catalog')
+                $translator->trans('Name, Z to A', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortPriceAsc->setLabel(
-                $translator->trans('Price, low to high', [], 'Shop.Theme.Catalog')
+                $translator->trans('Price, low to high', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortPriceDesc->setLabel(
-                $translator->trans('Price, high to low', [], 'Shop.Theme.Catalog')
+                $translator->trans('Price, high to low', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortRefAsc->setLabel(
-                $translator->trans('Reference, A to Z', [], 'Shop.Theme.Catalog')
+                $translator->trans('Reference, A to Z', [], 'Modules.Facetedsearch.Shop')
             ),
             $sortRefDesc->setLabel(
-                $translator->trans('Reference, Z to A', [], 'Shop.Theme.Catalog')
+                $translator->trans('Reference, Z to A', [], 'Modules.Facetedsearch.Shop')
             ),
         ];
 
         if ($query->getQueryType() == 'new-products') {
             $sortOrders[] = $sortDateAsc->setLabel(
-                $translator->trans('Date added, oldest to newest', [], 'Shop.Theme.Catalog')
+                $translator->trans('Date added, oldest to newest', [], 'Modules.Facetedsearch.Shop')
             );
             $sortOrders[] = $sortDateDesc->setLabel(
-                $translator->trans('Date added, newest to oldest', [], 'Shop.Theme.Catalog')
+                $translator->trans('Date added, newest to oldest', [], 'Modules.Facetedsearch.Shop')
             );
         }
 
