@@ -95,6 +95,11 @@ class MySQL extends AbstractAdapter
         // Prepare mapping for joined tables
         $filterToTableMapping = $this->getFieldMapping();
 
+        // visibility filter is added only to the outer query
+        if ($this->getInitialPopulation() !== null) {
+            $this->addFilter('visibility', ['both', 'catalog']);
+        }
+
         // Process and generate all fields for the SQL query below
         $orderField = $this->computeOrderByField($filterToTableMapping);
         $selectFields = $this->computeSelectFields($filterToTableMapping);
@@ -323,6 +328,41 @@ class MySQL extends AbstractAdapter
                     (sp.to = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' <= sp.to) 
                 )',
                 'joinType' => self::LEFT_JOIN,
+            ],
+            'id_manufacturer' => [
+                'tableName' => 'product',
+                'tableAlias' => 'mid',
+                'fieldName' => 'id_manufacturer',
+                'joinCondition' => '(p.id_product = mid.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
+            'on_sale' => [
+                'tableName' => 'product',
+                'tableAlias' => 'ons',
+                'fieldName' => 'on_sale',
+                'joinCondition' => '(p.id_product = ons.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
+            'date_add' => [
+                'tableName' => 'product',
+                'tableAlias' => 'dadd',
+                'fieldName' => 'date_add',
+                'joinCondition' => '(p.id_product = dadd.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
+            'condition' => [
+                'tableName' => 'product',
+                'tableAlias' => 'pc',
+                'fieldName' => 'condition',
+                'joinCondition' => '(p.id_product = pc.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
+            'price' => [
+                'tableName' => 'product',
+                'tableAlias' => 'prc',
+                'fieldName' => 'price',
+                'joinCondition' => '(p.id_product = prc.id_product)',
+                'joinType' => self::INNER_JOIN,
             ],
         ];
 
@@ -652,7 +692,8 @@ class MySQL extends AbstractAdapter
 
         $this->addJoinList($joinList, $this->getGroupFields()->getKeys(), $filterToTableMapping);
 
-        if (array_key_exists($this->getOrderField(), $filterToTableMapping)) {
+        // position field is part of the base query, no need to rejoin category_product
+        if (array_key_exists($this->getOrderField(), $filterToTableMapping) && $this->getOrderField() != 'position') {
             $joinMapping = $filterToTableMapping[$this->getOrderField()];
             $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
         }
@@ -790,14 +831,6 @@ class MySQL extends AbstractAdapter
         $this->setSelectFields(
             [
                 'id_product',
-                'id_manufacturer',
-                'quantity',
-                'condition',
-                'weight',
-                'price',
-                'sales',
-                'on_sale',
-                'date_add',
             ]
         );
 
