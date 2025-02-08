@@ -1550,9 +1550,22 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ' .
                 'ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
             );
+            $maxProductId = (int) $this->getDatabase()->getValue(
+                'SELECT max(DISTINCT p.`id_product`) ' .
+                'FROM ' . _DB_PREFIX_ . 'product p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ' .
+                'ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog"))'
+            );
         } else {
             $nbProducts = (int) $this->getDatabase()->getValue(
                 'SELECT COUNT(DISTINCT p.`id_product`) ' .
+                'FROM `' . _DB_PREFIX_ . 'product` p ' .
+                'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
+                'LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product) ' .
+                'WHERE psi.id_product IS NULL'
+            );
+            $maxProductId = (int) $this->getDatabase()->getValue(
+                'SELECT max(DISTINCT p.`id_product`) ' .
                 'FROM `' . _DB_PREFIX_ . 'product` p ' .
                 'INNER JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON (ps.`id_product` = p.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
                 'LEFT JOIN  `' . _DB_PREFIX_ . 'layered_price_index` psi ON (psi.id_product = p.id_product) ' .
@@ -1579,7 +1592,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $time_elapsed = microtime(true) - $startTime;
             $indexedProducts += $length;
         } while (
-            $cursor < $nbProducts
+            $cursor < $maxProductId
             && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
             && $time_elapsed < $maxExecutiontime
         );
