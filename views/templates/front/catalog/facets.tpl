@@ -162,6 +162,7 @@
                 data-slider-label="{$facet.label}"
                 data-slider-specifications="{$facet.properties.specifications|@json_encode}"
                 data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
+                {if !in_array($facet.type, ['price', 'weight'])}data-slider-type="custom"{/if}
               >
                 <li>
                   <p id="facet_label_{$_expand_id}">

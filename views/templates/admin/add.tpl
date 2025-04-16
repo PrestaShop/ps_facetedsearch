@@ -75,6 +75,7 @@
                       <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -107,6 +108,7 @@
                       <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -168,6 +170,7 @@
                       <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -199,6 +202,7 @@
                       <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                       <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                      <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                     </select>
                   </div>
                 </div>
@@ -303,6 +307,7 @@
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                         </select>
                       </div>
                     </div>
@@ -359,6 +364,7 @@
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
                         </select>
                       </div>
                     </div>

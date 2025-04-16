@@ -138,6 +138,49 @@ class Converter
 
                     $facet->setType($type);
                     $filters = [];
+                    
+                    // Special handling for slider widget type - we need min and max values
+                    if ((int) $filterBlock['filter_type'] === self::WIDGET_TYPE_SLIDER) {
+                        $facet->setProperty('range', true);
+                        
+                        // Initialize min and max to ensure we have these properties for sliders
+                        $minVal = PHP_INT_MAX;
+                        $maxVal = 0;
+                        $currentValue = null;
+                        
+                        // Find min/max values for slider based on available options
+                        foreach ($filterBlock['values'] as $id => $filterArray) {
+                            $numericId = (int) $id;
+                            if ($numericId < $minVal) {
+                                $minVal = $numericId;
+                            }
+                            if ($numericId > $maxVal) {
+                                $maxVal = $numericId;
+                            }
+                            
+                            // Check if this value is selected
+                            if (array_key_exists('checked', $filterArray) && $filterArray['checked']) {
+                                $currentValue = $numericId;
+                            }
+                        }
+                        
+                        $facet->setProperty('min', $minVal);
+                        $facet->setProperty('max', $maxVal);
+                        $facet->setProperty('unit', '');
+                        
+                        // Setup the filter with min/max properties
+                        $filter = new Filter();
+                        $filter
+                            ->setActive($currentValue !== null)
+                            ->setType($type)
+                            ->setMagnitude(count($filterBlock['values']))
+                            ->setValue($currentValue);
+                        
+                        $facet->addFilter($filter);
+                        break;
+                    }
+                    
+                    // Regular non-slider handling
                     foreach ($filterBlock['values'] as $id => $filterArray) {
                         $filter = new Filter();
                         $filter

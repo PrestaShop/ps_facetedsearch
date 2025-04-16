@@ -41,12 +41,36 @@ class URLSerializer
         $filterLabel = $this->getFilterLabel($facetFilter);
 
         if ($facet->getProperty('range')) {
-            $facetValue = $facet->getProperty('values');
-            $facetFilters[$facetLabel] = [
-                $facetFilter->getProperty('symbol'),
-                isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
-                isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
-            ];
+            // Handle both built-in range filters and custom slider filters
+            if ($facet->getWidgetType() === 'slider') {
+                // For custom sliders, we store the value directly
+                $facetValue = $facetFilter->getValue();
+                $unit = $facetFilter->getProperty('symbol') ?? '';
+                
+                if (is_array($facetValue)) {
+                    // Handle range values
+                    $facetFilters[$facetLabel] = [
+                        $unit,
+                        isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
+                        isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
+                    ];
+                } else {
+                    // Handle single value for non-range filters (position on the slider)
+                    $facetFilters[$facetLabel] = [
+                        $unit,
+                        $facetValue ?? $facet->getProperty('min'),
+                        $facet->getProperty('max'),
+                    ];
+                }
+            } else {
+                // Default range behavior (price, weight)
+                $facetValue = $facet->getProperty('values');
+                $facetFilters[$facetLabel] = [
+                    $facetFilter->getProperty('symbol'),
+                    isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
+                    isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
+                ];
+            }
         } else {
             $facetFilters[$facetLabel][$filterLabel] = $filterLabel;
         }

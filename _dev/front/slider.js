@@ -22,14 +22,20 @@ import NumberFormatter from '../cldr/number-formatter';
 
 const formatters = {};
 
-const displayLabelBlock = (formatterId, displayBlock, min, max) => {
+const displayLabelBlock = (formatterId, displayBlock, min, max, isCustomSlider = false) => {
   if (formatters[formatterId] === undefined) {
-    displayBlock.text(
-      displayBlock.text().replace(
-        /([^\d]*)(?:[\d\s.,]+)([^\d]+)(?:[\d\s.,]+)(.*)/,
-        `$1${min}$2${max}$3`,
-      ),
-    );
+    // For standard numeric range sliders
+    if (!isCustomSlider) {
+      displayBlock.text(
+        displayBlock.text().replace(
+          /([^\d]*)(?:[\d\s.,]+)([^\d]+)(?:[\d\s.,]+)(.*)/,
+          `$1${min}$2${max}$3`,
+        ),
+      );
+    } else {
+      // For non-range filter sliders, adapt the display
+      displayBlock.text(`${min} - ${max}`);
+    }
   } else {
     displayBlock.text(
       `${formatters[formatterId].format(min)} - ${formatters[formatterId].format(max)}`,
@@ -45,6 +51,7 @@ const refreshSliders = () => {
     const $el = $(this);
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
+    const isCustomSlider = $el.data('slider-type') === 'custom';
 
     if (specifications !== null && specifications !== undefined) {
       formatters[$el.data('slider-id')] = NumberFormatter.build(specifications);
@@ -55,6 +62,7 @@ const refreshSliders = () => {
       $(`#facet_label_${$el.data('slider-id')}`),
       values === null ? $el.data('slider-min') : values[0],
       values === null ? $el.data('slider-max') : values[1],
+      isCustomSlider
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
@@ -120,6 +128,7 @@ const refreshSliders = () => {
           $(`#facet_label_${$el.data('slider-id')}`),
           ui.values[0],
           ui.values[1],
+          isCustomSlider
         );
       },
     });
