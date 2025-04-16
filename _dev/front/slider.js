@@ -62,7 +62,7 @@ const refreshSliders = () => {
       $(`#facet_label_${$el.data('slider-id')}`),
       values === null ? $el.data('slider-min') : values[0],
       values === null ? $el.data('slider-max') : values[1],
-      isCustomSlider
+      isCustomSlider,
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
@@ -128,7 +128,7 @@ const refreshSliders = () => {
           $(`#facet_label_${$el.data('slider-id')}`),
           ui.values[0],
           ui.values[1],
-          isCustomSlider
+          isCustomSlider,
         );
       },
     });
