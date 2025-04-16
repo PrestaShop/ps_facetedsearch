@@ -828,6 +828,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             ->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
             ->setUseCheckBox(true);
 
+        // Create a Converter instance to check for numeric values
+        $filterConverter = new PrestaShop\Module\FacetedSearch\Filters\Converter(
+            $this->context,
+            $this->getDatabase(),
+            new PrestaShop\Module\FacetedSearch\URLSerializer(),
+            new PrestaShop\Module\FacetedSearch\Filters\DataAccessor($this->getDatabase(), $this->context->shop->id),
+            new PrestaShop\Module\FacetedSearch\Filters\Provider()
+        );
+
         // If we are editing an already existing template, we will load its data,
         // check categories and add selected filters. Otherwise, we prepare empty template.
         if ($template !== null) {
@@ -877,6 +886,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'default_filters' => $this->getDefaultFilters(),
             'categories_tree' => $treeCategoriesHelper->render(),
             'controller_options' => $controller_options,
+            'filterConverter' => $filterConverter,
         ]);
 
         // We are using two separate templates depending on context
@@ -1752,5 +1762,55 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 'cacheable' => false,
             ],
         ]);
+    }
+
+    /**
+     * Determine if the values for a given filter are suitable for slider display
+     *
+     * @param string $filterType Type of filter (id_feature, id_attribute_group)
+     * @param int $idValue ID of the filter (feature ID, attribute group ID)
+     *
+     * @return bool True if slider display is appropriate
+     */
+    public function hasNumericValues($filterType, $idValue)
+    {
+        $idLang = (int) $this->context->language->id;
+        $values = [];
+
+        // Get the actual values based on filter type
+        if ($filterType === 'id_attribute_group') {
+            $values = Db::getInstance()->executeS('
+                SELECT al.name
+                FROM ' . _DB_PREFIX_ . 'attribute a
+                LEFT JOIN ' . _DB_PREFIX_ . 'attribute_lang al 
+                    ON (a.id_attribute = al.id_attribute AND al.id_lang = ' . $idLang . ')
+                WHERE a.id_attribute_group = ' . (int) $idValue
+            );
+        } elseif ($filterType === 'id_feature') {
+            $values = Db::getInstance()->executeS('
+                SELECT fvl.value as name
+                FROM ' . _DB_PREFIX_ . 'feature_value fv
+                LEFT JOIN ' . _DB_PREFIX_ . 'feature_value_lang fvl 
+                    ON (fv.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . $idLang . ')
+                WHERE fv.id_feature = ' . (int) $idValue
+            );
+        }
+
+        if (empty($values)) {
+            return false;
+        }
+
+        // Count how many values contain numeric data
+        $totalValues = count($values);
+        $numericValues = 0;
+
+        foreach ($values as $value) {
+            if (preg_match('/[0-9]+(\.[0-9]+)?/', $value['name'])) {
+                ++$numericValues;
+            }
+        }
+
+        // Return true if at least 80% of values contain numbers
+        return ($numericValues / $totalValues) > 0.8;
     }
 }

@@ -76,7 +76,19 @@
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
-                          <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                          {if $filterId|strpos:'layered_selection_feat_' === 0 && isset($filterConverter)}
+                            {assign var="featureId" value=$filterId|replace:'layered_selection_feat_':''}
+                            {if $filterConverter->hasNumericValues('id_feature', $featureId)}
+                              <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                            {/if}
+                          {elseif $filterId|strpos:'layered_selection_ag_' === 0 && isset($filterConverter)}
+                            {assign var="attributeGroupId" value=$filterId|replace:'layered_selection_ag_':''}
+                            {if $filterConverter->hasNumericValues('id_attribute_group', $attributeGroupId)}
+                              <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                            {/if}
+                          {elseif $filterId == 'layered_selection_price_slider' || $filterId == 'layered_selection_weight_slider'}
+                            <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                          {/if}
                         </select>
                       </div>
                     {/if}
@@ -144,7 +156,9 @@
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                          {if isset($filterConverter) && $filterConverter->hasNumericValues('id_attribute_group', $attribute_group['id_attribute_group'])}
                           <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                          {/if}
                         </select>
                       </div>
                     </div>
@@ -201,7 +215,9 @@
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
+                          {if isset($filterConverter) && $filterConverter->hasNumericValues('id_feature', $feature['id_feature'])}
                           <option value="3">{l s='Slider' d='Modules.Facetedsearch.Admin'}</option>
+                          {/if}
                         </select>
                       </div>
                     </div>
