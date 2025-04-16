@@ -48,6 +48,10 @@ class URLSerializerTest extends MockeryTestCase
                 }
             );
 
+        // Add expectation for getWidgetType method
+        $facet->shouldReceive('getWidgetType')
+            ->andReturn(isset($properties['widget_type']) ? $properties['widget_type'] : null);
+
         return $facet;
     }
 

@@ -46,7 +46,7 @@ class URLSerializer
                 // For custom sliders, we store the value directly
                 $facetValue = $facetFilter->getValue();
                 $unit = $facetFilter->getProperty('symbol') ?? '';
-                
+
                 if (is_array($facetValue)) {
                     // Handle range values
                     $facetFilters[$facetLabel] = [

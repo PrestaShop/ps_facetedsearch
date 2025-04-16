@@ -427,19 +427,19 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             // Check for both built-in range filters and custom sliders
             $isRangeFilter = in_array($facet->getType(), Filters\Converter::RANGE_FILTERS);
             $isCustomSlider = $facet->getWidgetType() === 'slider' && !$isRangeFilter;
-            
+
             if (!$isRangeFilter && !$isCustomSlider) {
                 continue;
             }
 
             foreach ($facet->getFilters() as $filter) {
                 $filterValue = $filter->getValue();
-                
+
                 // Handle range filters (price, weight)
                 if ($isRangeFilter) {
                     $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
                     $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
-                    
+
                     if ($facet->getType() === 'weight') {
                         $unit = Configuration::get('PS_WEIGHT_UNIT');
                         $filter->setLabel(
@@ -460,20 +460,20 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                             )
                         );
                     }
-                } 
+                }
                 // Handle custom non-range slider filters
-                else if ($isCustomSlider) {
+                elseif ($isCustomSlider) {
                     $min = is_array($filterValue) ? $filterValue[0] : $filterValue;
                     $max = is_array($filterValue) ? $filterValue[1] : $facet->getProperty('max');
-                    
+
                     if ($min === null || $min === '') {
                         $min = $facet->getProperty('min');
                     }
-                    
+
                     if ($max === null || $max === '') {
                         $max = $facet->getProperty('max');
                     }
-                    
+
                     // For custom sliders, just use a simple range format
                     $filter->setLabel(
                         sprintf(
