@@ -14,4 +14,4 @@ parameters:
     - '~^Parameter #1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer::unserialize\(\) expects string, array given\.$~'
     - '~^Call to an undefined static method Search::findClosestWeightestWord\(\)\.$~'
     - '~^Parameter #1 \$master of static method DbCore::getInstance\(\) expects bool, int given\.$~'
-    - '~^Parameter #2 \$id_lang of static method ToolsCore::displayDate\(\) expects int|null, true given\.$~'
+    - '~^Parameter #2 \$id_lang of static method ToolsCore::displayDate\(\) expects int\|null, true given\.$~'

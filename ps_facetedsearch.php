@@ -834,7 +834,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $this->getDatabase(),
             new PrestaShop\Module\FacetedSearch\URLSerializer(),
             new PrestaShop\Module\FacetedSearch\Filters\DataAccessor($this->getDatabase(), $this->context->shop->id),
-            new PrestaShop\Module\FacetedSearch\Filters\Provider()
+            new PrestaShop\Module\FacetedSearch\Filters\Provider($this->getDatabase())
         );
 
         // If we are editing an already existing template, we will load its data,
