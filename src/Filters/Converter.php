@@ -145,11 +145,11 @@ class Converter
 
                         // Make sure this filter is suitable for slider display
                         $filterType = $filterBlock['type'];
-                        $filterId = isset($filterBlock['id_key']) ? $filterBlock['id_key'] : null;
-
+                        $filterId = isset($filterBlock['id_key']) ? (int) $filterBlock['id_key'] : null;
+                        
                         // Skip if this filter doesn't contain numeric values
                         // (except for built-in numeric filters like price and weight)
-                        if (($filterType === self::TYPE_ATTRIBUTE_GROUP || $filterType === self::TYPE_FEATURE)
+                        if (($filterType === self::TYPE_ATTRIBUTE_GROUP || $filterType === self::TYPE_FEATURE) 
                             && !$this->hasNumericValues($filterType, $filterId)) {
                             break;
                         }
@@ -158,26 +158,26 @@ class Converter
                         $minVal = PHP_INT_MAX;
                         $maxVal = 0;
                         $currentValue = null;
-
+                        
                         // Find min/max values for slider based on available options
                         foreach ($filterBlock['values'] as $id => $filterArray) {
                             // Extract numeric value from the name
                             $value = null;
-
+                            
                             // For built-in numeric filters like price and weight, use ID directly
                             if (in_array($filterType, self::RANGE_FILTERS)) {
                                 $value = (float) $id;
-                            }
+                            } 
                             // For attribute groups and features, extract value from name
-                            elseif (preg_match('/[0-9]+(\.[0-9]+)?/', $filterArray['name'], $matches)) {
+                            elseif (isset($filterArray['name']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $filterArray['name'], $matches)) {
                                 $value = (float) $matches[0];
                             }
-
+                            
                             // Skip non-numeric values
                             if ($value === null) {
                                 continue;
                             }
-
+                            
                             if ($value < $minVal) {
                                 $minVal = $value;
                             }
@@ -657,15 +657,19 @@ class Converter
      * that would be suitable for a slider
      *
      * @param string $filterType Type of filter (TYPE_FEATURE, TYPE_ATTRIBUTE_GROUP)
-     * @param int $idValue ID of the specific filter
+     * @param int|null $idValue ID of the specific filter
      *
      * @return bool True if values are suitable for slider display
      */
     public function hasNumericValues($filterType, $idValue)
     {
+        if ($idValue === null) {
+            return false;
+        }
+        
         $idLang = (int) $this->context->language->id;
         $values = [];
-
+        
         // Get values based on filter type
         if ($filterType === self::TYPE_ATTRIBUTE_GROUP) {
             $values = $this->database->executeS('
@@ -684,21 +688,21 @@ class Converter
                 WHERE fv.id_feature = ' . (int) $idValue
             );
         }
-
+        
         if (empty($values)) {
             return false;
         }
-
+        
         // Count numeric values
         $totalValues = count($values);
         $numericValues = 0;
-
+        
         foreach ($values as $value) {
-            if (preg_match('/[0-9]+(\.[0-9]+)?/', $value['name'])) {
-                ++$numericValues;
+            if (preg_match('/[0-9]+(\.[0-9]+)?/', (string) $value['name'])) {
+                $numericValues++;
             }
         }
-
+        
         // Return true if at least 80% of values are numeric
         return ($numericValues / $totalValues) > 0.8;
     }
