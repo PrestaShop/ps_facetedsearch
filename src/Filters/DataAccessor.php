@@ -211,23 +211,4 @@ class DataAccessor
 
         return $this->featureValues[$idLang][$idFeature];
     }
-
-    /**
-     * Get attribute group values for a given attribute group and language.
-     *
-     * @param int $idAttributeGroup
-     * @param int $idLang
-     *
-     * @return array Attribute group values
-     */
-    public function getAttributeGroupValues($idAttributeGroup, $idLang)
-    {
-        $query = 'SELECT al.name
-                  FROM ' . _DB_PREFIX_ . 'attribute a
-                  LEFT JOIN ' . _DB_PREFIX_ . 'attribute_lang al 
-                  ON (a.id_attribute = al.id_attribute AND al.id_lang = ' . (int) $idLang . ')
-                  WHERE a.id_attribute_group = ' . (int) $idAttributeGroup;
-
-        return $this->database->executeS($query);
-    }
 }
