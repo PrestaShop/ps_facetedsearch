@@ -47,29 +47,42 @@ class URLSerializer
                 $facetValue = $facetFilter->getValue();
                 $unit = $facetFilter->getProperty('symbol') ?? '';
 
-                if (is_array($facetValue)) {
-                    // Handle range values
+                // Make sure we have a valid array of values
+                if (is_array($facetValue) && count($facetValue) === 2) {
+                    // Use explicit values from the array for both min and max
                     $facetFilters[$facetLabel] = [
                         $unit,
-                        isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
-                        isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
+                        $facetValue[0],
+                        $facetValue[1],
                     ];
                 } else {
-                    // Handle single value for non-range filters (position on the slider)
+                    // Fallback to min/max properties if no valid value array is provided
                     $facetFilters[$facetLabel] = [
                         $unit,
-                        $facetValue ?? $facet->getProperty('min'),
+                        $facet->getProperty('min'),
                         $facet->getProperty('max'),
                     ];
                 }
             } else {
                 // Default range behavior (price, weight)
-                $facetValue = $facet->getProperty('values');
-                $facetFilters[$facetLabel] = [
-                    $facetFilter->getProperty('symbol'),
-                    isset($facetValue[0]) ? $facetValue[0] : $facet->getProperty('min'),
-                    isset($facetValue[1]) ? $facetValue[1] : $facet->getProperty('max'),
-                ];
+                $facetValue = $facetFilter->getValue();
+
+                // Handle when facetValue is directly an array
+                if (is_array($facetValue) && count($facetValue) === 2) {
+                    $facetFilters[$facetLabel] = [
+                        $facetFilter->getProperty('symbol'),
+                        $facetValue[0],
+                        $facetValue[1],
+                    ];
+                } else {
+                    // Fallback to facet properties if needed
+                    $facetValues = $facet->getProperty('values');
+                    $facetFilters[$facetLabel] = [
+                        $facetFilter->getProperty('symbol'),
+                        isset($facetValues[0]) ? $facetValues[0] : $facet->getProperty('min'),
+                        isset($facetValues[1]) ? $facetValues[1] : $facet->getProperty('max'),
+                    ];
+                }
             }
         } else {
             $facetFilters[$facetLabel][$filterLabel] = $filterLabel;

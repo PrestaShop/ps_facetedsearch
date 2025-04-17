@@ -149,8 +149,10 @@ class Converter
 
                         // Skip if this filter doesn't contain numeric values
                         // (except for built-in numeric filters like price and weight)
-                        if (($filterType === self::TYPE_ATTRIBUTE_GROUP || $filterType === self::TYPE_FEATURE)
-                            && !$this->hasNumericValues($filterType, $filterId)) {
+                        if (
+                            ($filterType === self::TYPE_FEATURE)
+                            && !$this->hasNumericValues($filterId)
+                        ) {
                             break;
                         }
 
@@ -168,7 +170,7 @@ class Converter
                             if (in_array($filterType, self::RANGE_FILTERS)) {
                                 $value = (float) $id;
                             }
-                            // For attribute groups and features, extract value from name
+                            // For features, extract value from name
                             elseif (isset($filterArray['name']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $filterArray['name'], $matches)) {
                                 $value = (float) $matches[0];
                             }
@@ -246,7 +248,8 @@ class Converter
 
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
 
-                    if ((int) $filterBlock['filter_show_limit'] !== 0 ||
+                    if (
+                        (int) $filterBlock['filter_show_limit'] !== 0 ||
                         ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY)
                     ) {
                         usort($filters, [$this, 'sortFiltersByLabel']);
@@ -429,59 +432,65 @@ class Converter
                     }
                     break;
                 case self::TYPE_EXTRAS:
-                        if (!isset($receivedFilters[$filterLabel])) {
-                            // No need to filter if no information
-                            continue 2;
-                        }
+                    if (!isset($receivedFilters[$filterLabel])) {
+                        // No need to filter if no information
+                        continue 2;
+                    }
 
-                        $extrasOptions = [
-                            $this->context->getTranslator()->trans(
-                                'New product',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'new',
-                            $this->context->getTranslator()->trans(
-                                'On sale',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'sale',
-                            $this->context->getTranslator()->trans(
-                                'Discounted',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'discount',
-                        ];
+                    $extrasOptions = [
+                        $this->context->getTranslator()->trans(
+                            'New product',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'new',
+                        $this->context->getTranslator()->trans(
+                            'On sale',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'sale',
+                        $this->context->getTranslator()->trans(
+                            'Discounted',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'discount',
+                    ];
 
-                        $searchFilters[$filter['type']] = [];
-                        foreach ($extrasOptions as $extrasOption => $optionId) {
-                            if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
-                                $searchFilters[$filter['type']][] = $optionId;
-                            }
+                    $searchFilters[$filter['type']] = [];
+                    foreach ($extrasOptions as $extrasOption => $optionId) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
+                            $searchFilters[$filter['type']][] = $optionId;
                         }
-                        break;
+                    }
+                    break;
                 case self::TYPE_FEATURE:
+                    // First check for standard feature filters
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] != $feature['id_feature']) {
                             continue;
                         }
 
-                        if (isset($receivedFilters[$feature['url_name']])) {
-                            $featureValueLabels = $receivedFilters[$feature['url_name']];
-                        } elseif (isset($receivedFilters[$feature['name']])) {
-                            $featureValueLabels = $receivedFilters[$feature['name']];
-                        } else {
+                        // Try to get filter values from URL
+                        $featureValueLabels = $this->getFeatureValuesFromReceivedFilters($receivedFilters, $feature);
+
+                        if ($featureValueLabels === null) {
                             continue;
                         }
 
-                        $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
-                        foreach ($featureValues as $featureValue) {
-                            if (in_array($featureValue['url_name'], $featureValueLabels)
-                                || in_array($featureValue['value'], $featureValueLabels)
-                            ) {
-                                $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
-                            }
+                        // Check if this is a range/slider filter
+                        $rangeFilter = $this->processFeatureRangeFilter($featureValueLabels, $feature);
+                        if ($rangeFilter !== null) {
+                            $searchFilters['feature_range'][$feature['id_feature']] = $rangeFilter;
+                            continue;
                         }
+
+                        // Handle standard feature filter values (non-slider)
+                        $this->processStandardFeatureFilter(
+                            $searchFilters,
+                            $feature,
+                            $featureValueLabels,
+                            $idLang
+                        );
                     }
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
@@ -501,7 +510,8 @@ class Converter
 
                         $attributes = $this->dataAccessor->getAttributes($idLang, $attributeGroup['id_attribute_group']);
                         foreach ($attributes as $attribute) {
-                            if (in_array($attribute['url_name'], $attributeLabels)
+                            if (
+                                in_array($attribute['url_name'], $attributeLabels)
                                 || in_array($attribute['name'], $attributeLabels)
                             ) {
                                 $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
@@ -606,7 +616,8 @@ class Converter
     {
         $count = 0;
         foreach ($filters as $filter) {
-            if ($filter->getMagnitude() === 0
+            if (
+                $filter->getMagnitude() === 0
                 || ($showLimit > 0 && $count >= $showLimit)
             ) {
                 $filter->setDisplayed(false);
@@ -653,41 +664,21 @@ class Converter
     }
 
     /**
-     * Check if values for a given filter type and ID contain mostly numeric values
+     * Check if values for a given feature ID contain mostly numeric values
      * that would be suitable for a slider
      *
-     * @param string $filterType Type of filter (TYPE_FEATURE, TYPE_ATTRIBUTE_GROUP)
-     * @param int|null $idValue ID of the specific filter
+     * @param int|null $idFeature ID of the specific feature
      *
      * @return bool True if values are suitable for slider display
      */
-    public function hasNumericValues($filterType, $idValue)
+    public function hasNumericValues($idFeature)
     {
-        if ($idValue === null) {
+        if ($idFeature === null) {
             return false;
         }
 
         $idLang = (int) $this->context->language->id;
-        $values = [];
-
-        // Get values based on filter type
-        if ($filterType === self::TYPE_ATTRIBUTE_GROUP) {
-            $values = $this->database->executeS('
-                SELECT al.name
-                FROM ' . _DB_PREFIX_ . 'attribute a
-                LEFT JOIN ' . _DB_PREFIX_ . 'attribute_lang al 
-                    ON (a.id_attribute = al.id_attribute AND al.id_lang = ' . $idLang . ')
-                WHERE a.id_attribute_group = ' . (int) $idValue
-            );
-        } elseif ($filterType === self::TYPE_FEATURE) {
-            $values = $this->database->executeS('
-                SELECT fvl.value as name
-                FROM ' . _DB_PREFIX_ . 'feature_value fv
-                LEFT JOIN ' . _DB_PREFIX_ . 'feature_value_lang fvl 
-                    ON (fv.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . $idLang . ')
-                WHERE fv.id_feature = ' . (int) $idValue
-            );
-        }
+        $values = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
 
         if (empty($values)) {
             return false;
@@ -698,12 +689,78 @@ class Converter
         $numericValues = 0;
 
         foreach ($values as $value) {
-            if (preg_match('/[0-9]+(\.[0-9]+)?/', (string) $value['name'])) {
+            if (preg_match('/[0-9]+(\.[0-9]+)?/', (string) $value['value'])) {
                 ++$numericValues;
             }
         }
 
         // Return true if at least 80% of values are numeric
         return ($numericValues / $totalValues) > 0.8;
+    }
+
+    /**
+     * Extract feature values from received filters
+     *
+     * @param array $receivedFilters
+     * @param array $feature
+     *
+     * @return array|null
+     */
+    private function getFeatureValuesFromReceivedFilters(array $receivedFilters, array $feature)
+    {
+        if (isset($receivedFilters[$feature['url_name']])) {
+            return $receivedFilters[$feature['url_name']];
+        }
+
+        if (isset($receivedFilters[$feature['name']])) {
+            return $receivedFilters[$feature['name']];
+        }
+
+        return null;
+    }
+
+    /**
+     * Process feature range filter
+     *
+     * @param array $featureValueLabels
+     * @param array $feature
+     *
+     * @return array|null
+     */
+    private function processFeatureRangeFilter(array $featureValueLabels, array $feature)
+    {
+        if (
+            is_array($featureValueLabels) && count($featureValueLabels) >= 3
+            && isset($featureValueLabels[1]) && isset($featureValueLabels[2])
+            && is_numeric($featureValueLabels[1]) && is_numeric($featureValueLabels[2])
+        ) {
+            return [
+                'min' => (float) $featureValueLabels[1],
+                'max' => (float) $featureValueLabels[2],
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Process standard feature filter
+     *
+     * @param array $searchFilters
+     * @param array $feature
+     * @param array $featureValueLabels
+     * @param int $idLang
+     */
+    private function processStandardFeatureFilter(array &$searchFilters, array $feature, array $featureValueLabels, $idLang)
+    {
+        $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
+        foreach ($featureValues as $featureValue) {
+            if (
+                in_array($featureValue['url_name'], $featureValueLabels)
+                || in_array($featureValue['value'], $featureValueLabels)
+            ) {
+                $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
+            }
+        }
     }
 }
