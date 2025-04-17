@@ -52,6 +52,18 @@ const refreshSliders = () => {
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
     const isCustomSlider = $el.data('slider-type') === 'custom';
+    const minValue = $el.data('slider-min');
+    const maxValue = $el.data('slider-max');
+
+    // Make sure we have valid min and max values
+    if (minValue === undefined || maxValue === undefined) {
+      console.warn(`Slider ${$el.data('slider-id')} is missing min or max values`);
+      return; // Skip this slider
+    }
+
+    // If values is null, undefined, or not an array, initialize with min/max values
+    const startValues = Array.isArray(values) && values.length === 2
+      ? values : [minValue, maxValue];
 
     if (specifications !== null && specifications !== undefined) {
       formatters[$el.data('slider-id')] = NumberFormatter.build(specifications);
@@ -60,21 +72,24 @@ const refreshSliders = () => {
     displayLabelBlock(
       $el.data('slider-id'),
       $(`#facet_label_${$el.data('slider-id')}`),
-      values === null ? $el.data('slider-min') : values[0],
-      values === null ? $el.data('slider-max') : values[1],
+      startValues[0],
+      startValues[1],
       isCustomSlider,
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
-      min: $el.data('slider-min'),
-      max: $el.data('slider-max'),
-      values: [
-        values === null ? $el.data('slider-min') : values[0],
-        values === null ? $el.data('slider-max') : values[1],
-      ],
+      min: minValue,
+      max: maxValue,
+      values: startValues,
       stop(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
+
+        if (!nextEncodedFacetsURL) {
+          console.warn(`Slider ${$el.data('slider-id')} is missing encoded URL data`);
+          return;
+        }
+
         const urlsSplitted = nextEncodedFacetsURL.split('?');
         let queryParams = [];
 
