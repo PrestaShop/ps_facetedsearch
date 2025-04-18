@@ -92,7 +92,7 @@ class Block
         DataAccessor $dataAccessor,
         ProductSearchQuery $query,
         Provider $provider
-        ) {
+    ) {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
@@ -152,6 +152,10 @@ class Block
                 case 'id_feature':
                     $filterBlocks =
                         array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
+                    break;
+                case 'range_feature':
+                    $filterBlocks =
+                        array_merge($filterBlocks, $this->getRangeFeatureBlock($filter, $selectedFilters, $idLang));
                     break;
                 case 'category':
                     $parent = new Category($idCategory, $idLang);
@@ -244,7 +248,7 @@ class Block
         ];
 
         list($priceMinFilter, $priceMaxFilter, $weightFilter) = $this->ignorePriceAndWeightFilters(
-            $this->searchAdapter->getInitialPopulation()
+            filteredSearchAdapter: $this->searchAdapter->getInitialPopulation()
         );
 
         list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxPriceValue();
@@ -397,7 +401,8 @@ class Block
             $count = $values['c'];
 
             $conditionArray[$condition]['nbr'] = $count;
-            if (isset($selectedFilters['condition'])
+            if (
+                isset($selectedFilters['condition'])
                 && in_array($condition, $selectedFilters['condition'])
             ) {
                 $conditionArray[$condition]['checked'] = true;
@@ -579,8 +584,8 @@ class Block
                 'Y-m-d 00:00:00',
                 strtotime(
                     ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
-                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                    '+ 1 days')
+                        '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                        '+ 1 days')
                 )
             );
             $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
@@ -675,7 +680,8 @@ class Block
                 'nbr' => $count,
             ];
 
-            if (isset($selectedFilters['manufacturer'])
+            if (
+                isset($selectedFilters['manufacturer'])
                 && in_array($id_manufacturer, $selectedFilters['manufacturer'])
             ) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
@@ -811,6 +817,16 @@ class Block
 
         return $sortedArray;
     }
+
+    /**
+     * Get the range feature filter block
+     * 
+     * @param array $filter
+     * @param array $selectedFilters
+     * @param int $idLang
+     */
+    private function getRangeFeatureBlock($filter, $selectedFilters, $idLang)
+    {}
 
     /**
      * Get the features filter block

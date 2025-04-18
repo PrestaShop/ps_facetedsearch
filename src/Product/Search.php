@@ -160,6 +160,9 @@ class Search
                     }
                     break;
 
+                case 'range_feature':
+                    break;
+
                 case 'id_attribute_group':
                     $operationsFilter = [];
                     foreach ($filterValues as $attributeId => $filterValue) {

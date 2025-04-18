@@ -463,14 +463,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 }
                 // Handle custom non-range slider filters
                 elseif ($isCustomSlider) {
-                    $min = is_array($filterValue) ? $filterValue[0] : $filterValue;
-                    $max = is_array($filterValue) ? $filterValue[1] : $facet->getProperty('max');
-
-                    if ($min === null || $min === '') {
+                    // Fix for custom sliders to properly handle min/max values
+                    if (is_array($filterValue)) {
+                        $min = (isset($filterValue[0]) && $filterValue[0] !== '') ? $filterValue[0] : $facet->getProperty('min');
+                        $max = (isset($filterValue[1]) && $filterValue[1] !== '') ? $filterValue[1] : $facet->getProperty('max');
+                    } else {
                         $min = $facet->getProperty('min');
-                    }
-
-                    if ($max === null || $max === '') {
                         $max = $facet->getProperty('max');
                     }
 
