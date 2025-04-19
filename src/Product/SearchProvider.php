@@ -451,8 +451,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                             $context->getCurrentLocale()->formatPrice($max, $context->currency->iso_code)
                         )
                     );
-                }
-                elseif ($facet->getWidgetType() === 'slider'){
+                } elseif ($facet->getWidgetType() === 'slider') {
                     // For custom sliders, just use a simple range format
                     $filter->setLabel(
                         sprintf(
