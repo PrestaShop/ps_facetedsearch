@@ -424,54 +424,35 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $context = $this->module->getContext();
 
         foreach ($facets as $facet) {
-            // Check for both built-in range filters and custom sliders
-            $isRangeFilter = in_array($facet->getType(), Filters\Converter::RANGE_FILTERS);
-            $isCustomSlider = $facet->getWidgetType() === 'slider' && !$isRangeFilter;
-
-            if (!$isRangeFilter && !$isCustomSlider) {
+            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS) && $facet->getWidgetType() !== 'slider') {
                 continue;
             }
 
             foreach ($facet->getFilters() as $filter) {
                 $filterValue = $filter->getValue();
-
-                // Handle range filters (price, weight)
-                if ($isRangeFilter) {
-                    $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
-                    $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
-
-                    if ($facet->getType() === 'weight') {
-                        $unit = Configuration::get('PS_WEIGHT_UNIT');
-                        $filter->setLabel(
-                            sprintf(
-                                '%1$s %2$s - %3$s %4$s',
-                                $context->getCurrentLocale()->formatNumber($min),
-                                $unit,
-                                $context->getCurrentLocale()->formatNumber($max),
-                                $unit
-                            )
-                        );
-                    } elseif ($facet->getType() === 'price') {
-                        $filter->setLabel(
-                            sprintf(
-                                '%1$s - %2$s',
-                                $context->getCurrentLocale()->formatPrice($min, $context->currency->iso_code),
-                                $context->getCurrentLocale()->formatPrice($max, $context->currency->iso_code)
-                            )
-                        );
-                    }
+                $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
+                $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
+                if ($facet->getType() === 'weight') {
+                    $unit = Configuration::get('PS_WEIGHT_UNIT');
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s %2$s - %3$s %4$s',
+                            $context->getCurrentLocale()->formatNumber($min),
+                            $unit,
+                            $context->getCurrentLocale()->formatNumber($max),
+                            $unit
+                        )
+                    );
+                } elseif ($facet->getType() === 'price') {
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s - %2$s',
+                            $context->getCurrentLocale()->formatPrice($min, $context->currency->iso_code),
+                            $context->getCurrentLocale()->formatPrice($max, $context->currency->iso_code)
+                        )
+                    );
                 }
-                // Handle custom non-range slider filters
-                elseif ($isCustomSlider) {
-                    // Fix for custom sliders to properly handle min/max values
-                    if (is_array($filterValue)) {
-                        $min = (isset($filterValue[0]) && $filterValue[0] !== '') ? $filterValue[0] : $facet->getProperty('min');
-                        $max = (isset($filterValue[1]) && $filterValue[1] !== '') ? $filterValue[1] : $facet->getProperty('max');
-                    } else {
-                        $min = $facet->getProperty('min');
-                        $max = $facet->getProperty('max');
-                    }
-
+                elseif ($facet->getWidgetType() === 'slider'){
                     // For custom sliders, just use a simple range format
                     $filter->setLabel(
                         sprintf(
