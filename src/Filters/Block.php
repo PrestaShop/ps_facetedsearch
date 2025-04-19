@@ -853,6 +853,7 @@ class Block
 
         $filteredSearchAdapter->addSelectField('id_feature');
         $results = $filteredSearchAdapter->valueCount('id_feature_value');
+
         foreach ($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
@@ -862,6 +863,26 @@ class Block
 
             if (!isset($featureBlock[$idFeature])) {
                 $features[$idFeature]['featureValues'] = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
+
+                // --- Begin min/max calculation for slider features ---
+                $isSlider = isset($filter['filter_type']) && $filter['filter_type'] == Converter::WIDGET_TYPE_SLIDER;
+                $minValue = null;
+                $maxValue = null;
+                if ($isSlider) {
+                    $featureValuesAll = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
+                    foreach ($featureValuesAll as $fv) {
+                        if (isset($fv['value']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $fv['value'], $matches)) {
+                            $val = (float) $matches[0];
+                            if ($minValue === null || $val < $minValue) {
+                                $minValue = $val;
+                            }
+                            if ($maxValue === null || $val > $maxValue) {
+                                $maxValue = $val;
+                            }
+                        }
+                    }
+                }
+                // --- End min/max calculation ---
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
@@ -873,8 +894,9 @@ class Block
                     'meta_title' => $feature['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
-                    'min' => $selectedFilters['id_feature'][$idFeature]['min'] ?? null,
-                    'max' => $selectedFilters['id_feature'][$idFeature]['max'] ?? null,
+                    // Always set min/max for slider, otherwise use selectedFilters
+                    'min' => $isSlider ? $minValue : null,
+                    'max' => $isSlider ? $maxValue : null,
                     'value' => $selectedFilters['id_feature'][$idFeature]['value'] ?? null,
                 ];
             }

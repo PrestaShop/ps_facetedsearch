@@ -421,36 +421,28 @@ class Converter
                         } else {
                             continue;
                         }
-
-                        if (isset($featureValueLabels[0]) && $featureValueLabels[0] == 'range') {
-                            $from = (float) $featureValueLabels[1];
-                            $to = (float) $featureValueLabels[2];
-                            $min = 0;
-                            $max = PHP_INT_MAX;
-                        }
-
                         $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
-                        foreach ($featureValues as $featureValue) {
-                            if (isset($from) && isset($to)) {
+
+                        if ($filter['filter_type'] == self::WIDGET_TYPE_SLIDER) {
+                            $from = isset($featureValueLabels[1]) ? (float) $featureValueLabels[1] : null;
+                            $to = isset($featureValueLabels[2]) ? (float) $featureValueLabels[2] : null;
+
+                            foreach ($featureValues as $featureValue) {
                                 if (
-                                    (isset($featureValue['value']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $featureValue['value'], $matches))
-                                    || (isset($featureValue['url_name']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $featureValue['url_name'], $matches))
+                                    isset($featureValue['value']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $featureValue['value'], $matches)
                                 ) {
                                     $value = (float) $matches[0];
+                                    if ($value >= $from && $value <= $to) {
+                                        $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
+                                    }
                                 }
-                                if ($value === null) {
-                                    continue;
-                                }
-                                if ($value >= $from && $value <= $to) {
-                                    $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
-                                }
-                                if ($value < $min) {
-                                    $min = $value;
-                                }
-                                if ($value > $max) {
-                                    $max = $value;
-                                }
-                            } else {
+                            }
+
+                            $searchFilters['id_feature'][$feature['id_feature']]['value'][0] = $from;
+                            $searchFilters['id_feature'][$feature['id_feature']]['value'][1] = $to;
+                            unset($from, $to);
+                        } else {
+                            foreach ($featureValues as $featureValue) {
                                 if (
                                     in_array($featureValue['url_name'], $featureValueLabels)
                                     || in_array($featureValue['value'], $featureValueLabels)
@@ -458,16 +450,6 @@ class Converter
                                     $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                                 }
                             }
-                        }
-                        if (isset($from) && isset($to)) {
-                            $searchFilters['id_feature'][$feature['id_feature']]['min'] = $min;
-                            $searchFilters['id_feature'][$feature['id_feature']]['max'] = $max;
-                            $searchFilters['id_feature'][$feature['id_feature']]['value'][0] = $from;
-                            $searchFilters['id_feature'][$feature['id_feature']]['value'][1] = $to;
-                            unset($from);
-                            unset($to);
-                            unset($min);
-                            unset($max);
                         }
                     }
                     break;

@@ -1174,11 +1174,17 @@ class BlockTest extends MockeryTestCase
     {
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
-                WHERE controller = \'category\'
-                AND id_category = 12
-                AND id_shop = 1
-                GROUP BY `type`, id_value ORDER BY position ASC')
+            ->withArgs(function ($sql) {
+                // Normalize the SQL by removing excess whitespace to make the comparison more reliable
+                $normalizedSql = preg_replace('/\s+/', ' ', trim($sql));
+                $expectedSql = preg_replace('/\s+/', ' ', trim('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
+                    WHERE controller = \'category\'
+                    AND id_category = 12
+                    AND id_shop = 1
+                    GROUP BY `type`, id_value ORDER BY position ASC'));
+
+                return $normalizedSql === $expectedSql;
+            })
             ->andReturn($result);
     }
 }

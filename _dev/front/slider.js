@@ -117,7 +117,7 @@ const refreshSliders = () => {
               query.value.length > 0 ? '/' : '',
               $el.data('slider-label'),
               '-',
-              isCustomSlider ? 'range' : $el.data('slider-unit'),
+              isCustomSlider ? '' : $el.data('slider-unit'),
               '-',
               ui.values[0],
               '-',
