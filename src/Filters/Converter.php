@@ -138,6 +138,28 @@ class Converter
 
                     $facet->setType($type);
                     $filters = [];
+
+                    // Special handling for slider widget type - we need min and max values
+                    if ((int) $filterBlock['filter_type'] === self::WIDGET_TYPE_SLIDER) {
+                        $facet
+                            ->setType($type)
+                            ->setProperty('range', true)
+                            ->setProperty('min', $filterBlock['min'])
+                            ->setProperty('max', $filterBlock['max'])
+                            ->setProperty('unit', '');
+
+                        // Setup the filter with min/max properties
+                        $filter = new Filter();
+                        $filter
+                            ->setActive($filterBlock['value'] !== null)
+                            ->setType($type)
+                            ->setMagnitude(count($filterBlock['values']))
+                            ->setValue($filterBlock['value']);
+
+                        $facet->addFilter($filter);
+                        break;
+                    }
+
                     foreach ($filterBlock['values'] as $id => $filterArray) {
                         $filter = new Filter();
                         $filter
@@ -171,7 +193,8 @@ class Converter
 
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
 
-                    if ((int) $filterBlock['filter_show_limit'] !== 0 ||
+                    if (
+                        (int) $filterBlock['filter_show_limit'] !== 0 ||
                         ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY)
                     ) {
                         usort($filters, [$this, 'sortFiltersByLabel']);
@@ -354,87 +377,99 @@ class Converter
                     }
                     break;
                 case self::TYPE_EXTRAS:
-                        if (!isset($receivedFilters[$filterLabel])) {
-                            // No need to filter if no information
-                            continue 2;
-                        }
+                    if (!isset($receivedFilters[$filterLabel])) {
+                        // No need to filter if no information
+                        continue 2;
+                    }
 
-                        $extrasOptions = [
-                            $this->context->getTranslator()->trans(
-                                'New product',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'new',
-                            $this->context->getTranslator()->trans(
-                                'On sale',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'sale',
-                            $this->context->getTranslator()->trans(
-                                'Discounted',
-                                [],
-                                'Modules.Facetedsearch.Shop'
-                            ) => 'discount',
-                        ];
+                    $extrasOptions = [
+                        $this->context->getTranslator()->trans(
+                            'New product',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'new',
+                        $this->context->getTranslator()->trans(
+                            'On sale',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'sale',
+                        $this->context->getTranslator()->trans(
+                            'Discounted',
+                            [],
+                            'Modules.Facetedsearch.Shop'
+                        ) => 'discount',
+                    ];
 
-                        $searchFilters[$filter['type']] = [];
-                        foreach ($extrasOptions as $extrasOption => $optionId) {
-                            if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
-                                $searchFilters[$filter['type']][] = $optionId;
-                            }
+                    $searchFilters[$filter['type']] = [];
+                    foreach ($extrasOptions as $extrasOption => $optionId) {
+                        if (isset($receivedFilters[$filterLabel]) && in_array($extrasOption, $receivedFilters[$filterLabel])) {
+                            $searchFilters[$filter['type']][] = $optionId;
                         }
-                        break;
+                    }
+                    break;
                 case self::TYPE_FEATURE:
-                    // Add logging functionality
-                    $logFile = fopen(_PS_ROOT_DIR_ . '/var/logs/feature_filter.log', 'a');
-                    fwrite($logFile, '-------- ' . date('Y-m-d H:i:s') . " --------\n");
-                    fwrite($logFile, "Processing filter type: FEATURE (id_value: {$filter['id_value']})\n");
-
                     $features = $this->dataAccessor->getFeatures($idLang);
                     foreach ($features as $feature) {
                         if ($filter['id_value'] != $feature['id_feature']) {
                             continue;
                         }
 
-                        fwrite($logFile, "Found matching feature: ID {$feature['id_feature']} - '{$feature['name']}', URL name: {$feature['url_name']}\n");
-
                         if (isset($receivedFilters[$feature['url_name']])) {
                             $featureValueLabels = $receivedFilters[$feature['url_name']];
-                            fwrite($logFile, "URL parameter found using URL name: {$feature['url_name']}\n");
                         } elseif (isset($receivedFilters[$feature['name']])) {
                             $featureValueLabels = $receivedFilters[$feature['name']];
-                            fwrite($logFile, "URL parameter found using display name: {$feature['name']}\n");
                         } else {
-                            fwrite($logFile, "No matching URL parameters found for this feature, skipping\n");
                             continue;
                         }
 
-                        fwrite($logFile, 'Selected feature values in URL: ' . print_r($featureValueLabels, true) . "\n");
+                        if (isset($featureValueLabels[0]) && $featureValueLabels[0] == 'range') {
+                            $from = (float) $featureValueLabels[1];
+                            $to = (float) $featureValueLabels[2];
+                            $min = 0;
+                            $max = PHP_INT_MAX;
+                        }
 
                         $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
-                        fwrite($logFile, 'Available feature values for this feature: ' . count($featureValues) . "\n");
-
                         foreach ($featureValues as $featureValue) {
-                            fwrite($logFile, "Checking value ID {$featureValue['id_feature_value']}: '{$featureValue['value']}', URL name: {$featureValue['url_name']}\n");
-
-                            if (in_array($featureValue['url_name'], $featureValueLabels)
-                                || in_array($featureValue['value'], $featureValueLabels)
-                            ) {
-                                $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
-                                fwrite($logFile, "MATCH FOUND! Adding feature value ID {$featureValue['id_feature_value']} to filter\n");
+                            if (isset($from) && isset($to)) {
+                                if (
+                                    (isset($featureValue['value']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $featureValue['value'], $matches))
+                                    || (isset($featureValue['url_name']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $featureValue['url_name'], $matches))
+                                ) {
+                                    $value = (float) $matches[0];
+                                }
+                                if ($value === null) {
+                                    continue;
+                                }
+                                if ($value >= $from && $value <= $to) {
+                                    $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
+                                }
+                                if ($value < $min) {
+                                    $min = $value;
+                                }
+                                if ($value > $max) {
+                                    $max = $value;
+                                }
+                            } else {
+                                if (
+                                    in_array($featureValue['url_name'], $featureValueLabels)
+                                    || in_array($featureValue['value'], $featureValueLabels)
+                                ) {
+                                    $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
+                                }
                             }
                         }
-
-                        if (isset($searchFilters['id_feature'][$feature['id_feature']])) {
-                            fwrite($logFile, "Final selected feature values for ID {$feature['id_feature']}: " .
-                                implode(', ', $searchFilters['id_feature'][$feature['id_feature']]) . "\n");
-                        } else {
-                            fwrite($logFile, "No matching feature values found\n");
+                        if (isset($from) && isset($to)) {
+                            $searchFilters['id_feature'][$feature['id_feature']]['min'] = $min;
+                            $searchFilters['id_feature'][$feature['id_feature']]['max'] = $max;
+                            $searchFilters['id_feature'][$feature['id_feature']]['value'][0] = $from;
+                            $searchFilters['id_feature'][$feature['id_feature']]['value'][1] = $to;
+                            unset($from);
+                            unset($to);
+                            unset($min);
+                            unset($max);
                         }
                     }
-
-                    fwrite($logFile, "Feature processing complete\n\n");
-                    fclose($logFile);
                     break;
                 case self::TYPE_ATTRIBUTE_GROUP:
                     $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
@@ -453,7 +488,8 @@ class Converter
 
                         $attributes = $this->dataAccessor->getAttributes($idLang, $attributeGroup['id_attribute_group']);
                         foreach ($attributes as $attribute) {
-                            if (in_array($attribute['url_name'], $attributeLabels)
+                            if (
+                                in_array($attribute['url_name'], $attributeLabels)
                                 || in_array($attribute['name'], $attributeLabels)
                             ) {
                                 $searchFilters['id_attribute_group'][$attributeGroup['id_attribute_group']][] = $attribute['id_attribute'];
@@ -558,7 +594,8 @@ class Converter
     {
         $count = 0;
         foreach ($filters as $filter) {
-            if ($filter->getMagnitude() === 0
+            if (
+                $filter->getMagnitude() === 0
                 || ($showLimit > 0 && $count >= $showLimit)
             ) {
                 $filter->setDisplayed(false);
@@ -602,5 +639,40 @@ class Converter
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
         return strnatcasecmp($a->getLabel(), $b->getLabel());
+    }
+
+    /**
+     * Check if values for a given feature ID contain mostly numeric values
+     * that would be suitable for a slider
+     *
+     * @param int|null $idFeature ID of the specific feature
+     *
+     * @return bool True if values are suitable for slider display
+     */
+    public function hasNumericValues($idFeature)
+    {
+        if ($idFeature === null) {
+            return false;
+        }
+
+        $idLang = (int) $this->context->language->id;
+        $values = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
+
+        if (empty($values)) {
+            return false;
+        }
+
+        // Count numeric values
+        $totalValues = count($values);
+        $numericValues = 0;
+
+        foreach ($values as $value) {
+            if (preg_match('/[0-9]+(\.[0-9]+)?/', (string) $value['value'])) {
+                ++$numericValues;
+            }
+        }
+
+        // Return true if at least 80% of values are numeric
+        return ($numericValues / $totalValues) > 0.8;
     }
 }

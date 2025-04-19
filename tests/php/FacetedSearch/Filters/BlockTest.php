@@ -1024,6 +1024,9 @@ class BlockTest extends MockeryTestCase
                         'meta_title' => null,
                         'filter_show_limit' => 2,
                         'filter_type' => 2,
+                        'min' => null,
+                        'max' => null,
+                        'value' => null,
                     ],
                 ],
             ],
@@ -1172,10 +1175,10 @@ class BlockTest extends MockeryTestCase
         $this->dbMock->shouldReceive('executeS')
             ->once()
             ->with('SELECT type, id_value, filter_show_limit, filter_type FROM ps_layered_category
-            WHERE controller = \'category\'
-            AND id_category = 12
-            AND id_shop = 1
-            GROUP BY `type`, id_value ORDER BY position ASC')
+                WHERE controller = \'category\'
+                AND id_category = 12
+                AND id_shop = 1
+                GROUP BY `type`, id_value ORDER BY position ASC')
             ->andReturn($result);
     }
 }

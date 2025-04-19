@@ -873,6 +873,9 @@ class Block
                     'meta_title' => $feature['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
+                    'min' => $selectedFilters['id_feature'][$idFeature]['min'] ?? null,
+                    'max' => $selectedFilters['id_feature'][$idFeature]['max'] ?? null,
+                    'value' => $selectedFilters['id_feature'][$idFeature]['value'] ?? null,
                 ];
             }
 
