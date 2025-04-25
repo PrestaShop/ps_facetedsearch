@@ -131,7 +131,7 @@ class MySQL extends AbstractAdapter
 
         if ($this->categoryCount === true) {
             foreach($whereConditions as $key => $oneCondition) {
-                if ($oneCondition === "p.id_group='1'") {
+                if (strpos($oneCondition, 'p.id_group') !== false) {
                     unset($whereConditions[$key]);
                 }
                 if (strpos($oneCondition, 'p.nleft') !== false || strpos($oneCondition, 'p.nright') !== false) {
@@ -858,7 +858,6 @@ class MySQL extends AbstractAdapter
 
         $operationsFilters = clone $initialPopulation->getOperationsFilters();
         foreach ($operationsFilters as $operationName => $operations) {
-            $message = "Add operation ${operationName} with operation " . json_encode($operations);
             $this->addOperationsFilter(
                 $operationName,
                 $operations
