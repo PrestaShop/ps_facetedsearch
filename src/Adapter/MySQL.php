@@ -44,6 +44,9 @@ class MySQL extends AbstractAdapter
      */
     const INNER_JOIN = 'INNER JOIN';
 
+    /** @var bool */
+    private $categoryCount = false;
+
     /**
      * {@inheritdoc}
      */
@@ -95,6 +98,12 @@ class MySQL extends AbstractAdapter
         // Prepare mapping for joined tables
         $filterToTableMapping = $this->getFieldMapping();
 
+        if ($this->categoryCount === true) {
+            unset($filterToTableMapping['nleft']);
+            unset($filterToTableMapping['nright']);
+            unset($filterToTableMapping['id_group']);
+        }
+
         // Process and generate all fields for the SQL query below
         $orderField = $this->computeOrderByField($filterToTableMapping);
         $selectFields = $this->computeSelectFields($filterToTableMapping);
@@ -117,6 +126,17 @@ class MySQL extends AbstractAdapter
             foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
                 $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
                        $tableAlias . ' ON ' . $joinInfos['joinCondition'];
+            }
+        }
+
+        if ($this->categoryCount === true) {
+            foreach($whereConditions as $key => $oneCondition) {
+                if ($oneCondition === "p.id_group='1'") {
+                    unset($whereConditions[$key]);
+                }
+                if (strpos($oneCondition, 'p.nleft') !== false || strpos($oneCondition, 'p.nright') !== false) {
+                    unset($whereConditions[$key]);
+                }
             }
         }
 
@@ -762,8 +782,9 @@ class MySQL extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-    public function valueCount($fieldName = null)
+    public function valueCount($fieldName = null, $categoryCount = false)
     {
+        $this->categoryCount = $categoryCount;
         $this->resetGroupBy();
         if ($fieldName !== null) {
             $this->addGroupBy($fieldName);
@@ -774,7 +795,6 @@ class MySQL extends AbstractAdapter
         $this->setOrderField('');
 
         $this->copyOperationsFilters();
-
         return $this->execute();
     }
 
@@ -838,6 +858,7 @@ class MySQL extends AbstractAdapter
 
         $operationsFilters = clone $initialPopulation->getOperationsFilters();
         foreach ($operationsFilters as $operationName => $operations) {
+            $message = "Add operation ${operationName} with operation " . json_encode($operations);
             $this->addOperationsFilter(
                 $operationName,
                 $operations
