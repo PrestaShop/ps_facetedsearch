@@ -989,7 +989,10 @@ class Block
             $categories[$value['id_category']] = $value;
         }
 
-        $categoryCount = null !== _PS_FACETED_NEWCOUNT_ ? _PS_FACETED_NEWCOUNT_ : true;
+        $categoryCount = true;
+        if (true === defined('_PS_FACETED_NEWCOUNT_') && null !== _PS_FACETED_NEWCOUNT_) {
+            $categoryCount = (bool) _PS_FACETED_NEWCOUNT_;
+        }
         $results = $filteredSearchAdapter->valueCount('id_category', $categoryCount);
 
         $categoriesId = [];
@@ -997,12 +1000,9 @@ class Block
             $query = new \DbQuery();
             $query->select('id_category');
             $query->from('category');
-            $depth = (int) $parent->level_depth + 1;
-            $nleft = $parent->nleft;
-            $nright = $parent->nright;
-            $query->where('level_depth <= ' . $depth);
-            $query->where('nleft > ' . $nleft);
-            $query->where('nright < ' . $nright);
+            $query->where('level_depth <= ' . (int) $parent->level_depth + 1);
+            $query->where('nleft > ' . $parent->nleft);
+            $query->where('nright < ' . $parent->nright);
             $resultCategories = \Db::getInstance()->executeS($query);
             foreach($resultCategories as $oneCategory) {
                 $categoriesId[] = $oneCategory['id_category'];
