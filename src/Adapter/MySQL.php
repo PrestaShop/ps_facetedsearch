@@ -248,7 +248,7 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND (pac.id_product_attribute = sa.id_product_attribute OR (pac.id_product_attribute IS NULL AND sa.id_product_attribute = 0)) ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
@@ -256,7 +256,7 @@ class MySQL extends AbstractAdapter
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND (pac.id_product_attribute = sa.id_product_attribute OR (pac.id_product_attribute IS NULL AND sa.id_product_attribute = 0)) ' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_attribute',
