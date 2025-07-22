@@ -1752,7 +1752,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 'cacheable' => false,
             ],
             'search' => [
-                'name' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin') . ' ' . $this->trans('(experimental)', [], 'Modules.Facetedsearch.Admin'),
+                'name' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin'),
                 'cacheable' => false,
             ],
         ]);
