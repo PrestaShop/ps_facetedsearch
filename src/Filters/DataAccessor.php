@@ -133,7 +133,7 @@ class DataAccessor
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_attribute_group` liag ' .
                 'ON (ag.`id_attribute_group` = liag.`id_attribute_group`) ' .
                 'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_attribute_group_lang_value` AS liaglv ' .
-                'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . ') ' .
+                'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND liaglv.`id_lang` = ' . (int) $idLang . ') ' .
                 'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
             );
 
