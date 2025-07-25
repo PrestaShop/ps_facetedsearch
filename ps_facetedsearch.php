@@ -151,12 +151,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
     protected function getDefaultFilters()
     {
-        return [
+        $filters = [
             'layered_selection_subcategories' => [
                 'label' => 'Sub-categories filter',
-            ],
-            'layered_selection_stock' => [
-                'label' => 'Product stock filter',
             ],
             'layered_selection_condition' => [
                 'label' => 'Product condition filter',
@@ -176,6 +173,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'label' => 'Product extras filter',
             ],
         ];
+        // if we are not showing out of stock products, we do not show the Availability filter
+        if (Configuration::get('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK') === '0'){
+            $filters = array_merge(
+                $filters,[
+                    'layered_selection_stock' => [
+                        'label' => 'Product stock filter',
+                    ]
+                ]
+            );
+        }
+        return $filters;
     }
 
     public function install()
@@ -207,6 +215,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
+            Configuration::updateValue('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
@@ -246,6 +255,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
+        Configuration::deleteByName('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
@@ -710,11 +720,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
+            Configuration::updateValue('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK', (int) Tools::getValue('ps_layered_filter_hide_out_of_stock'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
+
+            // if we are not showing out of stock products, we do not show the Availability filter
+            if ((int) Tools::getValue('ps_layered_filter_hide_out_of_stock') === 1) {
+                $this->getDatabase()->execute('DELETE FROM`' . _DB_PREFIX_ . 'layered_category` WHERE `type` = "availability"');
+            }
 
             $message = '<div class="alert alert-success">' . $this->trans('Settings saved successfully', [], 'Modules.Facetedsearch.Admin') . '</div>';
             $this->invalidateLayeredFilterBlockCache();
@@ -806,6 +822,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'limit_warning' => $this->displayLimitPostWarning(21 + count($attributeGroups) * 3 + count($features) * 3),
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
+            'hide_out_of_stock' => (bool) Configuration::get('PS_LAYERED_FILTER_HIDE_OUT_OF_STOCK'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
