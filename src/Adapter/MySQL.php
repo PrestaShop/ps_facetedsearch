@@ -309,12 +309,12 @@ class MySQL extends AbstractAdapter
                 'dependencyField' => 'nleft',
             ],
             'sales' => [
-                'tableName' => 'product_sale',
+                'tableName' => 'product',
                 'tableAlias' => 'psales',
-                'fieldName' => 'quantity',
+                'fieldName' => 'cantidad_vendida',
                 'fieldAlias' => 'sales',
                 'joinCondition' => '(psales.id_product = p.id_product)',
-                'joinType' => self::LEFT_JOIN,
+                'joinType' => self::INNER_JOIN,
             ],
             'reduction' => [
                 'tableName' => 'specific_price',
