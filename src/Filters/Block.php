@@ -24,14 +24,12 @@ use Category;
 use Configuration;
 use Context;
 use Db;
-use Feature;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
-use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopDatabaseException;
 
@@ -92,7 +90,7 @@ class Block
         DataAccessor $dataAccessor,
         ProductSearchQuery $query,
         Provider $provider
-        ) {
+    ) {
         $this->searchAdapter = $searchAdapter;
         $this->context = $context;
         $this->database = $database;
@@ -397,7 +395,8 @@ class Block
             $count = $values['c'];
 
             $conditionArray[$condition]['nbr'] = $count;
-            if (isset($selectedFilters['condition'])
+            if (
+                isset($selectedFilters['condition'])
                 && in_array($condition, $selectedFilters['condition'])
             ) {
                 $conditionArray[$condition]['checked'] = true;
@@ -579,8 +578,8 @@ class Block
                 'Y-m-d 00:00:00',
                 strtotime(
                     ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
-                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                    '+ 1 days')
+                        '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                        '+ 1 days')
                 )
             );
             $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
@@ -675,7 +674,8 @@ class Block
                 'nbr' => $count,
             ];
 
-            if (isset($selectedFilters['manufacturer'])
+            if (
+                isset($selectedFilters['manufacturer'])
                 && in_array($id_manufacturer, $selectedFilters['manufacturer'])
             ) {
                 $manufacturersArray[$id_manufacturer]['checked'] = true;
@@ -853,6 +853,7 @@ class Block
 
         $filteredSearchAdapter->addSelectField('id_feature');
         $results = $filteredSearchAdapter->valueCount('id_feature_value');
+
         foreach ($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
@@ -862,6 +863,26 @@ class Block
 
             if (!isset($featureBlock[$idFeature])) {
                 $features[$idFeature]['featureValues'] = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
+
+                // --- Begin min/max calculation for slider features ---
+                $isSlider = isset($filter['filter_type']) && $filter['filter_type'] == Converter::WIDGET_TYPE_SLIDER;
+                $minValue = null;
+                $maxValue = null;
+                if ($isSlider) {
+                    $featureValuesAll = $this->dataAccessor->getFeatureValues($idFeature, $idLang);
+                    foreach ($featureValuesAll as $fv) {
+                        if (isset($fv['value']) && preg_match('/[0-9]+(\.[0-9]+)?/', (string) $fv['value'], $matches)) {
+                            $val = (float) $matches[0];
+                            if ($minValue === null || $val < $minValue) {
+                                $minValue = $val;
+                            }
+                            if ($maxValue === null || $val > $maxValue) {
+                                $maxValue = $val;
+                            }
+                        }
+                    }
+                }
+                // --- End min/max calculation ---
 
                 $featureBlock[$idFeature] = [
                     'type_lite' => 'id_feature',
@@ -873,6 +894,10 @@ class Block
                     'meta_title' => $feature['meta_title'],
                     'filter_show_limit' => (int) $filter['filter_show_limit'],
                     'filter_type' => $filter['filter_type'],
+                    // Always set min/max for slider, otherwise use selectedFilters
+                    'min' => $isSlider ? $minValue : null,
+                    'max' => $isSlider ? $maxValue : null,
+                    'value' => $selectedFilters['id_feature'][$idFeature]['value'] ?? null,
                 ];
             }
 

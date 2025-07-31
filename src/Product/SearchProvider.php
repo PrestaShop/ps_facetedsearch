@@ -426,7 +426,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $context = $this->module->getContext();
 
         foreach ($facets as $facet) {
-            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS)) {
+            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS) && $facet->getWidgetType() !== 'slider') {
                 continue;
             }
 
@@ -451,6 +451,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                             '%1$s - %2$s',
                             $context->getCurrentLocale()->formatPrice($min, $context->currency->iso_code),
                             $context->getCurrentLocale()->formatPrice($max, $context->currency->iso_code)
+                        )
+                    );
+                } elseif ($facet->getWidgetType() === 'slider') {
+                    // For custom sliders, just use a simple range format
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s - %2$s',
+                            $min,
+                            $max
                         )
                     );
                 }

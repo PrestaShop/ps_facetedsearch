@@ -832,6 +832,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             ->setRootCategory((Shop::getContext() == Shop::CONTEXT_SHOP ? Category::getRootCategory()->id_category : 0))
             ->setUseCheckBox(true);
 
+        // Create a Converter instance to check for numeric values
+        $filterConverter = new PrestaShop\Module\FacetedSearch\Filters\Converter(
+            $this->context,
+            $this->getDatabase(),
+            new PrestaShop\Module\FacetedSearch\URLSerializer(),
+            new PrestaShop\Module\FacetedSearch\Filters\DataAccessor($this->getDatabase()),
+            new PrestaShop\Module\FacetedSearch\Filters\Provider($this->getDatabase())
+        );
+
         // If we are editing an already existing template, we will load its data,
         // check categories and add selected filters. Otherwise, we prepare empty template.
         if ($template !== null) {
@@ -881,6 +890,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'default_filters' => $this->getDefaultFilters(),
             'categories_tree' => $treeCategoriesHelper->render(),
             'controller_options' => $controller_options,
+            'filterConverter' => $filterConverter,
         ]);
 
         // We are using two separate templates depending on context

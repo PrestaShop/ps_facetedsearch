@@ -159,7 +159,6 @@ class Search
                         );
                     }
                     break;
-
                 case 'id_attribute_group':
                     $operationsFilter = [];
                     foreach ($filterValues as $attributeId => $filterValue) {
@@ -181,8 +180,8 @@ class Search
                             'Y-m-d 00:00:00',
                             strtotime(
                                 ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
-                                '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                                '+ 1 days')
+                                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                                    '+ 1 days')
                             )
                         );
                         // Reset filter to prevent two same filters if we are on new products page
@@ -211,11 +210,11 @@ class Search
 
                 case 'availability':
                     /*
-                    * $filterValues options can have following values:
-                    * 0 - Not available - 0 or less quantity and disabled backorders
-                    * 1 - Available - Positive quantity or enabled backorders
-                    * 2 - In stock - Positive quantity
-                    */
+                     * $filterValues options can have following values:
+                     * 0 - Not available - 0 or less quantity and disabled backorders
+                     * 1 - Available - Positive quantity or enabled backorders
+                     * 2 - In stock - Positive quantity
+                     */
 
                     // If all three values are checked, we show everything
                     if (count($filterValues) == 3) {
@@ -309,7 +308,8 @@ class Search
                     break;
 
                 case 'price':
-                    if (isset($selectedFilters['price'])
+                    if (
+                        isset($selectedFilters['price'])
                         && (
                             $selectedFilters['price'][0] !== '' || $selectedFilters['price'][1] !== ''
                         )
@@ -405,8 +405,8 @@ class Search
                 'Y-m-d 00:00:00',
                 strtotime(
                     ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') > 0 ?
-                    '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
-                    '+ 1 days')
+                        '-' . ((int) Configuration::get('PS_NB_DAYS_NEW_PRODUCT') - 1) . ' days' :
+                        '+ 1 days')
                 )
             );
             $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
