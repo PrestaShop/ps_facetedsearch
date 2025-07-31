@@ -232,6 +232,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
+        Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', 0);
+
         return true;
     }
 
@@ -247,6 +249,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        Configuration::deleteByName('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -713,6 +716,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
+            Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', (int) Tools::getValue('ps_layered_filter_feature_values_use_position'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -809,6 +813,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
+            'feature_values_use_position' => (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
