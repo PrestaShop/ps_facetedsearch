@@ -729,11 +729,8 @@ class Block
         }
 
         $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
-
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_attribute_group_' . $idAttributeGroup,
-            [[['id_attribute_group', [(int) $idAttributeGroup]]]]
-        );
+        // Do not add a filter by id_group here beacause it slows a lot the count
+        // There is no impact in final content, we will just have count with all groups.
         $results = $filteredSearchAdapter->valueCount('id_attribute');
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
@@ -744,6 +741,11 @@ class Block
             $count = $values['c'];
             $attribute = $attributes[$idAttribute];
             $idAttributeGroup = $attribute['id_attribute_group'];
+            // Instead we filter here by attribute group and continue if count is not found
+            if ((int) $idAttributeGroup !== (int) $filter['id_value']) {
+                continue;
+            }
+
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
