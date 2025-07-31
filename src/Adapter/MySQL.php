@@ -320,17 +320,17 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'specific_price',
                 'tableAlias' => 'sp',
                 'joinCondition' => '(
-                    sp.id_product = p.id_product AND 
-                    sp.id_shop IN (0, ' . $this->getContext()->shop->id . ') AND 
-                    sp.id_currency IN (0, ' . $this->getContext()->currency->id . ') AND 
-                    sp.id_country IN (0, ' . $this->getContext()->country->id . ') AND 
-                    sp.id_group IN (0, ' . $this->getContext()->customer->id_default_group . ') AND 
+                    sp.id_product = p.id_product AND
+                    sp.id_shop IN (0, ' . $this->getContext()->shop->id . ') AND
+                    sp.id_currency IN (0, ' . $this->getContext()->currency->id . ') AND
+                    sp.id_country IN (0, ' . $this->getContext()->country->id . ') AND
+                    sp.id_group IN (0, ' . $this->getContext()->customer->id_default_group . ') AND
                     sp.from_quantity = 1 AND
                     sp.reduction > 0 AND
                     sp.id_customer = 0 AND
-                    sp.id_cart = 0 AND 
-                    (sp.from = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' >= sp.from) AND 
-                    (sp.to = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' <= sp.to) 
+                    sp.id_cart = 0 AND
+                    (sp.from = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' >= sp.from) AND
+                    (sp.to = \'0000-00-00 00:00:00\' OR \'' . date('Y-m-d H:i:s') . '\' <= sp.to)
                 )',
                 'joinType' => self::LEFT_JOIN,
             ],
@@ -827,7 +827,7 @@ class MySQL extends AbstractAdapter
                 'price',
                 'sales',
                 'on_sale',
-                'date_add',
+                'date_new',
             ]
         );
 

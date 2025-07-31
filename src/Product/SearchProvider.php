@@ -97,8 +97,8 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $sortNameDesc = new SortOrder('product', 'name', 'desc');
         $sortPriceAsc = new SortOrder('product', 'price', 'asc');
         $sortPriceDesc = new SortOrder('product', 'price', 'desc');
-        $sortDateAsc = new SortOrder('product', 'date_add', 'asc');
-        $sortDateDesc = new SortOrder('product', 'date_add', 'desc');
+        $sortDateAsc = new SortOrder('product', 'date_new', 'asc');
+        $sortDateDesc = new SortOrder('product', 'date_new', 'desc');
         $sortRefAsc = new SortOrder('product', 'reference', 'asc');
         $sortRefDesc = new SortOrder('product', 'reference', 'desc');
         $translator = $this->module->getTranslator();
