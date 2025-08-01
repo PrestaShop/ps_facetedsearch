@@ -71,6 +71,16 @@ class Block
     private $attributesGroup;
 
     /**
+     * @var array
+     */
+    private $attributesGroupResults;
+
+    /**
+     * @var array
+     */
+    private $featureResults;
+
+    /**
      * @var DataAccessor
      */
     private $dataAccessor;
@@ -730,9 +740,13 @@ class Block
 
         $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
         // Do not add a filter by id_group here beacause it slows a lot the count
-        // There is no impact in final content, we will just have count with all groups.
-        $results = $filteredSearchAdapter->valueCount('id_attribute');
-        foreach ($results as $key => $values) {
+        // There is no impact in final content, we will just have count with all features.
+        // We will make only send one request for all data, the first filter catched will make this one.
+        // Then we will filter in the foreach loop the data we need to have.
+        if (empty($this->attributesGroupResults) === true) {
+            $this->attributesGroupResults = $filteredSearchAdapter->valueCount('id_attribute');
+        }
+        foreach ($this->attributesGroupResults as $key => $values) {
             $idAttribute = $values['id_attribute'];
             if (!isset($attributes[$idAttribute])) {
                 continue;
@@ -848,17 +862,23 @@ class Block
             return [];
         }
 
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_feature_' . $idFeature,
-            [[['id_feature', [(int) $idFeature]]]]
-        );
-
+        // Do not add a filter by id_feature here beacause it slows a lot the count
+        // There is no impact in final content, we will just have count with all groups.
+        // We will make only send one request for all data, the first filter catched will make this one.
+        // Then we will filter in the foreach loop the data we need to have.
         $filteredSearchAdapter->addSelectField('id_feature');
-        $results = $filteredSearchAdapter->valueCount('id_feature_value');
-        foreach ($results as $key => $values) {
+        if (empty($this->featureResults) === true) {
+            $this->featureResults = $filteredSearchAdapter->valueCount('id_feature_value');
+        }
+        foreach ($this->featureResults as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
             $count = $values['c'];
+            
+            // Instead we filter here by feature Id and continue if count is not found
+            if ((int) $idFeature !== $filter['id_value']) {
+                continue;
+            }
 
             $feature = $features[$idFeature];
 
