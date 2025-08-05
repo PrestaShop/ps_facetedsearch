@@ -876,7 +876,7 @@ class Block
             $count = $values['c'];
             
             // Instead we filter here by feature Id and continue if count is not found
-            if ((int) $idFeature !== $filter['id_value']) {
+            if ((int) $idFeature !== (int) $filter['id_value']) {
                 continue;
             }
 
