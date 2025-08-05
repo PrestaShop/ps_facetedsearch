@@ -989,13 +989,35 @@ class Block
             $categories[$value['id_category']] = $value;
         }
 
-        $results = $filteredSearchAdapter->valueCount('id_category');
+        $categoryCount = true;
+        if (true === defined('_PS_FACETED_NEWCOUNT_') && null !== _PS_FACETED_NEWCOUNT_) {
+            $categoryCount = (bool) _PS_FACETED_NEWCOUNT_;
+        }
+        $results = $filteredSearchAdapter->valueCount('id_category', $categoryCount);
+
+        $categoriesId = [];
+        if ($categoryCount === true) {
+            $query = new \DbQuery();
+            $query->select('id_category');
+            $query->from('category');
+            $query->where('level_depth <= ' . (int) $parent->level_depth + 1);
+            $query->where('nleft > ' . $parent->nleft);
+            $query->where('nright < ' . $parent->nright);
+            $resultCategories = \Db::getInstance()->executeS($query);
+            foreach($resultCategories as $oneCategory) {
+                $categoriesId[] = $oneCategory['id_category'];
+            }
+        }
 
         foreach ($results as $key => $values) {
             $idCategory = $values['id_category'];
             if (!isset($categories[$idCategory])) {
                 // Category can sometimes not be found in case of multistore
                 // plus waiting for indexation
+                continue;
+            }
+
+            if ($categoryCount && in_array($idCategory, $categoriesId) === false) {
                 continue;
             }
 
