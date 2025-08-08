@@ -111,8 +111,10 @@ class MySQL extends AbstractAdapter
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
         }
 
+        // Construct the base query
         $query = 'SELECT ' . implode(', ', $selectFields) . ' FROM ' . $referenceTable . ' p';
 
+        // Add join conditions if any
         foreach ($joinConditions as $joinAliasInfos) {
             foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
                 $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
@@ -120,17 +122,25 @@ class MySQL extends AbstractAdapter
             }
         }
 
+        // Add where conditions if any
         if (!empty($whereConditions)) {
             $query .= ' WHERE ' . implode(' AND ', $whereConditions);
         }
 
-        if ($groupFields) {
+        // Add groupping
+        if (!empty($groupFields)) {
             $query .= ' GROUP BY ' . implode(', ', $groupFields);
         }
 
-        if ($orderField) {
-            $query .= ' ORDER BY ' . $orderField . ' ' . strtoupper($this->getOrderDirection());
-            if ($orderField !== 'p.id_product') {
+        // Add ordering
+        if (!empty($orderField)) {
+            $query .= ' ORDER BY ' . $orderField;
+
+            /*
+             * If the result is not ordered by id_product, we add it as a fallback order,
+             * to avoid SQL returning it in random order.
+             */
+            if (strpos($orderField, 'p.id_product') === false) {
                 $query .= ', p.id_product DESC';
             }
         }
@@ -361,17 +371,18 @@ class MySQL extends AbstractAdapter
      */
     protected function computeOrderByField(array $filterToTableMapping)
     {
+        // First, we get the order field from the current instance. That can be strings like 'price', 'name', 'position', etc.
         $orderField = $this->getOrderField();
 
-        // If we have set an initial population, add this field into initial population selects
-        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
-            $this->getInitialPopulation()->addSelectField($orderField);
+        // If it's empty, we just return it as is, nothing to do. This is usually a case when getting products
+        // for available filters, they reset the order field so we save performance
+        if (empty($orderField)) {
+            return $orderField;
         }
 
-        // Do not try to process the orderField if it already has an alias, or if it's a group function
-        if (empty($orderField) || strpos($orderField, '.') !== false
-            || strpos($orderField, '(') !== false) {
-            return $orderField;
+        // If we have an initial population, add the field into initial population selects, so we can use it in the outer query for sorting
+        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
+            $this->getInitialPopulation()->addSelectField($orderField);
         }
 
         // Alter order by field if it's a price column
@@ -379,12 +390,31 @@ class MySQL extends AbstractAdapter
             $orderField = $this->getOrderDirection() === 'asc' ? 'price_min' : 'price_max';
         }
 
-        // Add table mapping or p. prefix depending on field type
+        // Do not try to process the orderField if it already has an alias, or if it's a group function
+        // We just append the order direction and return it
+        if (strpos($orderField, '.') !== false || strpos($orderField, '(') !== false) {
+            return $orderField . ' ' . strtoupper($this->getOrderDirection());
+        }
+
+        // In all other cases, add table mapping or p. prefix depending on field type
         $orderField = $this->computeFieldName($orderField, $filterToTableMapping, true);
+
+        /*
+         * Do not try to process the orderField if it's a search page. We will use manually constructed list
+         * to order products by their position in the search results we got from the core, with inverted order
+         */
+        if ($orderField == 'p.position' && !empty($this->getInitialPopulation()->getFilters()['id_product']['='][0])) {
+            return 'FIELD(p.id_product,' . implode(',', $this->getInitialPopulation()->getFilters()['id_product']['='][0]) . ') ' .
+            ($this->getOrderDirection() === 'asc' ? 'DESC' : 'ASC');
+        }
 
         // Alter order by field and add some products to the end of the list, if required
         $orderField = $this->computeShowLast($orderField, $filterToTableMapping);
 
+        // Add sort order
+        $orderField .= ' ' . strtoupper($this->getOrderDirection());
+
+        // And return it
         return $orderField;
     }
 
