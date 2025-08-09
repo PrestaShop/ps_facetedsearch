@@ -24,6 +24,7 @@ use Category;
 use Configuration;
 use Context;
 use Db;
+use Shop;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters;
@@ -448,15 +449,28 @@ class Converter
                     break;
                 case self::TYPE_CATEGORY:
                     if (isset($receivedFilters[$filterLabel])) {
+                        // Collect valid names
+                        $requestedNames = [];
                         foreach ($receivedFilters[$filterLabel] as $queryFilter) {
-                            /*
-                             * This works only for categories that are child of the category we are browsing (or home category).
-                             * Categories deeper in the tree will never be found. This could be fixed by providing a unique ID
-                             * to the URL.
-                             */
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
-                            if ($categories) {
-                                $searchFilters[$filter['type']][] = $categories['id_category'];
+                            if (is_string($queryFilter) && $queryFilter !== '') {
+                                $requestedNames[] = $queryFilter;
+                            }
+                        }
+
+                        if (!empty($requestedNames)) {
+                            // Batch lookup by subtree; returns name => id_category mapping
+                            $foundMap = $this->findCategoriesByNamesInSubtree($idLang, $requestedNames, (int) $idCategory);
+
+                            foreach ($requestedNames as $queryFilter) {
+                                if (isset($foundMap[$queryFilter])) {
+                                    $searchFilters[$filter['type']][] = (int) $foundMap[$queryFilter];
+                                    continue;
+                                }
+                                // Fallback per-name (SQL single + BFS) if not resolved in batch
+                                $categoryRow = $this->findCategoryByNameInSubtree($idLang, $queryFilter, (int) $idCategory);
+                                if ($categoryRow) {
+                                    $searchFilters[$filter['type']][] = (int) $categoryRow['id_category'];
+                                }
                             }
                         }
                     }
@@ -575,5 +589,150 @@ class Converter
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
         return strnatcasecmp($a->getLabel(), $b->getLabel());
+    }
+
+    /**
+     * Find a category by exact name within a given subtree (based on nested set nleft/nright), without core changes.
+     *
+     * @param int $idLang
+     * @param string $categoryName
+     * @param int $idRootCategory
+     *
+     * @return array|false
+     */
+    private function findCategoryByNameInSubtree($idLang, $categoryName, $idRootCategory)
+    {
+        if (!is_string($categoryName) || $categoryName === '') {
+            return false;
+        }
+
+        $interval = Category::getInterval((int) $idRootCategory);
+        if (empty($interval)) {
+            return false;
+        }
+
+        $query = new \DbQuery();
+        $query->select('c.*, cl.*');
+        $query->from('category', 'c');
+        // Shop association equivalent to Shop::addSqlAssociation('category', 'c')
+        $query->leftJoin(
+            'category_shop',
+            'category_shop',
+            'c.`id_category` = category_shop.`id_category` AND category_shop.`id_shop` = ' . (int) $this->context->shop->id
+        );
+        $query->leftJoin(
+            'category_lang',
+            'cl',
+            'c.`id_category` = cl.`id_category` AND cl.`id_lang` = ' . (int) $idLang . Shop::addSqlRestrictionOnLang('cl')
+        );
+        $query->where("cl.`name` = '" . pSQL($categoryName) . "'");
+        $query->where('c.`nleft` >= ' . (int) $interval['nleft']);
+        $query->where('c.`nright` <= ' . (int) $interval['nright']);
+        $query->where('c.`id_category` != ' . (int) Configuration::get('PS_HOME_CATEGORY'));
+        $query->where('c.`active` = 1');
+        $query->orderBy('c.`level_depth` ASC');
+        $query->limit(1);
+
+        $row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($query);
+        if ($row) {
+            return $row;
+        }
+
+        // Fallback: BFS over children if SQL match not found (handles edge cases on older cores/shops setups)
+        return $this->findCategoryByNameInSubtreeFallback($idLang, $categoryName, (int) $idRootCategory);
+    }
+
+    /**
+     * Batch variant: resolve multiple names within the subtree in a single query.
+     * Returns associative map name => id_category (exact matches only).
+     *
+     * @param int $idLang
+     * @param string[] $categoryNames
+     * @param int $idRootCategory
+     *
+     * @return array<string,int>
+     */
+    private function findCategoriesByNamesInSubtree($idLang, array $categoryNames, $idRootCategory)
+    {
+        $cleanNames = [];
+        foreach ($categoryNames as $name) {
+            if (is_string($name) && $name !== '') {
+                $cleanNames[] = pSQL($name);
+            }
+        }
+        if (empty($cleanNames)) {
+            return [];
+        }
+
+        $interval = Category::getInterval((int) $idRootCategory);
+        if (empty($interval)) {
+            return [];
+        }
+
+        $inList = "'" . implode("','", $cleanNames) . "'";
+
+        $query = new \DbQuery();
+        $query->select('c.`id_category`, cl.`name`');
+        $query->from('category', 'c');
+        $query->leftJoin(
+            'category_shop',
+            'category_shop',
+            'c.`id_category` = category_shop.`id_category` AND category_shop.`id_shop` = ' . (int) $this->context->shop->id
+        );
+        $query->leftJoin(
+            'category_lang',
+            'cl',
+            'c.`id_category` = cl.`id_category` AND cl.`id_lang` = ' . (int) $idLang . Shop::addSqlRestrictionOnLang('cl')
+        );
+        $query->where('cl.`name` IN (' . $inList . ')');
+        $query->where('c.`nleft` >= ' . (int) $interval['nleft']);
+        $query->where('c.`nright` <= ' . (int) $interval['nright']);
+        $query->where('c.`id_category` != ' . (int) Configuration::get('PS_HOME_CATEGORY'));
+        $query->where('c.`active` = 1');
+
+        $rows = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query) ?: [];
+        $map = [];
+        foreach ($rows as $row) {
+            // exact name mapping, first match wins (the query is subtree-scoped)
+            if (!isset($map[$row['name']])) {
+                $map[$row['name']] = (int) $row['id_category'];
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Fallback traversal when SQL subtree lookup finds nothing: breadth-first search by children.
+     *
+     * @param int $idLang
+     * @param string $categoryName
+     * @param int $idRootCategory
+     *
+     * @return array|false
+     */
+    private function findCategoryByNameInSubtreeFallback($idLang, $categoryName, $idRootCategory)
+    {
+        $queue = [(int) $idRootCategory];
+        $visited = [];
+
+        while (!empty($queue)) {
+            $currentId = array_shift($queue);
+            if (isset($visited[$currentId])) {
+                continue;
+            }
+            $visited[$currentId] = true;
+
+            $match = Category::searchByNameAndParentCategoryId($idLang, $categoryName, (int) $currentId);
+            if ($match && isset($match['id_category'])) {
+                return $match;
+            }
+
+            $children = Category::getChildren((int) $currentId, $idLang);
+            foreach ($children as $child) {
+                $queue[] = (int) $child['id_category'];
+            }
+        }
+
+        return false;
     }
 }
