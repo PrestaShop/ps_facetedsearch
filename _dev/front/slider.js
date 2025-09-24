@@ -22,14 +22,20 @@ import NumberFormatter from '../cldr/number-formatter';
 
 const formatters = {};
 
-const displayLabelBlock = (formatterId, displayBlock, min, max) => {
+const displayLabelBlock = (formatterId, displayBlock, min, max, isCustomSlider = false) => {
   if (formatters[formatterId] === undefined) {
-    displayBlock.text(
-      displayBlock.text().replace(
-        /([^\d]*)(?:[\d\s.,]+)([^\d]+)(?:[\d\s.,]+)(.*)/,
-        `$1${min}$2${max}$3`,
-      ),
-    );
+    // For standard numeric range sliders
+    if (!isCustomSlider) {
+      displayBlock.text(
+        displayBlock.text().replace(
+          /([^\d]*)(?:[\d\s.,]+)([^\d]+)(?:[\d\s.,]+)(.*)/,
+          `$1${min}$2${max}$3`,
+        ),
+      );
+    } else {
+      // For non-range filter sliders, adapt the display
+      displayBlock.text(`${min} - ${max}`);
+    }
   } else {
     displayBlock.text(
       `${formatters[formatterId].format(min)} - ${formatters[formatterId].format(max)}`,
@@ -45,6 +51,19 @@ const refreshSliders = () => {
     const $el = $(this);
     const values = $el.data('slider-values');
     const specifications = $el.data('slider-specifications');
+    const isCustomSlider = $el.data('slider-type') === 'custom';
+    const minValue = $el.data('slider-min');
+    const maxValue = $el.data('slider-max');
+
+    // Make sure we have valid min and max values
+    if (minValue === undefined || maxValue === undefined) {
+      console.warn(`Slider ${$el.data('slider-id')} is missing min or max values`);
+      return; // Skip this slider
+    }
+
+    // If values is null, undefined, or not an array, initialize with min/max values
+    const startValues = Array.isArray(values) && values.length === 2
+      ? values : [minValue, maxValue];
 
     if (specifications !== null && specifications !== undefined) {
       formatters[$el.data('slider-id')] = NumberFormatter.build(specifications);
@@ -53,20 +72,24 @@ const refreshSliders = () => {
     displayLabelBlock(
       $el.data('slider-id'),
       $(`#facet_label_${$el.data('slider-id')}`),
-      values === null ? $el.data('slider-min') : values[0],
-      values === null ? $el.data('slider-max') : values[1],
+      startValues[0],
+      startValues[1],
+      isCustomSlider,
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
-      min: $el.data('slider-min'),
-      max: $el.data('slider-max'),
-      values: [
-        values === null ? $el.data('slider-min') : values[0],
-        values === null ? $el.data('slider-max') : values[1],
-      ],
+      min: minValue,
+      max: maxValue,
+      values: startValues,
       stop(event, ui) {
         const nextEncodedFacetsURL = $el.data('slider-encoded-url');
+
+        if (!nextEncodedFacetsURL) {
+          console.warn(`Slider ${$el.data('slider-id')} is missing encoded URL data`);
+          return;
+        }
+
         const urlsSplitted = nextEncodedFacetsURL.split('?');
         let queryParams = [];
 
@@ -94,7 +117,7 @@ const refreshSliders = () => {
               query.value.length > 0 ? '/' : '',
               $el.data('slider-label'),
               '-',
-              $el.data('slider-unit'),
+              isCustomSlider ? '' : $el.data('slider-unit'),
               '-',
               ui.values[0],
               '-',
@@ -120,6 +143,7 @@ const refreshSliders = () => {
           $(`#facet_label_${$el.data('slider-id')}`),
           ui.values[0],
           ui.values[1],
+          isCustomSlider,
         );
       },
     });

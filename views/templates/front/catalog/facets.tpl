@@ -160,8 +160,9 @@
                 data-slider-values="{$filter.value|@json_encode}"
                 data-slider-unit="{$facet.properties.unit}"
                 data-slider-label="{$facet.label}"
-                data-slider-specifications="{$facet.properties.specifications|@json_encode}"
+                data-slider-specifications="{if isset($facet.properties.specifications)}{$facet.properties.specifications|@json_encode}{else}null{/if}"
                 data-slider-encoded-url="{$filter.nextEncodedFacetsURL}"
+                {if !in_array($facet.type, ['price', 'weight'])}data-slider-type="custom"{/if}
               >
                 <li>
                   <p id="facet_label_{$_expand_id}">

@@ -65,3 +65,4 @@ GitHub contributors:
  - matrix
  - raph
  - sadlyblue
+ - vachmara

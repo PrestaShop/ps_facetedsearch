@@ -20,7 +20,7 @@ This module is partially compatible with the multistore feature. Some of its opt
 
 ## Reporting issues
 
-You can report issues with this module in the main PrestaShop repository. [Click here to report an issue][report-issue]. 
+You can report issues with this module in the main PrestaShop repository. [Click here to report an issue][report-issue].
 
 ## Requirements
 
