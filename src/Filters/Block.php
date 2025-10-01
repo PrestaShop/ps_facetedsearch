@@ -743,6 +743,14 @@ class Block
         // There is no impact in final content, we will just have count with all features.
         // We will make only send one request for all data, the first filter catched will make this one.
         // Then we will filter in the foreach loop the data we need to have.
+        if (empty($selectedFilters['id_attribute_group']) === false) {
+            // If there is filters on attributes we use one request for each filter as before
+            $this->attributesGroupResults = [];
+            $filteredSearchAdapter->addOperationsFilter(
+                'id_attribute_group_' . $idAttributeGroup,
+                [[['id_attribute_group', [(int) $idAttributeGroup]]]]
+            );
+        }
         if (empty($this->attributesGroupResults) === true) {
             $this->attributesGroupResults = $filteredSearchAdapter->valueCount('id_attribute');
         }
@@ -867,6 +875,14 @@ class Block
         // We will make only send one request for all data, the first filter catched will make this one.
         // Then we will filter in the foreach loop the data we need to have.
         $filteredSearchAdapter->addSelectField('id_feature');
+        if (empty($selectedFilters['id_feature']) === false) {
+            // If the selected filters features are set we make one request for each as before
+            $this->featureResults = [];
+            $filteredSearchAdapter->addOperationsFilter(
+                'id_feature_' . $idFeature,
+                [[['id_feature', [(int) $idFeature]]]]
+            );
+        }
         if (empty($this->featureResults) === true) {
             $this->featureResults = $filteredSearchAdapter->valueCount('id_feature_value');
         }
