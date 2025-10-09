@@ -155,10 +155,10 @@ class Converter
                         }
 
                         if (isset($filterArray['color'])) {
-                            if ($filterArray['color'] != '') {
-                                $filter->setProperty(self::PROPERTY_COLOR, $filterArray['color']);
-                            } elseif (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
+                            if (file_exists(_PS_COL_IMG_DIR_ . $id . '.jpg')) {
                                 $filter->setProperty(self::PROPERTY_TEXTURE, _THEME_COL_DIR_ . $id . '.jpg');
+                            } elseif ($filterArray['color'] != '') {
+                                $filter->setProperty(self::PROPERTY_COLOR, $filterArray['color']);
                             }
                         }
 
