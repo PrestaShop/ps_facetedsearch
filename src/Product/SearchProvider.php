@@ -21,6 +21,7 @@
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use Configuration;
+use Hook;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
@@ -258,6 +259,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         } elseif ($query->getQueryType() == 'supplier') {
             $filterKey .= $query->getIdSupplier();
         }
+
+        Hook::exec(
+            'actionFacetedSearchCacheKeyGeneration',
+            [
+                'filterKey' => &$filterKey,
+                'query' => $query,
+                'facetedSearchFilters' => &$facetedSearchFilters,
+            ]
+        );
 
         $filterHash = md5(
             sprintf(
