@@ -66,11 +66,6 @@ class Block
     private $database;
 
     /**
-     * @var array
-     */
-    private $attributesGroup;
-
-    /**
      * @var DataAccessor
      */
     private $dataAccessor;

@@ -40,56 +40,69 @@ jobs:
     name: PHP-CS-Fixer
     runs-on: ubuntu-latest
     steps:
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-              php-version: '7.4'
-
-      - name: Checkout
-        uses: actions/checkout@v3.1.0
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: php-${{ hashFiles('composer.lock') }}
-
-      - name: Install dependencies
-        run: composer install
-
       - name: Run PHP-CS-Fixer
-        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no
+        uses: PrestaShop/.github/.github/actions/php-ci/php-cs@master
+        with:
+          php-version: '7.4'
 
-  # Run PHPStan against the module and a PrestaShop release
+  # Run PHPStan against the module (PHP 7.4 – legacy)
+  phpstan-74:
+    name: PHPStan (PHP 7.4)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        presta_version: ['1.7.7.x', '1.7.8.x']
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.event.repository.name }}
+
+      - name: Run PHPStan
+        uses: PrestaShop/.github/.github/actions/php-ci/phpstan@master
+        with:
+          php-version: '7.4'
+          presta-version: ${{ matrix.presta_version }}
+          module-name: ${{ github.event.repository.name }}
+          phpstan-level: '5'
+          phpstan-config: tests/php/phpstan/phpstan-${{ matrix.presta_version }}.neon
+          phpstan-version: '^0.12'
+          composer-version: '2.2.18'
+
+  # Run PHPStan against the module (PHP 8.x – recent)
   phpstan:
-      name: PHPStan
-      runs-on: ubuntu-latest
-      strategy:
-          matrix:
-              presta-versions: ['1.7.6', '1.7.7', '1.7.8', 'latest']
-      steps:
-          - name: Checkout
-            uses: actions/checkout@v3.1.0
+    name: PHPStan (PHP 8.x)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        presta_version: ['9.0.x', '9.1.x']
+        php_version: ['8.1', '8.2', '8.3']
+      fail-fast: false
+    env:
+      PHPRC: ${{ github.workspace }}/${{ github.event.repository.name }}/.phpstan-php-ini
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.event.repository.name }}
 
-          # Add vendor folder in cache to make next builds faster
-          - name: Cache vendor folder
-            uses: actions/cache@v3
-            with:
-              path: vendor
-              key: php-${{ hashFiles('composer.lock') }}
+      - name: Prepare PHP env for PrestaShop 9 (define constants before any bootstrap)
+        run: |
+          mkdir -p ${{ github.event.repository.name }}/.phpstan-php-ini
+          {
+            echo "auto_prepend_file=$GITHUB_WORKSPACE/${{ github.event.repository.name }}/tests/php/phpstan/prepend-constants.php"
+            echo "memory_limit=512M"
+          } > ${{ github.event.repository.name }}/.phpstan-php-ini/php.ini
 
-          # Add composer local folder in cache to make next builds faster
-          - name: Cache composer folder
-            uses: actions/cache@v3
-            with:
-              path: ~/.composer/cache
-              key: php-composer-cache
-
-          - run: composer install
-
-          # Docker images prestashop/prestashop may be used, even if the shop remains uninstalled
-          - name: Execute PHPStan on PrestaShop (Tag ${{ matrix.presta-versions }})
-            run: ./tests/php/phpstan.sh ${{ matrix.presta-versions }}
+      - name: Run PHPStan
+        uses: PrestaShop/.github/.github/actions/php-ci/phpstan@master
+        with:
+          php-version: ${{ matrix.php_version }}
+          presta-version: ${{ matrix.presta_version }}
+          module-name: ${{ github.event.repository.name }}
+          phpstan-level: '5'
+          phpstan-config: tests/php/phpstan/phpstan-${{ matrix.presta_version }}.neon
 
   phpunit:
     name: PHPUnit

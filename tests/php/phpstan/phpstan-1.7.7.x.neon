@@ -1,0 +1,8 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    - '#Parameter \#1 \$string of method PrestaShop\\Module\\FacetedSearch\\URLSerializer\:\:unserialize\(\) expects string, array given.#'
+    - '#Parameter \#1 \$master of static method DbCore\:\:getInstance\(\) expects bool, int given.#'
+    - '#Parameter \#1 \$value of method ControllerCore\:\:ajaxRender\(\) expects null, string given.#'
