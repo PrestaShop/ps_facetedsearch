@@ -381,7 +381,7 @@ class MySQL extends AbstractAdapter
         }
 
         // If we have an initial population, add the field into initial population selects, so we can use it in the outer query for sorting
-        if ($this->getInitialPopulation() !== null && !empty($orderField)) {
+        if ($this->getInitialPopulation() !== null) {
             $this->getInitialPopulation()->addSelectField($orderField);
         }
 
@@ -428,9 +428,8 @@ class MySQL extends AbstractAdapter
      */
     protected function computeShowLast($orderField, $filterToTableMapping)
     {
-        // allow only if feature is enabled & it is main product list query
+        // allow only if feature is enabled & it is main product list query (caller ensures $orderField is non-empty)
         if ($this->getInitialPopulation() === null
-            || empty($orderField)
             || !Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
         ) {
             return $orderField;

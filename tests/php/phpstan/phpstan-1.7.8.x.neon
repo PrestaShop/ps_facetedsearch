@@ -1,0 +1,6 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    - '#Parameter \#1 \$master of static method DbCore\:\:getInstance\(\) expects bool, int given.#'

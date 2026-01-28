@@ -1,0 +1,10 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    - '#Access to property \$default_form_language on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method addJqueryUi\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method registerStylesheet\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method registerJavascript\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Strict comparison using === between null and mixed will always evaluate to false\.#'
