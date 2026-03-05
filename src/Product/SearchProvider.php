@@ -106,7 +106,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $sortOrders = [
             $sortSalesDesc->setLabel(
-                $translator->trans('Sales, highest to lowest', [], 'Shop.Theme.Catalog')
+                $translator->trans('Best sales', [], 'Shop.Theme.Catalog')
             ),
             $sortPosAsc->setLabel(
                 $translator->trans('Relevance', [], 'Shop.Theme.Catalog')
