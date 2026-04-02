@@ -33,6 +33,7 @@ use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
+use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopBundle\Translation\TranslatorComponent;
 use Shop;
@@ -73,6 +74,13 @@ class BlockTest extends MockeryTestCase
 
         Configuration::setStaticExpectations($mock);
 
+        // Mock locale
+        $locale = Mockery::mock(Locale::class);
+        $locale->shouldReceive('getPriceSpecification')
+            ->with('EUR')
+            ->andReturn($this->getPriceSpecificationMock());
+
+        // Mock context
         $this->contextMock = Mockery::mock(Context::class);
         $this->contextMock->shop = new stdClass();
         $this->contextMock->shop->id = 1;
@@ -87,7 +95,9 @@ class BlockTest extends MockeryTestCase
         $this->contextMock->currency->id = 4;
         $this->contextMock->customer = new stdClass();
         $this->contextMock->customer->id_default_group = 5;
+        $this->contextMock->currentLocale = $locale;
 
+        // Add context getter
         $this->contextMock->shouldReceive('getContext')
             ->andReturn($this->contextMock);
         Context::setStaticExpectations($this->contextMock);
@@ -1177,5 +1187,39 @@ class BlockTest extends MockeryTestCase
             AND id_shop = 1
             GROUP BY `type`, id_value ORDER BY position ASC')
             ->andReturn($result);
+    }
+
+    private function getPriceSpecificationMock()
+    {
+        // Mock symbols
+        $symbolList = Mockery::mock(SymbolList::class);
+        $symbolList->shouldReceive('getDecimal')->andReturn('.');
+        $symbolList->shouldReceive('getGroup')->andReturn(',');
+        $symbolList->shouldReceive('getList')->andReturn(';');
+        $symbolList->shouldReceive('getPercentSign')->andReturn('%');
+        $symbolList->shouldReceive('getMinusSign')->andReturn('-');
+        $symbolList->shouldReceive('getPlusSign')->andReturn('+');
+        $symbolList->shouldReceive('getExponential')->andReturn('E');
+        $symbolList->shouldReceive('getSuperscriptingExponent')->andReturn('×');
+        $symbolList->shouldReceive('getPerMille')->andReturn('‰');
+        $symbolList->shouldReceive('getInfinity')->andReturn('∞');
+        $symbolList->shouldReceive('getNaN')->andReturn('NaN');
+
+        // Mock specification of prices
+        $priceSpecification = Mockery::mock(PriceSpecification::class);
+        $priceSpecification->shouldReceive('getSymbolsByNumberingSystem')->andReturn($symbolList);
+        $priceSpecification->shouldReceive('toArray')->andReturn([
+            'currencyCode' => 'EUR',
+            'currencySymbol' => '€',
+            'positivePattern' => '##,##',
+            'negativePattern' => '##,##',
+            'maxFractionDigits' => 2,
+            'minFractionDigits' => 2,
+            'groupingUsed' => true,
+            'primaryGroupSize' => 3,
+            'secondaryGroupSize' => 3,
+        ]);
+
+        return $priceSpecification;
     }
 }

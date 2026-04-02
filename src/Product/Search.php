@@ -25,6 +25,7 @@ use Configuration;
 use Context;
 use FrontController;
 use Group;
+use Hook;
 use PrestaShop\Module\FacetedSearch\Adapter\AbstractAdapter;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL as MySQLAdapter;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
@@ -450,6 +451,14 @@ class Search
                 empty($productPool) ? ['NULL'] : $productPool
             );
         }
+
+        Hook::exec(
+            'actionFacetedSearchFilters',
+            [
+                'search' => $this,
+                'query' => $this->query,
+            ]
+        );
     }
 
     /**

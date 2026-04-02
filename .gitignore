@@ -4,3 +4,5 @@
 config_*.xml
 .php_cs.cache
 .idea
+# PHPStan 9.x CI: custom php.ini directory (generated in workflow)
+.phpstan-php-ini/

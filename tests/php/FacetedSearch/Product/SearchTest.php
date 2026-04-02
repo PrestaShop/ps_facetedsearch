@@ -24,6 +24,7 @@ use Configuration;
 use Context;
 use FrontController;
 use Group;
+use Hook;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
@@ -93,6 +94,11 @@ class SearchTest extends MockeryTestCase
             ->andReturn('category');
 
         $this->search->setQuery($query);
+
+        $hookMock = Mockery::mock(Hook::class);
+        $hookMock->shouldReceive('exec')
+            ->andReturn([]);
+        Hook::setStaticExpectations($hookMock);
     }
 
     public function testGetFacetedSearchTypeAdapter()

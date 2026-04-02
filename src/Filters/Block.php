@@ -1068,71 +1068,29 @@ class Block
      */
     private function preparePriceSpecifications()
     {
-        /* @var Currency */
-        $currency = $this->context->currency;
-        // New method since PS 1.7.6
-        if (isset($this->context->currentLocale) && method_exists($this->context->currentLocale, 'getPriceSpecification')) {
-            /* @var PriceSpecification */
-            $priceSpecification = $this->context->currentLocale->getPriceSpecification($currency->iso_code);
-            /* @var NumberSymbolList */
-            $symbolList = $priceSpecification->getSymbolsByNumberingSystem(Locale::NUMBERING_SYSTEM_LATIN);
+        /* @var PriceSpecification */
+        $priceSpecification = $this->context->currentLocale->getPriceSpecification($this->context->currency->iso_code);
 
-            $symbol = [
-                $symbolList->getDecimal(),
-                $symbolList->getGroup(),
-                $symbolList->getList(),
-                $symbolList->getPercentSign(),
-                $symbolList->getMinusSign(),
-                $symbolList->getPlusSign(),
-                $symbolList->getExponential(),
-                $symbolList->getSuperscriptingExponent(),
-                $symbolList->getPerMille(),
-                $symbolList->getInfinity(),
-                $symbolList->getNaN(),
-            ];
+        /* @var NumberSymbolList */
+        $symbolList = $priceSpecification->getSymbolsByNumberingSystem(Locale::NUMBERING_SYSTEM_LATIN);
 
-            return array_merge(
-                ['symbol' => $symbol],
-                $priceSpecification->toArray()
-            );
-        }
-
-        // Default symbol configuration
         $symbol = [
-            '.',
-            ',',
-            ';',
-            '%',
-            '-',
-            '+',
-            'E',
-            '×',
-            '‰',
-            '∞',
-            'NaN',
+            $symbolList->getDecimal(),
+            $symbolList->getGroup(),
+            $symbolList->getList(),
+            $symbolList->getPercentSign(),
+            $symbolList->getMinusSign(),
+            $symbolList->getPlusSign(),
+            $symbolList->getExponential(),
+            $symbolList->getSuperscriptingExponent(),
+            $symbolList->getPerMille(),
+            $symbolList->getInfinity(),
+            $symbolList->getNaN(),
         ];
-        // The property `$precision` exists only from PS 1.7.6. On previous versions, all prices have 2 decimals
-        $precision = isset($currency->precision) ? $currency->precision : 2;
-        $formats = explode(';', $currency->format);
-        if (count($formats) > 1) {
-            $positivePattern = $formats[0];
-            $negativePattern = $formats[1];
-        } else {
-            $positivePattern = $currency->format;
-            $negativePattern = $currency->format;
-        }
 
-        return [
-            'positivePattern' => $positivePattern,
-            'negativePattern' => $negativePattern,
-            'symbol' => $symbol,
-            'maxFractionDigits' => $precision,
-            'minFractionDigits' => $precision,
-            'groupingUsed' => true,
-            'primaryGroupSize' => 3,
-            'secondaryGroupSize' => 3,
-            'currencyCode' => $currency->iso_code,
-            'currencySymbol' => $currency->sign,
-        ];
+        return array_merge(
+            ['symbol' => $symbol],
+            $priceSpecification->toArray()
+        );
     }
 }

@@ -21,6 +21,7 @@
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use Configuration;
+use Hook;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
@@ -90,7 +91,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
     private function getAvailableSortOrders($query)
     {
         $sortSalesDesc = new SortOrder('product', 'sales', 'desc');
-        $sortPosAsc = new SortOrder('product', 'position', 'asc');
+        // If the query is a search, we want to sort by position in descending order = relevance
+        // If the query is a category, manufacturer or supplier, we want to sort by position in ascending order
+        $sortPosAsc = new SortOrder('product', 'position', ($query->getQueryType() == 'search' ? 'desc' : 'asc'));
         $sortNameAsc = new SortOrder('product', 'name', 'asc');
         $sortNameDesc = new SortOrder('product', 'name', 'desc');
         $sortPriceAsc = new SortOrder('product', 'price', 'asc');
@@ -256,6 +259,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         } elseif ($query->getQueryType() == 'supplier') {
             $filterKey .= $query->getIdSupplier();
         }
+
+        Hook::exec(
+            'actionFacetedSearchCacheKeyGeneration',
+            [
+                'filterKey' => &$filterKey,
+                'query' => $query,
+                'facetedSearchFilters' => &$facetedSearchFilters,
+            ]
+        );
 
         $filterHash = md5(
             sprintf(

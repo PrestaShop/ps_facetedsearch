@@ -35,13 +35,13 @@
 	<div class="alert alert-info">
 		<p>{l s='We recommend to set regular cron tasks to manage the indexes and cache on daily/weekly basis.' d='Modules.Facetedsearch.Admin'}</p>
 		<br>
-	  {l s='Add missing products to price index:' d='Modules.Facetedsearch.Admin'} <strong>{$price_indexer_url}</strong>
+	  {l s='Add missing products to price index:' d='Modules.Facetedsearch.Admin'} <strong>{$price_indexer_url_for_cron}</strong>
 	  <br>
-		{l s='Rebuild price index:' d='Modules.Facetedsearch.Admin'} <strong>{$full_price_indexer_url}</strong>
+		{l s='Rebuild price index:' d='Modules.Facetedsearch.Admin'} <strong>{$full_price_indexer_url_for_cron}</strong>
 	  <br>
-		{l s='Rebuild attribute index:' d='Modules.Facetedsearch.Admin'} <strong>{$attribute_indexer_url}</strong>
+		{l s='Rebuild attribute index:' d='Modules.Facetedsearch.Admin'} <strong>{$attribute_indexer_url_for_cron}</strong>
 		<br>
-		{l s='Flush block cache:' d='Modules.Facetedsearch.Admin'} <strong>{$clear_cache_url}</strong>
+		{l s='Flush block cache:' d='Modules.Facetedsearch.Admin'} <strong>{$clear_cache_url_for_cron}</strong>
 		<br>
 		<br>
 		<p>{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</p>

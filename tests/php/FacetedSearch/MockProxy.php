@@ -144,3 +144,9 @@ class FrontController extends MockProxy
     // Redeclare to use this instead MockProxy::mock
     protected static $mock;
 }
+
+class Hook extends MockProxy
+{
+    // Redeclare to use this instead of MockProxy::$mock
+    protected static $mock;
+}

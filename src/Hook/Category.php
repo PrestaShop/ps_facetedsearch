@@ -28,7 +28,6 @@ class Category extends AbstractHook
     const AVAILABLE_HOOKS = [
         'actionCategoryAdd',
         'actionCategoryDelete',
-        'actionCategoryUpdate',
     ];
 
     /**
@@ -42,22 +41,6 @@ class Category extends AbstractHook
 
         // Flush filter block cache in all cases, so a new category shows up
         $this->module->invalidateLayeredFilterBlockCache();
-    }
-
-    /**
-     * Category update
-     *
-     * @param array $params
-     */
-    public function actionCategoryUpdate(array $params)
-    {
-        /*
-         * The category status might (active, inactive) have changed,
-         * we have to update the layered cache table structure.
-         */
-        if (isset($params['category']) && !$params['category']->active) {
-            $this->removeCategoryFromFilterTemplates((int) $params['category']->id);
-        }
     }
 
     /**

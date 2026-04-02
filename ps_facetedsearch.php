@@ -96,7 +96,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '4.0.0';
+        $this->version = '4.0.3';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -793,6 +793,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'full_price_indexer_url' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['ajax' => true, 'action' => 'indexPrices', 'full' => 1, 'token' => $cronToken]),
             'attribute_indexer_url' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['ajax' => true, 'action' => 'indexAttributes', 'token' => $cronToken]),
             'clear_cache_url' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['ajax' => true, 'action' => 'clearCache', 'token' => $cronToken]),
+            'price_indexer_url_for_cron' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['action' => 'indexPrices', 'token' => $cronToken]),
+            'full_price_indexer_url_for_cron' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['action' => 'indexPrices', 'full' => 1, 'token' => $cronToken]),
+            'attribute_indexer_url_for_cron' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['action' => 'indexAttributes', 'token' => $cronToken]),
+            'clear_cache_url_for_cron' => $this->context->link->getModuleLink('ps_facetedsearch', 'cron', ['action' => 'clearCache', 'token' => $cronToken]),
             'filters_templates' => $this->getExistingFiltersOverview(),
             'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
             'cache_enabled' => Configuration::get('PS_LAYERED_CACHE_ENABLED'),
@@ -1021,7 +1025,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->getDatabase()->execute(
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'layered_filter_block` (
             `hash` CHAR(32) NOT NULL DEFAULT "" PRIMARY KEY,
-            `data` TEXT NULL
+            `data` LONGTEXT NULL
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
 
@@ -1722,7 +1726,7 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
     public function initializeSupportedControllers()
     {
-        $this->setSupportedControllers([
+        $supportedControllers = [
             'category' => [
                 'name' => $this->trans('Category', [], 'Modules.Facetedsearch.Admin'),
                 'cacheable' => true,
@@ -1748,9 +1752,18 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                 'cacheable' => false,
             ],
             'search' => [
-                'name' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin') . ' ' . $this->trans('(experimental)', [], 'Modules.Facetedsearch.Admin'),
+                'name' => $this->trans('Search', [], 'Modules.Facetedsearch.Admin'),
                 'cacheable' => false,
             ],
-        ]);
+        ];
+
+        Hook::exec(
+            'actionFacetedSearchSetSupportedControllers',
+            [
+                'supportedControllers' => &$supportedControllers,
+            ]
+        );
+
+        $this->setSupportedControllers($supportedControllers);
     }
 }

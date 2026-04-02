@@ -4,6 +4,7 @@
 require __DIR__ . '/../../vendor/autoload.php';
 
 require_once __DIR__ . '/FacetedSearch/MockProxy.php';
+require_once __DIR__ . '/FacetedSearch/Mock/Locale.php';
 require_once __DIR__ . '/FacetedSearch/Mock/Filter.php';
 require_once __DIR__ . '/FacetedSearch/Mock/Facet.php';
 require_once __DIR__ . '/FacetedSearch/Interface/WidgetInterface.php';
