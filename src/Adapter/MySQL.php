@@ -160,6 +160,7 @@ class MySQL extends AbstractAdapter
             null,
             'sa'
         );
+        $BestSellersDays = (!Configuration::get('PS_BEST_SELLERS_DAYS')) ? '' : 'AND DATEDIFF(CURRENT_DATE(), psales.date_upd) <= ' . Configuration::get('PS_BEST_SELLERS_DAYS');
 
         $filterToTableMapping = [
             'id_product_attribute' => [
@@ -313,7 +314,7 @@ class MySQL extends AbstractAdapter
                 'tableAlias' => 'psales',
                 'fieldName' => 'quantity',
                 'fieldAlias' => 'sales',
-                'joinCondition' => '(psales.id_product = p.id_product)',
+                'joinCondition' => '(psales.id_product = p.id_product ' . $BestSellersDays . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
             'reduction' => [
