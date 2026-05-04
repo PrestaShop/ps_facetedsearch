@@ -201,6 +201,14 @@ class MySQL extends AbstractAdapter
             $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
         }
 
+        $omit_countries = (bool) Configuration::get('PS_LAYERED_OMIT_COUNTRIES');
+
+        if (!$omit_countries) {
+            $countryCondition = ' AND psi.id_country = ' . $this->getContext()->country->id;
+        } else {
+            $countryCondition = ' AND psi.id_country = ' . (int) Configuration::get('PS_COUNTRY_DEFAULT');
+        }
+
         $filterToTableMapping = [
             'id_product_attribute' => [
                 'tableName' => 'product_attribute',
@@ -329,28 +337,28 @@ class MySQL extends AbstractAdapter
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                $this->getContext()->currency->id . $countryCondition . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                $this->getContext()->currency->id . $countryCondition . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                $this->getContext()->currency->id . $countryCondition . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
                 'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                $this->getContext()->currency->id . $countryCondition . ')',
                 'joinType' => self::INNER_JOIN,
             ],
             'id_group' => [

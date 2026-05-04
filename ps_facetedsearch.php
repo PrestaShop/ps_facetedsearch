@@ -210,6 +210,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
+            Configuration::updateValue('PS_LAYERED_OMIT_COUNTRIES', 0);
 
             $this->psLayeredFullTree = 1;
 
@@ -400,6 +401,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
+        $omit_countries = (bool) Configuration::get('PS_LAYERED_OMIT_COUNTRIES');
+
         $shopList = Shop::getShops(false, null, true);
 
         foreach ($shopList as $idShop) {
@@ -421,11 +424,21 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'LEFT JOIN `' . _DB_PREFIX_ . 'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1) ' .
                 'JOIN `' . _DB_PREFIX_ . 'country` c ON (tr.id_country=c.id_country AND c.active = 1) ' .
                 'WHERE id_product = ' . (int) $idProduct . ' ' .
+                ($omit_countries ? 'AND c.id_country = ' . (int) Configuration::get('PS_COUNTRY_DEFAULT') : '') . ' ' .
                 'GROUP BY id_product, tr.id_country'
             );
 
             if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+                if ($omit_countries) {
+                    $shopCountries = [[
+                        'id_country' => (int) Configuration::get('PS_COUNTRY_DEFAULT'),
+                        'active' => 1,
+                        'iso_code' => Country::getIsoById((int) Configuration::get('PS_COUNTRY_DEFAULT')),
+                    ]];
+                } else {
+                    $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+                }
+
                 $taxCountries = array_filter($shopCountries, function ($country) {
                     return $country['active'];
                 });
@@ -444,7 +457,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 WHERE id_product = ' . (int) $idProduct . ' AND id_shop IN (0,' . (int) $idShop . ')'
             );
 
-            $countries = Country::getCountries($this->getContext()->language->id, true, false, false);
+            if ($omit_countries) {
+                $countries = [['id_country' => (int) Configuration::get('PS_COUNTRY_DEFAULT')]];
+            } else {
+                $countries = Country::getCountries($this->getContext()->language->id, true, false, false);
+            }
+
             foreach ($countries as $country) {
                 $idCountry = $country['id_country'];
 
@@ -713,6 +731,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
+            Configuration::updateValue('PS_LAYERED_OMIT_COUNTRIES', (int) Tools::getValue('ps_layered_omit_countries'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -812,6 +831,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
             'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
+            'omit_countries' => Configuration::get('PS_LAYERED_OMIT_COUNTRIES'),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
