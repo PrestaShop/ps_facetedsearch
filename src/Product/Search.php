@@ -236,12 +236,12 @@ class Search
                         if ($filterValues[0] == Availability::NOT_AVAILABLE) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
-                                ['out_of_stock', $this->psOrderOutOfStock ? [Availability::NOT_AVAILABLE] : [Availability::NOT_AVAILABLE, Availability::IN_STOCK], '='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
                             ];
                         // Available
                         } elseif ($filterValues[0] == Availability::AVAILABLE) {
                             $operationsFilter[] = [
-                                ['out_of_stock', $this->psOrderOutOfStock ? [Availability::AVAILABLE, Availability::IN_STOCK] : [Availability::AVAILABLE], '='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];
                             $operationsFilter[] = [
                                 ['quantity', [0], '>'],
@@ -261,7 +261,7 @@ class Search
                         } elseif (in_array(Availability::NOT_AVAILABLE, $filterValues) && in_array(Availability::IN_STOCK, $filterValues)) {
                             $operationsFilter[] = [
                                 ['quantity', [0], '<='],
-                                ['out_of_stock', $this->psOrderOutOfStock ? [Availability::NOT_AVAILABLE] : [Availability::NOT_AVAILABLE, Availability::IN_STOCK], '='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [0] : [0, 2], '='],
                             ];
                             $operationsFilter[] = [
                                 ['quantity', [0], '>'],
@@ -269,7 +269,7 @@ class Search
                         // Available or in stock
                         } elseif (in_array(Availability::AVAILABLE, $filterValues) && in_array(Availability::IN_STOCK, $filterValues)) {
                             $operationsFilter[] = [
-                                ['out_of_stock', $this->psOrderOutOfStock ? [Availability::AVAILABLE, Availability::IN_STOCK] : [Availability::AVAILABLE], '='],
+                                ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
                             ];
                             $operationsFilter[] = [
                                 ['quantity', [0], '>'],
