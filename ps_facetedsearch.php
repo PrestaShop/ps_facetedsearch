@@ -403,7 +403,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $shopList = Shop::getShops(false, null, true);
 
         foreach ($shopList as $idShop) {
-            $currencyList = Currency::getCurrencies(false, 1, new Shop($idShop));
+            $currencyList = Currency::getCurrencies(false, true, new Shop($idShop));
 
             $minPrice = [];
             $maxPrice = [];
@@ -455,11 +455,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         (int) $idProduct,
                         null,
                         $idCountry,
-                        null,
-                        null,
+                        0,
+                        '',
                         $currency['id_currency'],
-                        null,
-                        null,
+                        0,
+                        0,
                         false,
                         6, // Decimals
                         false,
@@ -486,10 +486,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             (int) $idProduct,
                             null,
                             $idCountry,
-                            null,
-                            null,
+                            0,
+                            '',
                             $currency['id_currency'],
-                            (($specificPrice['id_group'] == 0) ? null : $specificPrice['id_group']),
+                            (int) $specificPrice['id_group'],
                             $specificPrice['from_quantity'],
                             false,
                             6,
@@ -521,11 +521,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             (int) $idProduct,
                             null,
                             (int) $idCountry,
-                            null,
-                            null,
+                            0,
+                            '',
                             (int) $currency['id_currency'],
                             (int) $group['id_group'],
-                            null,
+                            0,
                             false,
                             6,
                             false,

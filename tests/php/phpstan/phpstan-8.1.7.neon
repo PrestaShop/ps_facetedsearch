@@ -1,0 +1,7 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    - '#Parameter \#2 \$full of static method ToolsCore\:\:displayDate\(\) expects bool, null given\.#'
+    - '#Static method ToolsCore\:\:displayDate\(\) invoked with 3 parameters, 1-2 required\.#'
