@@ -81,40 +81,6 @@ jobs:
           phpstan-version: '^0.12'
           composer-version: '2.2.18'
 
-  # Run PHPStan against the module (PHP 8.1 – 8.4)
-  phpstan-80-84:
-    name: PHPStan (PHP 8.1 - 8.4)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        presta_version: ['9.0.x']
-        php_version: ['8.1', '8.4']
-      fail-fast: false
-    env:
-      PHPRC: ${{ github.workspace }}/${{ github.event.repository.name }}/.phpstan-php-ini
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          path: ${{ github.event.repository.name }}
-
-      - name: Prepare PHP env for PrestaShop 9.0.x (define constants before any bootstrap)
-        run: |
-          mkdir -p ${{ github.event.repository.name }}/.phpstan-php-ini
-          {
-            echo "auto_prepend_file=$GITHUB_WORKSPACE/${{ github.event.repository.name }}/tests/php/phpstan/prepend-constants.php"
-            echo "memory_limit=512M"
-          } > ${{ github.event.repository.name }}/.phpstan-php-ini/php.ini
-
-      - name: Run PHPStan
-        uses: PrestaShop/.github/.github/actions/php-ci/phpstan@master
-        with:
-          php-version: ${{ matrix.php_version }}
-          presta-version: ${{ matrix.presta_version }}
-          module-name: ${{ github.event.repository.name }}
-          phpstan-level: '5'
-          phpstan-config: tests/php/phpstan/phpstan-${{ matrix.presta_version }}.neon
-
   # Run PHPStan against the module (PHP 8.1 – 8.5)
   phpstan:
     name: PHPStan (PHP 8.1 - 8.5)
