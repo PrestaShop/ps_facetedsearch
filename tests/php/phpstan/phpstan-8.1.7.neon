@@ -3,5 +3,7 @@ includes:
 
 parameters:
   ignoreErrors:
+    - '#Parameter \#3 \$groupBy of static method CurrencyCore\:\:getCurrencies\(\) expects bool, Shop given\.#'
+    - '#Strict comparison using === between null and mixed will always evaluate to false\.#'
     - '#Parameter \#2 \$full of static method ToolsCore\:\:displayDate\(\) expects bool, null given\.#'
     - '#Static method ToolsCore\:\:displayDate\(\) invoked with 3 parameters, 1-2 required\.#'

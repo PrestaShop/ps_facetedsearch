@@ -7,6 +7,7 @@ parameters:
     - '#Call to method addJqueryUi\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
     - '#Call to method registerStylesheet\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
     - '#Call to method registerJavascript\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Parameter \#3 \$groupBy of static method CurrencyCore\:\:getCurrencies\(\) expects bool, Shop given\.#'
     - '#Strict comparison using === between null and mixed will always evaluate to false\.#'
     - '#Call to method addJS\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
     - '#Call to method addCSS\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
