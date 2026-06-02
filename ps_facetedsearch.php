@@ -1234,7 +1234,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         // If there are any filters available to setup, we will create the filter template
         if ($toInsert) {
             $this->getDatabase()->execute('INSERT INTO ' . _DB_PREFIX_ . 'layered_filter(name, filters, n_categories, date_add)
-VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filterData)) . '\', ' . count($filterData['categories']) . ', NOW())');
+VALUES (\'' . sprintf($this->trans('My template %s', [], 'Modules.Facetedsearch.Admin'), date('Y-m-d')) . '\', \'' . pSQL(serialize($filterData)) . '\', ' . count($filterData['categories']) . ', \'' . date('Y-m-d H:i:s') . '\')');
 
             $last_id = $this->getDatabase()->Insert_ID();
             $this->getDatabase()->execute('DELETE FROM ' . _DB_PREFIX_ . 'layered_filter_shop WHERE `id_layered_filter` = ' . $last_id);
