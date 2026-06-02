@@ -403,7 +403,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $shopList = Shop::getShops(false, null, true);
 
         foreach ($shopList as $idShop) {
-            $currencyList = Currency::getCurrencies(false, 1, new Shop($idShop));
+            $currencyList = Currency::getCurrenciesByIdShop($idShop);
 
             $minPrice = [];
             $maxPrice = [];
@@ -455,11 +455,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         (int) $idProduct,
                         null,
                         $idCountry,
-                        null,
-                        null,
+                        0,
+                        '',
                         $currency['id_currency'],
-                        null,
-                        null,
+                        0,
+                        0,
                         false,
                         6, // Decimals
                         false,
@@ -486,10 +486,10 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             (int) $idProduct,
                             null,
                             $idCountry,
-                            null,
-                            null,
+                            0,
+                            '',
                             $currency['id_currency'],
-                            (($specificPrice['id_group'] == 0) ? null : $specificPrice['id_group']),
+                            (int) ($specificPrice['id_group'] == 0 ? 0 : $specificPrice['id_group']),
                             $specificPrice['from_quantity'],
                             false,
                             6,
@@ -521,11 +521,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                             (int) $idProduct,
                             null,
                             (int) $idCountry,
-                            null,
-                            null,
+                            0,
+                            '',
                             (int) $currency['id_currency'],
                             (int) $group['id_group'],
-                            null,
+                            0,
                             false,
                             6,
                             false,
@@ -742,13 +742,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
         // Assign assets
         if (file_exists(_PS_ROOT_DIR_ . '/js/vendor/Sortable.min.js')) {
+            // @phpstan-ignore-next-line
             $this->context->controller->addJS(_PS_JS_DIR_ . 'vendor/Sortable.min.js');
         } else {
             if (method_exists($this->context->controller, 'addJquery')) {
+                // @phpstan-ignore-next-line
                 $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
             }
         }
+        // @phpstan-ignore-next-line
         $this->context->controller->addJS($this->_path . 'views/dist/back.js');
+        // @phpstan-ignore-next-line
         $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
 
         // Render screen for adding new template
@@ -973,7 +977,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
                 $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
             } else {
-                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], null, true);
+                // @phpstan-ignore-next-line
+                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], false, true);
             }
         }
 
