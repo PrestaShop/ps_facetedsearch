@@ -34,6 +34,7 @@ use PrestaShop\PrestaShop\Core\Localization\Locale;
 use PrestaShop\PrestaShop\Core\Localization\Specification\NumberSymbolList;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use PrestaShopDatabaseException;
+use Tools;
 
 /**
  * Display filters block on navigation
@@ -187,7 +188,7 @@ class Block
         );
 
         if (!empty($row)) {
-            return unserialize(current($row));
+            return Tools::unSerialize(current($row));
         }
 
         return null;
