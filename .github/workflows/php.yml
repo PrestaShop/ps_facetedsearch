@@ -8,9 +8,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: PHP syntax checker 7.1
-        uses: prestashop/github-action-php-lint/7.1@master
-
       - name: PHP syntax checker 7.2
         uses: prestashop/github-action-php-lint/7.2@master
 
@@ -35,6 +32,9 @@ jobs:
       - name: PHP syntax checker 8.4
         uses: prestashop/github-action-php-lint/8.4@master
 
+      - name: PHP syntax checker 8.5
+        uses: prestashop/github-action-php-lint/8.5@master
+
   # Check the PHP code follow the coding standards
   php-cs-fixer:
     name: PHP-CS-Fixer
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        presta_version: ['8.1.7', '8.2.x']
+        presta_version: ['8.2.x']
         php_version: ['7.4', '8.1']
       fail-fast: false
     env:
@@ -126,7 +126,7 @@ jobs:
           coverage: xdebug
 
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v6
 
       # Add vendor folder in cache to make next builds faster
       - name: Cache vendor folder
