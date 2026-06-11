@@ -811,6 +811,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
+            'link' => $this->context->link
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');

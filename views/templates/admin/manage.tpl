@@ -75,7 +75,13 @@
 				{if empty($limit_warning)}
 				  <div class="btn-group-action">
 					<div class="btn-group pull-right">
-					  <a href="{$current_url}&amp;edit_filters_template=1&amp;id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
+					  <a class="btn btn-default"
+					    href="{$link->getAdminLink('AdminModules', true, [], [
+						  'configure' => 'ps_facetedsearch',
+						  'edit_filters_template' => 1,
+						  'id_layered_filter' => (int)$template['id_layered_filter']
+					    ])|escape:'htmlall':'UTF-8'}"
+					  >
 						<i class="icon-pencil"></i> {l s='Edit' d='Admin.Actions'}
 					  </a>
 					  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -83,8 +89,14 @@
 					  </button>
 					  <ul class="dropdown-menu">
 						<li>
-						  <a href="{$current_url}&amp;deleteFilterTemplate=1&amp;id_layered_filter={(int)$template['id_layered_filter']}"
-						     onclick="return confirm('{l s='Do you really want to delete this filter template?' d='Modules.Facetedsearch.Admin'}');">
+						  <a
+						    href="{$link->getAdminLink('AdminModules', true, [], [
+						      'configure' => 'ps_facetedsearch',
+						      'deleteFilterTemplate' => 1,
+						      'id_layered_filter' => (int)$template['id_layered_filter']
+					        ])|escape:'htmlall':'UTF-8'}"
+						    onclick="return confirm('{l s='Do you really want to delete this filter template?' d='Modules.Facetedsearch.Admin'}');"
+						  >
 							<i class="icon-trash"></i> {l s='Delete' d='Admin.Actions'}
 						  </a>
 						</li>
