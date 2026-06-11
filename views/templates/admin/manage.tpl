@@ -116,7 +116,9 @@
   {/if}
   {if empty($limit_warning)}
 	<div class="panel-footer">
-	  <a class="btn btn-default pull-right" href="{$current_url}&amp;add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' d='Modules.Facetedsearch.Admin'}</a>
+	  <a class="btn btn-default pull-right" href="{$link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1])|escape:'htmlall':'UTF-8'}">
+	    <i class="process-icon-plus"></i> {l s='Add new template' d='Modules.Facetedsearch.Admin'}
+	  </a>
 	</div>
   {/if}
 </div>
