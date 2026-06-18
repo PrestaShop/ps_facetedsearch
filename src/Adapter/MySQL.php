@@ -132,9 +132,8 @@ class MySQL extends AbstractAdapter
             }
         }
 
-
         if ($this->categoryCount === true) {
-            foreach($whereConditions as $key => $oneCondition) {
+            foreach ($whereConditions as $key => $oneCondition) {
                 if (strpos($oneCondition, 'p.id_group') !== false) {
                     unset($whereConditions[$key]);
                 }
