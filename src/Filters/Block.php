@@ -1000,9 +1000,10 @@ class Block
             $query = new \DbQuery();
             $query->select('id_category');
             $query->from('category');
-            $query->where('level_depth <= ' . (int) $parent->level_depth + 1);
-            $query->where('nleft > ' . $parent->nleft);
-            $query->where('nright < ' . $parent->nright);
+            $depth = (int) Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1);
+            $query->where('level_depth <= ' . ((int) $parent->level_depth + $depth));
+            $query->where('nleft > ' . (int) $parent->nleft);
+            $query->where('nright < ' . (int) $parent->nright);
             $resultCategories = \Db::getInstance()->executeS($query);
             foreach($resultCategories as $oneCategory) {
                 $categoriesId[] = $oneCategory['id_category'];
