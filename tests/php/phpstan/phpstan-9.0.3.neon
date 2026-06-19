@@ -1,0 +1,15 @@
+includes:
+	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+  ignoreErrors:
+    - '#Access to property \$default_form_language on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method addJqueryUi\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method registerStylesheet\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method registerJavascript\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Parameter \#3 \$groupBy of static method CurrencyCore\:\:getCurrencies\(\) expects bool, Shop given\.#'
+    - '#Strict comparison using === between null and mixed will always evaluate to false\.#'
+    - '#Call to method addJS\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Call to method addCSS\(\) on an unknown class PrestaShop\\PrestaShop\\Core\\Context\\LegacyControllerContext\.#'
+    - '#Parameter \#2 \$full of static method ToolsCore\:\:displayDate\(\) expects bool, null given\.#'
+    - '#Static method ToolsCore\:\:displayDate\(\) invoked with 3 parameters, 1-2 required\.#'

@@ -87,8 +87,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        presta_version: ['9.1.x', 'develop']
-        php_version: ['8.1', '8.5']
+        include:
+          # PrestaShop 9.0.x supports PHP 8.1 up to 8.4 (8.5 is not supported)
+          - { presta_version: '9.0.3', php_version: '8.1' }
+          - { presta_version: '9.0.3', php_version: '8.4' }
+          # PrestaShop 9.1.x and develop support PHP 8.1 up to 8.5
+          - { presta_version: '9.1.x', php_version: '8.1' }
+          - { presta_version: '9.1.x', php_version: '8.5' }
+          - { presta_version: 'develop', php_version: '8.1' }
+          - { presta_version: 'develop', php_version: '8.5' }
       fail-fast: false
     env:
       PHPRC: ${{ github.workspace }}/${{ github.event.repository.name }}/.phpstan-php-ini
@@ -98,7 +105,7 @@ jobs:
         with:
           path: ${{ github.event.repository.name }}
 
-      - name: Prepare PHP env for PrestaShop 9.1.x and later (define constants before any bootstrap)
+      - name: Prepare PHP env for PrestaShop ${{ matrix.presta_version }} (define constants before any bootstrap)
         run: |
           mkdir -p ${{ github.event.repository.name }}/.phpstan-php-ini
           {
