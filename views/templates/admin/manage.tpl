@@ -75,13 +75,7 @@
 				{if empty($limit_warning)}
 				  <div class="btn-group-action">
 					<div class="btn-group pull-right">
-					  <a class="btn btn-default"
-					    href="{$link->getAdminLink('AdminModules', true, [], [
-						  'configure' => 'ps_facetedsearch',
-						  'edit_filters_template' => 1,
-						  'id_layered_filter' => (int)$template['id_layered_filter']
-					    ])|escape:'htmlall':'UTF-8'}"
-					  >
+					  <a class="btn btn-default" href="{$template.edit_link|escape:'htmlall':'UTF-8'}">
 						<i class="icon-pencil"></i> {l s='Edit' d='Admin.Actions'}
 					  </a>
 					  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -90,11 +84,7 @@
 					  <ul class="dropdown-menu">
 						<li>
 						  <a
-						    href="{$link->getAdminLink('AdminModules', true, [], [
-						      'configure' => 'ps_facetedsearch',
-						      'deleteFilterTemplate' => 1,
-						      'id_layered_filter' => (int)$template['id_layered_filter']
-					        ])|escape:'htmlall':'UTF-8'}"
+						    href="{$template.remove_link|escape:'htmlall':'UTF-8'}"
 						    onclick="return confirm('{l s='Do you really want to delete this filter template?' d='Modules.Facetedsearch.Admin'}');"
 						  >
 							<i class="icon-trash"></i> {l s='Delete' d='Admin.Actions'}
@@ -116,7 +106,7 @@
   {/if}
   {if empty($limit_warning)}
 	<div class="panel-footer">
-	  <a class="btn btn-default pull-right" href="{$link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1])|escape:'htmlall':'UTF-8'}">
+	  <a class="btn btn-default pull-right" href="{$add_new_filters_template_link|escape:'htmlall':'UTF-8'}">
 	    <i class="process-icon-plus"></i> {l s='Add new template' d='Modules.Facetedsearch.Admin'}
 	  </a>
 	</div>
