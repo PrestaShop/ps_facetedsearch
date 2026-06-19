@@ -977,13 +977,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $filters_templates[$k]['edit_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => 'ps_facetedsearch',
                 'edit_filters_template' => 1,
-                'id_layered_filter' => (int) $v['id_layered_filter']
+                'id_layered_filter' => (int) $v['id_layered_filter'],
             ]);
 
             $filters_templates[$k]['remove_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => 'ps_facetedsearch',
                 'deleteFilterTemplate' => 1,
-                'id_layered_filter' => (int) $v['id_layered_filter']
+                'id_layered_filter' => (int) $v['id_layered_filter'],
             ]);
         }
 
