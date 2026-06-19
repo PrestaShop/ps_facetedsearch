@@ -1001,7 +1001,9 @@ class Block
             $query->select('id_category');
             $query->from('category');
             $depth = (int) Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1);
-            $query->where('level_depth <= ' . ((int) $parent->level_depth + $depth));
+            if ($depth > 0) {
+                $query->where('level_depth <= ' . ((int) $parent->level_depth + $depth));
+            }
             $query->where('nleft > ' . (int) $parent->nleft);
             $query->where('nright < ' . (int) $parent->nright);
             $resultCategories = \Db::getInstance()->executeS($query);

@@ -102,7 +102,6 @@ class MySQL extends AbstractAdapter
             unset($filterToTableMapping['nleft']);
             unset($filterToTableMapping['nright']);
             unset($filterToTableMapping['id_group']);
-            unset($filterToTableMapping['level_depth']);
         }
 
         // Process and generate all fields for the SQL query below
@@ -135,9 +134,6 @@ class MySQL extends AbstractAdapter
         if ($this->categoryCount === true) {
             foreach ($whereConditions as $key => $oneCondition) {
                 if (strpos($oneCondition, 'p.id_group') !== false) {
-                    unset($whereConditions[$key]);
-                }
-                if (strpos($oneCondition, 'p.level_depth') !== false) {
                     unset($whereConditions[$key]);
                 }
                 if (strpos($oneCondition, 'p.nleft') !== false || strpos($oneCondition, 'p.nright') !== false) {
