@@ -403,7 +403,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $shopList = Shop::getShops(false, null, true);
 
         foreach ($shopList as $idShop) {
-            $currencyList = Currency::getCurrencies(false, true);
+            $currencyList = Currency::getCurrencies(false, true, true);
 
             $minPrice = [];
             $maxPrice = [];
