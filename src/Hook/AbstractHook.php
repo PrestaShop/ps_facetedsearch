@@ -57,4 +57,19 @@ abstract class AbstractHook
     {
         return static::AVAILABLE_HOOKS;
     }
+
+    /**
+     * Context::$controller is typed as the PHPStan-opaque LegacyControllerContext on
+     * PrestaShop 9.x, which prevents static resolution of legacy AdminController members
+     * such as the $default_form_language property. This returns it with a concrete type.
+     *
+     * @return \AdminController
+     */
+    protected function getAdminController()
+    {
+        /** @var \AdminController $controller */
+        $controller = $this->context->controller;
+
+        return $controller;
+    }
 }

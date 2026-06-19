@@ -403,7 +403,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $shopList = Shop::getShops(false, null, true);
 
         foreach ($shopList as $idShop) {
-            $currencyList = Currency::getCurrencies(false, true, new Shop($idShop));
+            $currencyList = Currency::getCurrencies(false, true);
 
             $minPrice = [];
             $maxPrice = [];
@@ -741,15 +741,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         $this->context->smarty->assign('uri', $this->getPathUri());
 
         // Assign assets
+        /** @var AdminController $controller */
+        $controller = $this->context->controller;
         if (file_exists(_PS_ROOT_DIR_ . '/js/vendor/Sortable.min.js')) {
-            $this->context->controller->addJS(_PS_JS_DIR_ . 'vendor/Sortable.min.js');
+            $controller->addJS(_PS_JS_DIR_ . 'vendor/Sortable.min.js');
         } else {
-            if (method_exists($this->context->controller, 'addJquery')) {
-                $this->context->controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
+            if (method_exists($controller, 'addJquery')) {
+                $controller->addJS(_PS_JS_DIR_ . 'jquery/plugins/jquery.sortable.js');
             }
         }
-        $this->context->controller->addJS($this->_path . 'views/dist/back.js');
-        $this->context->controller->addCSS($this->_path . 'views/dist/back.css');
+        $controller->addJS($this->_path . 'views/dist/back.js');
+        $controller->addCSS($this->_path . 'views/dist/back.css');
 
         // Render screen for adding new template
         if (Tools::getValue('add_new_filters_template')) {
@@ -969,12 +971,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
             $filters_templates[$k]['controllers'] = implode(', ', $tmp);
 
-            // Format date for different core versions. Since 8.0, it has only two arguments.
-            if (version_compare(_PS_VERSION_, '8.0.0', '>=')) {
-                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
-            } else {
-                $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], null, true);
-            }
+            $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
         }
 
         return $filters_templates;
