@@ -376,7 +376,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
         $displayedFacets = [];
         $activeFilters = [];
-        foreach ($facetsVar as $idx => $facet) {
+        foreach ($facetsVar as $facet) {
             // Remove undisplayed facets
             if (!empty($facet['displayed'])) {
                 $displayedFacets[] = $facet;

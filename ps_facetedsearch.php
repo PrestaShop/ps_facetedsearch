@@ -618,7 +618,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Associate shops in case of multistore
                 if (isset($_POST['checkBoxShopAsso_layered_filter'])) {
-                    foreach ($_POST['checkBoxShopAsso_layered_filter'] as $idShop => $row) {
+                    foreach (array_keys($_POST['checkBoxShopAsso_layered_filter']) as $idShop) {
                         $filterValues['shop_list'][] = (int) $idShop;
                     }
                 } else {
@@ -638,7 +638,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
 
                 // Add filters themselves
-                foreach ($_POST as $key => $value) {
+                foreach (array_keys($_POST) as $key) {
                     if (!preg_match('~^(?P<key>layered_selection_.*)(?<!_filter_)(?<!type)(?<!show_limit)$~', $key, $matches)) {
                         continue;
                     }
@@ -1051,7 +1051,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         ];
 
         // Add all stable controllers (except search)
-        foreach ($this->getSupportedControllers() as $controller_name => $data) {
+        foreach (array_keys($this->getSupportedControllers()) as $controller_name) {
             if ($controller_name != 'search') {
                 $filterData['controllers'][] = $controller_name;
             }
@@ -1146,7 +1146,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             $filterData['shop_list'] = $shopList;
 
-            foreach ($c as $idCategory => $category) {
+            foreach (array_keys($c) as $idCategory) {
                 if (!in_array($idCategory, $filterData['categories'])) {
                     $filterData['categories'][] = $idCategory;
                 }
@@ -1185,7 +1185,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Attribute filter
                 if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
-                    foreach ($a as $kAttribute => $attribute) {
+                    foreach (array_keys($a) as $kAttribute) {
                         if (!isset($doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
                             $filterData['layered_selection_ag_' . (int) $attributeGroupsById[(int) $kAttribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
                             $doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]] = true;
@@ -1196,7 +1196,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
                 // Features filter
                 if (is_array($featuresById) && count($featuresById) > 0) {
-                    foreach ($f as $kFeature => $feature) {
+                    foreach (array_keys($f) as $kFeature) {
                         if (!isset($doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
                             $filterData['layered_selection_feat_' . (int) $featuresById[(int) $kFeature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
                             $doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]] = true;
