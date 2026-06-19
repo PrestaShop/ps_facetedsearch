@@ -600,7 +600,7 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         }
 
         foreach ($params as $key => $param) {
-            if (null === $param || '' === $param) {
+            if ('' === $param) {
                 unset($params[$key]);
             }
         }
