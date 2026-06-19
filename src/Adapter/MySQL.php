@@ -825,6 +825,7 @@ class MySQL extends AbstractAdapter
         $this->setOrderField('');
 
         $this->copyOperationsFilters();
+
         return $this->execute();
     }
 
