@@ -812,9 +812,9 @@ class MySQL extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
-    public function valueCount($fieldName = null, $categoryCount = false)
+    public function valueCount($fieldName = null)
     {
-        $this->categoryCount = $categoryCount;
+        $this->categoryCount = $fieldName === 'id_category';
         $this->resetGroupBy();
         if ($fieldName !== null) {
             $this->addGroupBy($fieldName);
