@@ -216,6 +216,28 @@
 	</div>
 
 	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Index prices by countries' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_filter_index_countries" id="ps_layered_filter_index_countries_on" value="1"{if $index_countries} checked="checked"{/if}>
+		  <label for="ps_layered_filter_index_countries_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_filter_index_countries" id="ps_layered_filter_index_countries_off" value="0"{if !$index_countries} checked="checked"{/if}>
+		  <label for="ps_layered_filter_index_countries_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	  <div class="col-lg-9 col-lg-offset-3">
+      <div class="help-block">
+        {l s='Index prices by countries option allows you to enable or disable the indexing of prices for different countries in the layered navigation filters. Turn this off when you do not need country-specific pricing.' d='Modules.Facetedsearch.Admin'}
+      </div>
+    </div>
+	</div>
+
+	<div class="form-group">
 	  <label class="col-lg-3 control-label">{l s='Use tax to filter price' d='Modules.Facetedsearch.Admin'}</label>
 	  <div class="col-lg-9">
 		<span class="switch prestashop-switch fixed-width-lg">
@@ -289,7 +311,7 @@
   </div>
 
 	<div class="form-group">
-		<label class="control-label col-lg-3">{l s='Default filter template for new categories' d='Modules.Facetedsearch.Admin'}</label>				
+		<label class="control-label col-lg-3">{l s='Default filter template for new categories' d='Modules.Facetedsearch.Admin'}</label>
 		<div class="col-lg-9">
 			<select class="form-control fixed-width-xxl" name="ps_layered_default_category_template" id="ps_layered_default_category_template">
 				<option value="0" {if empty($default_category_template)} selected="selected" {/if}>{l s='None' d='Admin.Global'}</option>

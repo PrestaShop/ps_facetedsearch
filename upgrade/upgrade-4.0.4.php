@@ -26,5 +26,7 @@ function upgrade_module_4_0_4(Ps_Facetedsearch $module)
     // Change data column to longtext
     Db::getInstance()->execute('ALTER TABLE `' . _DB_PREFIX_ . 'layered_filter_block` CHANGE `data` `data` LONGTEXT NULL;');
 
+    Configuration::updateValue('PS_LAYERED_INDEX_COUNTRIES', 1);
+
     return true;
 }
