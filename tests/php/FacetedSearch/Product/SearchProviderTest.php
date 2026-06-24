@@ -411,4 +411,14 @@ class SearchProviderTest extends MockeryTestCase
             )
         );
     }
+
+    public function testNumericRangeBoundaryFallsBackWhenValueIsMalformed()
+    {
+        $method = new \ReflectionMethod(SearchProvider::class, 'getNumericRangeBoundary');
+        $method->setAccessible(true);
+
+        $this->assertSame('12.50', $method->invoke($this->provider, '12.50', '1'));
+        $this->assertSame('1', $method->invoke($this->provider, '<a><a><a><a><a>', '1'));
+        $this->assertSame(0, $method->invoke($this->provider, '<a><a><a><a><a>', '<b>'));
+    }
 }

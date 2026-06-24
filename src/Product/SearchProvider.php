@@ -442,8 +442,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
 
             foreach ($facet->getFilters() as $filter) {
                 $filterValue = $filter->getValue();
-                $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
-                $max = empty($filterValue[1]) ? $facet->getProperty('max') : $filterValue[1];
+                $min = $this->getNumericRangeBoundary(
+                    isset($filterValue[0]) ? $filterValue[0] : null,
+                    $facet->getProperty('min')
+                );
+                $max = $this->getNumericRangeBoundary(
+                    isset($filterValue[1]) ? $filterValue[1] : null,
+                    $facet->getProperty('max')
+                );
                 if ($facet->getType() === 'weight') {
                     $unit = Configuration::get('PS_WEIGHT_UNIT');
                     $filter->setLabel(
@@ -466,6 +472,27 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                 }
             }
         }
+    }
+
+    /**
+     * Keep range labels resilient to malformed facet values coming from the URL.
+     *
+     * @param mixed $value
+     * @param mixed $fallback
+     *
+     * @return int|float|string
+     */
+    private function getNumericRangeBoundary($value, $fallback)
+    {
+        if (is_scalar($value) && is_numeric($value)) {
+            return $value;
+        }
+
+        if (is_scalar($fallback) && is_numeric($fallback)) {
+            return $fallback;
+        }
+
+        return 0;
     }
 
     /**
