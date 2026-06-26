@@ -115,6 +115,16 @@ class SearchProviderTest extends MockeryTestCase
     {
         $this->database = Mockery::mock(Db::class);
         $this->context = Mockery::mock(Context::class);
+        $this->context->language = Mockery::mock(\Language::class);
+        $this->context->language->id = 1;
+        $this->context->language->name = 'English (English)';
+        $this->context->language->iso_code = 'en';
+        $this->context->language->locale = 'en-US';
+        $this->context->language->language_code = 'en-us';
+        $this->context->language->active = true;
+        $this->context->language->is_rtl = false;
+        $this->context->language->date_format_lite = 'Y-m-d';
+        $this->context->language->date_format_full = 'Y-m-d H:i:s';
         $this->converter = Mockery::mock(Converter::class);
         $this->serializer = Mockery::mock(URLSerializer::class);
         $this->facetCollection = Mockery::mock(FacetCollection::class);
@@ -181,6 +191,17 @@ class SearchProviderTest extends MockeryTestCase
             ->with(
                 [
                     'show_quantities' => true,
+                    'language' => [
+                        'id' => 1,
+                        'name' => 'English (English)',
+                        'iso_code' => 'en',
+                        'locale' => 'en-US',
+                        'language_code' => 'en-us',
+                        'active' => true,
+                        'is_rtl' => false,
+                        'date_format_lite' => 'Y-m-d',
+                        'date_format_full' => 'Y-m-d H:i:s',
+                    ],
                     'facets' => [
                         [
                             'filters' => [],
@@ -240,6 +261,17 @@ class SearchProviderTest extends MockeryTestCase
             ->with(
                 [
                     'show_quantities' => true,
+                    'language' => [
+                        'id' => 1,
+                        'name' => 'English (English)',
+                        'iso_code' => 'en',
+                        'locale' => 'en-US',
+                        'language_code' => 'en-us',
+                        'active' => true,
+                        'is_rtl' => false,
+                        'date_format_lite' => 'Y-m-d',
+                        'date_format_full' => 'Y-m-d H:i:s',
+                    ],
                     'facets' => [
                         [
                             'displayed' => true,
