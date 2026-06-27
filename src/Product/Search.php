@@ -130,6 +130,18 @@ class Search
         // Adds filters that specific for this controller
         $this->addControllerSpecificFilters();
 
+        // Let modules add their own filters to the adapter. This is dispatched here, after the
+        // controller specific filters, rather than inside addControllerSpecificFilters() because
+        // that method has early returns (e.g. an already selected "Categories" facet) that would
+        // otherwise silently skip the hook and drop the module filters.
+        Hook::exec(
+            'actionFacetedSearchFilters',
+            [
+                'search' => $this,
+                'query' => $this->query,
+            ]
+        );
+
         // Add group by to remove duplicate values
         $this->getSearchAdapter()->addGroupBy('id_product');
 
@@ -451,14 +463,6 @@ class Search
                 empty($productPool) ? ['NULL'] : $productPool
             );
         }
-
-        Hook::exec(
-            'actionFacetedSearchFilters',
-            [
-                'search' => $this,
-                'query' => $this->query,
-            ]
-        );
     }
 
     /**

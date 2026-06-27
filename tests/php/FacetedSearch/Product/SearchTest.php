@@ -1192,4 +1192,28 @@ class SearchTest extends MockeryTestCase
         $this->search->addFilter('weight', [10, 20]);
         $this->search->addFilter('id_feature', [[10, 20]]);
     }
+
+    /**
+     * The actionFacetedSearchFilters hook must be dispatched even when a controller specific
+     * filter causes an early return inside addControllerSpecificFilters(): on a category query,
+     * selecting a "Categories" facet sets an id_category filter and used to skip the hook.
+     *
+     * @see https://github.com/PrestaShop/ps_facetedsearch/issues/1239
+     */
+    public function testInitSearchDispatchesFacetedSearchFiltersHookWithSelectedCategoryFacet()
+    {
+        $hookCalls = [];
+        $hookMock = Mockery::mock(Hook::class);
+        $hookMock->shouldReceive('exec')
+            ->andReturnUsing(function ($name) use (&$hookCalls) {
+                $hookCalls[] = $name;
+
+                return [];
+            });
+        Hook::setStaticExpectations($hookMock);
+
+        $this->search->initSearch(['category' => [[6]]]);
+
+        $this->assertContains('actionFacetedSearchFilters', $hookCalls);
+    }
 }
