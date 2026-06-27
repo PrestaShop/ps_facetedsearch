@@ -424,18 +424,27 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'GROUP BY id_product, tr.id_country'
             );
 
-            if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
-                $taxCountries = array_filter($shopCountries, function ($country) {
-                    return $country['active'];
-                });
-                $taxRatesByCountry = array_map(function ($country) {
-                    return [
+            // When tax is not applied to indexed prices, drop the per-country tax rates entirely.
+            if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
+                $taxRatesByCountry = [];
+            }
+
+            // Always index every active country of the shop. Countries that have no specific tax
+            // rule for this product (or when the "use tax" option is off) are indexed with a 0% rate.
+            // Without this, the price sort - an INNER JOIN on layered_price_index.id_country - returns
+            // no products at all for customers whose country was not indexed. This makes the
+            // with-tax-rules path consistent with the path already used for products without any tax
+            // rule. See https://github.com/PrestaShop/ps_facetedsearch/issues/1206
+            $indexedCountryIds = array_column($taxRatesByCountry, 'id_country');
+            $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+            foreach ($shopCountries as $country) {
+                if (!empty($country['active']) && !in_array($country['id_country'], $indexedCountryIds)) {
+                    $taxRatesByCountry[] = [
                         'rate' => 0,
                         'id_country' => $country['id_country'],
                         'iso_code' => $country['iso_code'],
                     ];
-                }, $taxCountries);
+                }
             }
 
             $productMinPrices = $this->getDatabase()->executeS(
