@@ -1583,7 +1583,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $time_elapsed = microtime(true) - $startTime;
             $indexedProducts += $length;
         } while (
-            $cursor < $nbProducts
+            // $cursor is the last indexed id_product (returned by indexPricesUnbreakable()), not a
+            // counter, so comparing it to the product count is wrong: with non-sequential ids (gaps
+            // from deleted/imported products) it stops batching as soon as an id exceeds $nbProducts.
+            // Track how many products were actually indexed instead.
+            $indexedProducts < $nbProducts
             && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
             && $time_elapsed < $maxExecutiontime
         );
