@@ -180,7 +180,7 @@ class AttributeGroup extends AbstractHook
 
         $this->context->smarty->assign([
             'languages' => Language::getLanguages(false),
-            'default_form_language' => (int) $this->context->controller->default_form_language,
+            'default_form_language' => (int) $this->getAdminController()->default_form_language,
             'values' => $values,
             'is_indexable' => (bool) $isIndexable,
         ]);
