@@ -301,9 +301,28 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             return '';
         }
 
+        $language = $this->module->getContext()->language;
+
         $this->module->getContext()->smarty->assign(
             [
                 'show_quantities' => Configuration::get('PS_LAYERED_SHOW_QTIES'),
+                // Provide the language to the template so theme overrides can read it (e.g. the
+                // Hummingbird slider uses {$language.is_rtl} for the slider direction). It must be
+                // an ARRAY, mirroring the global `language` the front controller assigns (via
+                // ObjectPresenter), because the template accesses it with Smarty array syntax
+                // ({$language.is_rtl}); passing the Language object would make that a fatal
+                // "Cannot use object of type Language as array". (#41846)
+                'language' => [
+                    'id' => (int) $language->id,
+                    'name' => $language->name,
+                    'iso_code' => $language->iso_code,
+                    'locale' => $language->locale,
+                    'language_code' => $language->language_code,
+                    'active' => $language->active,
+                    'is_rtl' => $language->is_rtl,
+                    'date_format_lite' => $language->date_format_lite,
+                    'date_format_full' => $language->date_format_full,
+                ],
                 'facets' => $facetsVar,
                 'js_enabled' => $this->module->isAjax(),
                 'displayedFacets' => $displayedFacets,
