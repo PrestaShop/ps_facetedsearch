@@ -67,11 +67,6 @@ class Block
     private $database;
 
     /**
-     * @var array
-     */
-    private $attributesGroup;
-
-    /**
      * @var DataAccessor
      */
     private $dataAccessor;
@@ -249,7 +244,7 @@ class Block
         );
 
         list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxPriceValue();
-        $priceBlock['value'] = !empty($selectedFilters['price']) ? $selectedFilters['price'] : null;
+        $priceBlock['value'] = !empty($selectedFilters['price']) ? array_map('floatval', $selectedFilters['price']) : null;
 
         $this->restorePriceAndWeightFilters(
             $this->searchAdapter->getInitialPopulation(),
@@ -343,7 +338,7 @@ class Block
             return [];
         }
 
-        $weightBlock['value'] = !empty($selectedFilters['weight']) ? $selectedFilters['weight'] : null;
+        $weightBlock['value'] = !empty($selectedFilters['weight']) ? array_map('floatval', $selectedFilters['weight']) : null;
 
         $this->restorePriceAndWeightFilters(
             $this->searchAdapter->getInitialPopulation(),

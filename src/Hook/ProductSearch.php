@@ -83,14 +83,16 @@ class ProductSearch extends AbstractHook
         }
 
         // Assign assets
+        /** @var \FrontController $controller */
+        $controller = $this->context->controller;
         if ((bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER')) {
-            $this->context->controller->addJqueryUi('ui.slider');
+            $controller->addJqueryUi('ui.slider');
         }
-        $this->context->controller->registerStylesheet(
+        $controller->registerStylesheet(
             'facetedsearch_front',
             '/modules/ps_facetedsearch/views/dist/front.css'
         );
-        $this->context->controller->registerJavascript(
+        $controller->registerJavascript(
             'facetedsearch_front',
             '/modules/ps_facetedsearch/views/dist/front.js',
             ['position' => 'bottom', 'priority' => 100]
