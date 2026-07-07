@@ -131,14 +131,15 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ),
         ];
 
-        if ($query->getQueryType() == 'new-products') {
-            $sortOrders[] = $sortDateAsc->setLabel(
-                $translator->trans('Date added, oldest to newest', [], 'Shop.Theme.Catalog')
-            );
-            $sortOrders[] = $sortDateDesc->setLabel(
-                $translator->trans('Date added, newest to oldest', [], 'Shop.Theme.Catalog')
-            );
-        }
+        // "Date added" ("Newest") is a core product-list sort per checkout/product-list UX research,
+        // useful on every list (category, manufacturer, supplier, search), not only the new-products
+        // page. It was previously restricted to the new-products query type.
+        $sortOrders[] = $sortDateAsc->setLabel(
+            $translator->trans('Date added, oldest to newest', [], 'Shop.Theme.Catalog')
+        );
+        $sortOrders[] = $sortDateDesc->setLabel(
+            $translator->trans('Date added, newest to oldest', [], 'Shop.Theme.Catalog')
+        );
 
         return $sortOrders;
     }
