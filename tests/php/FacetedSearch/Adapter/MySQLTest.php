@@ -330,6 +330,22 @@ class MySQLTest extends MockeryTestCase
     }
 
     /**
+     * A product is listed on the page of every supplier it is associated with, and that association
+     * lives in product_supplier. Filtering on the product's own id_supplier column would only match
+     * the default supplier.
+     */
+    public function testGetQueryWithSupplierFilterUsesTheAssociationTable()
+    {
+        $this->adapter->setSelectFields(['id_product']);
+        $this->adapter->addFilter('id_supplier', [7], '=');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p INNER JOIN ps_product_supplier psup ON (p.id_product = psup.id_product) WHERE psup.id_supplier=\'7\' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    /**
      * @dataProvider getManyOperationsFilters
      */
     public function testGetQueryWithManyOperationsFilters($fields, $operationsFilter, $expected)
