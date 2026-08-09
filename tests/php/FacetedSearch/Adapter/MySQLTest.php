@@ -70,6 +70,30 @@ class MySQLTest extends MockeryTestCase
         Configuration::setStaticExpectations($configurationMock);
     }
 
+    /**
+     * A product has one position per category, so ordering a subtree listing by position has to
+     * aggregate over the browsed category. The expression is evaluated against the outer query's
+     * joins, so it must not be selected in the initial population, which does not have them.
+     */
+    public function testGetQueryOrderedByAnExpressionKeepsItOutOfTheInitialPopulation()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->addFilter('nleft', [9], '>=');
+        $this->adapter->addFilter('nright', [14], '<=');
+        $this->adapter->addGroupBy('id_product');
+        $this->adapter->addSelectField('position');
+        $this->adapter->setOrderField('ISNULL(MIN(IF(cp.id_category = 6, cp.position, NULL))) ASC, MIN(IF(cp.id_category = 6, cp.position, NULL))');
+        $this->adapter->setOrderDirection('asc');
+
+        $query = $this->adapter->getQuery();
+        $innerQuery = substr($query, strpos($query, '(') + 1, strrpos($query, ') p INNER JOIN') - strpos($query, '(') - 1);
+
+        $this->assertNotContains('cp.id_category', $innerQuery, 'The initial population does not join category_product, so it cannot select an expression using it.');
+        $this->assertNotContains('ps_category_product', $innerQuery, 'The expression is read in the outer query, so the initial population does not need the join at all.');
+        $this->assertContains(') p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)', $query, 'The outer query joins category_product, which is what the expression reads.');
+        $this->assertContains('ORDER BY ISNULL(MIN(IF(cp.id_category = 6, cp.position, NULL))) ASC, MIN(IF(cp.id_category = 6, cp.position, NULL)) ASC, p.id_product DESC', $query);
+    }
+
     public function testGetEmptyQuery()
     {
         $this->assertEquals(
