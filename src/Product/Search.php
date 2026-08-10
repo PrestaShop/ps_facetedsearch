@@ -493,7 +493,12 @@ class Search
      */
     private function addPriceFilter($minPrice, $maxPrice)
     {
-        $this->getSearchAdapter()->addFilter('price_min', [$maxPrice], '<=');
-        $this->getSearchAdapter()->addFilter('price_max', [$minPrice], '>=');
+        // The slider is built from floor() of the lowest indexed price and ceil() of the highest,
+        // so a product indexed at 5995.000001 is offered as spanning 5995 to 5996. Comparing the
+        // raw column against those bounds then rejects it at both ends of its own range.
+        // `price_min < floor(max) + 1` is the same condition as `floor(price_min) <= max`, and
+        // keeps the column alone on its side of the comparison so the index is still usable.
+        $this->getSearchAdapter()->addFilter('price_min', [floor($maxPrice) + 1], '<');
+        $this->getSearchAdapter()->addFilter('price_max', [ceil($minPrice) - 1], '>');
     }
 }
