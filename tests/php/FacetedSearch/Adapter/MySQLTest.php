@@ -91,6 +91,30 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    public function testGetQueryWithFeatureIncludesCombinationFeatures()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        $adapter->addSelectField('id_feature');
+
+        // The feature_product table is replaced by a derived table merging product-level and
+        // combination-level (feature_product_attribute) feature values.
+        $this->assertEquals(
+            'SELECT fp.id_feature FROM ps_product p'
+            . ' INNER JOIN (SELECT id_product, id_feature, id_feature_value FROM ps_feature_product'
+            . ' UNION SELECT pa.id_product, fpa.id_feature, fpa.id_feature_value'
+            . ' FROM ps_feature_product_attribute fpa'
+            . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
+            . ' ON (p.id_product = fp.id_product) ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
     public function testGetMinMaxPriceValue()
     {
         $dbInstanceMock = Mockery::mock(Db::class)->makePartial();
