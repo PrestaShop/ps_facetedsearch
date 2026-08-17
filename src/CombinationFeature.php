@@ -66,6 +66,7 @@ class CombinationFeature
         }
 
         try {
+            /** @var \Psr\Container\ContainerInterface $container */
             $container = (new ContainerFinder(Context::getContext()))->getContainer();
             $checker = $container->get('PrestaShop\\PrestaShop\\Core\\FeatureFlag\\FeatureFlagStateCheckerInterface');
             self::$enabled = $checker !== null && $checker->isEnabled(self::FEATURE_FLAG);
