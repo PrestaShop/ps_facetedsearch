@@ -173,9 +173,18 @@ class MySQL extends AbstractAdapter
         // becomes filterable by a feature value carried by any of its combinations.
         $featureProductTable = 'feature_product';
         $featureProductRawTable = false;
+        $featureJoinCondition = '(p.id_product = fp.id_product)';
+        $featureJoinExtra = [];
         if ($this->isCombinationFeatureFilteringEnabled()) {
             $featureProductTable = $this->getFeatureProductDerivedTable();
             $featureProductRawTable = true;
+            // Correlate the feature row with the combination currently joined (pa) so that a feature
+            // filter and an attribute filter must be satisfied by the same combination, not by two
+            // different ones. Product-level feature values (id_product_attribute IS NULL) keep
+            // applying to every combination.
+            $featureJoinCondition = '(p.id_product = fp.id_product'
+                . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))';
+            $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
         }
 
         $filterToTableMapping = [
@@ -199,13 +208,13 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::INNER_JOIN,
                 'dependencyField' => 'id_attribute',
             ],
-            'id_feature' => [
+            'id_feature' => array_merge([
                 'tableName' => $featureProductTable,
                 'tableAlias' => 'fp',
-                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinCondition' => $featureJoinCondition,
                 'joinType' => self::INNER_JOIN,
                 'rawTable' => $featureProductRawTable,
-            ],
+            ], $featureJoinExtra),
             'id_shop' => [
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
@@ -220,13 +229,13 @@ class MySQL extends AbstractAdapter
                     $this->getContext()->shop->id . ' AND ps.active = TRUE)',
                 'joinType' => self::INNER_JOIN,
             ],
-            'id_feature_value' => [
+            'id_feature_value' => array_merge([
                 'tableName' => $featureProductTable,
                 'tableAlias' => 'fp',
-                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinCondition' => $featureJoinCondition,
                 'joinType' => self::LEFT_JOIN,
                 'rawTable' => $featureProductRawTable,
-            ],
+            ], $featureJoinExtra),
             'id_category' => [
                 'tableName' => 'category_product',
                 'tableAlias' => 'cp',
@@ -370,23 +379,25 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * Builds a derived table, shaped exactly like feature_product (id_product, id_feature,
-     * id_feature_value), that merges the product-level feature values with the ones defined at
-     * combination level (feature_product_attribute, resolved to their product through
-     * product_attribute). The UNION removes duplicates so a value defined at both levels is not
-     * counted twice.
+     * Builds a derived table (id_product, id_product_attribute, id_feature, id_feature_value) that
+     * merges the product-level feature values with the ones defined at combination level
+     * (feature_product_attribute, resolved to their product through product_attribute). The
+     * id_product_attribute column is NULL for product-level values and set for combination-level
+     * ones, so getFieldMapping() can correlate a feature filter with a specific combination. The
+     * UNION removes duplicates so a value defined at both levels is not counted twice.
      *
-     * Overrides must keep the exact same columns (id_product, id_feature, id_feature_value) so the
-     * derived table stays a drop-in replacement for feature_product in getFieldMapping().
+     * Overrides must keep the exact same columns (id_product, id_product_attribute, id_feature,
+     * id_feature_value) so the derived table stays a drop-in replacement for feature_product in
+     * getFieldMapping().
      *
      * @return string
      */
     protected function getFeatureProductDerivedTable()
     {
-        return '(SELECT id_product, id_feature, id_feature_value'
+        return '(SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
             . ' FROM ' . _DB_PREFIX_ . 'feature_product'
             . ' UNION'
-            . ' SELECT pa.id_product, fpa.id_feature, fpa.id_feature_value'
+            . ' SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
             . ' FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpa'
             . ' INNER JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute)';
     }
