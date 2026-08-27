@@ -159,20 +159,49 @@ class MySQLTest extends MockeryTestCase
         $adapter->addOperationsFilter('with_features_3', [[['id_feature_value', [11]]]]);
         $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
 
-        // Both the feature (fp) and the attribute (pac) joins are correlated with the same
-        // product_attribute (pa) row, so the two filters must be satisfied by the same combination.
+        // Product feature values match globally, while combination feature values and attributes are
+        // correlated with the same product_attribute (pa) row.
         $this->assertEquals(
             'SELECT  FROM ps_product p'
             . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
-            . ' LEFT JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
-            . ' FROM ps_feature_product'
-            . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
-            . ' FROM ps_feature_product_attribute fpa'
-            . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
-            . ' ON (p.id_product = fp.id_product'
-            . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))'
             . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
-            . ' WHERE ((fp.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' WHERE (((EXISTS (SELECT 1 FROM ps_feature_product fp_filter'
+            . ' WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value=11)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpa_filter'
+            . ' WHERE fpa_filter.id_product_attribute = pa.id_product_attribute AND fpa_filter.id_feature_value=11))))'
+            . ' AND ((pac_1.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    public function testCombinationFeatureAndFilterUsesExistsOnTheSameCombination()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        // Require both selected values at product level or on the same combination row.
+        $adapter->addSelectField('id_product');
+        $adapter->addOperationsFilter('with_features_3', [[
+            ['id_feature_value', [11]],
+            ['id_feature_value', [12]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' WHERE (((EXISTS (SELECT 1 FROM ps_feature_product fp_filter'
+            . ' WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value=11)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpa_filter'
+            . ' WHERE fpa_filter.id_product_attribute = pa.id_product_attribute AND fpa_filter.id_feature_value=11))'
+            . ' AND (EXISTS (SELECT 1 FROM ps_feature_product fp_filter'
+            . ' WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value=12)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpa_filter'
+            . ' WHERE fpa_filter.id_product_attribute = pa.id_product_attribute AND fpa_filter.id_feature_value=12))))'
             . ' ORDER BY p.id_product DESC',
             $adapter->getQuery()
         );
@@ -446,6 +475,33 @@ class MySQLTest extends MockeryTestCase
 
         $this->assertEquals(
             $expected,
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithFeatureValueOrFilterUsesExists()
+    {
+        // Match any selected feature value without joining feature rows into the product query.
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10, 20]]]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p WHERE ((EXISTS (SELECT 1 FROM ps_feature_product fp_filter WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value IN (10, 20)))) ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithFeatureValueAndFilterUsesMultipleExistsConditions()
+    {
+        // Require every selected feature value without multiplying product rows through joins.
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[
+            ['id_feature_value', [10]],
+            ['id_feature_value', [20]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p WHERE ((EXISTS (SELECT 1 FROM ps_feature_product fp_filter WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value=10) AND EXISTS (SELECT 1 FROM ps_feature_product fp_filter WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value=20))) ORDER BY p.id_product DESC',
             $this->adapter->getQuery()
         );
     }

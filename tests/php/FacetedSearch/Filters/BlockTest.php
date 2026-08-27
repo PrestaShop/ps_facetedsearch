@@ -31,6 +31,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
+use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
@@ -854,6 +855,29 @@ class BlockTest extends MockeryTestCase
                 [
                 ]
             )
+        );
+    }
+
+    public function testAndFeatureCountsKeepCurrentFeatureSelection()
+    {
+        // Keep the selected feature filter in the initial population for AND facet counts.
+        $this->mockFeatures([]);
+        $this->mockLayeredCategory([[
+            'type' => 'id_feature',
+            'id_value' => 1,
+            'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND,
+        ]]);
+
+        $filteredAdapter = Mockery::mock(MySQL::class)->makePartial();
+        $filteredAdapter->resetAll();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->with()
+            ->once()
+            ->andReturn($filteredAdapter);
+
+        $this->assertEquals(
+            ['filters' => []],
+            $this->block->getFilterBlock(10, ['id_feature' => [1 => [10, 20]]])
         );
     }
 

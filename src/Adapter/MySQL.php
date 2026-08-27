@@ -426,6 +426,34 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * Build a feature value condition without multiplying rows in the product query.
+     *
+     * @param array $values
+     *
+     * @return string
+     */
+    private function computeFeatureValueExistsCondition(array $values)
+    {
+        // Use equality for one value and IN for multiple OR values.
+        if (count($values) === 1) {
+            $valueCondition = '=' . $this->getJoinedEscapedValue(', ', $values);
+        } else {
+            $valueCondition = ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
+        }
+
+        // Match values assigned directly to the product.
+        $productFeatureCondition = 'EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product fp_filter WHERE fp_filter.id_product = p.id_product AND fp_filter.id_feature_value' . $valueCondition . ')';
+        if (!$this->isCombinationFeatureFilteringEnabled()) {
+            return $productFeatureCondition;
+        }
+
+        // Match combination values against the same combination row used by attribute filters.
+        $combinationFeatureCondition = 'EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpa_filter WHERE fpa_filter.id_product_attribute = pa.id_product_attribute AND fpa_filter.id_feature_value' . $valueCondition . ')';
+
+        return '(' . $productFeatureCondition . ' OR ' . $combinationFeatureCondition . ')';
+    }
+
+    /**
      * Compute the orderby fields, adding the proper alias that will be added to the final query
      *
      * @param array $filterToTableMapping
@@ -702,6 +730,12 @@ class MySQL extends AbstractAdapter
             foreach ($filterOperations as $operations) {
                 $conditions = [];
                 foreach ($operations as $idx => $operation) {
+                    // Filter feature values through EXISTS so the main query keeps one row per current relation.
+                    if ($operation[0] === 'id_feature_value' && (empty($operation[2]) || $operation[2] === '=')) {
+                        $conditions[] = $this->computeFeatureValueExistsCondition($operation[1]);
+                        continue;
+                    }
+
                     $selectAlias = 'p';
                     $values = $operation[1];
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
@@ -818,6 +852,15 @@ class MySQL extends AbstractAdapter
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
+                    // Feature value operations use EXISTS and only combination values require the shared combination join.
+                    if ($operation[0] === 'id_feature_value' && (empty($operation[2]) || $operation[2] === '=')) {
+                        if ($this->isCombinationFeatureFilteringEnabled()) {
+                            $this->addJoinConditions($joinList, $filterToTableMapping['id_product_attribute'], $filterToTableMapping);
+                        }
+
+                        continue;
+                    }
+
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         if ($idx !== 0 || $operationIdx !== 0) {
@@ -1020,6 +1063,21 @@ class MySQL extends AbstractAdapter
 
         $operationsFilters = clone $initialPopulation->getOperationsFilters();
         foreach ($operationsFilters as $operationName => $operations) {
+            // Feature EXISTS filters already restrict product membership in the initial population.
+            $containsOnlyFeatureValueOperations = true;
+            foreach ($operations as $operationGroup) {
+                foreach ($operationGroup as $operation) {
+                    if ($operation[0] !== 'id_feature_value') {
+                        $containsOnlyFeatureValueOperations = false;
+                        break 2;
+                    }
+                }
+            }
+
+            if ($containsOnlyFeatureValueOperations) {
+                continue;
+            }
+
             $this->addOperationsFilter(
                 $operationName,
                 $operations

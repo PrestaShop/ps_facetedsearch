@@ -823,7 +823,10 @@ class Block
         $idFeature = $filter['id_value'];
         $filteredSearchAdapter = null;
 
-        if (!empty($selectedFilters['id_feature'])) {
+        // Keep current selections while counting additional values for an AND feature facet.
+        if ((int) (isset($filter['filter_type']) ? $filter['filter_type'] : Converter::WIDGET_TYPE_CHECKBOX) !== Converter::WIDGET_TYPE_CHECKBOX_AND
+            && !empty($selectedFilters['id_feature'])
+        ) {
             foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
                 if ($key == $idFeature) {
                     $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_features_' . $idFeature);
