@@ -893,9 +893,69 @@ class Block
             }
         }
 
+        // Convert configured numeric features to a single range block instead of discrete values.
+        if ((int) $filter['filter_type'] === Converter::WIDGET_TYPE_SLIDER) {
+            return $this->getNumericFeatureBlock($featureBlock, $selectedFilters);
+        }
+
         $featureBlock = $this->sortFeatureBlock($featureBlock);
 
         return $featureBlock;
+    }
+
+    /**
+     * Convert a feature values block to a numeric slider block.
+     *
+     * @param array $featureBlock
+     * @param array $selectedFilters
+     *
+     * @return array
+     */
+    private function getNumericFeatureBlock(array $featureBlock, array $selectedFilters)
+    {
+        $numericFeatureBlock = [];
+
+        // Parse the applicable localized values for each configured feature.
+        foreach ($featureBlock as $idFeature => $feature) {
+            $numericValues = [];
+            $precision = 0;
+            $magnitude = 0;
+            foreach ($feature['values'] as $featureValue) {
+                $numericFeatureValue = NumericFeatureValueParser::parse($featureValue['name']);
+                if ($numericFeatureValue === null) {
+                    continue;
+                }
+
+                $numericValues[(string) $numericFeatureValue['value']] = $numericFeatureValue['value'];
+                $precision = max($precision, $numericFeatureValue['precision']);
+                $magnitude += (int) $featureValue['nbr'];
+            }
+
+            // A range is useful only when at least two distinct numeric values are available.
+            if (count($numericValues) < 2) {
+                continue;
+            }
+
+            $numericFeatureBlock[$idFeature] = [
+                'type_lite' => 'id_feature',
+                'type' => 'id_feature',
+                'id_key' => $idFeature,
+                'name' => $feature['name'],
+                'url_name' => $feature['url_name'],
+                'meta_title' => $feature['meta_title'],
+                'min' => min($numericValues),
+                'max' => max($numericValues),
+                'step' => pow(10, -$precision),
+                'unit' => '',
+                'specifications' => null,
+                'value' => isset($selectedFilters['feature_range'][$idFeature]) ? $selectedFilters['feature_range'][$idFeature] : null,
+                'nbr' => $magnitude,
+                'filter_show_limit' => 0,
+                'filter_type' => Converter::WIDGET_TYPE_SLIDER,
+            ];
+        }
+
+        return $numericFeatureBlock;
     }
 
     /**

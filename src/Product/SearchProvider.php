@@ -455,10 +455,12 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
         $context = $this->module->getContext();
 
         foreach ($facets as $facet) {
-            if (!in_array($facet->getType(), Filters\Converter::RANGE_FILTERS)) {
+            // Process every true range facet, including numeric feature sliders.
+            if (!$facet->getProperty('range')) {
                 continue;
             }
 
+            // Format each selected or default range for the active filters display.
             foreach ($facet->getFilters() as $filter) {
                 $filterValue = $filter->getValue();
                 $min = empty($filterValue[0]) ? $facet->getProperty('min') : $filterValue[0];
@@ -480,6 +482,14 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                             '%1$s - %2$s',
                             $context->getCurrentLocale()->formatPrice($min, $context->currency->iso_code),
                             $context->getCurrentLocale()->formatPrice($max, $context->currency->iso_code)
+                        )
+                    );
+                } else {
+                    $filter->setLabel(
+                        sprintf(
+                            '%1$s - %2$s',
+                            $context->getCurrentLocale()->formatNumber($min),
+                            $context->getCurrentLocale()->formatNumber($max)
                         )
                     );
                 }
