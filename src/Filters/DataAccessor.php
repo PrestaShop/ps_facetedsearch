@@ -73,7 +73,8 @@ class DataAccessor
         }
 
         if (!isset($this->attributes[$idLang][$idAttributeGroup])) {
-            $this->attributes[$idLang] = [$idAttributeGroup => []];
+            // Initialize only the requested attribute group without discarding other cached groups for the language.
+            $this->attributes[$idLang][$idAttributeGroup] = [];
             $tempAttributes = $this->database->executeS(
                 'SELECT DISTINCT a.`id_attribute`, ' .
                 'a.`color`, ' .
@@ -190,7 +191,8 @@ class DataAccessor
     public function getFeatureValues($idFeature, $idLang)
     {
         if (!isset($this->featureValues[$idLang][$idFeature])) {
-            $this->featureValues[$idLang] = [$idFeature => []];
+            // Initialize only the requested feature without discarding other cached features for the language.
+            $this->featureValues[$idLang][$idFeature] = [];
             $tempFeatureValues = $this->database->executeS(
                 'SELECT v.*, vl.*, ' .
                 'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
