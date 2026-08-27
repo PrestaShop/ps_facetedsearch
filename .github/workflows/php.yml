@@ -92,8 +92,8 @@ jobs:
           - { presta_version: '9.0.3', php_version: '8.1' }
           - { presta_version: '9.0.3', php_version: '8.4' }
           # PrestaShop 9.1.x and develop support PHP 8.1 up to 8.5
-          - { presta_version: '9.1.4', php_version: '8.1' }
-          - { presta_version: '9.1.4', php_version: '8.5' }
+          - { presta_version: '9.1.5', php_version: '8.1' }
+          - { presta_version: '9.1.5', php_version: '8.5' }
           - { presta_version: 'develop', php_version: '8.1' }
           - { presta_version: 'develop', php_version: '8.5' }
       fail-fast: false
