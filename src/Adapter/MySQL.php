@@ -444,8 +444,11 @@ class MySQL extends AbstractAdapter
         }
 
         // Expose sortable fields from the initial population when their mapped value has a stable output name.
+        // An expression is skipped: it is evaluated against the outer query's joins, which the initial population
+        // does not have, so selecting it there refers to tables that are not joined at that level.
         if ($this->getInitialPopulation() !== null
             && $orderField !== 'price'
+            && strpos($orderField, '(') === false
             && (
                 !isset($filterToTableMapping[$orderField]['fieldName'])
                 || isset($filterToTableMapping[$orderField]['fieldAlias'])
