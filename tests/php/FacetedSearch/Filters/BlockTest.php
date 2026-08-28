@@ -1085,7 +1085,7 @@ class BlockTest extends MockeryTestCase
                     'LEFT JOIN `ps_layered_indexable_attribute_group` liag ' .
                     'ON (ag.`id_attribute_group` = liag.`id_attribute_group`) ' .
                     'LEFT JOIN `ps_layered_indexable_attribute_group_lang_value` AS liaglv ' .
-                    'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND agl.`id_lang` = 2) ' .
+                    'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND liaglv.`id_lang` = 2) ' .
                     'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
                 )
                 ->andReturn($attributeGroups);
