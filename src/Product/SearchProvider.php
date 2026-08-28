@@ -553,6 +553,9 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
      */
     private function hideUselessFacets(array $facets, $totalProducts)
     {
+        $showSingleAttributeGroup = (bool) Configuration::get('PS_LAYERED_SHOW_SINGLE_ATTRIBUTE_GROUP');
+        $showSingleManufacturer = (bool) Configuration::get('PS_LAYERED_SHOW_SINGLE_MANUFACTURER');
+
         foreach ($facets as $facet) {
             // If the facet is a slider type, we hide it ONLY if the MIN and MAX value match
             if ($facet->getWidgetType() === 'slider') {
@@ -582,6 +585,20 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
                     count($facet->getFilters()) === 1
                     && $totalFacetProducts < $totalProducts
                     && $usefulFiltersCount > 0
+                )
+                ||
+                // Keep single-value attribute groups visible when enabled in the module settings
+                (
+                    $showSingleAttributeGroup
+                    && $usefulFiltersCount === 1
+                    && $facet->getType() === 'attribute_group'
+                )
+                ||
+                // Keep the single-value manufacturer facet visible when enabled in the module settings
+                (
+                    $showSingleManufacturer
+                    && $usefulFiltersCount === 1
+                    && $facet->getType() === 'manufacturer'
                 )
                 ||
                 // If there is only one filter, but it's availability or extras filter - we want this one to be displayed all the time
