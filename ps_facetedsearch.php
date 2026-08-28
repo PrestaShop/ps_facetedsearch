@@ -811,6 +811,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
+            'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
@@ -972,6 +973,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $filters_templates[$k]['controllers'] = implode(', ', $tmp);
 
             $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
+
+            $filters_templates[$k]['edit_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => 'ps_facetedsearch',
+                'edit_filters_template' => 1,
+                'id_layered_filter' => (int) $v['id_layered_filter'],
+            ]);
+
+            $filters_templates[$k]['remove_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => 'ps_facetedsearch',
+                'deleteFilterTemplate' => 1,
+                'id_layered_filter' => (int) $v['id_layered_filter'],
+            ]);
         }
 
         return $filters_templates;
