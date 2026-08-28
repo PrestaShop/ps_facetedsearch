@@ -12,7 +12,7 @@ Filter your catalog to help visitors picture the category tree and browse your s
 
 ## Compatibility
 
-PrestaShop: 1.7.6.0 or later
+PrestaShop: 8.2.0 or later
 
 ## Multistore compatibility
 
