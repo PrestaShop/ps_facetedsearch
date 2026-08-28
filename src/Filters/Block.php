@@ -986,12 +986,33 @@ class Block
         }
 
         $results = $filteredSearchAdapter->valueCount('id_category');
+        // To filter results, instead to make a complex query, we will filter them in the code after
+        // So we retrieve here all categories linked to the parent one according to configuration (only IDs)
+        $categoriesId = [];
+        $query = new \DbQuery();
+        $query->select('id_category');
+        $query->from('category');
+        $depth = (int) Configuration::get('PS_LAYERED_FILTER_CATEGORY_DEPTH', null, null, null, 1);
+        if ($depth > 0) {
+            $query->where('level_depth <= ' . ((int) $parent->level_depth + $depth));
+        }
+        $query->where('nleft > ' . (int) $parent->nleft);
+        $query->where('nright < ' . (int) $parent->nright);
+        $resultCategories = \Db::getInstance()->executeS($query);
+        foreach ($resultCategories as $oneCategory) {
+            $categoriesId[] = $oneCategory['id_category'];
+        }
 
         foreach ($results as $key => $values) {
             $idCategory = $values['id_category'];
             if (!isset($categories[$idCategory])) {
                 // Category can sometimes not be found in case of multistore
                 // plus waiting for indexation
+                continue;
+            }
+
+            // If category count is not in the list of categories linked to the parent one, we skip it
+            if (in_array($idCategory, $categoriesId) === false) {
                 continue;
             }
 
