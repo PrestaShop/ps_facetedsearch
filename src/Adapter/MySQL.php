@@ -262,6 +262,15 @@ class MySQL extends AbstractAdapter
                 'joinCondition' => '(p.id_product = cp.id_product)',
                 'joinType' => self::INNER_JOIN,
             ],
+            // The supplier page lists every product associated with the supplier, and that
+            // association lives in product_supplier. Without this mapping the filter falls back to
+            // p.id_supplier, which only holds the default supplier of the product.
+            'id_supplier' => [
+                'tableName' => 'product_supplier',
+                'tableAlias' => 'psup',
+                'joinCondition' => '(p.id_product = psup.id_product)',
+                'joinType' => self::INNER_JOIN,
+            ],
             'manufacturer_name' => [
                 'tableName' => 'manufacturer',
                 'tableAlias' => 'm',
