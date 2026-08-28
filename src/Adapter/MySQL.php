@@ -24,6 +24,7 @@ use Configuration;
 use Context;
 use Db;
 use Doctrine\Common\Collections\ArrayCollection;
+use PrestaShop\Module\FacetedSearch\CombinationFeature;
 use Product;
 use StockAvailable;
 
@@ -117,7 +118,12 @@ class MySQL extends AbstractAdapter
         // Add join conditions if any
         foreach ($joinConditions as $joinAliasInfos) {
             foreach ($joinAliasInfos as $tableAlias => $joinInfos) {
-                $query .= ' ' . $joinInfos['joinType'] . ' ' . _DB_PREFIX_ . $joinInfos['tableName'] . ' ' .
+                // A "raw" table is already a full table expression (e.g. a derived table) and must not
+                // be prefixed, otherwise it is a regular table name living behind the database prefix.
+                $tableName = !empty($joinInfos['rawTable'])
+                    ? $joinInfos['tableName']
+                    : _DB_PREFIX_ . $joinInfos['tableName'];
+                $query .= ' ' . $joinInfos['joinType'] . ' ' . $tableName . ' ' .
                        $tableAlias . ' ON ' . $joinInfos['joinCondition'];
             }
         }
@@ -161,6 +167,37 @@ class MySQL extends AbstractAdapter
             'sa'
         );
 
+        // Feature filters are resolved against the feature_product table by default. When combination
+        // feature values are enabled (PrestaShop >= 9.3 + feature flag), we swap that table for a
+        // derived table that also exposes the feature values defined at combination level, so a product
+        // becomes filterable by a feature value carried by any of its combinations.
+        $featureProductTable = 'feature_product';
+        $featureProductRawTable = false;
+        $featureJoinCondition = '(p.id_product = fp.id_product)';
+        $featureJoinExtra = [];
+        if ($this->isCombinationFeatureFilteringEnabled()) {
+            // Derived table (id_product, id_product_attribute, id_feature, id_feature_value) merging
+            // product-level feature values with the ones defined at combination level
+            // (feature_product_attribute, resolved to their product through product_attribute). The
+            // id_product_attribute column is NULL for product-level values, so a feature filter can be
+            // correlated with a specific combination. The UNION removes duplicates so a value defined
+            // at both levels is not counted twice.
+            $featureProductTable = '(SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
+                . ' FROM ' . _DB_PREFIX_ . 'feature_product'
+                . ' UNION'
+                . ' SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
+                . ' FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpa'
+                . ' INNER JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute)';
+            $featureProductRawTable = true;
+            // Correlate the feature row with the combination currently joined (pa) so that a feature
+            // filter and an attribute filter must be satisfied by the same combination, not by two
+            // different ones. Product-level feature values (id_product_attribute IS NULL) keep
+            // applying to every combination.
+            $featureJoinCondition = '(p.id_product = fp.id_product'
+                . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))';
+            $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
+        }
+
         $filterToTableMapping = [
             'id_product_attribute' => [
                 'tableName' => 'product_attribute',
@@ -182,12 +219,13 @@ class MySQL extends AbstractAdapter
                 'joinType' => self::INNER_JOIN,
                 'dependencyField' => 'id_attribute',
             ],
-            'id_feature' => [
-                'tableName' => 'feature_product',
+            'id_feature' => array_merge([
+                'tableName' => $featureProductTable,
                 'tableAlias' => 'fp',
-                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinCondition' => $featureJoinCondition,
                 'joinType' => self::INNER_JOIN,
-            ],
+                'rawTable' => $featureProductRawTable,
+            ], $featureJoinExtra),
             'id_shop' => [
                 'tableName' => 'product_shop',
                 'tableAlias' => 'ps',
@@ -202,12 +240,13 @@ class MySQL extends AbstractAdapter
                     $this->getContext()->shop->id . ' AND ps.active = TRUE)',
                 'joinType' => self::INNER_JOIN,
             ],
-            'id_feature_value' => [
-                'tableName' => 'feature_product',
+            'id_feature_value' => array_merge([
+                'tableName' => $featureProductTable,
                 'tableAlias' => 'fp',
-                'joinCondition' => '(p.id_product = fp.id_product)',
+                'joinCondition' => $featureJoinCondition,
                 'joinType' => self::LEFT_JOIN,
-            ],
+                'rawTable' => $featureProductRawTable,
+            ], $featureJoinExtra),
             'id_category' => [
                 'tableName' => 'category_product',
                 'tableAlias' => 'cp',
@@ -337,6 +376,17 @@ class MySQL extends AbstractAdapter
         ];
 
         return $filterToTableMapping;
+    }
+
+    /**
+     * Whether feature filters must also take combination feature values into account.
+     * Extracted so it can be overridden in tests.
+     *
+     * @return bool
+     */
+    protected function isCombinationFeatureFilteringEnabled()
+    {
+        return CombinationFeature::isFilteringEnabled();
     }
 
     /**
@@ -723,6 +773,7 @@ class MySQL extends AbstractAdapter
             'tableName' => $joinMapping['tableName'],
             'joinCondition' => $joinMapping['joinCondition'],
             'joinType' => $joinMapping['joinType'],
+            'rawTable' => !empty($joinMapping['rawTable']),
         ];
 
         $joinList->set($joinMapping['tableAlias'] . '_' . $joinMapping['tableName'], $joinInfos);
