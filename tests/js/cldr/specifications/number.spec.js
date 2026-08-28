@@ -17,8 +17,8 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 import {expect} from 'chai';
-import NumberSpecification from '../../../../_dev/cldr/specifications/number';
-import NumberSymbol from '../../../../_dev/cldr/number-symbol';
+import NumberSpecification from '../../../../_dev/cldr/specifications/number.js';
+import NumberSymbol from '../../../../_dev/cldr/number-symbol.js';
 
 describe('NumberSpecification', () => {
   let symbol;

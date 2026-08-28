@@ -17,9 +17,9 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 import {expect} from 'chai';
-import NumberFormatter from '../../../_dev/cldr/number-formatter';
-import PriceSpecification from '../../../_dev/cldr/specifications/price';
-import NumberSymbol from '../../../_dev/cldr/number-symbol';
+import NumberFormatter from '../../../_dev/cldr/number-formatter.js';
+import PriceSpecification from '../../../_dev/cldr/specifications/price.js';
+import NumberSymbol from '../../../_dev/cldr/number-symbol.js';
 
 describe('NumberFormatter', () => {
   let currency;
