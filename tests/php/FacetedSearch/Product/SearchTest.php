@@ -334,16 +334,18 @@ class SearchTest extends MockeryTestCase
                     ],
                 ],
                 'price_min' => [
-                    '<=' => [
+                    // The bounds are widened by one unit so a product matches the range the slider
+                    // displayed for it, which is floor(price_min) to ceil(price_max).
+                    '<' => [
                         [
-                            200.0,
+                            201.0,
                         ],
                     ],
                 ],
                 'price_max' => [
-                    '>=' => [
+                    '>' => [
                         [
-                            50.0,
+                            49.0,
                         ],
                     ],
                 ],
@@ -439,6 +441,25 @@ class SearchTest extends MockeryTestCase
             ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
         );
+    }
+
+    /**
+     * The slider is built from floor() of the lowest indexed price and ceil() of the highest, so a
+     * product indexed at 5995.000001 is offered to the shopper as spanning 5995 to 5996. Comparing
+     * the raw column against those bounds rejected it at both ends of its own range, which emptied
+     * the listing as soon as either handle was dragged.
+     *
+     * @see https://github.com/PrestaShop/PrestaShop/issues/37604
+     */
+    public function testInitSearchWidensPriceBoundsToTheDisplayedRange()
+    {
+        $this->search->initSearch(['price' => [5995, 5995]]);
+
+        $filters = $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray();
+
+        // 5995.000001 satisfies both: it is below 5996 and above 5994.
+        $this->assertEquals(['<' => [[5996.0]]], $filters['price_min']);
+        $this->assertEquals(['>' => [[5994.0]]], $filters['price_max']);
     }
 
     public function testInitSearchWithManyFeatures()
