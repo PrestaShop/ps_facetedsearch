@@ -556,6 +556,28 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * Check whether a field must be read from its mapped table when used in a filter condition.
+     *
+     * Aggregated fields are exposed by the derived product table as an aggregate
+     * (SUM(sa.quantity) as quantity), which is not interchangeable with the row level value a
+     * WHERE condition compares against. They always have to be read from their mapped table,
+     * otherwise the filter silently changes meaning.
+     *
+     * @param string $fieldName
+     * @param array $filterToTableMapping
+     *
+     * @return bool
+     */
+    private function requiresMappedTableForFilter($fieldName, array $filterToTableMapping)
+    {
+        if (isset($filterToTableMapping[$fieldName]['aggregateFunction'])) {
+            return true;
+        }
+
+        return $this->requiresMappedTable($fieldName, $filterToTableMapping);
+    }
+
+    /**
      * Add alias to table field name
      *
      * @param string $fieldName
@@ -620,7 +642,7 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
-                    if ($this->requiresMappedTable($operation[0], $filterToTableMapping)) {
+                    if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
                         // multi join
@@ -649,7 +671,7 @@ class MySQL extends AbstractAdapter
 
         foreach ($this->getFilters() as $filterName => $filterContent) {
             $selectAlias = 'p';
-            if ($this->requiresMappedTable($filterName, $filterToTableMapping)) {
+            if ($this->requiresMappedTableForFilter($filterName, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$filterName];
                 $selectAlias = $joinMapping['tableAlias'];
                 $filterName = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $filterName;
@@ -728,13 +750,13 @@ class MySQL extends AbstractAdapter
         $joinList = new ArrayCollection();
 
         $this->addJoinList($joinList, $this->getSelectFields(), $filterToTableMapping);
-        $this->addJoinList($joinList, $this->getFilters()->getKeys(), $filterToTableMapping);
+        $this->addJoinList($joinList, $this->getFilters()->getKeys(), $filterToTableMapping, true);
 
         $operationIdx = 0;
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
-                    if ($this->requiresMappedTable($operation[0], $filterToTableMapping)) {
+                    if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         if ($idx !== 0 || $operationIdx !== 0) {
                             // Index is not the first, append index to tableAlias on joinCondition
@@ -774,10 +796,12 @@ class MySQL extends AbstractAdapter
      * @param array|ArrayCollection $list
      * @param array $filterToTableMapping
      */
-    private function addJoinList(ArrayCollection $joinList, $list, array $filterToTableMapping)
+    private function addJoinList(ArrayCollection $joinList, $list, array $filterToTableMapping, $forFilter = false)
     {
         foreach ($list as $field) {
-            if ($this->requiresMappedTable($field, $filterToTableMapping)) {
+            if ($forFilter
+                ? $this->requiresMappedTableForFilter($field, $filterToTableMapping)
+                : $this->requiresMappedTable($field, $filterToTableMapping)) {
                 $joinMapping = $filterToTableMapping[$field];
                 $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
             }

@@ -446,6 +446,44 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    /**
+     * Once "out of stock last" ordering exposes quantity in the initial population, that column
+     * holds SUM(sa.quantity). A filter on quantity must still be read from the stock table,
+     * otherwise it silently compares against the aggregate instead of the row value.
+     */
+    public function testGetQueryFiltersQuantityOnStockTableWhenInitialPopulationExposesAggregate()
+    {
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(true);
+        Configuration::setStaticExpectations($configurationMock);
+
+        $productMock = Mockery::namedMock(Product::class);
+        $productMock->shouldReceive('isAvailableWhenOutOfStock')
+            ->with(2)
+            ->andReturn(true);
+
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('desc');
+
+        // Ordering pulls quantity into the initial population as SUM(sa.quantity) as quantity
+        $this->adapter->getQuery();
+
+        $filteredAdapter = $this->adapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
+        $filteredAdapter->addOperationsFilter(
+            Search::STOCK_MANAGEMENT_FILTER,
+            [[['quantity', [0], '<=']]]
+        );
+
+        $this->assertContains(
+            'WHERE ((sa.quantity<=0))',
+            $filteredAdapter->getQuery()
+        );
+    }
+
     public function testGetQueryWithComputeShowLastEnabledAndDenyOrderOutOfStockProducts()
     {
         $configurationMock = Mockery::mock(Configuration::class);
