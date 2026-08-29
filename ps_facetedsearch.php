@@ -27,6 +27,7 @@ if (file_exists($autoloadPath)) {
 }
 
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
@@ -826,6 +827,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
             'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
             'feature_values_use_position' => (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION'),
+            'feature_values_position_supported' => DataAccessor::isFeatureValuePositionSupported(),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');

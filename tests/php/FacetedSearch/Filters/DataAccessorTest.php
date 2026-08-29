@@ -21,6 +21,7 @@
 namespace PrestaShop\Module\FacetedSearch\Tests\Filters;
 
 use Combination;
+use Configuration;
 use Db;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
@@ -50,6 +51,16 @@ class DataAccessorTest extends MockeryTestCase
         $shopMock = Mockery::mock(Shop::class);
         $shopMock->shouldReceive('addSqlAssociation')->andReturn('');
         Shop::setStaticExpectations($shopMock);
+
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')->andReturnUsing(function ($key) {
+            $valueMap = [
+                'PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION' => 0,
+            ];
+
+            return isset($valueMap[$key]) ? $valueMap[$key] : null;
+        });
+        Configuration::setStaticExpectations($configurationMock);
 
         $this->query = '';
         $dbMock = Mockery::mock(Db::class);

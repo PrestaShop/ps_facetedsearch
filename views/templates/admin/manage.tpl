@@ -303,7 +303,8 @@
 		</div>
 	</div>
 
-        <div class="form-group">
+	{if $feature_values_position_supported}
+	<div class="form-group">
 	  <label class="col-lg-3 control-label">{l s='Use position for feature values ordering' d='Modules.Facetedsearch.Admin'}</label>
 	  <div class="col-lg-9">
 		<span class="switch prestashop-switch fixed-width-lg">
@@ -319,6 +320,7 @@
 		</span>
 	  </div>
 	</div>
+	{/if}
 
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>

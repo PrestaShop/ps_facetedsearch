@@ -67,6 +67,7 @@ class BlockTest extends MockeryTestCase
                     'PS_ORDER_OUT_OF_STOCK' => '1',
                     'PS_UNIDENTIFIED_GROUP' => '1',
                     'PS_LAYERED_FILTER_CATEGORY_DEPTH' => 3,
+                    'PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION' => 0,
                 ];
 
                 return $valueMap[$arg];

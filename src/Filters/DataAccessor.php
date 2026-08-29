@@ -20,8 +20,8 @@
 
 namespace PrestaShop\Module\FacetedSearch\Filters;
 
-use Configuration;
 use Combination;
+use Configuration;
 use Db;
 use Shop;
 
@@ -182,6 +182,19 @@ class DataAccessor
     }
 
     /**
+     * Whether the core exposes a position on feature values.
+     *
+     * Added in PrestaShop 9.0 by PrestaShop/PrestaShop#37042. This module still supports 8.2,
+     * where the column does not exist and ordering by it would fail.
+     *
+     * @return bool
+     */
+    public static function isFeatureValuePositionSupported()
+    {
+        return version_compare(_PS_VERSION_, '9.0.0', '>=');
+    }
+
+    /**
      * Get feature values for given feature, with their associated layered information.
      *
      * @param int $idFeature
@@ -195,7 +208,11 @@ class DataAccessor
             // Initialize only the requested feature without discarding other cached features for the language.
             $this->featureValues[$idLang][$idFeature] = [];
 
-            if ((bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')) {
+            // feature_value.position only exists from PrestaShop 9.0 (PrestaShop/PrestaShop#37042),
+            // and this module still supports 8.2, where ordering by it is an unknown column.
+            if (self::isFeatureValuePositionSupported()
+                && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')
+            ) {
                 $order = 'ORDER BY v.`position` ASC';
             } else {
                 $order = 'ORDER BY vl.`value` ASC';
