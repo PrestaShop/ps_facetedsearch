@@ -164,8 +164,24 @@ class Search
 
             switch ($key) {
                 case 'id_feature':
-                    $operationsFilter = [];
                     foreach ($filterValues as $featureId => $filterValue) {
+                        // Require every selected value when the feature uses AND checkboxes.
+                        if (isset($selectedFilters['id_feature_operator'][$featureId])
+                            && $selectedFilters['id_feature_operator'][$featureId] === 'and'
+                        ) {
+                            $operations = [];
+                            foreach (array_unique($filterValue) as $idFeatureValue) {
+                                $operations[] = ['id_feature_value', [(int) $idFeatureValue]];
+                            }
+
+                            $this->getSearchAdapter()->addOperationsFilter(
+                                'with_features_' . $featureId,
+                                [$operations]
+                            );
+                            continue;
+                        }
+
+                        // Match any selected value for regular feature checkboxes.
                         $this->getSearchAdapter()->addOperationsFilter(
                             'with_features_' . $featureId,
                             [[['id_feature_value', $filterValue]]]

@@ -31,6 +31,7 @@ use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use Shop;
 use stdClass;
 
@@ -92,6 +93,63 @@ class ConverterTest extends MockeryTestCase
             $this->converter->getFacetsFromFilterBlocks(
                 []
             )
+        );
+    }
+
+    public function testAndCheckboxFacetUsesCheckboxWidget()
+    {
+        // Render the AND behavior as regular checkboxes on the storefront.
+        $facets = $this->converter->getFacetsFromFilterBlocks(
+            [
+                [
+                    'name' => 'Feature',
+                    'type' => Converter::TYPE_FEATURE,
+                    'id_key' => 1,
+                    'values' => [],
+                    'filter_show_limit' => 0,
+                    'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND,
+                ],
+            ]
+        );
+
+        $this->assertSame('checkbox', $facets[0]->getWidgetType());
+        $this->assertTrue($facets[0]->isMultipleSelectionAllowed());
+    }
+
+    public function testCreateFacetedSearchFiltersPreservesFeatureAndOperator()
+    {
+        // Prepare one configured AND feature and two values received from the URL.
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            ['type' => Converter::TYPE_FEATURE, 'id_value' => 5, 'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND],
+        ]);
+
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Material' => ['Steel', 'Glass'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getFeatures')->with(2)->andReturn([
+            5 => ['id_feature' => 5, 'name' => 'Material', 'url_name' => 'Material'],
+        ]);
+        $dataAccessor->shouldReceive('getFeatureValues')->with(5, 2)->andReturn([
+            ['id_feature_value' => 10, 'value' => 'Steel', 'url_name' => 'Steel'],
+            ['id_feature_value' => 20, 'value' => 'Glass', 'url_name' => 'Glass'],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            [
+                'id_feature' => [5 => [10, 20]],
+                'id_feature_operator' => [5 => 'and'],
+            ],
+            $converter->createFacetedSearchFiltersFromQuery($query)
         );
     }
 

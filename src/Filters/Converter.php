@@ -38,6 +38,7 @@ class Converter
     const WIDGET_TYPE_RADIO = 1;
     const WIDGET_TYPE_DROPDOWN = 2;
     const WIDGET_TYPE_SLIDER = 3;
+    const WIDGET_TYPE_CHECKBOX_AND = 4;
 
     const TYPE_ATTRIBUTE_GROUP = 'id_attribute_group';
     const TYPE_AVAILABILITY = 'availability';
@@ -223,6 +224,10 @@ class Converter
 
             switch ((int) $filterBlock['filter_type']) {
                 case self::WIDGET_TYPE_CHECKBOX:
+                    $facet->setMultipleSelectionAllowed(true);
+                    $facet->setWidgetType('checkbox');
+                    break;
+                case self::WIDGET_TYPE_CHECKBOX_AND:
                     $facet->setMultipleSelectionAllowed(true);
                     $facet->setWidgetType('checkbox');
                     break;
@@ -421,6 +426,13 @@ class Converter
                             ) {
                                 $searchFilters['id_feature'][$feature['id_feature']][] = $featureValue['id_feature_value'];
                             }
+                        }
+
+                        // Preserve the configured match mode for selected feature values.
+                        if ((int) $filter['filter_type'] === self::WIDGET_TYPE_CHECKBOX_AND
+                            && !empty($searchFilters['id_feature'][$feature['id_feature']])
+                        ) {
+                            $searchFilters['id_feature_operator'][$feature['id_feature']] = 'and';
                         }
                     }
                     break;

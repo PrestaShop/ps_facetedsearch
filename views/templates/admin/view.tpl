@@ -197,6 +197,7 @@
                       <div class="col-lg-6">
                         <select name="layered_selection_feat_{(int)$feature['id_feature']}_filter_type">
                           <option value="0">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</option>
+                          <option value="4">{l s='Checkbox (AND)' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="1">{l s='Radio button' d='Modules.Facetedsearch.Admin'}</option>
                           <option value="2">{l s='Drop-down list' d='Modules.Facetedsearch.Admin'}</option>
                         </select>

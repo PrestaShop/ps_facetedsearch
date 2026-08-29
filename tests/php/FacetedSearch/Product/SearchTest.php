@@ -546,6 +546,27 @@ class SearchTest extends MockeryTestCase
         );
     }
 
+    public function testInitSearchWithFeatureAndCheckboxes()
+    {
+        // Store every selected value as an AND operation for the configured feature.
+        $this->search->initSearch(
+            [
+                'id_feature' => [10 => [1, 2, 2]],
+                'id_feature_operator' => [10 => 'and'],
+            ]
+        );
+
+        $this->assertEquals(
+            [
+                [
+                    ['id_feature_value', [1]],
+                    ['id_feature_value', [2]],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->get('with_features_10')
+        );
+    }
+
     public function testInitSearchWithManyAttributes()
     {
         $this->search->initSearch(

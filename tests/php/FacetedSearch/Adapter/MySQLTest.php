@@ -94,6 +94,48 @@ class MySQLTest extends MockeryTestCase
         $this->assertContains('ORDER BY ISNULL(MIN(IF(cp.id_category = 6, cp.position, NULL))) ASC, MIN(IF(cp.id_category = 6, cp.position, NULL)) ASC, p.id_product DESC', $query);
     }
 
+    /**
+     * An AND feature facet asks for every selected value at once. Each value becomes its own
+     * operation in a single group, and the adapter joins feature_product once per operation so a
+     * product only survives if it carries all of them. Reusing one join would compare a single row
+     * against several values and always return nothing.
+     */
+    public function testGetQueryWithFeatureValueAndFilterJoinsOncePerValue()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[
+            ['id_feature_value', [10]],
+            ['id_feature_value', [20]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' LEFT JOIN ps_feature_product fp_1 ON (p.id_product = fp_1.id_product)'
+            . ' WHERE ((fp.id_feature_value=10 AND fp_1.id_feature_value=20))'
+            . ' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    /**
+     * A regular feature facet matches any of the selected values, so they stay in one operation
+     * and one join.
+     */
+    public function testGetQueryWithFeatureValueOrFilterJoinsOnce()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10, 20]]]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' WHERE ((fp.id_feature_value IN (10, 20)))'
+            . ' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
     public function testGetEmptyQuery()
     {
         $this->assertEquals(
