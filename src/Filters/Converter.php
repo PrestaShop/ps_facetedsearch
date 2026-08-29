@@ -31,6 +31,7 @@ use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use Shop;
 
 class Converter
 {
@@ -463,15 +464,22 @@ class Converter
                     break;
                 case self::TYPE_CATEGORY:
                     if (isset($receivedFilters[$filterLabel])) {
+                        // Collect valid names
+                        $requestedNames = [];
                         foreach ($receivedFilters[$filterLabel] as $queryFilter) {
-                            /*
-                             * This works only for categories that are child of the category we are browsing (or home category).
-                             * Categories deeper in the tree will never be found. This could be fixed by providing a unique ID
-                             * to the URL.
-                             */
-                            $categories = Category::searchByNameAndParentCategoryId($idLang, $queryFilter, (int) $idCategory);
-                            if ($categories) {
-                                $searchFilters[$filter['type']][] = $categories['id_category'];
+                            if (is_string($queryFilter) && $queryFilter !== '') {
+                                $requestedNames[] = $queryFilter;
+                            }
+                        }
+
+                        if (!empty($requestedNames)) {
+                            // One subtree-scoped lookup resolves every requested name.
+                            $foundMap = $this->findCategoriesByNamesInSubtree($idLang, $requestedNames, (int) $idCategory);
+
+                            foreach ($requestedNames as $queryFilter) {
+                                if (isset($foundMap[$queryFilter])) {
+                                    $searchFilters[$filter['type']][] = (int) $foundMap[$queryFilter];
+                                }
                             }
                         }
                     }
@@ -656,5 +664,68 @@ class Converter
         }
 
         return $positionA <=> $positionB;
+    }
+
+    /**
+     * Resolve category names to ids within the subtree of the browsed category.
+     *
+     * Scoped with the nested set bounds so categories deeper than the direct children are found
+     * too, which is what makes the facet usable when the category filter depth is not 1.
+     *
+     * Names are not unique in a tree, so the order below decides which category a duplicated name
+     * resolves to: the shallowest one, then the lowest id. Any tie-break would be arbitrary, this
+     * one is at least stable. Telling two same-named categories apart needs an id in the URL.
+     *
+     * @param int $idLang
+     * @param string[] $categoryNames
+     * @param int $idRootCategory
+     *
+     * @return array<string,int> name => id_category
+     */
+    private function findCategoriesByNamesInSubtree($idLang, array $categoryNames, $idRootCategory)
+    {
+        $cleanNames = [];
+        foreach ($categoryNames as $name) {
+            if (is_string($name) && $name !== '') {
+                $cleanNames[] = pSQL($name);
+            }
+        }
+        if (empty($cleanNames)) {
+            return [];
+        }
+
+        $interval = Category::getInterval((int) $idRootCategory);
+        if (empty($interval)) {
+            return [];
+        }
+
+        $query = new \DbQuery();
+        $query->select('c.`id_category`, cl.`name`');
+        $query->from('category', 'c');
+        $query->innerJoin(
+            'category_shop',
+            'cs',
+            'cs.`id_category` = c.`id_category` AND cs.`id_shop` = ' . (int) $this->context->shop->id
+        );
+        $query->innerJoin(
+            'category_lang',
+            'cl',
+            'c.`id_category` = cl.`id_category` AND cl.`id_lang` = ' . (int) $idLang . Shop::addSqlRestrictionOnLang('cl')
+        );
+        $query->where("cl.`name` IN ('" . implode("','", $cleanNames) . "')");
+        $query->where('c.`nleft` >= ' . (int) $interval['nleft']);
+        $query->where('c.`nright` <= ' . (int) $interval['nright']);
+        $query->where('c.`id_category` != ' . (int) Configuration::get('PS_HOME_CATEGORY'));
+        $query->where('c.`active` = 1');
+        $query->orderBy('c.`level_depth` ASC, c.`id_category` ASC');
+
+        $map = [];
+        foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($query) ?: [] as $row) {
+            if (!isset($map[$row['name']])) {
+                $map[$row['name']] = (int) $row['id_category'];
+            }
+        }
+
+        return $map;
     }
 }
