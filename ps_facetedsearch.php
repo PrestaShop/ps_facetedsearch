@@ -208,6 +208,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_ATTRIBUTE_ANCHOR_SEPARATOR', '-');
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
@@ -249,6 +250,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_CATEGORY_DEPTH');
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
+        Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
         Configuration::deleteByName('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION');
 
@@ -723,6 +725,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_CATEGORY_DEPTH', (int) Tools::getValue('ps_layered_filter_category_depth'));
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
+            Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last_search'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
@@ -822,6 +825,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'limit_warning' => $this->displayLimitPostWarning(21 + count($attributeGroups) * 3 + count($features) * 3),
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
+            'show_out_of_stock_last_search' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
