@@ -27,6 +27,7 @@ use Db;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
@@ -171,8 +172,16 @@ class Converter
 
                     $this->hideZeroValuesAndShowLimit($filters, (int) $filterBlock['filter_show_limit']);
 
-                    if ((int) $filterBlock['filter_show_limit'] !== 0 ||
-                        ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY)
+                    // Feature values keep the order DataAccessor returned them in when the shop
+                    // orders them by position, otherwise this would sort them alphabetically again
+                    // and the setting would have no visible effect.
+                    $keepDatabaseOrder = $filterBlock['type'] === self::TYPE_FEATURE
+                        && DataAccessor::isFeatureValuePositionSupported()
+                        && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION');
+
+                    if (!$keepDatabaseOrder
+                        && ((int) $filterBlock['filter_show_limit'] !== 0
+                            || ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY))
                     ) {
                         usort($filters, [$this, 'sortFiltersByLabel']);
                     }

@@ -1021,6 +1021,7 @@ class BlockTest extends MockeryTestCase
                                 'name' => 'Cotton',
                                 'url_name' => 'something',
                                 'meta_title' => 'weird',
+                                'position' => 0,
                                 'checked' => true,
                             ],
                             21 => [
@@ -1028,6 +1029,7 @@ class BlockTest extends MockeryTestCase
                                 'name' => 'Test Custom value',
                                 'url_name' => 'url-custom-21',
                                 'meta_title' => 'title-custom-21',
+                                'position' => 0,
                             ],
                         ],
                         'name' => 'Composition',
