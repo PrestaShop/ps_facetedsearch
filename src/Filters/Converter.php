@@ -52,6 +52,7 @@ class Converter
     const PROPERTY_URL_NAME = 'url_name';
     const PROPERTY_COLOR = 'color';
     const PROPERTY_TEXTURE = 'texture';
+    const PROPERTY_POSITION = 'position';
 
     /**
      * @var array
@@ -146,6 +147,10 @@ class Converter
                             ->setMagnitude($filterArray['nbr'])
                             ->setValue($id);
 
+                        if (isset($filterArray['position'])) {
+                            $filter->setProperty(self::PROPERTY_POSITION, (int) $filterArray['position']);
+                        }
+
                         if (isset($filterArray['url_name'])) {
                             $filter->setProperty(self::PROPERTY_URL_NAME, $filterArray['url_name']);
                         }
@@ -174,7 +179,17 @@ class Converter
                     if ((int) $filterBlock['filter_show_limit'] !== 0 ||
                         ($filterBlock['type'] !== self::TYPE_ATTRIBUTE_GROUP && $filterBlock['type'] !== self::TYPE_AVAILABILITY)
                     ) {
-                        usort($filters, [$this, 'sortFiltersByLabel']);
+                        // Feature values can be ordered the way the merchant arranged them instead
+                        // of alphabetically. This has to happen here rather than earlier, because
+                        // this sort runs last and would otherwise undo it.
+                        if ($filterBlock['type'] === self::TYPE_FEATURE
+                            && DataAccessor::isFeatureValuePositionSupported()
+                            && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')
+                        ) {
+                            usort($filters, [$this, 'sortFiltersByPosition']);
+                        } else {
+                            usort($filters, [$this, 'sortFiltersByLabel']);
+                        }
                     }
 
                     // No method available to add all filters
@@ -620,5 +635,26 @@ class Converter
         }
 
         return $collators[$locale];
+    }
+
+    /**
+     * Sort filters by the position the merchant gave them, falling back to the label so the
+     * order stays stable when positions are equal.
+     *
+     * @param Filter $a
+     * @param Filter $b
+     *
+     * @return int
+     */
+    private function sortFiltersByPosition(Filter $a, Filter $b)
+    {
+        $positionA = (int) $a->getProperty(self::PROPERTY_POSITION);
+        $positionB = (int) $b->getProperty(self::PROPERTY_POSITION);
+
+        if ($positionA === $positionB) {
+            return $this->sortFiltersByLabel($a, $b);
+        }
+
+        return $positionA <=> $positionB;
     }
 }

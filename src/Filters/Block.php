@@ -882,6 +882,9 @@ class Block
                 'name' => $featureValues[$idFeatureValue]['value'],
                 'url_name' => $featureValues[$idFeatureValue]['url_name'],
                 'meta_title' => $featureValues[$idFeatureValue]['meta_title'],
+                'position' => isset($featureValues[$idFeatureValue]['position'])
+                    ? (int) $featureValues[$idFeatureValue]['position']
+                    : 0,
             ];
 
             if (array_key_exists('id_feature', $selectedFilters)) {

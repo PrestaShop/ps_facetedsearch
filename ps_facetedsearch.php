@@ -27,6 +27,7 @@ if (file_exists($autoloadPath)) {
 }
 
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
@@ -232,6 +233,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
+        Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', 0);
+
         return true;
     }
 
@@ -247,6 +250,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        Configuration::deleteByName('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -722,6 +726,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
+            Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', (int) Tools::getValue('ps_layered_filter_feature_values_use_position'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -821,6 +826,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
             'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
+            'feature_values_use_position' => (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION'),
+            'feature_values_position_supported' => DataAccessor::isFeatureValuePositionSupported(),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');

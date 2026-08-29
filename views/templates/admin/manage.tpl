@@ -303,6 +303,30 @@
 		</div>
 	</div>
 
+	{if $feature_values_position_supported}
+	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Use position for feature values ordering' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_filter_feature_values_use_position" id="ps_layered_filter_feature_values_use_position_on" value="1"{if $feature_values_use_position} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_feature_values_use_position_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_filter_feature_values_use_position" id="ps_layered_filter_feature_values_use_position_off" value="0"{if !$feature_values_use_position} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_feature_values_use_position_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	  <div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='Order feature values in the filters the way they are arranged in Catalog > Features, instead of alphabetically.' d='Modules.Facetedsearch.Admin'}
+		</div>
+	  </div>
+	</div>
+	{/if}
+
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>
 	</div>
