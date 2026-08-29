@@ -574,6 +574,51 @@ class Converter
      */
     private function sortFiltersByLabel(Filter $a, Filter $b)
     {
+        $collator = $this->getLabelCollator();
+        if ($collator !== null) {
+            $comparison = $collator->compare($a->getLabel(), $b->getLabel());
+            // compare() returns false on malformed UTF-8; fall back rather than feed
+            // usort() a value that casts to "equal".
+            if ($comparison !== false) {
+                return $comparison;
+            }
+        }
+
         return strnatcasecmp($a->getLabel(), $b->getLabel());
+    }
+
+    /**
+     * Collator for the language currently in context, or null when one cannot be built
+     * (intl extension missing, or no locale configured) and natural sorting is used instead.
+     *
+     * Held per locale in a static so a usort() pass does not rebuild it on every comparison.
+     *
+     * @return \Collator|null
+     */
+    private function getLabelCollator()
+    {
+        static $collators = [];
+
+        if (!class_exists('Collator')) {
+            return null;
+        }
+
+        $locale = isset($this->context->language->locale) ? $this->context->language->locale : '';
+        if ($locale === '') {
+            return null;
+        }
+
+        if (!array_key_exists($locale, $collators)) {
+            $collator = collator_create($locale);
+            if ($collator !== null) {
+                // Case insensitive, as strnatcasecmp was, but accent and locale aware.
+                $collator->setStrength(\Collator::SECONDARY);
+                // Keep the natural ordering of embedded numbers (e.g. 2 before 10).
+                $collator->setAttribute(\Collator::NUMERIC_COLLATION, \Collator::ON);
+            }
+            $collators[$locale] = $collator;
+        }
+
+        return $collators[$locale];
     }
 }

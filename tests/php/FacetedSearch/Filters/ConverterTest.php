@@ -110,6 +110,51 @@ class ConverterTest extends MockeryTestCase
         );
     }
 
+    /**
+     * Filter labels are sorted again when the facets are built, so the ordering a visitor sees is
+     * the one decided here. Czech sorts "Č" as a letter of its own, after every "C" word and
+     * before "Z"; comparing bytes puts it after the whole ASCII alphabet instead.
+     *
+     * @see https://github.com/PrestaShop/ps_facetedsearch/issues/1201
+     */
+    public function testGetFacetsFromFilterBlocksSortsLabelsLocaleAware()
+    {
+        if (!class_exists('Collator')) {
+            $this->markTestSkipped('The intl extension is required for locale aware sorting.');
+        }
+
+        $this->contextMock->language->locale = 'cs-CZ';
+
+        $facets = $this->converter->getFacetsFromFilterBlocks([
+            [
+                'type_lite' => 'id_feature',
+                'type' => 'id_feature',
+                'id_key' => '2',
+                'name' => 'Property',
+                'url_name' => null,
+                'meta_title' => null,
+                'values' => [
+                    1 => ['nbr' => '1', 'name' => 'Zelená', 'url_name' => null, 'meta_title' => null],
+                    2 => ['nbr' => '1', 'name' => 'Červená', 'url_name' => null, 'meta_title' => null],
+                    3 => ['nbr' => '1', 'name' => 'Černá', 'url_name' => null, 'meta_title' => null],
+                    4 => ['nbr' => '1', 'name' => 'Bílá', 'url_name' => null, 'meta_title' => null],
+                ],
+                'filter_show_limit' => '0',
+                'filter_type' => '0',
+            ],
+        ]);
+
+        $labels = [];
+        foreach ($facets[0]->getFilters() as $filter) {
+            $labels[] = $filter->getLabel();
+        }
+
+        $this->assertSame(
+            ['Bílá', 'Černá', 'Červená', 'Zelená'],
+            $labels
+        );
+    }
+
     public function facetsProvider()
     {
         return [
