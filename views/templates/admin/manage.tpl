@@ -319,6 +319,11 @@
 		  <a class="slide-button btn"></a>
 		</span>
 	  </div>
+	  <div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='Order feature values in the filters the way they are arranged in Catalog > Features, instead of alphabetically.' d='Modules.Facetedsearch.Admin'}
+		</div>
+	  </div>
 	</div>
 	{/if}
 
