@@ -24,7 +24,6 @@ use Category;
 use Configuration;
 use Context;
 use Db;
-use Shop;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters;
@@ -32,6 +31,7 @@ use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
 use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
+use Shop;
 
 class Converter
 {
