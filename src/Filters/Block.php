@@ -910,20 +910,6 @@ class Block
      */
     private function sortFeatureBlock($featureBlock)
     {
-        // The merchant arranged the feature values by hand, so keep that order instead of
-        // sorting the names. Only reachable on cores that expose a position.
-        if (DataAccessor::isFeatureValuePositionSupported()
-            && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')
-        ) {
-            foreach ($featureBlock as $key => $value) {
-                uasort($featureBlock[$key]['values'], function ($a, $b) {
-                    return $a['position'] <=> $b['position'];
-                });
-            }
-
-            return $featureBlock;
-        }
-
         //Natural sort
         foreach ($featureBlock as $key => $value) {
             $temp = [];
