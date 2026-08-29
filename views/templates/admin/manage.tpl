@@ -288,6 +288,50 @@
     </div>
   </div>
 
+  <div class="form-group">
+    <label class="col-lg-3 control-label">{l s='Display attribute groups when only one value is available' d='Modules.Facetedsearch.Admin'}</label>
+    <div class="col-lg-9">
+      <span class="switch prestashop-switch fixed-width-lg">
+        <input type="radio" name="ps_layered_show_single_attribute_group" id="ps_layered_show_single_attribute_group_on" value="1"{if $show_single_attribute_group} checked="checked"{/if}>
+        <label for="ps_layered_show_single_attribute_group_on" class="radioCheck">
+          <i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+        </label>
+        <input type="radio" name="ps_layered_show_single_attribute_group" id="ps_layered_show_single_attribute_group_off" value="0"{if !$show_single_attribute_group} checked="checked"{/if}>
+        <label for="ps_layered_show_single_attribute_group_off" class="radioCheck">
+          <i class="color_danger"></i> {l s='No' d='Admin.Global'}
+        </label>
+        <a class="slide-button btn"></a>
+      </span>
+    </div>
+    <div class="col-lg-9 col-lg-offset-3">
+      <div class="help-block">
+        {l s='Keep attribute group facets such as Size or Color visible when filtering leaves only one available value.' d='Modules.Facetedsearch.Admin'}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-lg-3 control-label">{l s='Display brands when only one value is available' d='Modules.Facetedsearch.Admin'}</label>
+    <div class="col-lg-9">
+      <span class="switch prestashop-switch fixed-width-lg">
+        <input type="radio" name="ps_layered_show_single_manufacturer" id="ps_layered_show_single_manufacturer_on" value="1"{if $show_single_manufacturer} checked="checked"{/if}>
+        <label for="ps_layered_show_single_manufacturer_on" class="radioCheck">
+          <i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+        </label>
+        <input type="radio" name="ps_layered_show_single_manufacturer" id="ps_layered_show_single_manufacturer_off" value="0"{if !$show_single_manufacturer} checked="checked"{/if}>
+        <label for="ps_layered_show_single_manufacturer_off" class="radioCheck">
+          <i class="color_danger"></i> {l s='No' d='Admin.Global'}
+        </label>
+        <a class="slide-button btn"></a>
+      </span>
+    </div>
+    <div class="col-lg-9 col-lg-offset-3">
+      <div class="help-block">
+        {l s='Keep the Brand facet visible when filtering leaves only one available brand.' d='Modules.Facetedsearch.Admin'}
+      </div>
+    </div>
+  </div>
+
 	<div class="form-group">
 		<label class="control-label col-lg-3">{l s='Default filter template for new categories' d='Modules.Facetedsearch.Admin'}</label>				
 		<div class="col-lg-9">

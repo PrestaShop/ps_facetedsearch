@@ -208,6 +208,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', 1);
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', 0);
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', 0);
+            Configuration::updateValue('PS_LAYERED_SHOW_SINGLE_ATTRIBUTE_GROUP', 0);
+            Configuration::updateValue('PS_LAYERED_SHOW_SINGLE_MANUFACTURER', 0);
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', 1);
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', 0);
 
@@ -247,6 +249,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        Configuration::deleteByName('PS_LAYERED_SHOW_SINGLE_ATTRIBUTE_GROUP');
+        Configuration::deleteByName('PS_LAYERED_SHOW_SINGLE_MANUFACTURER');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -720,6 +724,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_PRICE_ROUNDING', (int) Tools::getValue('ps_layered_filter_price_rounding'));
             Configuration::updateValue('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST', (int) Tools::getValue('ps_layered_filter_show_out_of_stock_last'));
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
+            Configuration::updateValue('PS_LAYERED_SHOW_SINGLE_ATTRIBUTE_GROUP', (int) Tools::getValue('ps_layered_show_single_attribute_group'));
+            Configuration::updateValue('PS_LAYERED_SHOW_SINGLE_MANUFACTURER', (int) Tools::getValue('ps_layered_show_single_manufacturer'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
 
@@ -818,6 +824,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'price_use_rounding' => (bool) Configuration::get('PS_LAYERED_FILTER_PRICE_ROUNDING'),
             'show_out_of_stock_last' => (bool) Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST'),
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
+            'show_single_attribute_group' => (bool) Configuration::get('PS_LAYERED_SHOW_SINGLE_ATTRIBUTE_GROUP'),
+            'show_single_manufacturer' => (bool) Configuration::get('PS_LAYERED_SHOW_SINGLE_MANUFACTURER'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
             'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
