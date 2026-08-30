@@ -16,8 +16,8 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-import LocalizationException from '../exception/localization';
-import NumberSymbol from '../number-symbol';
+import LocalizationException from '../exception/localization.js';
+import NumberSymbol from '../number-symbol.js';
 
 class NumberSpecification {
   /**
@@ -49,7 +49,6 @@ class NumberSpecification {
     this.symbol = symbol;
 
     this.maxFractionDigits = maxFractionDigits;
-    // eslint-disable-next-line
     this.minFractionDigits = maxFractionDigits < minFractionDigits ? maxFractionDigits : minFractionDigits;
 
     this.groupingUsed = groupingUsed;

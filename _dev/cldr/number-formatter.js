@@ -20,11 +20,10 @@
  * These placeholders are used in CLDR number formatting templates.
  * They are meant to be replaced by the correct localized symbols in the number formatting process.
  */
-import NumberSymbol from './number-symbol';
-import PriceSpecification from './specifications/price';
-import NumberSpecification from './specifications/number';
-
-const escapeRE = require('lodash.escaperegexp');
+import escapeRE from 'lodash.escaperegexp';
+import NumberSymbol from './number-symbol.js';
+import PriceSpecification from './specifications/price.js';
+import NumberSpecification from './specifications/number.js';
 
 const CURRENCY_SYMBOL_PLACEHOLDER = '¤';
 const DECIMAL_SEPARATOR_PLACEHOLDER = '.';
