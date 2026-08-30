@@ -123,6 +123,37 @@ class Converter
                 case self::TYPE_AVAILABILITY:
                 case self::TYPE_ATTRIBUTE_GROUP:
                 case self::TYPE_FEATURE:
+                    // Build numeric feature sliders as range facets with one synthetic filter.
+                    if ($filterBlock['type'] === self::TYPE_FEATURE && (int) $filterBlock['filter_type'] === self::WIDGET_TYPE_SLIDER) {
+                        $facet
+                            ->setType('feature')
+                            ->setProperty(self::TYPE_FEATURE, $filterBlock['id_key'])
+                            ->setProperty('min', $filterBlock['min'])
+                            ->setProperty('max', $filterBlock['max'])
+                            ->setProperty('step', $filterBlock['step'])
+                            ->setProperty('unit', $filterBlock['unit'])
+                            ->setProperty('specifications', $filterBlock['specifications'])
+                            ->setMultipleSelectionAllowed(false)
+                            ->setProperty('range', true);
+
+                        if (isset($filterBlock['url_name'])) {
+                            $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
+                        }
+
+                        $filter = new Filter();
+                        $filter
+                            ->setActive($filterBlock['value'] !== null)
+                            ->setType('feature')
+                            ->setMagnitude($filterBlock['nbr'])
+                            ->setProperty('symbol', $filterBlock['unit'])
+                            ->setValue($filterBlock['value']);
+
+                        $facet->addFilter($filter);
+
+                        break;
+                    }
+
+                    // Build discrete facets for all regular feature and list-based filter types.
                     $type = $filterBlock['type'];
                     if ($filterBlock['type'] == self::TYPE_ATTRIBUTE_GROUP) {
                         $type = 'attribute_group';
@@ -420,6 +451,29 @@ class Converter
                         }
 
                         $featureValues = $this->dataAccessor->getFeatureValues($feature['id_feature'], $idLang);
+
+                        // Convert a valid numeric feature range to the existing feature value ID filter.
+                        if ((int) $filter['filter_type'] === self::WIDGET_TYPE_SLIDER) {
+                            $range = isset($featureValueLabels[1], $featureValueLabels[2]) ? NumericFeatureValueParser::parseRange($featureValueLabels[1], $featureValueLabels[2]) : null;
+                            if ($range === null) {
+                                continue;
+                            }
+
+                            $matchingFeatureValueIds = [];
+                            foreach ($featureValues as $featureValue) {
+                                $numericFeatureValue = NumericFeatureValueParser::parse($featureValue['value']);
+                                if ($numericFeatureValue !== null && $numericFeatureValue['value'] >= $range[0] && $numericFeatureValue['value'] <= $range[1]) {
+                                    $matchingFeatureValueIds[] = $featureValue['id_feature_value'];
+                                }
+                            }
+
+                            $searchFilters['feature_range'][$feature['id_feature']] = $range;
+                            $searchFilters['id_feature'][$feature['id_feature']] = empty($matchingFeatureValueIds) ? [0] : $matchingFeatureValueIds;
+
+                            continue;
+                        }
+
+                        // Match regular feature filters by their localized labels or URL names.
                         foreach ($featureValues as $featureValue) {
                             if (in_array($featureValue['url_name'], $featureValueLabels)
                                 || in_array($featureValue['value'], $featureValueLabels)

@@ -22,7 +22,17 @@ import NumberFormatter from '../cldr/number-formatter';
 
 const formatters = {};
 
-const displayLabelBlock = (formatterId, displayBlock, min, max) => {
+// Escape separators used by the facet URL serializer.
+const escapeFacetValue = (value) => value.toString().replace(/([/-])/g, '\\$1');
+
+const displayLabelBlock = (formatterId, displayBlock, min, max, unit) => {
+  // Unitless numeric feature sliders can render their range without parsing an existing label.
+  if (formatters[formatterId] === undefined && unit === '') {
+    displayBlock.text(`${min} - ${max}`);
+    return;
+  }
+
+  // Preserve the existing localized formatting for price and weight sliders.
   if (formatters[formatterId] === undefined) {
     displayBlock.text(
       displayBlock.text().replace(
@@ -55,12 +65,14 @@ const refreshSliders = () => {
       $(`#facet_label_${$el.data('slider-id')}`),
       values === null ? $el.data('slider-min') : values[0],
       values === null ? $el.data('slider-max') : values[1],
+      $el.data('slider-unit'),
     );
 
     $(`#slider-range_${$el.data('slider-id')}`).slider({
       range: true,
       min: $el.data('slider-min'),
       max: $el.data('slider-max'),
+      step: $el.data('slider-step'),
       values: [
         values === null ? $el.data('slider-min') : values[0],
         values === null ? $el.data('slider-max') : values[1],
@@ -92,13 +104,13 @@ const refreshSliders = () => {
             // eslint-disable-next-line
             query.value += [
               query.value.length > 0 ? '/' : '',
-              $el.data('slider-label'),
+              escapeFacetValue($el.data('slider-label')),
               '-',
-              $el.data('slider-unit'),
+              escapeFacetValue($el.data('slider-unit')),
               '-',
-              ui.values[0],
+              escapeFacetValue(ui.values[0]),
               '-',
-              ui.values[1],
+              escapeFacetValue(ui.values[1]),
             ].join('');
           }
         });
@@ -120,6 +132,7 @@ const refreshSliders = () => {
           $(`#facet_label_${$el.data('slider-id')}`),
           ui.values[0],
           ui.values[1],
+          $el.data('slider-unit'),
         );
       },
     });
