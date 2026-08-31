@@ -29,6 +29,7 @@ if (file_exists($autoloadPath)) {
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
+use PrestaShop\Module\FacetedSearch\Indexation\PriceIndexer;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
 class Ps_Facetedsearch extends Module implements WidgetInterface
@@ -51,22 +52,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      * @var int
      */
     const LOCK_TEMPLATE_CREATION = 20000;
-
-    /**
-     * US iso code, used to prevent taxes usage while computing prices
-     *
-     * @var array
-     */
-    const ISO_CODE_TAX_FREE = [
-        'US',
-    ];
-
-    /**
-     * Number of digits for MySQL DECIMAL
-     *
-     * @var int
-     */
-    const DECIMAL_DIGITS = 6;
 
     /**
      * @var array List of controllers supported by this module
@@ -93,11 +78,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     private $hookDispatcher;
 
+    /**
+     * @var PriceIndexer
+     */
+    private $priceIndexer;
+
     public function __construct()
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '5.0.0';
+        $this->version = '5.1.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -369,8 +359,15 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     public function fullPricesIndexProcess($cursor = 0, $ajax = false, $smart = false)
     {
+        // Prepare the price index before the first batch while preserving valid rows during smart indexing.
         if ($cursor == 0 && !$smart) {
             $this->rebuildPriceIndexTable();
+        } elseif ($cursor == 0) {
+            $this->getDatabase()->execute(
+                'DELETE psi FROM `' . _DB_PREFIX_ . 'layered_price_index` psi ' .
+                'LEFT JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON (ps.`id_product` = psi.`id_product` AND ps.`active` = 1 AND ps.`visibility` IN ("both", "catalog")) ' .
+                'WHERE ps.`id_product` IS NULL'
+            );
         }
 
         return $this->indexPrices($cursor, true, $ajax, $smart);
@@ -395,211 +392,12 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      */
     public function indexProductPrices($idProduct, $smart = true)
     {
-        static $groups = null;
-
-        if ($groups === null) {
-            $groups = $this->getDatabase()->executeS('SELECT id_group FROM `' . _DB_PREFIX_ . 'group_reduction`');
-            if (!$groups) {
-                $groups = [];
-            }
+        // Reuse one indexer instance so its shop dimension caches survive the complete indexing process.
+        if ($this->priceIndexer === null) {
+            $this->priceIndexer = new PriceIndexer();
         }
 
-        $shopList = Shop::getShops(false, null, true);
-
-        foreach ($shopList as $idShop) {
-            $currencyList = Currency::getCurrencies(false, true, true);
-
-            $minPrice = [];
-            $maxPrice = [];
-
-            if ($smart) {
-                $this->getDatabase()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
-            }
-
-            $taxRatesByCountry = $this->getDatabase()->executeS(
-                'SELECT t.rate rate, tr.id_country, c.iso_code ' .
-                'FROM `' . _DB_PREFIX_ . 'product_shop` p ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'tax_rules_group` trg ON  ' .
-                '(trg.id_tax_rules_group = p.id_tax_rules_group AND p.id_shop = ' . (int) $idShop . ') ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'tax_rule` tr ON (tr.id_tax_rules_group = trg.id_tax_rules_group) ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'tax` t ON (t.id_tax = tr.id_tax AND t.active = 1) ' .
-                'JOIN `' . _DB_PREFIX_ . 'country` c ON (tr.id_country=c.id_country AND c.active = 1) ' .
-                'WHERE id_product = ' . (int) $idProduct . ' ' .
-                'GROUP BY id_product, tr.id_country'
-            );
-
-            // When tax is not applied to indexed prices, drop the per-country tax rates entirely.
-            if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $taxRatesByCountry = [];
-            }
-
-            // Always index every active country of the shop. Countries that have no specific tax
-            // rule for this product (or when the "use tax" option is off) are indexed with a 0% rate.
-            // Without this, the price sort - an INNER JOIN on layered_price_index.id_country - returns
-            // no products at all for customers whose country was not indexed. This makes the
-            // with-tax-rules path consistent with the path already used for products without any tax
-            // rule. See https://github.com/PrestaShop/ps_facetedsearch/issues/1206
-            $indexedCountryIds = array_column($taxRatesByCountry, 'id_country');
-            $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
-            foreach ($shopCountries as $country) {
-                if (!empty($country['active']) && !in_array($country['id_country'], $indexedCountryIds)) {
-                    $taxRatesByCountry[] = [
-                        'rate' => 0,
-                        'id_country' => $country['id_country'],
-                        'iso_code' => $country['iso_code'],
-                    ];
-                }
-            }
-
-            $productMinPrices = $this->getDatabase()->executeS(
-                'SELECT id_shop, id_currency, id_country, id_group, from_quantity
-                FROM `' . _DB_PREFIX_ . 'specific_price`
-                WHERE id_product = ' . (int) $idProduct . ' AND id_shop IN (0,' . (int) $idShop . ')'
-            );
-
-            $countries = Country::getCountries($this->getContext()->language->id, true, false, false);
-            foreach ($countries as $country) {
-                $idCountry = $country['id_country'];
-
-                // Get price by currency & country, without reduction!
-                foreach ($currencyList as $currency) {
-                    $price = Product::priceCalculation(
-                        $idShop,
-                        (int) $idProduct,
-                        null,
-                        $idCountry,
-                        0,
-                        '',
-                        $currency['id_currency'],
-                        0,
-                        0,
-                        false,
-                        6, // Decimals
-                        false,
-                        false,
-                        true,
-                        $specificPriceOutput,
-                        true
-                    );
-
-                    $minPrice[$idCountry][$currency['id_currency']] = $price;
-                    $maxPrice[$idCountry][$currency['id_currency']] = $price;
-                }
-
-                foreach ($productMinPrices as $specificPrice) {
-                    foreach ($currencyList as $currency) {
-                        if ($specificPrice['id_currency'] &&
-                            $specificPrice['id_currency'] != $currency['id_currency']
-                        ) {
-                            continue;
-                        }
-
-                        $price = Product::priceCalculation(
-                            $idShop,
-                            (int) $idProduct,
-                            null,
-                            $idCountry,
-                            0,
-                            '',
-                            $currency['id_currency'],
-                            (int) $specificPrice['id_group'],
-                            $specificPrice['from_quantity'],
-                            false,
-                            6,
-                            false,
-                            true,
-                            true,
-                            $specificPriceOutput,
-                            true
-                        );
-
-                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
-                            $maxPrice[$idCountry][$currency['id_currency']] = $price;
-                        }
-
-                        if ($price == 0) {
-                            continue;
-                        }
-
-                        if (null === $minPrice[$idCountry][$currency['id_currency']] || $price < $minPrice[$idCountry][$currency['id_currency']]) {
-                            $minPrice[$idCountry][$currency['id_currency']] = $price;
-                        }
-                    }
-                }
-
-                foreach ($groups as $group) {
-                    foreach ($currencyList as $currency) {
-                        $price = Product::priceCalculation(
-                            $idShop,
-                            (int) $idProduct,
-                            null,
-                            (int) $idCountry,
-                            0,
-                            '',
-                            (int) $currency['id_currency'],
-                            (int) $group['id_group'],
-                            0,
-                            false,
-                            6,
-                            false,
-                            true,
-                            true,
-                            $specificPriceOutput,
-                            true
-                        );
-
-                        if (!isset($maxPrice[$idCountry][$currency['id_currency']])) {
-                            $maxPrice[$idCountry][$currency['id_currency']] = 0;
-                        }
-
-                        if (!isset($minPrice[$idCountry][$currency['id_currency']])) {
-                            $minPrice[$idCountry][$currency['id_currency']] = null;
-                        }
-
-                        if ($price == 0) {
-                            continue;
-                        }
-
-                        if (null === $minPrice[$idCountry][$currency['id_currency']] || $price < $minPrice[$idCountry][$currency['id_currency']]) {
-                            $minPrice[$idCountry][$currency['id_currency']] = $price;
-                        }
-
-                        if ($price > $maxPrice[$idCountry][$currency['id_currency']]) {
-                            $maxPrice[$idCountry][$currency['id_currency']] = $price;
-                        }
-                    }
-                }
-            }
-
-            $values = [];
-            foreach ($taxRatesByCountry as $taxRateByCountry) {
-                $taxRate = $taxRateByCountry['rate'];
-                $idCountry = $taxRateByCountry['id_country'];
-                foreach ($currencyList as $currency) {
-                    $minPriceValue = array_key_exists($idCountry, $minPrice) ? $minPrice[$idCountry][$currency['id_currency']] : 0;
-                    $maxPriceValue = array_key_exists($idCountry, $maxPrice) ? $maxPrice[$idCountry][$currency['id_currency']] : 0;
-                    if (!in_array($taxRateByCountry['iso_code'], self::ISO_CODE_TAX_FREE)) {
-                        $minPriceValue = Tools::ps_round($minPriceValue * (100 + $taxRate) / 100, self::DECIMAL_DIGITS);
-                        $maxPriceValue = Tools::ps_round($maxPriceValue * (100 + $taxRate) / 100, self::DECIMAL_DIGITS);
-                    }
-
-                    $values[] = '(' . (int) $idProduct . ',
-                        ' . (int) $currency['id_currency'] . ',
-                        ' . $idShop . ',
-                        ' . (float) $minPriceValue . ',
-                        ' . (float) $maxPriceValue . ',
-                        ' . (int) $idCountry . ')';
-                }
-            }
-
-            if (!empty($values)) {
-                $this->getDatabase()->execute(
-                    'INSERT INTO `' . _DB_PREFIX_ . 'layered_price_index` (id_product, id_currency, id_shop, price_min, price_max, id_country)
-                     VALUES ' . implode(',', $values) . '
-                     ON DUPLICATE KEY UPDATE id_product = id_product' // Avoid duplicate keys
-                );
-            }
-        }
+        $this->priceIndexer->indexProductPrices($idProduct, $smart);
     }
 
     /**
@@ -1454,7 +1252,8 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             `price_min` DECIMAL(20, 6) NOT NULL,
             `price_max` DECIMAL(20, 6) NOT NULL,
             `id_country` INT NOT NULL,
-            PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`),
+            `id_group` INT NOT NULL,
+            PRIMARY KEY (`id_product`, `id_currency`, `id_shop`, `id_country`, `id_group`),
             INDEX `id_currency` (`id_currency`),
             INDEX `price_min` (`price_min`),
             INDEX `price_max` (`price_max`)
