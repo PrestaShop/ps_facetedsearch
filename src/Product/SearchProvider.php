@@ -21,6 +21,7 @@
 namespace PrestaShop\Module\FacetedSearch\Product;
 
 use Configuration;
+use Group;
 use Hook;
 use PrestaShop\Module\FacetedSearch\Filters;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
@@ -270,14 +271,16 @@ class SearchProvider implements FacetsRendererInterface, ProductSearchProviderIn
             ]
         );
 
+        // Separate cached filter blocks by every context dimension that can change their contents.
         $filterHash = md5(
             sprintf(
-                '%d-%d-%d-%s-%d-%s',
+                '%d-%d-%d-%s-%d-%d-%s',
                 (int) $context->shop->id,
                 (int) $context->currency->id,
                 (int) $context->language->id,
                 $filterKey,
                 (int) $context->country->id,
+                (int) Group::getCurrent()->id,
                 serialize($facetedSearchFilters)
             )
         );
