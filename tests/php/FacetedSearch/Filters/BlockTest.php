@@ -104,6 +104,14 @@ class BlockTest extends MockeryTestCase
             ->andReturn($this->contextMock);
         Context::setStaticExpectations($this->contextMock);
 
+        // Return the effective customer group used by the adapter for the current shop.
+        $currentGroup = new stdClass();
+        $currentGroup->id = 5;
+        $groupMock = Mockery::mock(Group::class);
+        $groupMock->shouldReceive('getCurrent')
+            ->andReturn($currentGroup);
+        Group::setStaticExpectations($groupMock);
+
         $this->dbMock = Mockery::mock(Db::class);
         $dbMock = Mockery::mock(Db::class)->makePartial();
         $dbMock->shouldReceive('getInstance')
@@ -156,6 +164,7 @@ class BlockTest extends MockeryTestCase
     public function testGetFiltersBlockWithPriceDeactivated()
     {
         $group = new stdClass();
+        $group->id = 5;
         $group->show_prices = false;
 
         $groupMock = Mockery::mock(Group::class);
@@ -187,6 +196,7 @@ class BlockTest extends MockeryTestCase
     public function testGetFiltersBlockWithPrice()
     {
         $group = new stdClass();
+        $group->id = 5;
         $group->show_prices = true;
 
         $groupMock = Mockery::mock(Group::class);
