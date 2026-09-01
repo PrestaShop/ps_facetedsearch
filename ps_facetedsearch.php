@@ -703,6 +703,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 );
             }
         } elseif (Tools::isSubmit('submitLayeredSettings')) {
+            // The depth is a plain (int) cast below, which silently turns "LLOI" into 0, "1,5" into 1 and
+            // accepts negatives - so anything that is not a whole number of zero or more is rejected here
+            // rather than stored as something the merchant did not type.
+            $categoryDepth = Tools::getValue('ps_layered_filter_category_depth');
+            if (!is_numeric($categoryDepth) || (string) (int) $categoryDepth !== trim((string) $categoryDepth) || (int) $categoryDepth < 0) {
+                $this->context->smarty->assign('message', $this->displayError(
+                    $this->trans('The category filter depth must be a whole number, zero or more.', [], 'Modules.Facetedsearch.Admin')
+                ));
+
+                return;
+            }
+
             Configuration::updateValue('PS_LAYERED_CACHE_ENABLED', (int) Tools::getValue('ps_layered_cache_enabled'));
             Configuration::updateValue('PS_LAYERED_SHOW_QTIES', (int) Tools::getValue('ps_layered_show_qties'));
             Configuration::updateValue('PS_LAYERED_FULL_TREE', (int) Tools::getValue('ps_layered_full_tree'));
