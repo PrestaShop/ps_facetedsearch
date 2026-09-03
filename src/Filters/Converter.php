@@ -411,7 +411,17 @@ class Converter
                             continue;
                         }
 
-                        if (isset($receivedFilters[$feature['url_name']])) {
+                        /*
+                         * WHY: a facet that has an explicit URL slug answers to that slug only. Keeping the
+                         * plain name as a fallback is what lets two facets sharing a name - a feature and an
+                         * attribute group both called "Color" - activate from the same URL segment and AND
+                         * each other down to zero results, with no way for the merchant to separate them.
+                         * The slug is already what serialization emits, so it is the whole address.
+                         */
+                        if ($feature['url_name'] !== null) {
+                            if (!isset($receivedFilters[$feature['url_name']])) {
+                                continue;
+                            }
                             $featureValueLabels = $receivedFilters[$feature['url_name']];
                         } elseif (isset($receivedFilters[$feature['name']])) {
                             $featureValueLabels = $receivedFilters[$feature['name']];
@@ -443,7 +453,11 @@ class Converter
                             continue;
                         }
 
-                        if (isset($receivedFilters[$attributeGroup['url_name']])) {
+                        // Same rule as for features above: an explicit slug is the whole address.
+                        if ($attributeGroup['url_name'] !== null) {
+                            if (!isset($receivedFilters[$attributeGroup['url_name']])) {
+                                continue;
+                            }
                             $attributeLabels = $receivedFilters[$attributeGroup['url_name']];
                         } elseif (isset($receivedFilters[$attributeGroup['attribute_group_name']])) {
                             $attributeLabels = $receivedFilters[$attributeGroup['attribute_group_name']];
