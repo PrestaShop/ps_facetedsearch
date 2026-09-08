@@ -1213,7 +1213,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
 
                 // Attribute filter
-                if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
+                if (count($attributeGroupsById) > 0) {
                     foreach (array_keys($a) as $kAttribute) {
                         if (!isset($doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
                             $filterData['layered_selection_ag_' . (int) $attributeGroupsById[(int) $kAttribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
@@ -1224,7 +1224,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
 
                 // Features filter
-                if (is_array($featuresById) && count($featuresById) > 0) {
+                if (count($featuresById) > 0) {
                     foreach (array_keys($f) as $kFeature) {
                         if (!isset($doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
                             $filterData['layered_selection_feat_' . (int) $featuresById[(int) $kFeature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];

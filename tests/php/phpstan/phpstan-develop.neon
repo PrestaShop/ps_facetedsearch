@@ -1,2 +1,9 @@
 includes:
 	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+	# PHPStan 2 derives the analysed language level from composer.json ("php": ">=7.1").
+	# Under PHP 7.1 semantics, the native "mixed" type used by Symfony 7 is parsed as a
+	# class name, which reports Symfony\Component\Validator\mixed instead of mixed.
+	# The develop matrix only ever runs on PHP 8.1 and 8.5, so pin the level accordingly.
+	phpVersion: 80100
