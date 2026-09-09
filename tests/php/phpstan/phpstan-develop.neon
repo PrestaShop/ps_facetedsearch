@@ -2,8 +2,12 @@ includes:
 	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
 
 parameters:
-	# PHPStan 2 derives the analysed language level from composer.json ("php": ">=7.1").
-	# Under PHP 7.1 semantics, the native "mixed" type used by Symfony 7 is parsed as a
-	# class name, which reports Symfony\Component\Validator\mixed instead of mixed.
-	# The develop matrix only ever runs on PHP 8.1 and 8.5, so pin the level accordingly.
+	# PHPStan takes the PHP syntax level it parses with from the platform declaration,
+	# config.platform.php in composer.json (7.1.0 here) plus platform-overrides in
+	# composer.lock. Under 7.x semantics the native "mixed" type used by Symfony 7 is
+	# parsed as a class name, which reports Symfony\Component\Validator\mixed instead
+	# of mixed. "mixed" only became a type in PHP 8.0, so raising the platform floor
+	# within 7.x does not help, and 8.0 is not reachable while phpunit ~5.7 caps the
+	# dev dependencies below PHP 8. The develop matrix only ever runs on PHP 8.1 and
+	# 8.5, so pin the analysed level to what the job actually executes.
 	phpVersion: 80100
