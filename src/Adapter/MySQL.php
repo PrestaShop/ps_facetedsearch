@@ -533,7 +533,7 @@ class MySQL extends AbstractAdapter
         // query: products with zero or less quantity and not available to order go to the end
         $byOOPS = str_replace(
             [':byOutOfStockLast', ':field', ':value', ':direction'],
-            [$byOutOfStockLast, $computedField, $computedValue, $computedDirection],
+            [$byOutOfStockLast, $computedField, (string) $computedValue, $computedDirection],
             ':byOutOfStockLast AND FIELD(:field, :value) :direction'
         );
 
