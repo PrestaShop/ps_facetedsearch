@@ -1,2 +1,12 @@
 includes:
 	- %currentWorkingDirectory%/tests/php/phpstan/phpstan.neon
+
+parameters:
+	# PHPStan takes the PHP syntax level it parses with from the platform declaration,
+	# config.platform.php in composer.json (7.2.5 here) plus platform-overrides in
+	# composer.lock. Under 7.x semantics it cannot parse the 9.x core class
+	# PrestaShop\PrestaShop\Core\Context\LegacyControllerContext, which uses constructor
+	# property promotion, readonly and union types, and reports it as an unknown class
+	# wherever Context::$controller is used. This matrix only ever runs on PHP 8.1 and
+	# above, so pin the analysed level to what the job actually executes.
+	phpVersion: 80100
