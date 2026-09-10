@@ -154,6 +154,88 @@ class ConverterTest extends MockeryTestCase
     }
 
     /**
+     * A feature and an attribute group may carry the same name. The URL segment holds one label, so
+     * without a distinguishing slug both facets answer to it and their conditions AND each other down
+     * to an empty result page. A facet that has an explicit URL slug must therefore answer to that
+     * slug alone, leaving the plain label to the facet that has none. See issue #15635.
+     */
+    public function testFacetWithAnUrlNameIsNotActivatedByItsPlainName()
+    {
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            ['type' => Converter::TYPE_FEATURE, 'id_value' => 5, 'filter_type' => 0],
+            ['type' => Converter::TYPE_ATTRIBUTE_GROUP, 'id_value' => 7, 'filter_type' => 0],
+        ]);
+
+        // The visitor followed the attribute group's link, which carries its plain name.
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Color' => ['White'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getFeatures')->with(2)->andReturn([
+            5 => ['id_feature' => 5, 'name' => 'Color', 'url_name' => 'feature-color'],
+        ]);
+        $dataAccessor->shouldReceive('getFeatureValues')->with(5, 2)->andReturn([
+            ['id_feature_value' => 10, 'value' => 'White', 'url_name' => 'White'],
+        ]);
+        $dataAccessor->shouldReceive('getAttributesGroups')->with(2)->andReturn([
+            7 => ['id_attribute_group' => 7, 'attribute_group_name' => 'Color', 'url_name' => null],
+        ]);
+        $dataAccessor->shouldReceive('getAttributes')->with(2, 7)->andReturn([
+            ['id_attribute' => 20, 'name' => 'White', 'url_name' => 'White'],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            ['id_attribute_group' => [7 => [20]]],
+            $converter->createFacetedSearchFiltersFromQuery($query)
+        );
+    }
+
+    /**
+     * The counterpart of the test above: a facet with no slug of its own keeps answering to its plain
+     * name, so URLs already indexed for every shop that never configured one keep working.
+     */
+    public function testFacetWithoutAnUrlNameStillMatchesItsPlainName()
+    {
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            ['type' => Converter::TYPE_FEATURE, 'id_value' => 5, 'filter_type' => 0],
+        ]);
+
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Composition' => ['Cotton'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getFeatures')->with(2)->andReturn([
+            5 => ['id_feature' => 5, 'name' => 'Composition', 'url_name' => null],
+        ]);
+        $dataAccessor->shouldReceive('getFeatureValues')->with(5, 2)->andReturn([
+            ['id_feature_value' => 10, 'value' => 'Cotton', 'url_name' => null],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            ['id_feature' => [5 => [10]]],
+            $converter->createFacetedSearchFiltersFromQuery($query)
+        );
+    }
+
+    /**
      * Test different scenario for facets filter
      *
      * @dataProvider facetsProvider
