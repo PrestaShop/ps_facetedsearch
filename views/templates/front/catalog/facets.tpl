@@ -156,6 +156,7 @@
                 class="faceted-slider collapse{if !$_collapse} in{/if}"
                 data-slider-min="{$facet.properties.min}"
                 data-slider-max="{$facet.properties.max}"
+                data-slider-step="{$facet.properties.step|default:1}"
                 data-slider-id="{$_expand_id}"
                 data-slider-values="{$filter.value|@json_encode}"
                 data-slider-unit="{$facet.properties.unit}"
