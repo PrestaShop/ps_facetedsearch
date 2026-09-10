@@ -70,6 +70,72 @@ class MySQLTest extends MockeryTestCase
         Configuration::setStaticExpectations($configurationMock);
     }
 
+    /**
+     * A product has one position per category, so ordering a subtree listing by position has to
+     * aggregate over the browsed category. The expression is evaluated against the outer query's
+     * joins, so it must not be selected in the initial population, which does not have them.
+     */
+    public function testGetQueryOrderedByAnExpressionKeepsItOutOfTheInitialPopulation()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->addFilter('nleft', [9], '>=');
+        $this->adapter->addFilter('nright', [14], '<=');
+        $this->adapter->addGroupBy('id_product');
+        $this->adapter->addSelectField('position');
+        $this->adapter->setOrderField('ISNULL(MIN(IF(cp.id_category = 6, cp.position, NULL))) ASC, MIN(IF(cp.id_category = 6, cp.position, NULL))');
+        $this->adapter->setOrderDirection('asc');
+
+        $query = $this->adapter->getQuery();
+        $innerQuery = substr($query, strpos($query, '(') + 1, strrpos($query, ') p INNER JOIN') - strpos($query, '(') - 1);
+
+        $this->assertNotContains('cp.id_category', $innerQuery, 'The initial population does not join category_product, so it cannot select an expression using it.');
+        $this->assertNotContains('ps_category_product', $innerQuery, 'The expression is read in the outer query, so the initial population does not need the join at all.');
+        $this->assertContains(') p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)', $query, 'The outer query joins category_product, which is what the expression reads.');
+        $this->assertContains('ORDER BY ISNULL(MIN(IF(cp.id_category = 6, cp.position, NULL))) ASC, MIN(IF(cp.id_category = 6, cp.position, NULL)) ASC, p.id_product DESC', $query);
+    }
+
+    /**
+     * An AND feature facet asks for every selected value at once. Each value becomes its own
+     * operation in a single group, and the adapter joins feature_product once per operation so a
+     * product only survives if it carries all of them. Reusing one join would compare a single row
+     * against several values and always return nothing.
+     */
+    public function testGetQueryWithFeatureValueAndFilterJoinsOncePerValue()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[
+            ['id_feature_value', [10]],
+            ['id_feature_value', [20]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' LEFT JOIN ps_feature_product fp_1 ON (p.id_product = fp_1.id_product)'
+            . ' WHERE ((fp.id_feature_value=10 AND fp_1.id_feature_value=20))'
+            . ' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    /**
+     * A regular feature facet matches any of the selected values, so they stay in one operation
+     * and one join.
+     */
+    public function testGetQueryWithFeatureValueOrFilterJoinsOnce()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10, 20]]]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' WHERE ((fp.id_feature_value IN (10, 20)))'
+            . ' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
     public function testGetEmptyQuery()
     {
         $this->assertEquals(
@@ -88,6 +154,69 @@ class MySQLTest extends MockeryTestCase
         $this->assertEquals(
             $expected,
             $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithFeatureIncludesCombinationFeatures()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        $adapter->addSelectField('id_feature');
+
+        // The feature_product table is replaced by a derived table merging product-level and
+        // combination-level (feature_product_attribute) feature values. Each row also exposes the
+        // combination it belongs to (id_product_attribute, NULL at product level) and the feature
+        // join is correlated with the product_attribute (pa) join.
+        $this->assertEquals(
+            'SELECT fp.id_feature FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' INNER JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
+            . ' FROM ps_feature_product'
+            . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
+            . ' FROM ps_feature_product_attribute fpa'
+            . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
+            . ' ON (p.id_product = fp.id_product'
+            . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    public function testFeatureAndAttributeFiltersMustMatchTheSameCombination()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        // Filter on a feature value carried by one combination and on an attribute carried by
+        // another one, the way Product\Search adds them.
+        $adapter->addOperationsFilter('with_features_3', [[['id_feature_value', [11]]]]);
+        $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
+
+        // Both the feature (fp) and the attribute (pac) joins are correlated with the same
+        // product_attribute (pa) row, so the two filters must be satisfied by the same combination.
+        $this->assertEquals(
+            'SELECT  FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
+            . ' FROM ps_feature_product'
+            . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
+            . ' FROM ps_feature_product_attribute fpa'
+            . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
+            . ' ON (p.id_product = fp.id_product'
+            . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))'
+            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
+            . ' WHERE ((fp.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
         );
     }
 
@@ -207,7 +336,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product)) p GROUP BY p.weight')
+            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.weight FROM ps_product p) p GROUP BY p.weight')
             ->andReturn(
                 [
                     [
@@ -244,7 +373,7 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) WHERE ((sa.quantity>=0))) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0)) GROUP BY p.weight')
+            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.weight FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0))) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0)) GROUP BY p.weight')
             ->andReturn(
                 [
                     [
@@ -330,6 +459,22 @@ class MySQLTest extends MockeryTestCase
     }
 
     /**
+     * A product is listed on the page of every supplier it is associated with, and that association
+     * lives in product_supplier. Filtering on the product's own id_supplier column would only match
+     * the default supplier.
+     */
+    public function testGetQueryWithSupplierFilterUsesTheAssociationTable()
+    {
+        $this->adapter->setSelectFields(['id_product']);
+        $this->adapter->addFilter('id_supplier', [7], '=');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p INNER JOIN ps_product_supplier psup ON (p.id_product = psup.id_product) WHERE psup.id_supplier=\'7\' ORDER BY p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    /**
      * @dataProvider getManyOperationsFilters
      */
     public function testGetQueryWithManyOperationsFilters($fields, $operationsFilter, $expected)
@@ -391,7 +536,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('asc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add, m.name FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) LEFT JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer)) p LEFT JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC, p.id_product DESC',
+            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer FROM ps_product p) p LEFT JOIN ps_manufacturer m ON (p.id_manufacturer = m.id_manufacturer) ORDER BY m.name ASC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
@@ -404,7 +549,20 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY p.position DESC, p.id_product DESC',
+            'SELECT p.id_product FROM (SELECT p.id_product, cp.position FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p ORDER BY p.position DESC, p.id_product DESC',
+            $this->adapter->getQuery()
+        );
+    }
+
+    public function testGetQueryWithSalesOrderFieldAndInitialPopulation()
+    {
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('sales');
+        $this->adapter->setOrderDirection('desc');
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM (SELECT p.id_product, psales.quantity as sales FROM ps_product p LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product)) p ORDER BY p.sales DESC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }
@@ -428,8 +586,46 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 0) ASC, p.position DESC, p.id_product DESC',
+            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, cp.position, SUM(sa.quantity) as quantity FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 0) ASC, p.position DESC, p.id_product DESC',
             $this->adapter->getQuery()
+        );
+    }
+
+    /**
+     * Once "out of stock last" ordering exposes quantity in the initial population, that column
+     * holds SUM(sa.quantity). A filter on quantity must still be read from the stock table,
+     * otherwise it silently compares against the aggregate instead of the row value.
+     */
+    public function testGetQueryFiltersQuantityOnStockTableWhenInitialPopulationExposesAggregate()
+    {
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(true);
+        Configuration::setStaticExpectations($configurationMock);
+
+        $productMock = Mockery::namedMock(Product::class);
+        $productMock->shouldReceive('isAvailableWhenOutOfStock')
+            ->with(2)
+            ->andReturn(true);
+
+        $this->adapter->addSelectField('id_product');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('desc');
+
+        // Ordering pulls quantity into the initial population as SUM(sa.quantity) as quantity
+        $this->adapter->getQuery();
+
+        $filteredAdapter = $this->adapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
+        $filteredAdapter->addOperationsFilter(
+            Search::STOCK_MANAGEMENT_FILTER,
+            [[['quantity', [0], '<=']]]
+        );
+
+        $this->assertContains(
+            'WHERE ((sa.quantity<=0))',
+            $filteredAdapter->getQuery()
         );
     }
 
@@ -452,7 +648,7 @@ class MySQLTest extends MockeryTestCase
         $this->adapter->setOrderDirection('desc');
 
         $this->assertEquals(
-            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, p.id_manufacturer, SUM(sa.quantity) as quantity, p.condition, p.weight, p.price, psales.quantity as sales, p.on_sale, p.date_add, cp.position FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_product_sale psales ON (psales.id_product = p.id_product) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 1) DESC, p.position DESC, p.id_product DESC',
+            'SELECT p.id_product, sa.out_of_stock FROM (SELECT p.id_product, cp.position, SUM(sa.quantity) as quantity FROM ps_product p INNER JOIN ps_category_product cp ON (p.id_product = cp.id_product) LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute)) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) ORDER BY IFNULL(p.quantity, 0) <= 0, IFNULL(p.quantity, 0) <= 0 AND FIELD(sa.out_of_stock, 1) DESC, p.position DESC, p.id_product DESC',
             $this->adapter->getQuery()
         );
     }

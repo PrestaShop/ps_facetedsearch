@@ -31,6 +31,7 @@ use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\Module\FacetedSearch\URLSerializer;
 use PrestaShop\PrestaShop\Core\Product\Search\Facet;
 use PrestaShop\PrestaShop\Core\Product\Search\Filter;
+use PrestaShop\PrestaShop\Core\Product\Search\ProductSearchQuery;
 use Shop;
 use stdClass;
 
@@ -95,6 +96,63 @@ class ConverterTest extends MockeryTestCase
         );
     }
 
+    public function testAndCheckboxFacetUsesCheckboxWidget()
+    {
+        // Render the AND behavior as regular checkboxes on the storefront.
+        $facets = $this->converter->getFacetsFromFilterBlocks(
+            [
+                [
+                    'name' => 'Feature',
+                    'type' => Converter::TYPE_FEATURE,
+                    'id_key' => 1,
+                    'values' => [],
+                    'filter_show_limit' => 0,
+                    'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND,
+                ],
+            ]
+        );
+
+        $this->assertSame('checkbox', $facets[0]->getWidgetType());
+        $this->assertTrue($facets[0]->isMultipleSelectionAllowed());
+    }
+
+    public function testCreateFacetedSearchFiltersPreservesFeatureAndOperator()
+    {
+        // Prepare one configured AND feature and two values received from the URL.
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            ['type' => Converter::TYPE_FEATURE, 'id_value' => 5, 'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND],
+        ]);
+
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Material' => ['Steel', 'Glass'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getFeatures')->with(2)->andReturn([
+            5 => ['id_feature' => 5, 'name' => 'Material', 'url_name' => 'Material'],
+        ]);
+        $dataAccessor->shouldReceive('getFeatureValues')->with(5, 2)->andReturn([
+            ['id_feature_value' => 10, 'value' => 'Steel', 'url_name' => 'Steel'],
+            ['id_feature_value' => 20, 'value' => 'Glass', 'url_name' => 'Glass'],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            [
+                'id_feature' => [5 => [10, 20]],
+                'id_feature_operator' => [5 => 'and'],
+            ],
+            $converter->createFacetedSearchFiltersFromQuery($query)
+        );
+    }
+
     /**
      * Test different scenario for facets filter
      *
@@ -107,6 +165,51 @@ class ConverterTest extends MockeryTestCase
             $this->converter->getFacetsFromFilterBlocks(
                 [$filterBlocks]
             )
+        );
+    }
+
+    /**
+     * Filter labels are sorted again when the facets are built, so the ordering a visitor sees is
+     * the one decided here. Czech sorts "Č" as a letter of its own, after every "C" word and
+     * before "Z"; comparing bytes puts it after the whole ASCII alphabet instead.
+     *
+     * @see https://github.com/PrestaShop/ps_facetedsearch/issues/1201
+     */
+    public function testGetFacetsFromFilterBlocksSortsLabelsLocaleAware()
+    {
+        if (!class_exists('Collator')) {
+            $this->markTestSkipped('The intl extension is required for locale aware sorting.');
+        }
+
+        $this->contextMock->language->locale = 'cs-CZ';
+
+        $facets = $this->converter->getFacetsFromFilterBlocks([
+            [
+                'type_lite' => 'id_feature',
+                'type' => 'id_feature',
+                'id_key' => '2',
+                'name' => 'Property',
+                'url_name' => null,
+                'meta_title' => null,
+                'values' => [
+                    1 => ['nbr' => '1', 'name' => 'Zelená', 'url_name' => null, 'meta_title' => null],
+                    2 => ['nbr' => '1', 'name' => 'Červená', 'url_name' => null, 'meta_title' => null],
+                    3 => ['nbr' => '1', 'name' => 'Černá', 'url_name' => null, 'meta_title' => null],
+                    4 => ['nbr' => '1', 'name' => 'Bílá', 'url_name' => null, 'meta_title' => null],
+                ],
+                'filter_show_limit' => '0',
+                'filter_type' => '0',
+            ],
+        ]);
+
+        $labels = [];
+        foreach ($facets[0]->getFilters() as $filter) {
+            $labels[] = $filter->getLabel();
+        }
+
+        $this->assertSame(
+            ['Bílá', 'Černá', 'Červená', 'Zelená'],
+            $labels
         );
     }
 

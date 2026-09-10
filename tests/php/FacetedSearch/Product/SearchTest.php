@@ -334,16 +334,18 @@ class SearchTest extends MockeryTestCase
                     ],
                 ],
                 'price_min' => [
-                    '<=' => [
+                    // The bounds are widened by one unit so a product matches the range the slider
+                    // displayed for it, which is floor(price_min) to ceil(price_max).
+                    '<' => [
                         [
-                            200.0,
+                            201.0,
                         ],
                     ],
                 ],
                 'price_max' => [
-                    '>=' => [
+                    '>' => [
                         [
-                            50.0,
+                            49.0,
                         ],
                     ],
                 ],
@@ -441,6 +443,25 @@ class SearchTest extends MockeryTestCase
         );
     }
 
+    /**
+     * The slider is built from floor() of the lowest indexed price and ceil() of the highest, so a
+     * product indexed at 5995.000001 is offered to the shopper as spanning 5995 to 5996. Comparing
+     * the raw column against those bounds rejected it at both ends of its own range, which emptied
+     * the listing as soon as either handle was dragged.
+     *
+     * @see https://github.com/PrestaShop/PrestaShop/issues/37604
+     */
+    public function testInitSearchWidensPriceBoundsToTheDisplayedRange()
+    {
+        $this->search->initSearch(['price' => [5995, 5995]]);
+
+        $filters = $this->search->getSearchAdapter()->getInitialPopulation()->getFilters()->toArray();
+
+        // 5995.000001 satisfies both: it is below 5996 and above 5994.
+        $this->assertEquals(['<' => [[5996.0]]], $filters['price_min']);
+        $this->assertEquals(['>' => [[5994.0]]], $filters['price_max']);
+    }
+
     public function testInitSearchWithManyFeatures()
     {
         $this->search->initSearch(
@@ -522,6 +543,27 @@ class SearchTest extends MockeryTestCase
                 ],
            ],
             $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->toArray()
+        );
+    }
+
+    public function testInitSearchWithFeatureAndCheckboxes()
+    {
+        // Store every selected value as an AND operation for the configured feature.
+        $this->search->initSearch(
+            [
+                'id_feature' => [10 => [1, 2, 2]],
+                'id_feature_operator' => [10 => 'and'],
+            ]
+        );
+
+        $this->assertEquals(
+            [
+                [
+                    ['id_feature_value', [1]],
+                    ['id_feature_value', [2]],
+                ],
+            ],
+            $this->search->getSearchAdapter()->getInitialPopulation()->getOperationsFilters()->get('with_features_10')
         );
     }
 
@@ -1191,5 +1233,29 @@ class SearchTest extends MockeryTestCase
     {
         $this->search->addFilter('weight', [10, 20]);
         $this->search->addFilter('id_feature', [[10, 20]]);
+    }
+
+    /**
+     * The actionFacetedSearchFilters hook must be dispatched even when a controller specific
+     * filter causes an early return inside addControllerSpecificFilters(): on a category query,
+     * selecting a "Categories" facet sets an id_category filter and used to skip the hook.
+     *
+     * @see https://github.com/PrestaShop/ps_facetedsearch/issues/1239
+     */
+    public function testInitSearchDispatchesFacetedSearchFiltersHookWithSelectedCategoryFacet()
+    {
+        $hookCalls = [];
+        $hookMock = Mockery::mock(Hook::class);
+        $hookMock->shouldReceive('exec')
+            ->andReturnUsing(function ($name) use (&$hookCalls) {
+                $hookCalls[] = $name;
+
+                return [];
+            });
+        Hook::setStaticExpectations($hookMock);
+
+        $this->search->initSearch(['category' => [[6]]]);
+
+        $this->assertContains('actionFacetedSearchFilters', $hookCalls);
     }
 }

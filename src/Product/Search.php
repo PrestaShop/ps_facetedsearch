@@ -130,6 +130,18 @@ class Search
         // Adds filters that specific for this controller
         $this->addControllerSpecificFilters();
 
+        // Let modules add their own filters to the adapter. This is dispatched here, after the
+        // controller specific filters, rather than inside addControllerSpecificFilters() because
+        // that method has early returns (e.g. an already selected "Categories" facet) that would
+        // otherwise silently skip the hook and drop the module filters.
+        Hook::exec(
+            'actionFacetedSearchFilters',
+            [
+                'search' => $this,
+                'query' => $this->query,
+            ]
+        );
+
         // Add group by to remove duplicate values
         $this->getSearchAdapter()->addGroupBy('id_product');
 
@@ -152,8 +164,24 @@ class Search
 
             switch ($key) {
                 case 'id_feature':
-                    $operationsFilter = [];
                     foreach ($filterValues as $featureId => $filterValue) {
+                        // Require every selected value when the feature uses AND checkboxes.
+                        if (isset($selectedFilters['id_feature_operator'][$featureId])
+                            && $selectedFilters['id_feature_operator'][$featureId] === 'and'
+                        ) {
+                            $operations = [];
+                            foreach (array_unique($filterValue) as $idFeatureValue) {
+                                $operations[] = ['id_feature_value', [(int) $idFeatureValue]];
+                            }
+
+                            $this->getSearchAdapter()->addOperationsFilter(
+                                'with_features_' . $featureId,
+                                [$operations]
+                            );
+                            continue;
+                        }
+
+                        // Match any selected value for regular feature checkboxes.
                         $this->getSearchAdapter()->addOperationsFilter(
                             'with_features_' . $featureId,
                             [[['id_feature_value', $filterValue]]]
@@ -451,14 +479,6 @@ class Search
                 empty($productPool) ? ['NULL'] : $productPool
             );
         }
-
-        Hook::exec(
-            'actionFacetedSearchFilters',
-            [
-                'search' => $this,
-                'query' => $this->query,
-            ]
-        );
     }
 
     /**
@@ -493,7 +513,12 @@ class Search
      */
     private function addPriceFilter($minPrice, $maxPrice)
     {
-        $this->getSearchAdapter()->addFilter('price_min', [$maxPrice], '<=');
-        $this->getSearchAdapter()->addFilter('price_max', [$minPrice], '>=');
+        // The slider is built from floor() of the lowest indexed price and ceil() of the highest,
+        // so a product indexed at 5995.000001 is offered as spanning 5995 to 5996. Comparing the
+        // raw column against those bounds then rejects it at both ends of its own range.
+        // `price_min < floor(max) + 1` is the same condition as `floor(price_min) <= max`, and
+        // keeps the column alone on its side of the comparison so the index is still usable.
+        $this->getSearchAdapter()->addFilter('price_min', [floor($maxPrice) + 1], '<');
+        $this->getSearchAdapter()->addFilter('price_max', [ceil($minPrice) - 1], '>');
     }
 }

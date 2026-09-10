@@ -31,6 +31,7 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrestaShop\Module\FacetedSearch\Adapter\MySQL;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Filters\Block;
+use PrestaShop\Module\FacetedSearch\Filters\Converter;
 use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\Filters\Provider;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
@@ -67,6 +68,7 @@ class BlockTest extends MockeryTestCase
                     'PS_ORDER_OUT_OF_STOCK' => '1',
                     'PS_UNIDENTIFIED_GROUP' => '1',
                     'PS_LAYERED_FILTER_CATEGORY_DEPTH' => 3,
+                    'PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION' => 0,
                 ];
 
                 return $valueMap[$arg];
@@ -857,6 +859,29 @@ class BlockTest extends MockeryTestCase
         );
     }
 
+    public function testAndFeatureCountsKeepCurrentFeatureSelection()
+    {
+        // Keep the selected feature filter in the initial population for AND facet counts.
+        $this->mockFeatures([]);
+        $this->mockLayeredCategory([[
+            'type' => 'id_feature',
+            'id_value' => 1,
+            'filter_type' => Converter::WIDGET_TYPE_CHECKBOX_AND,
+        ]]);
+
+        $filteredAdapter = Mockery::mock(MySQL::class)->makePartial();
+        $filteredAdapter->resetAll();
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->with()
+            ->once()
+            ->andReturn($filteredAdapter);
+
+        $this->assertEquals(
+            ['filters' => []],
+            $this->block->getFilterBlock(10, ['id_feature' => [1 => [10, 20]]])
+        );
+    }
+
     public function testGetFiltersBlockWithoutFeaturesWithoutSearchFilterAndFeatures()
     {
         $this->mockFeatures(
@@ -1020,6 +1045,7 @@ class BlockTest extends MockeryTestCase
                                 'name' => 'Cotton',
                                 'url_name' => 'something',
                                 'meta_title' => 'weird',
+                                'position' => 0,
                                 'checked' => true,
                             ],
                             21 => [
@@ -1027,6 +1053,7 @@ class BlockTest extends MockeryTestCase
                                 'name' => 'Test Custom value',
                                 'url_name' => 'url-custom-21',
                                 'meta_title' => 'title-custom-21',
+                                'position' => 0,
                             ],
                         ],
                         'name' => 'Composition',
@@ -1085,7 +1112,7 @@ class BlockTest extends MockeryTestCase
                     'LEFT JOIN `ps_layered_indexable_attribute_group` liag ' .
                     'ON (ag.`id_attribute_group` = liag.`id_attribute_group`) ' .
                     'LEFT JOIN `ps_layered_indexable_attribute_group_lang_value` AS liaglv ' .
-                    'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND agl.`id_lang` = 2) ' .
+                    'ON (ag.`id_attribute_group` = liaglv.`id_attribute_group` AND liaglv.`id_lang` = 2) ' .
                     'GROUP BY ag.id_attribute_group ORDER BY ag.`position` ASC'
                 )
                 ->andReturn($attributeGroups);

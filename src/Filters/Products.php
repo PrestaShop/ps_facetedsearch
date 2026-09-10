@@ -71,6 +71,18 @@ class Products
         $orderWay = Validate::isOrderWay($orderWay) ? $orderWay : 'ASC';
         $orderBy = Validate::isOrderBy($orderBy) ? $orderBy : 'position';
 
+        // A product has one position per category it belongs to. When the listing spans a subtree
+        // (PS_LAYERED_FULL_TREE), the rows are restricted with nleft/nright rather than to the browsed
+        // category, so `position` is not functionally dependent on the product the query groups by and
+        // the value picked is whichever row the server happens to keep. Pin the ordering to the browsed
+        // category; a product reached only through a subcategory has no position here and is listed after
+        // the ones the merchant did arrange.
+        if ($orderBy === 'position' && $query->getIdCategory()) {
+            $positionInCategory = 'MIN(IF(cp.id_category = ' . (int) $query->getIdCategory() . ', cp.position, NULL))';
+            $this->searchAdapter->addSelectField('position');
+            $orderBy = 'ISNULL(' . $positionInCategory . ') ASC, ' . $positionInCategory;
+        }
+
         // Apply it to the filter
         $this->searchAdapter->setOrderField($orderBy);
         $this->searchAdapter->setOrderDirection($orderWay);

@@ -27,6 +27,7 @@ if (file_exists($autoloadPath)) {
 }
 
 use PrestaShop\Module\FacetedSearch\Filters\Converter;
+use PrestaShop\Module\FacetedSearch\Filters\DataAccessor;
 use PrestaShop\Module\FacetedSearch\HookDispatcher;
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
@@ -96,7 +97,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     {
         $this->name = 'ps_facetedsearch';
         $this->tab = 'front_office_features';
-        $this->version = '5.0.0';
+        $this->version = '5.1.0';
         $this->author = 'PrestaShop';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -232,6 +233,8 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
+        Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', 0);
+
         return true;
     }
 
@@ -247,6 +250,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         Configuration::deleteByName('PS_LAYERED_FILTER_PRICE_ROUNDING');
         Configuration::deleteByName('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST');
         Configuration::deleteByName('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY');
+        Configuration::deleteByName('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION');
 
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_category');
         $this->getDatabase()->execute('DROP TABLE IF EXISTS ' . _DB_PREFIX_ . 'layered_filter');
@@ -424,18 +428,27 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 'GROUP BY id_product, tr.id_country'
             );
 
-            if (empty($taxRatesByCountry) || !Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
-                $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
-                $taxCountries = array_filter($shopCountries, function ($country) {
-                    return $country['active'];
-                });
-                $taxRatesByCountry = array_map(function ($country) {
-                    return [
+            // When tax is not applied to indexed prices, drop the per-country tax rates entirely.
+            if (!Configuration::get('PS_LAYERED_FILTER_PRICE_USETAX')) {
+                $taxRatesByCountry = [];
+            }
+
+            // Always index every active country of the shop. Countries that have no specific tax
+            // rule for this product (or when the "use tax" option is off) are indexed with a 0% rate.
+            // Without this, the price sort - an INNER JOIN on layered_price_index.id_country - returns
+            // no products at all for customers whose country was not indexed. This makes the
+            // with-tax-rules path consistent with the path already used for products without any tax
+            // rule. See https://github.com/PrestaShop/ps_facetedsearch/issues/1206
+            $indexedCountryIds = array_column($taxRatesByCountry, 'id_country');
+            $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+            foreach ($shopCountries as $country) {
+                if (!empty($country['active']) && !in_array($country['id_country'], $indexedCountryIds)) {
+                    $taxRatesByCountry[] = [
                         'rate' => 0,
                         'id_country' => $country['id_country'],
                         'iso_code' => $country['iso_code'],
                     ];
-                }, $taxCountries);
+                }
             }
 
             $productMinPrices = $this->getDatabase()->executeS(
@@ -713,6 +726,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             Configuration::updateValue('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY', (int) Tools::getValue('ps_layered_filter_by_default_category'));
             Configuration::updateValue('PS_USE_JQUERY_UI_SLIDER', (int) Tools::getValue('ps_use_jquery_ui_slider'));
             Configuration::updateValue('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE', (int) Tools::getValue('ps_layered_default_category_template'));
+            Configuration::updateValue('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION', (int) Tools::getValue('ps_layered_filter_feature_values_use_position'));
 
             $this->psLayeredFullTree = (int) Tools::getValue('ps_layered_full_tree');
 
@@ -811,6 +825,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             'filter_by_default_category' => (bool) Configuration::get('PS_LAYERED_FILTER_BY_DEFAULT_CATEGORY'),
             'use_jquery_ui_slider' => (bool) Configuration::get('PS_USE_JQUERY_UI_SLIDER'),
             'default_category_template' => Configuration::get('PS_LAYERED_DEFAULT_CATEGORY_TEMPLATE'),
+            'add_new_filters_template_link' => $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => 'ps_facetedsearch', 'add_new_filters_template' => 1]),
+            'feature_values_use_position' => (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION'),
+            'feature_values_position_supported' => DataAccessor::isFeatureValuePositionSupported(),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/manage.tpl');
@@ -972,6 +989,18 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             $filters_templates[$k]['controllers'] = implode(', ', $tmp);
 
             $filters_templates[$k]['date_add'] = Tools::displayDate($v['date_add'], true);
+
+            $filters_templates[$k]['edit_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => 'ps_facetedsearch',
+                'edit_filters_template' => 1,
+                'id_layered_filter' => (int) $v['id_layered_filter'],
+            ]);
+
+            $filters_templates[$k]['remove_link'] = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => 'ps_facetedsearch',
+                'deleteFilterTemplate' => 1,
+                'id_layered_filter' => (int) $v['id_layered_filter'],
+            ]);
         }
 
         return $filters_templates;
@@ -1184,7 +1213,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
 
                 // Attribute filter
-                if (is_array($attributeGroupsById) && count($attributeGroupsById) > 0) {
+                if (count($attributeGroupsById) > 0) {
                     foreach (array_keys($a) as $kAttribute) {
                         if (!isset($doneCategories[(int) $idCategory]['a' . (int) $attributeGroupsById[(int) $kAttribute]])) {
                             $filterData['layered_selection_ag_' . (int) $attributeGroupsById[(int) $kAttribute]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
@@ -1195,7 +1224,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
 
                 // Features filter
-                if (is_array($featuresById) && count($featuresById) > 0) {
+                if (count($featuresById) > 0) {
                     foreach (array_keys($f) as $kFeature) {
                         if (!isset($doneCategories[(int) $idCategory]['f' . (int) $featuresById[(int) $kFeature]])) {
                             $filterData['layered_selection_feat_' . (int) $featuresById[(int) $kFeature]] = ['filter_type' => Converter::WIDGET_TYPE_CHECKBOX, 'filter_show_limit' => 0];
@@ -1580,7 +1609,11 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             $time_elapsed = microtime(true) - $startTime;
             $indexedProducts += $length;
         } while (
-            $cursor < $nbProducts
+            // $cursor is the last indexed id_product (returned by indexPricesUnbreakable()), not a
+            // counter, so comparing it to the product count is wrong: with non-sequential ids (gaps
+            // from deleted/imported products) it stops batching as soon as an id exceeds $nbProducts.
+            // Track how many products were actually indexed instead.
+            $indexedProducts < $nbProducts
             && (Tools::getMemoryLimit() == -1 || Tools::getMemoryLimit() > memory_get_peak_usage())
             && $time_elapsed < $maxExecutiontime
         );
