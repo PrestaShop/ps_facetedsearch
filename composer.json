@@ -14,7 +14,7 @@
         "doctrine/collections": "^1.4"
     },
     "require-dev": {
-        "prestashop/php-dev-tools": "^3.4",
+        "prestashop/php-dev-tools": "^5",
         "phpunit/phpunit": "~5.7",
         "mockery/mockery": "^1.2"
     },
