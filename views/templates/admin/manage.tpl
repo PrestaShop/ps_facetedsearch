@@ -266,6 +266,24 @@
 	  </div>
 	</div>
 
+	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Show unavailable, out of stock last on search results' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_filter_show_out_of_stock_last_search" id="ps_layered_filter_show_out_of_stock_last_search_on" value="1"{if $show_out_of_stock_last_search} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_show_out_of_stock_last_search_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_filter_show_out_of_stock_last_search" id="ps_layered_filter_show_out_of_stock_last_search_off" value="0"{if !$show_out_of_stock_last_search} checked="checked"{/if}/>
+		  <label for="ps_layered_filter_show_out_of_stock_last_search_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+		<p class="help-block">{l s='Search results are ordered by relevance. Enable this to push unavailable products to the end there as well.' d='Modules.Facetedsearch.Admin'}</p>
+	  </div>
+	</div>
+
   <div class="form-group">
     <label class="col-lg-3 control-label">{l s='Use Jquery UI slider' d='Modules.Facetedsearch.Admin'}</label>
     <div class="col-lg-9">
