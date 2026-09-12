@@ -24,6 +24,7 @@ use Configuration;
 use Context;
 use Db;
 use Doctrine\Common\Collections\ArrayCollection;
+use Group;
 use PrestaShop\Module\FacetedSearch\CombinationFeature;
 use Product;
 use StockAvailable;
@@ -169,6 +170,15 @@ class MySQL extends AbstractAdapter
             null,
             'sa'
         );
+
+        // Resolve the effective customer group for the current shop using the same fallback as the core.
+        $idGroup = (int) Group::getCurrent()->id;
+
+        // Match the compact price row for the current shop, converted currency, country and customer group.
+        $priceIndexJoinCondition = '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id
+            . ' AND psi.id_currency = ' . $this->getContext()->currency->id
+            . ' AND psi.id_country IN (0, ' . $this->getContext()->country->id . ')'
+            . ' AND psi.id_group IN (0, ' . $idGroup . '))';
 
         // Feature filters are resolved against the feature_product table by default. When combination
         // feature values are enabled (PrestaShop >= 9.3 + feature flag), we swap that table for a
@@ -328,29 +338,25 @@ class MySQL extends AbstractAdapter
             'price_min' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => $priceIndexJoinCondition,
                 'joinType' => self::INNER_JOIN,
             ],
             'price_max' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => $priceIndexJoinCondition,
                 'joinType' => self::INNER_JOIN,
             ],
             'range_start' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => $priceIndexJoinCondition,
                 'joinType' => self::INNER_JOIN,
             ],
             'range_end' => [
                 'tableName' => 'layered_price_index',
                 'tableAlias' => 'psi',
-                'joinCondition' => '(psi.id_product = p.id_product AND psi.id_shop = ' . $this->getContext()->shop->id . ' AND psi.id_currency = ' .
-                $this->getContext()->currency->id . ' AND psi.id_country = ' . $this->getContext()->country->id . ')',
+                'joinCondition' => $priceIndexJoinCondition,
                 'joinType' => self::INNER_JOIN,
             ],
             'id_group' => [
@@ -376,7 +382,7 @@ class MySQL extends AbstractAdapter
                     sp.id_shop IN (0, ' . $this->getContext()->shop->id . ') AND 
                     sp.id_currency IN (0, ' . $this->getContext()->currency->id . ') AND 
                     sp.id_country IN (0, ' . $this->getContext()->country->id . ') AND 
-                    sp.id_group IN (0, ' . $this->getContext()->customer->id_default_group . ') AND 
+                    sp.id_group IN (0, ' . $idGroup . ') AND
                     sp.from_quantity = 1 AND
                     sp.reduction > 0 AND
                     sp.id_customer = 0 AND
