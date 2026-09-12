@@ -16,8 +16,8 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-import refreshSliders from './slider';
-import {showOverlay, hideOverlay} from './overlay';
+import refreshSliders from './slider.js';
+import {showOverlay, hideOverlay} from './overlay.js';
 
 $(document).ready(() => {
   prestashop.on('updateProductList', () => {

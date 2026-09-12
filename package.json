@@ -2,15 +2,16 @@
   "name": "ps_facetedsearch",
   "description": "Displays a block allowing multiple filters.",
   "private": true,
+  "type": "module",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require @babel/register --reporter spec \"./tests/**/*.spec.js\"",
-    "lint": "eslint --ext .js,.vue .",
-    "lint-fix": "eslint --fix --ext .js,.vue .",
-    "build": "webpack-cli --mode production",
-    "dev": "webpack-cli --mode development --watch"
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "lint": "eslint .",
+    "lint-fix": "eslint --fix .",
+    "test": "mocha \"./tests/js/**/*.spec.js\""
   },
   "repository": {
     "type": "git",
@@ -22,34 +23,23 @@
   "bugs": {
     "url": "https://github.com/PrestaShop/ps_facetedsearch/issues"
   },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ]
-  },
   "homepage": "https://github.com/PrestaShop/ps_facetedsearch#readme",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "overrides": {
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.1.0"
+  },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.29.7",
-    "@babel/cli": "^7.29.7",
-    "@babel/core": "^7.29.7",
-    "@babel/node": "^7.29.7",
-    "@babel/preset-env": "^7.29.7",
-    "@babel/register": "^7.29.7",
-    "babel-loader": "^10.1.1",
-    "chai": "^4.3.10",
-    "clean-webpack-plugin": "^4.0.0",
-    "css-loader": "^7.1.4",
-    "eslint": "^8.57.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-prestashop": "^0.2.1",
-    "eslint-plugin-import": "^2.29.1",
-    "mini-css-extract-plugin": "^1.0.0",
-    "mocha": "^10.8.2",
-    "node-sass": "^9.0.0",
-    "sass-loader": "^14.2.1",
-    "style-loader": "^2.0.0",
-    "webpack": "^5.109.2",
-    "webpack-cli": "^4.10.0"
+    "@eslint/js": "^10.0.0",
+    "@stylistic/eslint-plugin": "^5.0.0",
+    "chai": "^6.2.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^10.0.0",
+    "globals": "^16.0.0",
+    "mocha": "^11.8.0",
+    "sass": "^1.80.0"
   },
   "dependencies": {
     "jquery-ui-touch-punch": "^0.2.3",

@@ -17,8 +17,8 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 
-import getQueryParameters from './urlparser';
-import NumberFormatter from '../cldr/number-formatter';
+import getQueryParameters from './urlparser.js';
+import NumberFormatter from '../cldr/number-formatter.js';
 
 const formatters = {};
 
@@ -89,7 +89,6 @@ const refreshSliders = () => {
         // Update query parameter
         queryParams.forEach((query) => {
           if (query.name === 'q') {
-            // eslint-disable-next-line
             query.value += [
               query.value.length > 0 ? '/' : '',
               $el.data('slider-label'),

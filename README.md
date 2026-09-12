@@ -31,18 +31,27 @@ Required only for development:
 
 ## Installation
 
-Install all dependencies. Be careful, you need NodeJs 14+.
+Install all dependencies. Be careful, you need NodeJS 20.19+.
 ```
-npm install
+npm ci
 composer install
 ```
 
 ## Usage
 
+The front and back office assets are built from `_dev/` with [esbuild][esbuild] (JavaScript)
+and [Dart Sass][dart-sass] (stylesheets).
+
 ```
-npm run dev # Watch js/css files for changes
+npm run dev   # Watch js/scss files for changes
 npm run build # Build for production
+npm run lint  # Check the coding style
+npm run test  # Run the JavaScript unit tests
 ```
+
+The result is written to `views/dist/`, which is committed to the repository and shipped
+as-is in the release archive: **always run `npm run build` and commit `views/dist/` along
+with your changes to `_dev/`**. The CI verifies that both stay in sync.
 
 ## Contributing
 
@@ -58,3 +67,5 @@ This module is released under the [Academic Free License 3.0][AFL-3.0]
 [prestashop]: https://www.prestashop.com/
 [contribution-guidelines]: https://devdocs.prestashop.com/1.7/contribute/contribution-guidelines/project-modules/
 [AFL-3.0]: https://opensource.org/licenses/AFL-3.0
+[esbuild]: https://esbuild.github.io/
+[dart-sass]: https://sass-lang.com/dart-sass/

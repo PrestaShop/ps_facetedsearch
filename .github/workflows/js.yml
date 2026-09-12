@@ -2,19 +2,38 @@ name: JS tests
 on: [push, pull_request]
 jobs:
     js-linter:
-        name: JS linter
+        name: JS linter & tests
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                node-versions: [ '14', '16' ]
+                node-versions: [ '20', '22', '24' ]
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
+              uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
               with:
                   node-version: ${{ matrix.node-versions }}
-            - run: npm install
+                  cache: 'npm'
+            - run: npm ci
             - name: Lint
               run: npm run lint
             - name: Test
               run: npm run test
+
+    js-build:
+        name: Built assets are up to date
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - run: npm ci
+            - name: Build
+              run: npm run build
+            # views/dist is committed and shipped as-is in the release archive,
+            # so it must always match the sources in _dev.
+            - name: Check views/dist matches _dev
+              run: git diff --exit-code -- views/dist
