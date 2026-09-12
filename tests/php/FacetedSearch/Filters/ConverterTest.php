@@ -154,6 +154,46 @@ class ConverterTest extends MockeryTestCase
     }
 
     /**
+     * The "Meta title" a merchant fills in on an attribute, an attribute group, a feature or a feature
+     * value is indexed and read back on every listing render, but the facets never carried it, so no
+     * theme or module could reach it.
+     *
+     * @see https://github.com/PrestaShop/PrestaShop/issues/23799
+     */
+    public function testGetFacetsFromFilterBlocksCarriesMetaTitles()
+    {
+        $facets = $this->converter->getFacetsFromFilterBlocks(
+            [
+                [
+                    'type_lite' => 'id_feature',
+                    'type' => Converter::TYPE_FEATURE,
+                    'id_key' => 5,
+                    'name' => 'Material',
+                    'url_name' => 'material',
+                    'meta_title' => 'Made of',
+                    'values' => [
+                        10 => ['name' => 'Steel', 'nbr' => '2', 'url_name' => 'steel', 'meta_title' => 'Stainless steel'],
+                        20 => ['name' => 'Glass', 'nbr' => '1', 'url_name' => 'glass', 'meta_title' => null],
+                    ],
+                    'filter_show_limit' => 0,
+                    'filter_type' => Converter::WIDGET_TYPE_CHECKBOX,
+                ],
+            ]
+        );
+
+        $this->assertSame('Made of', $facets[0]->getProperty(Converter::PROPERTY_META_TITLE));
+
+        $metaTitlesByLabel = [];
+        foreach ($facets[0]->getFilters() as $filter) {
+            $metaTitlesByLabel[$filter->getLabel()] = $filter->getProperty(Converter::PROPERTY_META_TITLE);
+        }
+
+        $this->assertSame('Stainless steel', $metaTitlesByLabel['Steel']);
+        // A value the merchant left empty must not shadow its label with an empty meta title.
+        $this->assertNull($metaTitlesByLabel['Glass']);
+    }
+
+    /**
      * Test different scenario for facets filter
      *
      * @dataProvider facetsProvider
