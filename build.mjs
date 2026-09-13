@@ -16,6 +16,7 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
+import fs from 'node:fs';
 import path from 'node:path';
 import * as esbuild from 'esbuild';
 import * as sass from 'sass';
@@ -41,12 +42,17 @@ const sassPlugin = {
   },
 };
 
+// esbuild only writes the files it produces; unlike webpack's CleanWebpackPlugin it never
+// removes stale output. views/dist is committed and shipped as-is, so it is emptied first.
+const outdir = './views/dist';
+fs.rmSync(outdir, {recursive: true, force: true});
+
 const options = {
   entryPoints: {
     front: './_dev/front/index.js',
     back: './_dev/back/index.js',
   },
-  outdir: './views/dist',
+  outdir,
   bundle: true,
   minify: true,
   sourcemap: true,

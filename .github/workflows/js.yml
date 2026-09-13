@@ -36,4 +36,8 @@ jobs:
             # views/dist is committed and shipped as-is in the release archive,
             # so it must always match the sources in _dev.
             - name: Check views/dist matches _dev
-              run: git diff --exit-code -- views/dist
+              # --intent-to-add makes newly generated, still untracked files show up in
+              # git diff, so a renamed or added asset fails the check too.
+              run: |
+                  git add --intent-to-add -- views/dist
+                  git diff --exit-code -- views/dist
