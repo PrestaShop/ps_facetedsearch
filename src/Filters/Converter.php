@@ -411,7 +411,7 @@ class Converter
                             continue;
                         }
 
-                        if (isset($receivedFilters[$feature['url_name']])) {
+                        if ($feature['url_name'] !== null && isset($receivedFilters[$feature['url_name']])) {
                             $featureValueLabels = $receivedFilters[$feature['url_name']];
                         } elseif (isset($receivedFilters[$feature['name']])) {
                             $featureValueLabels = $receivedFilters[$feature['name']];
@@ -443,7 +443,7 @@ class Converter
                             continue;
                         }
 
-                        if (isset($receivedFilters[$attributeGroup['url_name']])) {
+                        if ($attributeGroup['url_name'] !== null && isset($receivedFilters[$attributeGroup['url_name']])) {
                             $attributeLabels = $receivedFilters[$attributeGroup['url_name']];
                         } elseif (isset($receivedFilters[$attributeGroup['attribute_group_name']])) {
                             $attributeLabels = $receivedFilters[$attributeGroup['attribute_group_name']];

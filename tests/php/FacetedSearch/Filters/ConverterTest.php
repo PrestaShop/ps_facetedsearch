@@ -814,4 +814,80 @@ class ConverterTest extends MockeryTestCase
             ],
         ];
     }
+
+    public function testCreateFacetedSearchFiltersUsesFeatureNameWhenUrlNameIsNull()
+    {
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            [
+                'type' => Converter::TYPE_FEATURE,
+                'id_value' => 5,
+                'filter_type' => Converter::WIDGET_TYPE_CHECKBOX,
+            ],
+        ]);
+
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Material' => ['Steel'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getFeatures')->with(2)->andReturn([
+            5 => ['id_feature' => 5, 'name' => 'Material', 'url_name' => null],
+        ]);
+        $dataAccessor->shouldReceive('getFeatureValues')->with(5, 2)->andReturn([
+            ['id_feature_value' => 10, 'value' => 'Steel', 'url_name' => null],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            [
+                'id_feature' => [5 => [10]],
+            ],
+            $converter->createFacetedSearchFiltersFromQuery($query)
+        );
+    }
+
+    public function testCreateFacetedSearchFiltersUsesAttributeGroupNameWhenUrlNameIsNull()
+    {
+        $query = Mockery::mock(ProductSearchQuery::class);
+        $query->shouldReceive('getIdCategory')->andReturn(1);
+        $query->shouldReceive('getEncodedFacets')->andReturn('encoded-facets');
+
+        $provider = Mockery::mock(Provider::class);
+        $provider->shouldReceive('getFiltersForQuery')->with($query, 1)->andReturn([
+            [
+                'type' => Converter::TYPE_ATTRIBUTE_GROUP,
+                'id_value' => 2,
+                'filter_type' => Converter::WIDGET_TYPE_CHECKBOX,
+            ],
+        ]);
+
+        $urlSerializer = Mockery::mock(URLSerializer::class);
+        $urlSerializer->shouldReceive('unserialize')->with('encoded-facets')->andReturn([
+            'Color' => ['Black'],
+        ]);
+
+        $dataAccessor = Mockery::mock(DataAccessor::class);
+        $dataAccessor->shouldReceive('getAttributesGroups')->with(2)->andReturn([
+            2 => ['id_attribute_group' => 2, 'attribute_group_name' => 'Color', 'url_name' => null],
+        ]);
+        $dataAccessor->shouldReceive('getAttributes')->with(2, 2)->andReturn([
+            ['id_attribute' => 11, 'name' => 'Black', 'url_name' => null],
+        ]);
+
+        $converter = new Converter($this->contextMock, $this->dbMock, $urlSerializer, $dataAccessor, $provider);
+
+        $this->assertEquals(
+            [
+                'id_attribute_group' => [2 => [11]],
+            ],
+            $converter->createFacetedSearchFiltersFromQuery($query)
+        );
+    }
 }
