@@ -67,6 +67,21 @@ class Block
     private $database;
 
     /**
+     * @var array
+     */
+    private $attributesGroup;
+
+    /**
+     * @var array
+     */
+    private $attributesGroupResults;
+
+    /**
+     * @var array
+     */
+    private $featureResults;
+
+    /**
      * @var DataAccessor
      */
     private $dataAccessor;
@@ -725,13 +740,22 @@ class Block
         }
 
         $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
-
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_attribute_group_' . $idAttributeGroup,
-            [[['id_attribute_group', [(int) $idAttributeGroup]]]]
-        );
-        $results = $filteredSearchAdapter->valueCount('id_attribute');
-        foreach ($results as $key => $values) {
+        // Do not add a filter by id_group here beacause it slows a lot the count
+        // There is no impact in final content, we will just have count with all features.
+        // We will make only send one request for all data, the first filter catched will make this one.
+        // Then we will filter in the foreach loop the data we need to have.
+        if (empty($selectedFilters['id_attribute_group']) === false) {
+            // If there is filters on attributes we use one request for each filter as before
+            $this->attributesGroupResults = [];
+            $filteredSearchAdapter->addOperationsFilter(
+                'id_attribute_group_' . $idAttributeGroup,
+                [[['id_attribute_group', [(int) $idAttributeGroup]]]]
+            );
+        }
+        if (empty($this->attributesGroupResults) === true) {
+            $this->attributesGroupResults = $filteredSearchAdapter->valueCount('id_attribute');
+        }
+        foreach ($this->attributesGroupResults as $key => $values) {
             $idAttribute = $values['id_attribute'];
             if (!isset($attributes[$idAttribute])) {
                 continue;
@@ -740,6 +764,11 @@ class Block
             $count = $values['c'];
             $attribute = $attributes[$idAttribute];
             $idAttributeGroup = $attribute['id_attribute_group'];
+            // Instead we filter here by attribute group and continue if count is not found
+            if ((int) $idAttributeGroup !== (int) $filter['id_value']) {
+                continue;
+            }
+
             if (!isset($attributesBlock[$idAttributeGroup])) {
                 $attributeGroup = $attributesGroup[$idAttributeGroup];
 
@@ -845,17 +874,31 @@ class Block
             return [];
         }
 
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_feature_' . $idFeature,
-            [[['id_feature', [(int) $idFeature]]]]
-        );
-
+        // Do not add a filter by id_feature here beacause it slows a lot the count
+        // There is no impact in final content, we will just have count with all groups.
+        // We will make only send one request for all data, the first filter catched will make this one.
+        // Then we will filter in the foreach loop the data we need to have.
         $filteredSearchAdapter->addSelectField('id_feature');
-        $results = $filteredSearchAdapter->valueCount('id_feature_value');
-        foreach ($results as $key => $values) {
+        if (empty($selectedFilters['id_feature']) === false) {
+            // If the selected filters features are set we make one request for each as before
+            $this->featureResults = [];
+            $filteredSearchAdapter->addOperationsFilter(
+                'id_feature_' . $idFeature,
+                [[['id_feature', [(int) $idFeature]]]]
+            );
+        }
+        if (empty($this->featureResults) === true) {
+            $this->featureResults = $filteredSearchAdapter->valueCount('id_feature_value');
+        }
+        foreach ($this->featureResults as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
             $count = $values['c'];
+            
+            // Instead we filter here by feature Id and continue if count is not found
+            if ((int) $idFeature !== (int) $filter['id_value']) {
+                continue;
+            }
 
             $feature = $features[$idFeature];
 
