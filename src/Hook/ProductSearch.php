@@ -62,6 +62,18 @@ class ProductSearch extends AbstractHook
             return null;
         }
 
+        /*
+         * A tag search carries its term in the tag, not in the search string, and our query builder
+         * reads only the search string. Taking such a query over would run a search for an empty
+         * term and answer that nothing matches, so we let the core provider handle it - it searches
+         * tags properly - until this module searches them itself.
+         */
+        if ($params['query']->getQueryType() === 'search'
+            && empty($params['query']->getSearchString())
+            && !empty($params['query']->getSearchTag())) {
+            return null;
+        }
+
         // Initialize provider, we will need it right away to check if there are filters setup
         $provider = new Provider($this->module->getDatabase());
 
