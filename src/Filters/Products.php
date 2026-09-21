@@ -98,6 +98,9 @@ class Products
         // Get full list of matching products
         $fullProductList = $this->searchAdapter->execute();
 
+        // Run post filter
+        $this->pricePostFiltering($fullProductList, $selectedFilters);
+
         // Count them
         $totalProductCount = count($fullProductList);
 
@@ -111,9 +114,6 @@ class Products
             ($page - 1) * $productsPerPage,
             $productsPerPage
         );
-
-        // And run post filter
-        $this->pricePostFiltering($finalProductList, $selectedFilters);
 
         return [
             'products' => $finalProductList,
