@@ -396,6 +396,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
     public function indexProductPrices($idProduct, $smart = true)
     {
         static $groups = null;
+        // Both country lookups below are loop invariant but sit inside the per-product path, so a
+        // full re-index repeated them once per product per shop. Neither is cached in core: both are
+        // plain executeS() calls. Held here like $groups above, for the life of the request.
+        static $shopCountries = [];
+        static $countries = [];
 
         if ($groups === null) {
             $groups = $this->getDatabase()->executeS('SELECT id_group FROM `' . _DB_PREFIX_ . 'group_reduction`');
@@ -440,8 +445,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             // with-tax-rules path consistent with the path already used for products without any tax
             // rule. See https://github.com/PrestaShop/ps_facetedsearch/issues/1206
             $indexedCountryIds = array_column($taxRatesByCountry, 'id_country');
-            $shopCountries = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
-            foreach ($shopCountries as $country) {
+            $shopCountriesKey = (int) $idShop . '-' . (int) $this->getContext()->language->id;
+            if (!isset($shopCountries[$shopCountriesKey])) {
+                $shopCountries[$shopCountriesKey] = Country::getCountriesByIdShop($idShop, $this->getContext()->language->id);
+            }
+            foreach ($shopCountries[$shopCountriesKey] as $country) {
                 if (!empty($country['active']) && !in_array($country['id_country'], $indexedCountryIds)) {
                     $taxRatesByCountry[] = [
                         'rate' => 0,
@@ -457,8 +465,11 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 WHERE id_product = ' . (int) $idProduct . ' AND id_shop IN (0,' . (int) $idShop . ')'
             );
 
-            $countries = Country::getCountries($this->getContext()->language->id, true, false, false);
-            foreach ($countries as $country) {
+            $countriesKey = (int) $this->getContext()->language->id;
+            if (!isset($countries[$countriesKey])) {
+                $countries[$countriesKey] = Country::getCountries($countriesKey, true, false, false);
+            }
+            foreach ($countries[$countriesKey] as $country) {
                 $idCountry = $country['id_country'];
 
                 // Get price by currency & country, without reduction!
