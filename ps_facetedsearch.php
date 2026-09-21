@@ -1290,12 +1290,35 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         // Clear cache
         $this->invalidateLayeredFilterBlockCache();
 
-        // Remove all previous data from layered_category
-        $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_category');
-
-        // If no filter templates are defined, nothing else to do here
+        // If no filter templates are defined, nothing else to do here. WHY this check moved ahead of any
+        // delete: with zero templates there's nothing to rebuild, so previously-built data (however it got
+        // there) is left as-is rather than wiped for no replacement.
         if (!count($templates)) {
             return true;
+        }
+
+        // WHY per-shop, not one global TRUNCATE: a shop's filters table only gets cleared once we know we
+        // have a template we can actually read for it. A single corrupt `filters` blob on ANY template used
+        // to wipe every shop's facets via one unconditional TRUNCATE, then silently fail to repopulate the
+        // rest of the loop for that template - on a multi-shop install, one bad template took every shop's
+        // navigation down at once, and each affected shop had to wait for the next full, valid rebuild
+        // before facets came back. Shops whose own template still unserializes correctly now keep working
+        // regardless of what happens to someone else's.
+        $shopIdsWithValidTemplate = [];
+        foreach ($templates as $filterTemplate) {
+            $data = Tools::unSerialize($filterTemplate['filters']);
+            if (!is_array($data) || !isset($data['shop_list']) || !is_array($data['shop_list'])) {
+                continue;
+            }
+            foreach ($data['shop_list'] as $idShop) {
+                $shopIdsWithValidTemplate[(int) $idShop] = true;
+            }
+        }
+
+        if (!empty($shopIdsWithValidTemplate)) {
+            $this->getDatabase()->execute(
+                'DELETE FROM ' . _DB_PREFIX_ . 'layered_category WHERE id_shop IN (' . implode(',', array_keys($shopIdsWithValidTemplate)) . ')'
+            );
         }
 
         // We will insert our queries by batches of hundred queries
@@ -1305,8 +1328,13 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
 
         // Now we will loop through each filter template
         foreach ($templates as $filterTemplate) {
-            // We will get it's data and convert it into array
+            // We will get it's data and convert it into array. WHY re-decoded here rather than reusing the
+            // pass above: that pass only needed shop_list to decide what's safe to delete: this one needs
+            // the full structure, and a template that fails the same way is skipped the same way.
             $data = Tools::unSerialize($filterTemplate['filters']);
+            if (!is_array($data) || !isset($data['shop_list'], $data['controllers']) || !is_array($data['shop_list']) || !is_array($data['controllers'])) {
+                continue;
+            }
             foreach ($data['shop_list'] as $idShop) {
                 if (!isset($alreadyAssigned[$idShop])) {
                     $alreadyAssigned[$idShop] = [];
