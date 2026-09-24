@@ -17,6 +17,6 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
 import 'jquery-ui-touch-punch';
-import './events';
+import './events.js';
 import './slider.scss';
 import './facet.scss';
