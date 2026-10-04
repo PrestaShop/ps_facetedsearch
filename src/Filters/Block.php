@@ -579,7 +579,7 @@ class Block
                     '+ 1 days')
                 )
             );
-            $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+            $filteredSearchAdapter->addFilter('date_add', ["'" . $timeCondition . "'"], '>=');
             $extrasOptions['new']['nbr'] = $filteredSearchAdapter->count();
         }
 
