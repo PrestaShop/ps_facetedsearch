@@ -187,6 +187,27 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    public function testAttributeFilterSkipsDisabledCombinations()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationStatusFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
+
+        $this->assertEquals(
+            'SELECT  FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute_shop pa ON (p.id_product = pa.id_product AND pa.id_shop = 1 AND pa.active = 1)'
+            . ' LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute)'
+            . ' WHERE ((pac.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
     public function testFeatureAndAttributeFiltersMustMatchTheSameCombination()
     {
         $adapter = new class() extends MySQL {
