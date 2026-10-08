@@ -361,7 +361,7 @@ class BlockTest extends MockeryTestCase
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND IFNULL(pa.id_product_attribute, 0) = sa_1.id_product_attribute) WHERE ((sa.quantity<=0 AND sa_1.out_of_stock=0))')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity<=0 AND sa.out_of_stock=0))')
             ->andReturn([
                 ['c' => 1000],
             ]);

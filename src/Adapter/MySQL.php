@@ -314,6 +314,7 @@ class MySQL extends AbstractAdapter
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_product_attribute',
+                'shareOperationJoin' => true,
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
@@ -322,6 +323,7 @@ class MySQL extends AbstractAdapter
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
                 'dependencyField' => 'id_product_attribute',
+                'shareOperationJoin' => true,
                 'aggregateFunction' => 'SUM',
                 'aggregateFieldName' => 'quantity',
             ],
@@ -708,9 +710,7 @@ class MySQL extends AbstractAdapter
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
                         // multi join
-                        $selectAlias = $joinMapping['tableAlias'] .
-                                     ($operationIdx === 0 ? '' : '_' . $operationIdx) .
-                                     ($idx === 0 ? '' : '_' . $idx);
+                        $selectAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
@@ -801,6 +801,20 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * @param array $joinMapping
+     * @param int $operationIdx
+     * @param int $idx
+     *
+     * @return string
+     */
+    private function getOperationTableAlias(array $joinMapping, $operationIdx, $idx)
+    {
+        return $joinMapping['tableAlias'] .
+            ($operationIdx === 0 ? '' : '_' . $operationIdx) .
+            ($idx === 0 || !empty($joinMapping['shareOperationJoin']) ? '' : '_' . $idx);
+    }
+
+    /**
      * Compute the joinConditions needed depending on the fields required in select, where, groupby & orderby fields
      *
      * @param array $filterToTableMapping
@@ -820,18 +834,15 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
-                        if ($idx !== 0 || $operationIdx !== 0) {
+                        $tableAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
+                        if ($tableAlias !== $joinMapping['tableAlias']) {
                             // Index is not the first, append index to tableAlias on joinCondition
                             $joinMapping['joinCondition'] = preg_replace(
-                                '~([\(\s=]' . $joinMapping['tableAlias'] . ')\.~',
-                                '${1}' .
-                                ($operationIdx === 0 ? '' : '_' . $operationIdx) .
-                                ($idx === 0 ? '' : '_' . $idx) .
-                                '.',
+                                '~([\(\s=])' . $joinMapping['tableAlias'] . '\.~',
+                                '${1}' . $tableAlias . '.',
                                 $joinMapping['joinCondition']
                             );
-                            $joinMapping['tableAlias'] .= ($operationIdx === 0 ? '' : '_' . $operationIdx) .
-                                ($idx === 0 ? '' : '_' . $idx);
+                            $joinMapping['tableAlias'] = $tableAlias;
                         }
 
                         $this->addJoinConditions($joinList, $joinMapping, $filterToTableMapping);
