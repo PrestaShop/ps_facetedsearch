@@ -205,37 +205,56 @@ class DataAccessor
     public function getFeatureValues($idFeature, $idLang)
     {
         if (!isset($this->featureValues[$idLang][$idFeature])) {
-            // Initialize only the requested feature without discarding other cached features for the language.
-            $this->featureValues[$idLang][$idFeature] = [];
-
-            // feature_value.position only exists from PrestaShop 9.0 (PrestaShop/PrestaShop#37042),
-            // and this module still supports 8.2, where ordering by it is an unknown column.
-            if (self::isFeatureValuePositionSupported()
-                && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')
-            ) {
-                $order = 'ORDER BY v.`position` ASC';
-            } else {
-                $order = 'ORDER BY vl.`value` ASC';
-            }
-
-            $tempFeatureValues = $this->database->executeS(
-                'SELECT v.*, vl.*, ' .
-                'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
-                'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
-                'FROM `' . _DB_PREFIX_ . 'feature_value` v ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` vl ' .
-                'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = ' . (int) $idLang . ') ' .
-                'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
-                'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
-                'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
-                $order
-            );
-
-            foreach ($tempFeatureValues as $feature) {
-                $this->featureValues[$idLang][$idFeature][$feature['id_feature_value']] = $feature;
-            }
+            $this->loadFeatureValues([$idFeature], $idLang);
         }
 
         return $this->featureValues[$idLang][$idFeature];
+    }
+
+    /**
+     * Loads in one query the values of the given features that are not loaded yet.
+     *
+     * @param int[] $idFeatures
+     * @param int $idLang
+     */
+    public function loadFeatureValues(array $idFeatures, $idLang)
+    {
+        $idsToLoad = [];
+        foreach ($idFeatures as $idFeature) {
+            if (!isset($this->featureValues[$idLang][$idFeature])) {
+                $this->featureValues[$idLang][$idFeature] = [];
+                $idsToLoad[] = (int) $idFeature;
+            }
+        }
+        if (empty($idsToLoad)) {
+            return;
+        }
+
+        // feature_value.position only exists from PrestaShop 9.0 (PrestaShop/PrestaShop#37042),
+        // and this module still supports 8.2, where ordering by it is an unknown column.
+        if (self::isFeatureValuePositionSupported()
+            && (bool) Configuration::get('PS_LAYERED_FILTER_FEATURE_VALUES_USE_POSITION')
+        ) {
+            $order = 'ORDER BY v.`position` ASC';
+        } else {
+            $order = 'ORDER BY vl.`value` ASC';
+        }
+
+        $tempFeatureValues = $this->database->executeS(
+            'SELECT v.*, vl.*, ' .
+            'IF(lifvlv.`url_name` IS NULL OR lifvlv.`url_name` = "", NULL, lifvlv.`url_name`) AS url_name, ' .
+            'IF(lifvlv.`meta_title` IS NULL OR lifvlv.`meta_title` = "", NULL, lifvlv.`meta_title`) AS meta_title ' .
+            'FROM `' . _DB_PREFIX_ . 'feature_value` v ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'feature_value_lang` vl ' .
+            'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = ' . (int) $idLang . ') ' .
+            'LEFT JOIN `' . _DB_PREFIX_ . 'layered_indexable_feature_value_lang_value` lifvlv ' .
+            'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = ' . (int) $idLang . ') ' .
+            'WHERE v.`id_feature` IN (' . implode(',', $idsToLoad) . ') ' .
+            $order
+        );
+
+        foreach ($tempFeatureValues as $feature) {
+            $this->featureValues[$idLang][$feature['id_feature']][$feature['id_feature_value']] = $feature;
+        }
     }
 }

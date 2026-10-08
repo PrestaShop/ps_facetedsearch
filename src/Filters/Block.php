@@ -118,6 +118,9 @@ class Block
 
         // Get filters configured for the current query
         $filters = $this->provider->getFiltersForQuery($this->query, $idShop);
+        $attributeValueCounts = $this->countAttributeValues($filters, $selectedFilters, $idLang);
+        $featureValueCounts = $this->countFeatureValues($filters, $selectedFilters, $idLang);
+        $this->dataAccessor->loadFeatureValues(array_keys(array_filter($featureValueCounts)), $idLang);
 
         $filterBlocks = [];
         // iterate through each filter, and the get corresponding filter block
@@ -143,11 +146,11 @@ class Block
                     break;
                 case 'id_attribute_group':
                     $filterBlocks =
-                        array_merge($filterBlocks, $this->getAttributesBlock($filter, $selectedFilters, $idLang));
+                        array_merge($filterBlocks, $this->getAttributesBlock($filter, $selectedFilters, $idLang, $attributeValueCounts[$filter['id_value']] ?? []));
                     break;
                 case 'id_feature':
                     $filterBlocks =
-                        array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang));
+                        array_merge($filterBlocks, $this->getFeaturesBlock($filter, $selectedFilters, $idLang, $featureValueCounts[$filter['id_value']] ?? []));
                     break;
                 case 'category':
                     $parent = new Category($idCategory, $idLang);
@@ -697,27 +700,14 @@ class Block
      * @param array $filter
      * @param array $selectedFilters
      * @param int $idLang
+     * @param array $results value counts of the attribute group
      *
      * @return array
      */
-    private function getAttributesBlock($filter, $selectedFilters, $idLang)
+    private function getAttributesBlock($filter, $selectedFilters, $idLang, array $results)
     {
         $attributesBlock = [];
-        $filteredSearchAdapter = null;
         $idAttributeGroup = $filter['id_value'];
-
-        if (!empty($selectedFilters['id_attribute_group'])) {
-            foreach ($selectedFilters['id_attribute_group'] as $key => $selectedFilter) {
-                if ($key == $idAttributeGroup) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_attributes_' . $idAttributeGroup);
-                    break;
-                }
-            }
-        }
-
-        if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
-        }
 
         $attributesGroup = $this->dataAccessor->getAttributesGroups($idLang);
         if ($attributesGroup === []) {
@@ -726,11 +716,6 @@ class Block
 
         $attributes = $this->dataAccessor->getAttributes($idLang, $idAttributeGroup);
 
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_attribute_group_' . $idAttributeGroup,
-            [[['id_attribute_group', [(int) $idAttributeGroup]]]]
-        );
-        $results = $filteredSearchAdapter->valueCount('id_attribute');
         foreach ($results as $key => $values) {
             $idAttribute = $values['id_attribute'];
             if (!isset($attributes[$idAttribute])) {
@@ -814,44 +799,20 @@ class Block
      * @param array $filter
      * @param array $selectedFilters
      * @param int $idLang
+     * @param array $results value counts of the feature
      *
      * @return array
      */
-    private function getFeaturesBlock($filter, $selectedFilters, $idLang)
+    private function getFeaturesBlock($filter, $selectedFilters, $idLang, array $results)
     {
         $featureBlock = [];
         $idFeature = $filter['id_value'];
-        $filteredSearchAdapter = null;
-
-        // Keep current selections while counting additional values for an AND feature facet.
-        if ((int) (isset($filter['filter_type']) ? $filter['filter_type'] : Converter::WIDGET_TYPE_CHECKBOX) !== Converter::WIDGET_TYPE_CHECKBOX_AND
-            && !empty($selectedFilters['id_feature'])
-        ) {
-            foreach ($selectedFilters['id_feature'] as $key => $selectedFilter) {
-                if ($key == $idFeature) {
-                    $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('with_features_' . $idFeature);
-
-                    break;
-                }
-            }
-        }
-
-        if (!$filteredSearchAdapter) {
-            $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter();
-        }
 
         $features = $this->dataAccessor->getFeatures($idLang);
         if (empty($features)) {
             return [];
         }
 
-        $filteredSearchAdapter->addOperationsFilter(
-            'id_feature_' . $idFeature,
-            [[['id_feature', [(int) $idFeature]]]]
-        );
-
-        $filteredSearchAdapter->addSelectField('id_feature');
-        $results = $filteredSearchAdapter->valueCount('id_feature_value');
         foreach ($results as $key => $values) {
             $idFeatureValue = $values['id_feature_value'];
             $idFeature = $values['id_feature'];
@@ -902,6 +863,85 @@ class Block
         $featureBlock = $this->sortFeatureBlock($featureBlock);
 
         return $featureBlock;
+    }
+
+    /**
+     * @return array<int, array> value counts by attribute group ID
+     */
+    private function countAttributeValues(array $filters, array $selectedFilters, $idLang)
+    {
+        $sharedIds = $ownIds = [];
+        foreach ($filters as $filter) {
+            if ($filter['type'] === 'id_attribute_group') {
+                if (isset($selectedFilters['id_attribute_group'][$filter['id_value']])) {
+                    $ownIds[] = (int) $filter['id_value'];
+                } else {
+                    $sharedIds[] = (int) $filter['id_value'];
+                }
+            }
+        }
+
+        if ((empty($sharedIds) && empty($ownIds)) || $this->dataAccessor->getAttributesGroups($idLang) === []) {
+            return [];
+        }
+
+        return $this->countFacetValues($sharedIds, $ownIds, 'id_attribute_group', 'id_attribute', 'with_attributes_');
+    }
+
+    /**
+     * @return array<int, array> value counts by feature ID
+     */
+    private function countFeatureValues(array $filters, array $selectedFilters, $idLang)
+    {
+        $sharedIds = $ownIds = [];
+        foreach ($filters as $filter) {
+            if ($filter['type'] === 'id_feature') {
+                // Keep current selections while counting additional values for an AND feature facet.
+                if ((int) ($filter['filter_type'] ?? Converter::WIDGET_TYPE_CHECKBOX) !== Converter::WIDGET_TYPE_CHECKBOX_AND
+                    && isset($selectedFilters['id_feature'][$filter['id_value']])
+                ) {
+                    $ownIds[] = (int) $filter['id_value'];
+                } else {
+                    $sharedIds[] = (int) $filter['id_value'];
+                }
+            }
+        }
+
+        if ((empty($sharedIds) && empty($ownIds)) || empty($this->dataAccessor->getFeatures($idLang))) {
+            return [];
+        }
+
+        return $this->countFacetValues($sharedIds, $ownIds, 'id_feature', 'id_feature_value', 'with_features_');
+    }
+
+    /**
+     * A facet with a selected value ignores its own selection, so it is counted in its own query.
+     *
+     * @param int[] $sharedIds facets counted with the current filters
+     * @param int[] $ownIds facets ignoring their own selection
+     * @param string $idField id_attribute_group or id_feature
+     * @param string $valueField id_attribute or id_feature_value
+     * @param string $selectionFilterPrefix prefix of the filter holding the selection of a facet
+     *
+     * @return array<int, array> value counts by facet ID
+     */
+    private function countFacetValues(array $sharedIds, array $ownIds, $idField, $valueField, $selectionFilterPrefix)
+    {
+        $queries = empty($sharedIds) ? [] : [[$this->searchAdapter->getFilteredSearchAdapter(), $sharedIds]];
+        foreach ($ownIds as $id) {
+            $queries[] = [$this->searchAdapter->getFilteredSearchAdapter($selectionFilterPrefix . $id), [$id]];
+        }
+
+        $valueCounts = array_fill_keys(array_merge($sharedIds, $ownIds), []);
+        foreach ($queries as list($filteredSearchAdapter, $ids)) {
+            $filteredSearchAdapter->addOperationsFilter($idField . '_' . implode('_', $ids), [[[$idField, $ids]]]);
+            $filteredSearchAdapter->addSelectField($idField);
+            foreach ($filteredSearchAdapter->valueCount($valueField) as $valueCount) {
+                $valueCounts[$valueCount[$idField]][] = $valueCount;
+            }
+        }
+
+        return $valueCounts;
     }
 
     /**

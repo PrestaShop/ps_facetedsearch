@@ -592,9 +592,7 @@ class BlockTest extends MockeryTestCase
         $adapterInitialMock->resetAll();
 
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->once()
-            ->with('with_attributes_1')
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -744,18 +742,22 @@ class BlockTest extends MockeryTestCase
                 [
                     [
                         'id_attribute' => '1',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '2',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '3',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '4',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                 ]
@@ -817,9 +819,7 @@ class BlockTest extends MockeryTestCase
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('with_features_1')
-            ->once()
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -840,11 +840,8 @@ class BlockTest extends MockeryTestCase
         $this->mockFeatures([]);
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
-        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
-        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->once()
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -862,7 +859,7 @@ class BlockTest extends MockeryTestCase
     public function testAndFeatureCountsKeepCurrentFeatureSelection()
     {
         // Keep the selected feature filter in the initial population for AND facet counts.
-        $this->mockFeatures([]);
+        $this->mockFeatures([['id_feature' => 1, 'name' => 'Feature']]);
         $this->mockLayeredCategory([[
             'type' => 'id_feature',
             'id_value' => 1,
@@ -871,6 +868,10 @@ class BlockTest extends MockeryTestCase
 
         $filteredAdapter = Mockery::mock(MySQL::class)->makePartial();
         $filteredAdapter->resetAll();
+        $filteredAdapter->shouldReceive('valueCount')
+            ->with('id_feature_value')
+            ->once()
+            ->andReturn([]);
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with()
             ->once()
@@ -1164,7 +1165,7 @@ class BlockTest extends MockeryTestCase
                 'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = 2) ' .
                 'LEFT JOIN `ps_layered_indexable_feature_value_lang_value` lifvlv ' .
                 'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = 2) ' .
-                'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
+                'WHERE v.`id_feature` IN (' . (int) $idFeature . ') ' .
                 'ORDER BY vl.`value` ASC'
             )
             ->andReturn($featureValues);
