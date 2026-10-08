@@ -310,18 +310,18 @@ class MySQL extends AbstractAdapter
             'out_of_stock' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
-                'dependencyField' => 'id_attribute',
+                'dependencyField' => 'id_product_attribute',
             ],
             'quantity' => [
                 'tableName' => 'stock_available',
                 'tableAlias' => 'sa',
-                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute' .
+                'joinCondition' => '(p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute' .
                 $stockCondition . ')',
                 'joinType' => self::LEFT_JOIN,
-                'dependencyField' => 'id_attribute',
+                'dependencyField' => 'id_product_attribute',
                 'aggregateFunction' => 'SUM',
                 'aggregateFieldName' => 'quantity',
             ],
