@@ -396,6 +396,7 @@ class Search
             // we add this one specific category ID, otherwise, we will add everything using nleft and nright
             if (Configuration::get('PS_LAYERED_FULL_TREE')) {
                 $this->getSearchAdapter()->addFilter('nleft', [$category->nleft], '>=');
+                $this->getSearchAdapter()->addFilter('nleft', [$category->nright], '<=');
                 $this->getSearchAdapter()->addFilter('nright', [$category->nright], '<=');
             } else {
                 $this->addFilter('id_category', [$idCategory]);
