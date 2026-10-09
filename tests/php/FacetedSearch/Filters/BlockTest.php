@@ -323,6 +323,8 @@ class BlockTest extends MockeryTestCase
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
+        $adapterInitialMock->addFilter('price_min', [43], '<');
+        $adapterInitialMock->addFilter('price_max', [23], '>');
         $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
             ->andReturn([0, 0]);
@@ -344,6 +346,8 @@ class BlockTest extends MockeryTestCase
                 ]
             )
         );
+        $this->assertEquals(['<' => [[43]]], $adapterInitialMock->getFilter('price_min'));
+        $this->assertEquals(['>' => [[23]]], $adapterInitialMock->getFilter('price_max'));
     }
 
     public function testGetFiltersBlockWithQuantities()
@@ -361,21 +365,21 @@ class BlockTest extends MockeryTestCase
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) LEFT JOIN ps_stock_available sa_1 ON (p.id_product = sa_1.id_product AND IFNULL(pac.id_product_attribute, 0) = sa_1.id_product_attribute) WHERE ((sa.quantity<=0 AND sa_1.out_of_stock=0))')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity<=0 AND sa.out_of_stock=0))')
             ->andReturn([
                 ['c' => 1000],
             ]);
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.out_of_stock IN (1, 2)) OR (sa.quantity>0))')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.out_of_stock IN (1, 2)) OR (sa.quantity>0))')
             ->andReturn([
                 ['c' => 100],
             ]);
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pac.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>0))')
+            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>0))')
             ->andReturn([
                 ['c' => 50],
             ]);
@@ -592,9 +596,7 @@ class BlockTest extends MockeryTestCase
         $adapterInitialMock->resetAll();
 
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->once()
-            ->with('with_attributes_1')
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -744,18 +746,22 @@ class BlockTest extends MockeryTestCase
                 [
                     [
                         'id_attribute' => '1',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '2',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '3',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                     [
                         'id_attribute' => '4',
+                        'id_attribute_group' => '1',
                         'c' => '2',
                     ],
                 ]
@@ -817,9 +823,7 @@ class BlockTest extends MockeryTestCase
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->with('with_features_1')
-            ->once()
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -840,11 +844,8 @@ class BlockTest extends MockeryTestCase
         $this->mockFeatures([]);
         $this->mockLayeredCategory([['type' => 'id_feature', 'id_value' => 1]]);
 
-        $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
-        $adapterInitialMock->resetAll();
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
-            ->once()
-            ->andReturn($adapterInitialMock);
+            ->never();
 
         $this->assertEquals(
             [
@@ -862,7 +863,7 @@ class BlockTest extends MockeryTestCase
     public function testAndFeatureCountsKeepCurrentFeatureSelection()
     {
         // Keep the selected feature filter in the initial population for AND facet counts.
-        $this->mockFeatures([]);
+        $this->mockFeatures([['id_feature' => 1, 'name' => 'Feature']]);
         $this->mockLayeredCategory([[
             'type' => 'id_feature',
             'id_value' => 1,
@@ -871,6 +872,10 @@ class BlockTest extends MockeryTestCase
 
         $filteredAdapter = Mockery::mock(MySQL::class)->makePartial();
         $filteredAdapter->resetAll();
+        $filteredAdapter->shouldReceive('valueCount')
+            ->with('id_feature_value')
+            ->once()
+            ->andReturn([]);
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with()
             ->once()
@@ -1164,7 +1169,7 @@ class BlockTest extends MockeryTestCase
                 'ON (v.`id_feature_value` = vl.`id_feature_value` AND vl.`id_lang` = 2) ' .
                 'LEFT JOIN `ps_layered_indexable_feature_value_lang_value` lifvlv ' .
                 'ON (v.`id_feature_value` = lifvlv.`id_feature_value` AND lifvlv.`id_lang` = 2) ' .
-                'WHERE v.`id_feature` = ' . (int) $idFeature . ' ' .
+                'WHERE v.`id_feature` IN (' . (int) $idFeature . ') ' .
                 'ORDER BY vl.`value` ASC'
             )
             ->andReturn($featureValues);
