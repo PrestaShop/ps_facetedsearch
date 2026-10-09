@@ -336,12 +336,6 @@ class Block
         );
 
         list($weightBlock['min'], $weightBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
-        if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
-            // We don't need to continue, no filter available
-            return [];
-        }
-
-        $weightBlock['value'] = !empty($selectedFilters['weight']) ? array_map('floatval', $selectedFilters['weight']) : null;
 
         $this->restorePriceAndWeightFilters(
             $this->searchAdapter->getInitialPopulation(),
@@ -349,6 +343,13 @@ class Block
             $priceMaxFilter,
             $weightFilter
         );
+
+        if (empty($weightBlock['min']) && empty($weightBlock['max'])) {
+            // We don't need to continue, no filter available
+            return [];
+        }
+
+        $weightBlock['value'] = !empty($selectedFilters['weight']) ? array_map('floatval', $selectedFilters['weight']) : null;
 
         return $weightBlock;
     }

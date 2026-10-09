@@ -323,6 +323,8 @@ class BlockTest extends MockeryTestCase
 
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
+        $adapterInitialMock->addFilter('price_min', [43], '<');
+        $adapterInitialMock->addFilter('price_max', [23], '>');
         $adapterInitialMock->shouldReceive('getMinMaxValue')
             ->with('p.weight')
             ->andReturn([0, 0]);
@@ -344,6 +346,8 @@ class BlockTest extends MockeryTestCase
                 ]
             )
         );
+        $this->assertEquals(['<' => [[43]]], $adapterInitialMock->getFilter('price_min'));
+        $this->assertEquals(['>' => [[23]]], $adapterInitialMock->getFilter('price_max'));
     }
 
     public function testGetFiltersBlockWithQuantities()
