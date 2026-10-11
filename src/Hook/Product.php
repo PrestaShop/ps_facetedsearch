@@ -24,6 +24,7 @@ class Product extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
         'actionProductSave',
+        'actionProductDelete',
     ];
 
     /**
@@ -38,7 +39,21 @@ class Product extends AbstractHook
         }
 
         $this->module->indexProductPrices((int) $params['id_product']);
-        $this->module->indexAttributes((int) $params['id_product']);
+        $this->module->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * After delete product
+     *
+     * @param array $params
+     */
+    public function actionProductDelete(array $params)
+    {
+        if (empty($params['id_product'])) {
+            return;
+        }
+
+        $this->module->getDatabase()->delete('layered_price_index', 'id_product = ' . (int) $params['id_product']);
         $this->module->invalidateLayeredFilterBlockCache();
     }
 }

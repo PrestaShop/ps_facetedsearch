@@ -225,11 +225,9 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
 
             $this->rebuildPriceIndexTable();
             $this->installIndexableAttributeTable();
-            $this->installProductAttributeTable();
 
             if ($productsCount < static::LOCK_TOO_MANY_PRODUCTS) {
                 $this->fullPricesIndexProcess();
-                $this->indexAttributes();
             }
         }
 
@@ -299,35 +297,16 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $this->hookDispatcher;
     }
 
-    /*
-     * Generate data product attributes
+    /**
+     * @deprecated since 5.1.1, the layered_product_attribute table is not used anymore
      *
      * @param int $idProduct
      *
-     * @return boolean
+     * @return bool
      */
     public function indexAttributes($idProduct = null)
     {
-        if (null === $idProduct) {
-            $this->getDatabase()->execute('TRUNCATE ' . _DB_PREFIX_ . 'layered_product_attribute');
-        } else {
-            $this->getDatabase()->execute(
-                'DELETE FROM ' . _DB_PREFIX_ . 'layered_product_attribute
-                WHERE id_product = ' . (int) $idProduct
-            );
-        }
-
-        return $this->getDatabase()->execute(
-            'INSERT INTO `' . _DB_PREFIX_ . 'layered_product_attribute` (`id_attribute`, `id_product`, `id_attribute_group`, `id_shop`)
-            SELECT pac.id_attribute, pa.id_product, ag.id_attribute_group, product_attribute_shop.`id_shop`
-            FROM ' . _DB_PREFIX_ . 'product_attribute pa' .
-            Shop::addSqlAssociation('product_attribute', 'pa') . '
-            INNER JOIN ' . _DB_PREFIX_ . 'product_attribute_combination pac ON pac.id_product_attribute = pa.id_product_attribute
-            INNER JOIN ' . _DB_PREFIX_ . 'attribute a ON (a.id_attribute = pac.id_attribute)
-            INNER JOIN ' . _DB_PREFIX_ . 'attribute_group ag ON ag.id_attribute_group = a.id_attribute_group
-            ' . ($idProduct === null ? '' : 'AND pa.id_product = ' . (int) $idProduct) . '
-            GROUP BY a.id_attribute, pa.id_product , product_attribute_shop.`id_shop`'
-        );
+        return true;
     }
 
     /*
@@ -1436,6 +1415,10 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
      */
     public function invalidateLayeredFilterBlockCache()
     {
+        if (!$this->getDatabase()->getValue('SELECT 1 FROM ' . _DB_PREFIX_ . 'layered_filter_block', false)) {
+            return true;
+        }
+
         return $this->getDatabase()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'layered_filter_block');
     }
 
@@ -1458,24 +1441,6 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
             INDEX `id_currency` (`id_currency`),
             INDEX `price_min` (`price_min`),
             INDEX `price_max` (`price_max`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
-        );
-    }
-
-    /**
-     * create table product attribute.
-     */
-    private function installProductAttributeTable()
-    {
-        $this->getDatabase()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
-        $this->getDatabase()->execute(
-            'CREATE TABLE `' . _DB_PREFIX_ . 'layered_product_attribute` (
-            `id_attribute` int(10) unsigned NOT NULL,
-            `id_product` int(10) unsigned NOT NULL,
-            `id_attribute_group` int(10) unsigned NOT NULL DEFAULT "0",
-            `id_shop` int(10) unsigned NOT NULL DEFAULT "1",
-            PRIMARY KEY (`id_attribute`, `id_product`, `id_shop`),
-            UNIQUE KEY `id_attribute_group` (`id_attribute_group`,`id_attribute`,`id_product`, `id_shop`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;'
         );
     }
