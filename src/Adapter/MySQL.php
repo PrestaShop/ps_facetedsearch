@@ -74,6 +74,8 @@ class MySQL extends AbstractAdapter
 
     /**
      * {@inheritdoc}
+     *
+     * @return MySQL
      */
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
