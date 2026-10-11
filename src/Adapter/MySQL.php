@@ -202,20 +202,15 @@ class MySQL extends AbstractAdapter
             $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
         }
 
-        $combinationJoin = [
-            'tableName' => 'product_attribute',
-            'tableAlias' => 'pa',
-            'joinCondition' => '(p.id_product = pa.id_product)',
-            'joinType' => self::LEFT_JOIN,
-        ];
-        if ($this->isCombinationStatusFilteringEnabled()) {
-            $combinationJoin['tableName'] = 'product_attribute_shop';
-            $combinationJoin['joinCondition'] = '(p.id_product = pa.id_product AND pa.id_shop = ' .
-                $this->getContext()->shop->id . ' AND pa.active = 1)';
-        }
+        $activeCombinationCondition = $this->isCombinationStatusFilteringEnabled() ? ' AND pa.active = 1' : '';
 
         $filterToTableMapping = [
-            'id_product_attribute' => $combinationJoin,
+            'id_product_attribute' => [
+                'tableName' => 'product_attribute_shop',
+                'tableAlias' => 'pa',
+                'joinCondition' => '(p.id_product = pa.id_product AND pa.id_shop = ' . $this->getContext()->shop->id . $activeCombinationCondition . ')',
+                'joinType' => self::LEFT_JOIN,
+            ],
             'id_attribute' => [
                 'tableName' => 'product_attribute_combination',
                 'tableAlias' => 'pac',
