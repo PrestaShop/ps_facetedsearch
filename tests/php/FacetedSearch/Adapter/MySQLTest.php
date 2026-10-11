@@ -247,6 +247,36 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    public function testGetMinMaxValueReusesPopulationProductIds()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product FROM ps_product p LIMIT 250001', false)
+            ->andReturn('ids');
+        $dbInstanceMock->shouldReceive('nextRow')
+            ->with('ids')
+            ->andReturn(['id_product' => '1'], ['id_product' => '2'], false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT MIN(weight) as min, MAX(weight) as max FROM ps_product p WHERE p.id_product IN (1, 2)')
+            ->andReturn([['min' => '1', 'max' => '2']]);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.condition, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.id_product IN (1, 2) GROUP BY p.condition')
+            ->andReturn([]);
+
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertEquals([1.0, 2.0], $this->adapter->getFilteredSearchAdapter()->getMinMaxValue('weight'));
+        $this->adapter->getFilteredSearchAdapter('condition')->valueCount('condition');
+    }
+
     public function testGetMinMaxValueForWeight()
     {
         $dbInstanceMock = Mockery::mock(Db::class);
@@ -336,7 +366,14 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.weight FROM ps_product p) p GROUP BY p.weight')
+            ->with('SELECT p.id_product FROM ps_product p LIMIT 250001', false)
+            ->andReturn('ids');
+        $dbInstanceMock->shouldReceive('nextRow')
+            ->with('ids')
+            ->andReturn(['id_product' => '1'], ['id_product' => '2'], false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.id_product IN (1, 2) GROUP BY p.weight')
             ->andReturn(
                 [
                     [
@@ -362,6 +399,76 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
+    public function testValueCountWithInitialPopulationFallback()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product FROM ps_product p LIMIT 250001', false)
+            ->andReturn(false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.weight FROM ps_product p) p GROUP BY p.weight')
+            ->andReturn([['weight' => '10', 'c' => '1000']]);
+
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertEquals([['weight' => '10', 'c' => '1000']], $this->adapter->valueCount('weight'));
+    }
+
+    public function testValueCountWithInitialPopulationAndCombinationField()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->getInitialPopulation()->addSelectField('id_product_attribute');
+
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product FROM ps_product p LIMIT 250001', false)
+            ->andReturn('ids');
+        $dbInstanceMock->shouldReceive('nextRow')
+            ->with('ids')
+            ->andReturn(['id_product' => '1'], ['id_product' => '2'], false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.id_product IN (1, 2) GROUP BY p.weight')
+            ->andReturn([['weight' => '10', 'c' => '1000']]);
+
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertEquals([['weight' => '10', 'c' => '1000']], $this->adapter->getFilteredSearchAdapter()->valueCount('weight'));
+        $this->assertContains('FROM (SELECT p.id_product, pa.id_product_attribute FROM ps_product p', $this->adapter->getQuery());
+    }
+
+    public function testCountOperations()
+    {
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT COUNT(DISTINCT IF(((sa.quantity>0)), p.id_product, NULL)) c0, COUNT(DISTINCT IF(((sa.quantity<=0)), p.id_product, NULL)) c1 FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>0) OR (sa.quantity<=0))')
+            ->andReturn([['c0' => '3', 'c1' => '2']]);
+
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertSame(
+            ['in_stock' => 3, 'out_of_stock' => 2],
+            $this->adapter->countOperations(Search::STOCK_MANAGEMENT_FILTER, [
+                'in_stock' => [[['quantity', [0], '>']]],
+                'out_of_stock' => [[['quantity', [0], '<=']]],
+            ])
+        );
+    }
+
     public function testValueCountWithInitialPopulationAndStockManagement()
     {
         $this->adapter->useFiltersAsInitialPopulation();
@@ -373,7 +480,14 @@ class MySQLTest extends MockeryTestCase
         $dbInstanceMock = Mockery::mock(Db::class);
         $dbInstanceMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product, p.weight FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0))) p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0)) GROUP BY p.weight')
+            ->with('SELECT p.id_product FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0)) LIMIT 250001', false)
+            ->andReturn('ids');
+        $dbInstanceMock->shouldReceive('nextRow')
+            ->with('ids')
+            ->andReturn(['id_product' => '1'], ['id_product' => '2'], false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product, p.weight, COUNT(DISTINCT p.id_product) c FROM ps_product p WHERE p.id_product IN (1, 2) GROUP BY p.weight')
             ->andReturn(
                 [
                     [
@@ -396,6 +510,50 @@ class MySQLTest extends MockeryTestCase
                 ],
             ],
             $this->adapter->valueCount('weight')
+        );
+    }
+
+    public function testValueCountOfCombinationFieldWithInitialPopulationAndStockManagement()
+    {
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->getInitialPopulation()->addOperationsFilter(
+            Search::STOCK_MANAGEMENT_FILTER,
+            [[['quantity', [0], '>=']]]
+        );
+
+        $dbInstanceMock = Mockery::mock(Db::class);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>=0)) LIMIT 250001', false)
+            ->andReturn('ids');
+        $dbInstanceMock->shouldReceive('nextRow')
+            ->with('ids')
+            ->andReturn(['id_product' => '1'], ['id_product' => '2'], false);
+        $dbInstanceMock->shouldReceive('executeS')
+            ->once()
+            ->with('SELECT p.id_product, pac.id_attribute, COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE p.id_product IN (1, 2) AND ((sa.quantity>=0)) GROUP BY pac.id_attribute')
+            ->andReturn(
+                [
+                    [
+                        'id_attribute' => '10',
+                        'c' => '1000',
+                    ],
+                ]
+            );
+
+        $dbMock = Mockery::mock(Db::class);
+        $dbMock->shouldReceive('getInstance')
+            ->andReturn($dbInstanceMock);
+
+        Db::setStaticExpectations($dbMock);
+        $this->assertEquals(
+            [
+                0 => [
+                    'id_attribute' => '10',
+                    'c' => '1000',
+                ],
+            ],
+            $this->adapter->valueCount('id_attribute')
         );
     }
 

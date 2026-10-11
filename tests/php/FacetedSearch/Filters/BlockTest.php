@@ -205,6 +205,8 @@ class BlockTest extends MockeryTestCase
             ->andReturn([10.0, 100.0]);
         $this->adapterMock->shouldReceive('getInitialPopulation')
             ->andReturn($adapterInitialMock);
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -278,6 +280,8 @@ class BlockTest extends MockeryTestCase
             ->andReturn([10.0, 100.0]);
         $this->adapterMock->shouldReceive('getInitialPopulation')
             ->andReturn($adapterInitialMock);
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -330,6 +334,8 @@ class BlockTest extends MockeryTestCase
             ->andReturn([0, 0]);
         $this->adapterMock->shouldReceive('getInitialPopulation')
             ->andReturn($adapterInitialMock);
+        $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
+            ->andReturn($adapterInitialMock);
         $this->assertEquals(
             [
                 'filters' => [
@@ -365,23 +371,9 @@ class BlockTest extends MockeryTestCase
 
         $this->dbMock->shouldReceive('executeS')
             ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity<=0 AND sa.out_of_stock=0))')
+            ->with('SELECT COUNT(DISTINCT IF(((sa.quantity<=0 AND sa.out_of_stock=0)), p.id_product, NULL)) c0, COUNT(DISTINCT IF(((sa.out_of_stock IN (1, 2)) OR (sa.quantity>0)), p.id_product, NULL)) c1, COUNT(DISTINCT IF(((sa.quantity>0)), p.id_product, NULL)) c2 FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity<=0 AND sa.out_of_stock=0) OR (sa.out_of_stock IN (1, 2)) OR (sa.quantity>0) OR (sa.quantity>0))')
             ->andReturn([
-                ['c' => 1000],
-            ]);
-
-        $this->dbMock->shouldReceive('executeS')
-            ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.out_of_stock IN (1, 2)) OR (sa.quantity>0))')
-            ->andReturn([
-                ['c' => 100],
-            ]);
-
-        $this->dbMock->shouldReceive('executeS')
-            ->once()
-            ->with('SELECT COUNT(DISTINCT p.id_product) c FROM ps_product p LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product) LEFT JOIN ps_stock_available sa ON (p.id_product = sa.id_product AND IFNULL(pa.id_product_attribute, 0) = sa.id_product_attribute) WHERE ((sa.quantity>0))')
-            ->andReturn([
-                ['c' => 50],
+                ['c0' => 1000, 'c1' => 100, 'c2' => 50],
             ]);
 
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')

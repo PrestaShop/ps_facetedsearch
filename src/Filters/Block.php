@@ -246,7 +246,7 @@ class Block
             $this->searchAdapter->getInitialPopulation()
         );
 
-        list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxPriceValue();
+        list($priceBlock['min'], $priceBlock['max']) = $this->searchAdapter->getFilteredSearchAdapter()->getMinMaxPriceValue();
         $priceBlock['value'] = !empty($selectedFilters['price']) ? array_map('floatval', $selectedFilters['price']) : null;
 
         $this->restorePriceAndWeightFilters(
@@ -335,7 +335,7 @@ class Block
             $this->searchAdapter->getInitialPopulation()
         );
 
-        list($weightBlock['min'], $weightBlock['max']) = $this->searchAdapter->getInitialPopulation()->getMinMaxValue('p.weight');
+        list($weightBlock['min'], $weightBlock['max']) = $this->searchAdapter->getFilteredSearchAdapter()->getMinMaxValue('p.weight');
 
         $this->restorePriceAndWeightFilters(
             $this->searchAdapter->getInitialPopulation(),
@@ -466,43 +466,36 @@ class Block
             ];
 
             $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter(Search::STOCK_MANAGEMENT_FILTER);
-
-            // Products without quantity in stock, with out-of-stock ordering disabled
-            $filteredSearchAdapter->addOperationsFilter(
+            $counts = $filteredSearchAdapter->countOperations(
                 Search::STOCK_MANAGEMENT_FILTER,
                 [
-                    [
-                        ['quantity', [0], '<='],
-                        ['out_of_stock', !$this->psOrderOutOfStock ? [0, 2] : [0], '='],
+                    // Products without quantity in stock, with out-of-stock ordering disabled
+                    Availability::NOT_AVAILABLE => [
+                        [
+                            ['quantity', [0], '<='],
+                            ['out_of_stock', !$this->psOrderOutOfStock ? [0, 2] : [0], '='],
+                        ],
+                    ],
+                    // Products in stock, or with out-of-stock ordering enabled
+                    Availability::AVAILABLE => [
+                        [
+                            ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
+                        ],
+                        [
+                            ['quantity', [0], '>'],
+                        ],
+                    ],
+                    // Products in stock
+                    Availability::IN_STOCK => [
+                        [
+                            ['quantity', [0], '>'],
+                        ],
                     ],
                 ]
             );
-            $availabilityOptions[Availability::NOT_AVAILABLE]['nbr'] = $filteredSearchAdapter->count();
-
-            // Products in stock, or with out-of-stock ordering enabled
-            $filteredSearchAdapter->addOperationsFilter(
-                Search::STOCK_MANAGEMENT_FILTER,
-                [
-                    [
-                        ['out_of_stock', $this->psOrderOutOfStock ? [1, 2] : [1], '='],
-                    ],
-                    [
-                        ['quantity', [0], '>'],
-                    ],
-                ]
-            );
-            $availabilityOptions[Availability::AVAILABLE]['nbr'] = $filteredSearchAdapter->count();
-
-            // Products in stock
-            $filteredSearchAdapter->addOperationsFilter(
-                Search::STOCK_MANAGEMENT_FILTER,
-                [
-                    [
-                        ['quantity', [0], '>'],
-                    ],
-                ]
-            );
-            $availabilityOptions[Availability::IN_STOCK]['nbr'] = $filteredSearchAdapter->count();
+            foreach ($counts as $availability => $count) {
+                $availabilityOptions[$availability]['nbr'] = $count;
+            }
 
             // If some filter was selected, we want to show only this single filter, it does not make sense to show others
             if (isset($selectedFilters['availability'])) {
