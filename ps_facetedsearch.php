@@ -297,18 +297,6 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
         return $this->hookDispatcher;
     }
 
-    /**
-     * @deprecated since 5.1.1, the layered_product_attribute table is not used anymore
-     *
-     * @param int $idProduct
-     *
-     * @return bool
-     */
-    public function indexAttributes($idProduct = null)
-    {
-        return true;
-    }
-
     /*
      * Generate data for product features
      *

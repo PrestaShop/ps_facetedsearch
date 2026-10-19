@@ -21,9 +21,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_5_1_1(Ps_Facetedsearch $module)
+function upgrade_module_5_2_0(Ps_Facetedsearch $module)
 {
     Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'layered_product_attribute`');
+
+    Db::getInstance()->execute(
+        'DELETE lpi FROM `' . _DB_PREFIX_ . 'layered_price_index` lpi
+        LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON p.id_product = lpi.id_product
+        WHERE p.id_product IS NULL'
+    );
 
     return $module->registerHook('actionProductDelete');
 }
