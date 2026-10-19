@@ -27,9 +27,9 @@ function upgrade_module_5_2_0(Ps_Facetedsearch $module)
 
     Db::getInstance()->execute(
         'DELETE lpi FROM `' . _DB_PREFIX_ . 'layered_price_index` lpi
-        LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON p.id_product = lpi.id_product
-        WHERE p.id_product IS NULL'
+        LEFT JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON ps.id_product = lpi.id_product AND ps.id_shop = lpi.id_shop
+        WHERE ps.id_product IS NULL'
     );
 
-    return $module->registerHook('actionProductDelete');
+    return $module->registerHook('actionObjectProductDeleteAfter');
 }
