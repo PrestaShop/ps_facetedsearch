@@ -371,17 +371,20 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
             }
         }
 
-        $shopList = Shop::getShops(false, null, true);
+        if ($smart) {
+            $this->getDatabase()->delete('layered_price_index', 'id_product = ' . (int) $idProduct);
+        }
+
+        $shopList = array_map('intval', array_column(
+            $this->getDatabase()->executeS('SELECT id_shop FROM `' . _DB_PREFIX_ . 'product_shop` WHERE id_product = ' . (int) $idProduct) ?: [],
+            'id_shop'
+        ));
 
         foreach ($shopList as $idShop) {
             $currencyList = Currency::getCurrencies(false, true, true);
 
             $minPrice = [];
             $maxPrice = [];
-
-            if ($smart) {
-                $this->getDatabase()->execute('DELETE FROM `' . _DB_PREFIX_ . 'layered_price_index` WHERE `id_product` = ' . (int) $idProduct . ' AND `id_shop` = ' . (int) $idShop);
-            }
 
             $taxRatesByCountry = $this->getDatabase()->executeS(
                 'SELECT t.rate rate, tr.id_country, c.iso_code ' .

@@ -85,7 +85,7 @@ class HookDispatcherTest extends MockeryTestCase
                 'actionAfterCreateFeatureValueFormHandler',
                 'actionAfterUpdateFeatureValueFormHandler',
                 'actionProductSave',
-                'actionProductDelete',
+                'actionObjectProductDeleteAfter',
                 'productSearchProvider',
                 'actionObjectSpecificPriceRuleUpdateBefore',
                 'actionAdminSpecificPriceRuleControllerSaveAfter',
