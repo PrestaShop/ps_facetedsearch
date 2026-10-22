@@ -425,23 +425,34 @@ class BlockTest extends MockeryTestCase
 
     public function testGetFiltersBlockWithCondition()
     {
+        // Mock the translated labels for all product conditions and the filter heading
         $this->mockTranslator([
             [['New', [], 'Modules.Facetedsearch.Shop'], 'New'],
             [['Used', [], 'Modules.Facetedsearch.Shop'], 'Used'],
             [['Refurbished', [], 'Modules.Facetedsearch.Shop'], 'Refurbished'],
+            [['New, open box', [], 'Modules.Facetedsearch.Shop'], 'New, open box'],
+            [['Damaged', [], 'Modules.Facetedsearch.Shop'], 'Damaged'],
+            [['New, minor defects', [], 'Modules.Facetedsearch.Shop'], 'New, minor defects'],
             [['Condition', [], 'Modules.Facetedsearch.Shop'], 'Condition'],
         ]);
         $this->mockLayeredCategory([['type' => 'condition', 'filter_show_limit' => 0, 'filter_type' => 1]]);
 
+        // Return product counts for the populated conditions
         $adapterInitialMock = Mockery::mock(MySQL::class)->makePartial();
         $adapterInitialMock->resetAll();
         $adapterInitialMock->shouldReceive('valueCount')
             ->with('condition')
-            ->andReturn([['c' => 100, 'condition' => 'new']]);
+            ->andReturn([
+                ['c' => 100, 'condition' => 'new'],
+                ['c' => 20, 'condition' => 'open_box'],
+                ['c' => 30, 'condition' => 'damaged'],
+                ['c' => 40, 'condition' => 'new_with_defects'],
+            ]);
         $this->adapterMock->shouldReceive('getFilteredSearchAdapter')
             ->with('condition')
             ->andReturn($adapterInitialMock);
 
+        // Verify labels, counts, and selection flags, including conditions without products
         $this->assertEquals(
             [
                 'filters' => [
@@ -464,6 +475,21 @@ class BlockTest extends MockeryTestCase
                                 'name' => 'Refurbished',
                                 'nbr' => 0,
                             ],
+                            'open_box' => [
+                                'name' => 'New, open box',
+                                'nbr' => 20,
+                                'checked' => true,
+                            ],
+                            'damaged' => [
+                                'name' => 'Damaged',
+                                'nbr' => 30,
+                                'checked' => true,
+                            ],
+                            'new_with_defects' => [
+                                'name' => 'New, minor defects',
+                                'nbr' => 40,
+                                'checked' => true,
+                            ],
                         ],
                         'filter_show_limit' => 0,
                         'filter_type' => 1,
@@ -475,6 +501,9 @@ class BlockTest extends MockeryTestCase
                 [
                     'condition' => [
                         'new',
+                        'open_box',
+                        'damaged',
+                        'new_with_defects',
                     ],
                 ]
             )
