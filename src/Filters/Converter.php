@@ -348,6 +348,7 @@ class Converter
                         continue 2;
                     }
 
+                    // Map translated condition labels from the URL to product condition values
                     $conditionArray = [
                         $this->context->getTranslator()->trans(
                             'New',
@@ -364,8 +365,12 @@ class Converter
                             [],
                             'Modules.Facetedsearch.Shop'
                         ) => 'refurbished',
+                        $this->context->getTranslator()->trans('New, open box', [], 'Modules.Facetedsearch.Shop') => 'open_box',
+                        $this->context->getTranslator()->trans('Damaged', [], 'Modules.Facetedsearch.Shop') => 'damaged',
+                        $this->context->getTranslator()->trans('New, minor defects', [], 'Modules.Facetedsearch.Shop') => 'new_with_defects',
                     ];
 
+                    // Select the condition values matching the requested labels
                     $searchFilters[$filter['type']] = [];
                     foreach ($conditionArray as $conditionName => $conditionId) {
                         if (isset($receivedFilters[$filterLabel]) && in_array($conditionName, $receivedFilters[$filterLabel])) {

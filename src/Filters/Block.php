@@ -360,6 +360,7 @@ class Block
      */
     private function getConditionsBlock($filter, $selectedFilters)
     {
+        // Define translated labels and initial counts for product conditions
         $conditionArray = [
             'new' => [
                 'name' => $this->context->getTranslator()->trans(
@@ -385,7 +386,21 @@ class Block
                 ),
                 'nbr' => 0,
             ],
+            'open_box' => [
+                'name' => $this->context->getTranslator()->trans('New, open box', [], 'Modules.Facetedsearch.Shop'),
+                'nbr' => 0,
+            ],
+            'damaged' => [
+                'name' => $this->context->getTranslator()->trans('Damaged', [], 'Modules.Facetedsearch.Shop'),
+                'nbr' => 0,
+            ],
+            'new_with_defects' => [
+                'name' => $this->context->getTranslator()->trans('New, minor defects', [], 'Modules.Facetedsearch.Shop'),
+                'nbr' => 0,
+            ],
         ];
+
+        // Populate product counts and mark selected conditions
         $filteredSearchAdapter = $this->searchAdapter->getFilteredSearchAdapter('condition');
         $results = $filteredSearchAdapter->valueCount('condition');
         foreach ($results as $key => $values) {
@@ -400,6 +415,7 @@ class Block
             }
         }
 
+        // Build the condition filter block with its configured display options
         $conditionBlock = [
             'type_lite' => 'condition',
             'type' => 'condition',
