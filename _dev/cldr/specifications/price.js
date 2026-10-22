@@ -16,8 +16,8 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-import LocalizationException from '../exception/localization';
-import NumberSpecification from './number';
+import LocalizationException from '../exception/localization.js';
+import NumberSpecification from './number.js';
 
 /**
  * Currency display option: symbol notation.
