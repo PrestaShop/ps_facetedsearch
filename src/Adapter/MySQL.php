@@ -36,6 +36,21 @@ class MySQL extends AbstractAdapter
     const TYPE = 'MySQL';
 
     /**
+     * Pushes out-of-stock products last on category, manufacturer and the other listings.
+     *
+     * @var string
+     */
+    const CONFIG_SHOW_OUT_OF_STOCK_LAST = 'PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST';
+
+    /**
+     * Same behaviour on search result pages. Kept separate because search ranks by relevance,
+     * so a merchant can want availability first in listings without changing search.
+     *
+     * @var string
+     */
+    const CONFIG_SHOW_OUT_OF_STOCK_LAST_SEARCH = 'PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH';
+
+    /**
      * @var string
      */
     const LEFT_JOIN = 'LEFT JOIN';
@@ -476,8 +491,17 @@ class MySQL extends AbstractAdapter
          * to order products by their position in the search results we got from the core, with inverted order
          */
         if ($orderField == 'p.position' && !empty($this->getInitialPopulation()->getFilters()['id_product']['='][0])) {
-            return 'FIELD(p.id_product,' . implode(',', $this->getInitialPopulation()->getFilters()['id_product']['='][0]) . ') ' .
+            $orderField = 'FIELD(p.id_product,' . implode(',', $this->getInitialPopulation()->getFilters()['id_product']['='][0]) . ') ' .
             ($this->getOrderDirection() === 'asc' ? 'DESC' : 'ASC');
+
+            // Search keeps relevance as the primary signal, so it has its own setting rather than
+            // following the one used by category and other listings below. When it is off, the
+            // relevance order is returned untouched.
+            return $this->computeShowLast(
+                $orderField,
+                $filterToTableMapping,
+                self::CONFIG_SHOW_OUT_OF_STOCK_LAST_SEARCH
+            );
         }
 
         // Alter order by field and add some products to the end of the list, if required
@@ -495,14 +519,16 @@ class MySQL extends AbstractAdapter
      *
      * @param string $orderField
      * @param array $filterToTableMapping
+     * @param string $configurationKey setting that enables the behaviour, so search pages can be
+     *                                 driven by their own one
      *
      * @return string
      */
-    protected function computeShowLast($orderField, $filterToTableMapping)
+    protected function computeShowLast($orderField, $filterToTableMapping, $configurationKey = self::CONFIG_SHOW_OUT_OF_STOCK_LAST)
     {
         // allow only if feature is enabled & it is main product list query (caller ensures $orderField is non-empty)
         if ($this->getInitialPopulation() === null
-            || !Configuration::get('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            || !Configuration::get($configurationKey)
         ) {
             return $orderField;
         }

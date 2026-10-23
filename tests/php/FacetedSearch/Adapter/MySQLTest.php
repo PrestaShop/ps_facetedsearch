@@ -67,7 +67,67 @@ class MySQLTest extends MockeryTestCase
         $configurationMock->shouldReceive('get')
             ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
             ->andReturn(0);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH')
+            ->andReturn(0);
         Configuration::setStaticExpectations($configurationMock);
+    }
+
+    /**
+     * Search ranks by relevance, so it has its own setting. Enabling the listing setting alone must
+     * leave a search page exactly as it was: the relevance order and nothing else.
+     */
+    public function testGetQueryLeavesSearchUntouchedWhenOnlyTheListingSettingIsEnabled()
+    {
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(true);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH')
+            ->andReturn(false);
+        Configuration::setStaticExpectations($configurationMock);
+
+        $this->adapter->addFilter('id_product', [1, 2, 3], '=');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('asc');
+
+        $query = $this->adapter->getQuery();
+
+        $this->assertContains('FIELD(p.id_product,1,2,3) DESC', $query);
+        $this->assertNotContains('IFNULL(p.quantity, 0) <= 0', $query, 'The listing setting must not reach search results.');
+    }
+
+    /**
+     * With the search setting on, unavailable products go last on search too, and relevance is kept
+     * as the ordering within each availability group.
+     */
+    public function testGetQueryAppliesOutOfStockLastOnSearchWhenTheSearchSettingIsEnabled()
+    {
+        $configurationMock = Mockery::mock(Configuration::class);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST')
+            ->andReturn(false);
+        $configurationMock->shouldReceive('get')
+            ->with('PS_LAYERED_FILTER_SHOW_OUT_OF_STOCK_LAST_SEARCH')
+            ->andReturn(true);
+        Configuration::setStaticExpectations($configurationMock);
+
+        $productMock = Mockery::namedMock(Product::class);
+        $productMock->shouldReceive('isAvailableWhenOutOfStock')
+            ->with(2)
+            ->andReturn(false);
+
+        $this->adapter->addFilter('id_product', [1, 2, 3], '=');
+        $this->adapter->useFiltersAsInitialPopulation();
+        $this->adapter->setOrderField('position');
+        $this->adapter->setOrderDirection('asc');
+
+        $query = $this->adapter->getQuery();
+
+        $this->assertContains('IFNULL(p.quantity, 0) <= 0', $query);
+        $this->assertContains('FIELD(p.id_product,1,2,3) DESC', $query);
     }
 
     /**
