@@ -20,10 +20,6 @@
 
 namespace PrestaShop\Module\FacetedSearch;
 
-use Context;
-use PrestaShop\PrestaShop\Adapter\ContainerFinder;
-use Throwable;
-
 /**
  * Tells whether the faceted search must also take combination (product_attribute) feature values
  * into account, in addition to the product ones.
@@ -42,40 +38,14 @@ class CombinationFeature
     /**
      * Minimum PrestaShop version exposing combination feature values.
      */
-    public const MIN_PS_VERSION = '9.3.0';
-
-    /**
-     * @var bool|null
-     */
-    private static $enabled;
+    public const MIN_PS_VERSION = CoreFeatureFlag::MIN_PS_VERSION;
 
     /**
      * @return bool
      */
     public static function isFilteringEnabled()
     {
-        if (self::$enabled !== null) {
-            return self::$enabled;
-        }
-
-        self::$enabled = false;
-
-        // Combination feature values simply do not exist before PrestaShop 9.3.
-        if (version_compare(_PS_VERSION_, self::MIN_PS_VERSION, '<')) {
-            return self::$enabled;
-        }
-
-        try {
-            /** @var \Psr\Container\ContainerInterface $container */
-            $container = (new ContainerFinder(Context::getContext()))->getContainer();
-            $checker = $container->get('PrestaShop\\PrestaShop\\Core\\FeatureFlag\\FeatureFlagStateCheckerInterface');
-            self::$enabled = $checker !== null && $checker->isEnabled(self::FEATURE_FLAG);
-        } catch (Throwable $e) {
-            // If the container or the checker is not reachable, stay on the historical behavior.
-            self::$enabled = false;
-        }
-
-        return self::$enabled;
+        return CoreFeatureFlag::isEnabled(self::FEATURE_FLAG);
     }
 
     /**
@@ -83,6 +53,6 @@ class CombinationFeature
      */
     public static function resetCache()
     {
-        self::$enabled = null;
+        CoreFeatureFlag::resetCache();
     }
 }

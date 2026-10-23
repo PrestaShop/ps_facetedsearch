@@ -25,6 +25,7 @@ use Context;
 use Db;
 use Doctrine\Common\Collections\ArrayCollection;
 use PrestaShop\Module\FacetedSearch\CombinationFeature;
+use PrestaShop\Module\FacetedSearch\CoreFeatureFlag;
 use Product;
 use StockAvailable;
 
@@ -201,11 +202,13 @@ class MySQL extends AbstractAdapter
             $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
         }
 
+        $activeCombinationCondition = $this->isCombinationStatusFilteringEnabled() ? ' AND pa.active = 1' : '';
+
         $filterToTableMapping = [
             'id_product_attribute' => [
-                'tableName' => 'product_attribute',
+                'tableName' => 'product_attribute_shop',
                 'tableAlias' => 'pa',
-                'joinCondition' => '(p.id_product = pa.id_product)',
+                'joinCondition' => '(p.id_product = pa.id_product AND pa.id_shop = ' . $this->getContext()->shop->id . $activeCombinationCondition . ')',
                 'joinType' => self::LEFT_JOIN,
             ],
             'id_attribute' => [
@@ -400,6 +403,17 @@ class MySQL extends AbstractAdapter
     protected function isCombinationFeatureFilteringEnabled()
     {
         return CombinationFeature::isFilteringEnabled();
+    }
+
+    /**
+     * Whether disabled combinations must be left out of the filters.
+     * Extracted so it can be overridden in tests.
+     *
+     * @return bool
+     */
+    protected function isCombinationStatusFilteringEnabled()
+    {
+        return CoreFeatureFlag::isEnabled('combination_status');
     }
 
     /**
