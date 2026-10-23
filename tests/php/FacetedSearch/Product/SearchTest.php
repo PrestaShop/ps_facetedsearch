@@ -1130,7 +1130,7 @@ class SearchTest extends MockeryTestCase
         $this->assertEquals(
             [
                 'date_add' => [
-                    '>' => [
+                    '>=' => [
                         [
                             "'" . date('Y-m-d 00:00:00', strtotime('-29 days')) . "'",
                         ],
@@ -1195,7 +1195,7 @@ class SearchTest extends MockeryTestCase
         $this->assertEquals(
             [
                 'date_add' => [
-                    '>' => [
+                    '>=' => [
                         [
                             "'" . date('Y-m-d 00:00:00', strtotime('+ 1 days')) . "'",
                         ],

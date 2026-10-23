@@ -215,7 +215,7 @@ class Search
                             )
                         );
                         // Reset filter to prevent two same filters if we are on new products page
-                        $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+                        $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>=');
                     }
 
                     // Filter for discounts - they must work as OR
@@ -438,7 +438,7 @@ class Search
                     '+ 1 days')
                 )
             );
-            $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>');
+            $this->getSearchAdapter()->addFilter('date_add', ["'" . $timeCondition . "'"], '>=');
         }
 
         /*
