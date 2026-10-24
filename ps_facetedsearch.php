@@ -1283,9 +1283,15 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
         // Get data for all filter templates in the database
         $templates = $this->getDatabase()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'layered_filter ORDER BY date_add DESC');
 
-        // We will keep track of pages categories where filter was already set, so we don't have multiple
-        // filters for the same category and shop.
+        // We will keep track of which (shop, controller, category, filter) combinations were already
+        // set by a more recently created template, so several templates covering the same category
+        // contribute their distinct filters together (union) instead of one template silently
+        // replacing every other template's filters for that category.
         $alreadyAssigned = [];
+
+        // Running filter position per shop/controller/category, shared across every template that
+        // contributes filters to it (so positions stay sequential instead of restarting per template).
+        $positions = [];
 
         // Clear cache
         $this->invalidateLayeredFilterBlockCache();
@@ -1319,15 +1325,10 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                     $categories = ($controller == 'category' ? $data['categories'] : [0]);
 
                     foreach ($categories as $idCategory) {
-                        $n = 0;
-
-                        // Make unique job name and check if already generated something for this scenario
-                        // If yes, skip it, otherwise note this info for next time
-                        $jobName = $controller . '-' . $idCategory;
-                        if (in_array($jobName, $alreadyAssigned[$idShop])) {
-                            continue;
+                        $categoryJob = $controller . '-' . $idCategory;
+                        if (!isset($positions[$idShop][$categoryJob])) {
+                            $positions[$idShop][$categoryJob] = 0;
                         }
-                        $alreadyAssigned[$idShop][] = $jobName;
 
                         foreach ($data as $key => $value) {
                             // The template contains some other data than filters, so we clean it up a bit
@@ -1336,9 +1337,21 @@ VALUES(' . $last_id . ', ' . (int) $idShop . ')');
                                 continue;
                             }
 
+                            // Each individual filter on a given shop/controller/category is owned by
+                            // exactly one template - the most recently created one that enables it - so
+                            // a same-filter clash still resolves deterministically. Different filters
+                            // contributed by different templates for the same category are all kept,
+                            // instead of the first template processed excluding every other template's
+                            // filters for the whole category.
+                            $jobName = $categoryJob . '-' . $key;
+                            if (isset($alreadyAssigned[$idShop][$jobName])) {
+                                continue;
+                            }
+                            $alreadyAssigned[$idShop][$jobName] = true;
+
                             $type = $value['filter_type'];
                             $limit = $value['filter_show_limit'];
-                            ++$n;
+                            $n = ++$positions[$idShop][$categoryJob];
 
                             if ($key == 'layered_selection_stock') {
                                 $sqlInsert .= '(' . (int) $idCategory . ', \'' . $controller . '\', ' . (int) $idShop . ', NULL,\'availability\',' . (int) $n . ', ' . (int) $limit . ', ' . (int) $type . '),';
