@@ -120,6 +120,16 @@ interface InterfaceAdapter
     public function count();
 
     /**
+     * Return the number of results matching each list of operations, for the current search
+     *
+     * @param string $filterName
+     * @param array $operationsList operations of filterName, by result key
+     *
+     * @return int[] by result key
+     */
+    public function countOperations($filterName, array $operationsList);
+
+    /**
      * Move the current search into the "initialPopulation"
      * This initialPopulation will be used to generate the first derived table 'FROM (SELECT ...)' in the final query
      * e.g. : SELECT ... FROM (initialPopulation) p JOIN ....

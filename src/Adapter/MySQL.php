@@ -20,6 +20,7 @@
 
 namespace PrestaShop\Module\FacetedSearch\Adapter;
 
+use ArrayObject;
 use Configuration;
 use Context;
 use Db;
@@ -46,6 +47,16 @@ class MySQL extends AbstractAdapter
     const INNER_JOIN = 'INNER JOIN';
 
     /**
+     * @var int
+     */
+    const MAX_POPULATION_PRODUCT_IDS = 250000;
+
+    /**
+     * @var ArrayObject|null
+     */
+    private $populationProductIds;
+
+    /**
      * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
@@ -54,6 +65,7 @@ class MySQL extends AbstractAdapter
         $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields(['price_min', 'MIN(price_min) as min, MAX(price_max) as max']);
         $mysqlAdapter->setOrderField('');
+        $mysqlAdapter->getInitialPopulationProductIds(true);
 
         $result = $mysqlAdapter->execute();
 
@@ -62,12 +74,19 @@ class MySQL extends AbstractAdapter
 
     /**
      * {@inheritdoc}
+     *
+     * @return MySQL
      */
     public function getFilteredSearchAdapter($resetFilter = null, $skipInitialPopulation = false)
     {
         $mysqlAdapter = new self();
+        $mysqlAdapter->populationProductIds = $this->populationProductIds;
         if ($this->getInitialPopulation() !== null && !$skipInitialPopulation) {
             $mysqlAdapter->initialPopulation = clone $this->getInitialPopulation();
+            $mysqlAdapter->initialPopulation->setSelectFields(array_values(array_diff(
+                $mysqlAdapter->initialPopulation->getSelectFields()->toArray(),
+                array_keys($this->getFieldMapping())
+            )));
             if ($resetFilter) {
                 // Try to reset filter & operations filter
                 $mysqlAdapter->initialPopulation->resetFilter($resetFilter);
@@ -110,6 +129,9 @@ class MySQL extends AbstractAdapter
         // If this query IS the initial population (the base table), we are selecting from product table
         if ($this->getInitialPopulation() === null) {
             $referenceTable = _DB_PREFIX_ . 'product';
+        } elseif (null !== ($productIds = $this->getInitialPopulationProductIds())) {
+            $referenceTable = _DB_PREFIX_ . 'product';
+            array_unshift($whereConditions, 'p.id_product IN (' . $productIds . ')');
         // If not, we will call this function again but for the initial population
         } else {
             $referenceTable = '(' . $this->getInitialPopulation()->getQuery() . ')';
@@ -155,6 +177,38 @@ class MySQL extends AbstractAdapter
         }
 
         return $query;
+    }
+
+    /**
+     * @param bool $load
+     *
+     * @return string|null
+     */
+    private function getInitialPopulationProductIds($load = false)
+    {
+        if ($this->getInitialPopulation() === null || $this->populationProductIds === null
+            || array_intersect($this->getInitialPopulation()->getSelectFields()->toArray(), array_keys($this->getFieldMapping()))
+        ) {
+            return null;
+        }
+
+        $population = clone $this->getInitialPopulation();
+        $population->setSelectFields(['id_product']);
+        $population->setOrderField('');
+        $query = $population->getQuery();
+        $productIds = $this->populationProductIds;
+        if ($load && !$productIds->offsetExists($query)) {
+            $result = $this->getDatabase()->executeS($query . ' LIMIT ' . (self::MAX_POPULATION_PRODUCT_IDS + 1), false);
+            $ids = [];
+            while ($result && ($row = $this->getDatabase()->nextRow($result))) {
+                $ids[] = (int) $row['id_product'];
+            }
+            $productIds[$query] = !$result || count($ids) > self::MAX_POPULATION_PRODUCT_IDS
+                ? null
+                : implode(', ', $ids ?: [0]);
+        }
+
+        return isset($productIds[$query]) ? $productIds[$query] : null;
     }
 
     /**
@@ -700,35 +754,10 @@ class MySQL extends AbstractAdapter
         $whereConditions = [];
         $operationIdx = 0;
         foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
-            $operationsConditions = [];
-            foreach ($filterOperations as $operations) {
-                $conditions = [];
-                foreach ($operations as $idx => $operation) {
-                    $selectAlias = 'p';
-                    $values = $operation[1];
-                    if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
-                        $joinMapping = $filterToTableMapping[$operation[0]];
-                        // If index is not the first, append to the table alias for
-                        // multi join
-                        $selectAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
-                        $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
-                    }
-
-                    if (count($values) === 1) {
-                        $operator = !empty($operation[2]) ? $operation[2] : '=';
-                        $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
-                    } else {
-                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
-                    }
-                }
-
-                $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
+            if (!empty($filterOperations)) {
+                $whereConditions[] = $this->computeOperationsCondition($filterOperations, $operationIdx, $filterToTableMapping);
             }
-
             ++$operationIdx;
-            if (!empty($operationsConditions)) {
-                $whereConditions[] = '(' . implode(' OR ', $operationsConditions) . ')';
-            }
         }
 
         foreach ($this->getFilters() as $filterName => $filterContent) {
@@ -798,6 +827,43 @@ class MySQL extends AbstractAdapter
         }
 
         return $whereConditions;
+    }
+
+    /**
+     * @param array $filterOperations
+     * @param int $operationIdx
+     * @param array $filterToTableMapping
+     *
+     * @return string
+     */
+    private function computeOperationsCondition(array $filterOperations, $operationIdx, array $filterToTableMapping)
+    {
+        $operationsConditions = [];
+        foreach ($filterOperations as $operations) {
+            $conditions = [];
+            foreach ($operations as $idx => $operation) {
+                $selectAlias = 'p';
+                $values = $operation[1];
+                if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
+                    $joinMapping = $filterToTableMapping[$operation[0]];
+                    // If index is not the first, append to the table alias for
+                    // multi join
+                    $selectAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
+                    $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
+                }
+
+                if (count($values) === 1) {
+                    $operator = !empty($operation[2]) ? $operation[2] : '=';
+                    $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
+                } else {
+                    $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
+                }
+            }
+
+            $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
+        }
+
+        return '(' . implode(' OR ', $operationsConditions) . ')';
     }
 
     /**
@@ -945,6 +1011,7 @@ class MySQL extends AbstractAdapter
         $mysqlAdapter->copyFilters($this);
         $mysqlAdapter->setSelectFields(['MIN(' . $fieldName . ') as min, MAX(' . $fieldName . ') as max']);
         $mysqlAdapter->setOrderField('');
+        $mysqlAdapter->getInitialPopulationProductIds(true);
 
         $result = $mysqlAdapter->execute();
 
@@ -967,6 +1034,32 @@ class MySQL extends AbstractAdapter
     /**
      * {@inheritdoc}
      */
+    public function countOperations($filterName, array $operationsList)
+    {
+        $mysqlAdapter = $this->getFilteredSearchAdapter();
+        $mysqlAdapter->copyFilters($this);
+        $mysqlAdapter->addOperationsFilter($filterName, array_merge(...array_values($operationsList)));
+        $mysqlAdapter->copyOperationsFilters();
+        $mysqlAdapter->setOrderField('');
+
+        $filterToTableMapping = $mysqlAdapter->getFieldMapping();
+        $operationIdx = array_search($filterName, $mysqlAdapter->getOperationsFilters()->getKeys(), true);
+        $countFields = [];
+        foreach (array_values($operationsList) as $idx => $operations) {
+            $countFields[] = 'COUNT(DISTINCT IF(' . $mysqlAdapter->computeOperationsCondition($operations, $operationIdx, $filterToTableMapping) . ', p.id_product, NULL)) c' . $idx;
+        }
+        $mysqlAdapter->setSelectFields($countFields);
+        $mysqlAdapter->getInitialPopulationProductIds(true);
+
+        $result = $mysqlAdapter->execute();
+        $counts = isset($result[0]) ? array_values($result[0]) : array_fill(0, count($operationsList), 0);
+
+        return array_combine(array_keys($operationsList), array_map('intval', $counts));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function valueCount($fieldName = null)
     {
         $this->resetGroupBy();
@@ -979,6 +1072,7 @@ class MySQL extends AbstractAdapter
         $this->setOrderField('');
 
         $this->copyOperationsFilters();
+        $this->getInitialPopulationProductIds(true);
 
         return $this->execute();
     }
@@ -993,6 +1087,8 @@ class MySQL extends AbstractAdapter
 
         // Keep the base product population narrow until an outer query requests more fields.
         $this->setSelectFields(['id_product']);
+
+        $this->populationProductIds = new ArrayObject();
 
         // Clone it, add it to initial population
         $this->initialPopulation = clone $this;
@@ -1025,7 +1121,7 @@ class MySQL extends AbstractAdapter
     protected function copyOperationsFilters()
     {
         $initialPopulation = $this->getInitialPopulation();
-        if (null === $initialPopulation) {
+        if (null === $initialPopulation || !$this->usesCombinationFields()) {
             return;
         }
 
@@ -1036,5 +1132,36 @@ class MySQL extends AbstractAdapter
                 $operations
             );
         }
+    }
+
+    /**
+     * @return bool
+     */
+    private function usesCombinationFields()
+    {
+        $fields = array_merge(
+            $this->getSelectFields()->toArray(),
+            $this->getGroupFields()->toArray(),
+            $this->getFilters()->getKeys()
+        );
+        foreach ($this->getOperationsFilters() as $filterOperations) {
+            foreach ($filterOperations as $operations) {
+                foreach ($operations as $operation) {
+                    $fields[] = $operation[0];
+                }
+            }
+        }
+
+        $filterToTableMapping = $this->getFieldMapping();
+        foreach ($fields as $field) {
+            while (isset($filterToTableMapping[$field])) {
+                if ($field === 'id_product_attribute') {
+                    return true;
+                }
+                $field = isset($filterToTableMapping[$field]['dependencyField']) ? $filterToTableMapping[$field]['dependencyField'] : null;
+            }
+        }
+
+        return false;
     }
 }
