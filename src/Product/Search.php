@@ -395,6 +395,8 @@ class Search
             // If we want to display only products from this category AND not it's subcategories,
             // we add this one specific category ID, otherwise, we will add everything using nleft and nright
             if (Configuration::get('PS_LAYERED_FULL_TREE')) {
+                // Explicitly bound nleft on both sides to limit the index scan to the current category subtree.
+                // The upper bound is logically redundant but helps MySQL use a much smaller index range.
                 $this->getSearchAdapter()->addFilter('nleft', [$category->nleft], '>=');
                 $this->getSearchAdapter()->addFilter('nleft', [$category->nright], '<=');
                 $this->getSearchAdapter()->addFilter('nright', [$category->nright], '<=');

@@ -999,6 +999,7 @@ class Block
             $filteredSearchAdapter->addFilter('level_depth', [$depth + $levelDepth], '<=');
         }
 
+        // The upper bound on nleft is logically redundant but limits the index scan to the subtree.
         $filteredSearchAdapter->addFilter('nleft', [$parent->nleft], '>');
         $filteredSearchAdapter->addFilter('nleft', [$parent->nright], '<');
         $filteredSearchAdapter->addFilter('nright', [$parent->nright], '<');
