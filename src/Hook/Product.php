@@ -24,6 +24,7 @@ class Product extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
         'actionProductSave',
+        'actionObjectProductDeleteAfter',
     ];
 
     /**
@@ -38,7 +39,25 @@ class Product extends AbstractHook
         }
 
         $this->module->indexProductPrices((int) $params['id_product']);
-        $this->module->indexAttributes((int) $params['id_product']);
+        $this->module->invalidateLayeredFilterBlockCache();
+    }
+
+    /**
+     * After product deletion, from all shops or only some of them
+     *
+     * @param array $params
+     */
+    public function actionObjectProductDeleteAfter(array $params)
+    {
+        if (empty($params['object']->id)) {
+            return;
+        }
+
+        $this->module->getDatabase()->execute(
+            'DELETE lpi FROM `' . _DB_PREFIX_ . 'layered_price_index` lpi
+            LEFT JOIN `' . _DB_PREFIX_ . 'product_shop` ps ON ps.id_product = lpi.id_product AND ps.id_shop = lpi.id_shop
+            WHERE lpi.id_product = ' . (int) $params['object']->id . ' AND ps.id_product IS NULL'
+        );
         $this->module->invalidateLayeredFilterBlockCache();
     }
 }
