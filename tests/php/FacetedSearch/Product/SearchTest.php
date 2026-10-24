@@ -245,6 +245,11 @@ class SearchTest extends MockeryTestCase
                             101,
                         ],
                     ],
+                    '<=' => [
+                        [
+                            102,
+                        ],
+                    ],
                 ],
                 'nright' => [
                     '<=' => [
