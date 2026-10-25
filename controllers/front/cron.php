@@ -71,6 +71,12 @@ class Ps_FacetedSearchCronModuleFrontController extends ModuleFrontController
                 }
 
                 break;
+            case 'processDeferred':
+                require_once dirname(__DIR__, 2) . '/classes/DeferredIndexer.php';
+                $module = new Ps_Facetedsearch();
+                $processed = PsFacetedsearchDeferredIndexer::process($module, (int) Tools::getValue('limit', 50));
+                $this->ajaxRender((string) $processed);
+                break;
             default:
                 header('HTTP/1.1 403 Forbidden');
                 header('Status: 403 Forbidden');

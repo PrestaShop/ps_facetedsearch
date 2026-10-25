@@ -37,6 +37,12 @@ class Product extends AbstractHook
             return;
         }
 
+        require_once dirname(__DIR__, 2) . '/classes/DeferredIndexer.php';
+        if (\PsFacetedsearchDeferredIndexer::shouldDefer()
+            && \PsFacetedsearchDeferredIndexer::enqueue((int) $params['id_product'])) {
+            return;
+        }
+
         $this->module->indexProductPrices((int) $params['id_product']);
         $this->module->indexAttributes((int) $params['id_product']);
         $this->module->invalidateLayeredFilterBlockCache();

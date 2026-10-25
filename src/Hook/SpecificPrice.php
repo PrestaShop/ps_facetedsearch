@@ -62,6 +62,17 @@ class SpecificPrice extends AbstractHook
         /** @var \SpecificPriceRule */
         $specificPrice = $params['return'];
         $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
+        require_once dirname(__DIR__, 2) . '/classes/DeferredIndexer.php';
+        if (\PsFacetedsearchDeferredIndexer::shouldDefer()) {
+            $queued = true;
+            foreach ($affectedProducts as $product) {
+                $queued = \PsFacetedsearchDeferredIndexer::enqueue((int) $product['id_product']) && $queued;
+            }
+            if ($queued) {
+                return;
+            }
+        }
+
         foreach ($affectedProducts as $product) {
             $this->module->indexProductPrices($product['id_product']);
             $this->module->indexAttributes($product['id_product']);
