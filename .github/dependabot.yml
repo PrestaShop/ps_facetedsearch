@@ -3,14 +3,58 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
+    day: monday
     time: "04:00"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 5
   target-branch: dev
+  groups:
+    # One PR for the whole JS toolchain instead of one per package.
+    npm-development:
+      dependency-type: development
+      update-types:
+      - minor
+      - patch
+    npm-development-major:
+      dependency-type: development
+      update-types:
+      - major
+    npm-production:
+      dependency-type: production
+      update-types:
+      - minor
+      - patch
+      - major
 - package-ecosystem: composer
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
+    day: monday
     time: "04:00"
-  open-pull-requests-limit: 10
+  open-pull-requests-limit: 5
   target-branch: dev
+  groups:
+    composer-development:
+      dependency-type: development
+      update-types:
+      - minor
+      - patch
+      - major
+    composer-production:
+      dependency-type: production
+      update-types:
+      - minor
+      - patch
+      - major
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    day: monday
+    time: "04:00"
+  open-pull-requests-limit: 5
+  target-branch: dev
+  groups:
+    github-actions:
+      patterns:
+      - "*"

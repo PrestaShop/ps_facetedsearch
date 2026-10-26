@@ -16,10 +16,10 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  */
-import NumberFormatter from './number-formatter';
-import NumberSymbol from './number-symbol';
-import PriceSpecification from './specifications/price';
-import NumberSpecification from './specifications/number';
+import NumberFormatter from './number-formatter.js';
+import NumberSymbol from './number-symbol.js';
+import PriceSpecification from './specifications/price.js';
+import NumberSpecification from './specifications/number.js';
 
 export {
   PriceSpecification,
