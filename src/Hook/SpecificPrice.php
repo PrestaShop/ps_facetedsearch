@@ -55,15 +55,19 @@ class SpecificPrice extends AbstractHook
      */
     public function actionAdminSpecificPriceRuleControllerSaveAfter(array $params)
     {
-        if (empty($params['return']->id) || empty($this->productsBefore)) {
+        if (empty($params['return']->id)) {
             return;
         }
 
         /** @var \SpecificPriceRule */
         $specificPrice = $params['return'];
-        $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
-        foreach ($affectedProducts as $product) {
-            $this->module->indexProductPrices($product['id_product']);
+        // One row per combination when the rule has attribute conditions
+        $affectedProductIds = array_unique(array_map('intval', array_column(
+            array_merge($this->productsBefore ?: [], $specificPrice->getAffectedProducts()),
+            'id_product'
+        )));
+        foreach (array_filter($affectedProductIds) as $idProduct) {
+            $this->module->indexProductPrices($idProduct);
         }
 
         $this->module->invalidateLayeredFilterBlockCache();
