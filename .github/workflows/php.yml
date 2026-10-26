@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: PHP syntax checker 7.2
         uses: prestashop/github-action-php-lint/7.2@master
@@ -58,7 +58,7 @@ jobs:
       PHPRC: ${{ github.workspace }}/${{ github.event.repository.name }}/.phpstan-php-ini
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ${{ github.event.repository.name }}
 
@@ -103,7 +103,7 @@ jobs:
       PHPRC: ${{ github.workspace }}/${{ github.event.repository.name }}/.phpstan-php-ini
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ${{ github.event.repository.name }}
 
@@ -135,18 +135,18 @@ jobs:
           coverage: xdebug
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Add vendor folder in cache to make next builds faster
       - name: Cache vendor folder
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
             path: vendor
             key: php-${{ hashFiles('composer.lock') }}
 
       # Add composer local folder in cache to make next builds faster
       - name: Cache composer folder
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
             path: ~/.composer/cache
             key: php-composer-cache
