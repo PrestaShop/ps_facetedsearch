@@ -50,6 +50,7 @@ class Converter
     const TYPE_WEIGHT = 'weight';
     const TYPE_EXTRAS = 'extras';
 
+    const PROPERTY_META_TITLE = 'meta_title';
     const PROPERTY_URL_NAME = 'url_name';
     const PROPERTY_COLOR = 'color';
     const PROPERTY_TEXTURE = 'texture';
@@ -130,11 +131,17 @@ class Converter
                         if (isset($filterBlock['url_name'])) {
                             $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
                         }
+                        if (isset($filterBlock['meta_title'])) {
+                            $facet->setProperty(self::PROPERTY_META_TITLE, $filterBlock['meta_title']);
+                        }
                     } elseif ($filterBlock['type'] == self::TYPE_FEATURE) {
                         $type = 'feature';
                         $facet->setProperty(self::TYPE_FEATURE, $filterBlock['id_key']);
                         if (isset($filterBlock['url_name'])) {
                             $facet->setProperty(self::PROPERTY_URL_NAME, $filterBlock['url_name']);
+                        }
+                        if (isset($filterBlock['meta_title'])) {
+                            $facet->setProperty(self::PROPERTY_META_TITLE, $filterBlock['meta_title']);
                         }
                     }
 
@@ -154,6 +161,10 @@ class Converter
 
                         if (isset($filterArray['url_name'])) {
                             $filter->setProperty(self::PROPERTY_URL_NAME, $filterArray['url_name']);
+                        }
+
+                        if (isset($filterArray['meta_title'])) {
+                            $filter->setProperty(self::PROPERTY_META_TITLE, $filterArray['meta_title']);
                         }
 
                         if (array_key_exists('checked', $filterArray)) {
