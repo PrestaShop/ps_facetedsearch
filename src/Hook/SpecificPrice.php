@@ -64,7 +64,6 @@ class SpecificPrice extends AbstractHook
         $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
         foreach ($affectedProducts as $product) {
             $this->module->indexProductPrices($product['id_product']);
-            $this->module->indexAttributes($product['id_product']);
         }
 
         $this->module->invalidateLayeredFilterBlockCache();
