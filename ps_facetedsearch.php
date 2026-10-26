@@ -431,16 +431,13 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                 }
             }
 
-            // Global specific prices (id_product = 0) apply too, but are not iterated as product min prices
+            // Global specific prices (id_product = 0), like catalog price rules without conditions, apply too
             $specificPrices = $this->getDatabase()->executeS(
                 'SELECT id_product, id_currency, id_country, id_group, from_quantity,
                     (reduction_type = \'amount\' AND reduction_tax = 1 AND reduction > 0) AS tax_included_reduction
                 FROM `' . _DB_PREFIX_ . 'specific_price`
                 WHERE id_product IN (0,' . (int) $idProduct . ') AND id_shop IN (0,' . (int) $idShop . ')'
             ) ?: [];
-            $productMinPrices = array_filter($specificPrices, function ($specificPrice) use ($idProduct) {
-                return (int) $specificPrice['id_product'] === (int) $idProduct;
-            });
 
             $getTaxRate = function ($idCountry) use ($idTaxRulesGroup) {
                 return $this->getTaxCalculatorRate($idCountry, $idTaxRulesGroup);
@@ -464,7 +461,7 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
                         }
                         $basePrices = $sharedBasePrices;
                     }
-                    $priceRanges[$priceRangeKey] = $this->getProductPriceRange((int) $idProduct, $idShop, $idCountry, $currencyList, $basePrices, $productMinPrices, $groups);
+                    $priceRanges[$priceRangeKey] = $this->getProductPriceRange((int) $idProduct, $idShop, $idCountry, $currencyList, $basePrices, $specificPrices, $groups);
                 }
                 list($minPrice, $maxPrice) = $priceRanges[$priceRangeKey];
 
@@ -583,17 +580,17 @@ class Ps_Facetedsearch extends Module implements WidgetInterface
      * @param int $idCountry
      * @param array $currencyList
      * @param array $basePrices
-     * @param array $productMinPrices
+     * @param array $specificPrices Specific prices of the product and global ones
      * @param array $groups
      *
      * @return array [min prices, max prices], both indexed by currency
      */
-    private function getProductPriceRange($idProduct, $idShop, $idCountry, array $currencyList, array $basePrices, array $productMinPrices, array $groups)
+    private function getProductPriceRange($idProduct, $idShop, $idCountry, array $currencyList, array $basePrices, array $specificPrices, array $groups)
     {
         $minPrice = $basePrices;
         $maxPrice = $basePrices;
 
-        foreach ($productMinPrices as $specificPrice) {
+        foreach ($specificPrices as $specificPrice) {
             foreach ($currencyList as $currency) {
                 if ($specificPrice['id_currency'] &&
                     $specificPrice['id_currency'] != $currency['id_currency']
