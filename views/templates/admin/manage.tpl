@@ -43,6 +43,8 @@
 		<br>
 		{l s='Flush block cache:' d='Modules.Facetedsearch.Admin'} <strong>{$clear_cache_url_for_cron}</strong>
 		<br>
+		{l s='Process deferred indexing queue:' d='Modules.Facetedsearch.Admin'} <strong>{$deferred_indexer_url_for_cron}</strong>
+		<br>
 		<br>
 		<p>{l s='A nightly rebuild is recommended.' d='Modules.Facetedsearch.Admin'}</p>
 	</div>
@@ -326,6 +328,28 @@
 	  </div>
 	</div>
 	{/if}
+
+	<div class="form-group">
+	  <label class="col-lg-3 control-label">{l s='Enable deferred indexing queue' d='Modules.Facetedsearch.Admin'}</label>
+	  <div class="col-lg-9">
+		<span class="switch prestashop-switch fixed-width-lg">
+		  <input type="radio" name="ps_layered_index_deferred" id="ps_layered_index_deferred_on" value="1"{if $index_deferred} checked="checked"{/if}/>
+		  <label for="ps_layered_index_deferred_on" class="radioCheck">
+			<i class="color_success"></i> {l s='Yes' d='Admin.Global'}
+		  </label>
+		  <input type="radio" name="ps_layered_index_deferred" id="ps_layered_index_deferred_off" value="0"{if !$index_deferred} checked="checked"{/if}/>
+		  <label for="ps_layered_index_deferred_off" class="radioCheck">
+			<i class="color_danger"></i> {l s='No' d='Admin.Global'}
+		  </label>
+		  <a class="slide-button btn"></a>
+		</span>
+	  </div>
+	  <div class="col-lg-9 col-lg-offset-3">
+		<div class="help-block">
+		  {l s='Offload price and attribute indexation to a background cron job instead of executing during product save or catalog price rule updates.' d='Modules.Facetedsearch.Admin'}
+		</div>
+	  </div>
+	</div>
 
 	<div class="panel-footer">
 	  <button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' d='Admin.Actions'}</button>

@@ -71,6 +71,12 @@ class Ps_FacetedSearchCronModuleFrontController extends ModuleFrontController
                 }
 
                 break;
+            case 'processDeferred':
+                $module = new Ps_Facetedsearch();
+                $queue = new \PrestaShop\Module\FacetedSearch\Indexation\DeferredQueue(Db::getInstance());
+                $processed = $queue->process($module, (int) Tools::getValue('limit', 50));
+                $this->ajaxRender((string) $processed);
+                break;
             default:
                 header('HTTP/1.1 403 Forbidden');
                 header('Status: 403 Forbidden');

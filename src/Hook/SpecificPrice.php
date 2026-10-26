@@ -20,6 +20,8 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use PrestaShop\Module\FacetedSearch\Indexation\DeferredQueue;
+
 class SpecificPrice extends AbstractHook
 {
     /**
@@ -62,6 +64,19 @@ class SpecificPrice extends AbstractHook
         /** @var \SpecificPriceRule */
         $specificPrice = $params['return'];
         $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
+        $queue = new DeferredQueue($this->database);
+        if ($queue->shouldDefer() && !empty($affectedProducts)) {
+            $productIds = [];
+            foreach ($affectedProducts as $product) {
+                if (!empty($product['id_product'])) {
+                    $productIds[] = (int) $product['id_product'];
+                }
+            }
+            if (!empty($productIds) && $queue->enqueueMultiple($productIds)) {
+                return;
+            }
+        }
+
         foreach ($affectedProducts as $product) {
             $this->module->indexProductPrices($product['id_product']);
             $this->module->indexAttributes($product['id_product']);

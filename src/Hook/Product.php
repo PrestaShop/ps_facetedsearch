@@ -20,6 +20,8 @@
 
 namespace PrestaShop\Module\FacetedSearch\Hook;
 
+use PrestaShop\Module\FacetedSearch\Indexation\DeferredQueue;
+
 class Product extends AbstractHook
 {
     const AVAILABLE_HOOKS = [
@@ -34,6 +36,11 @@ class Product extends AbstractHook
     public function actionProductSave(array $params)
     {
         if (empty($params['id_product'])) {
+            return;
+        }
+
+        $queue = new DeferredQueue($this->database);
+        if ($queue->shouldDefer() && $queue->enqueue((int) $params['id_product'])) {
             return;
         }
 
