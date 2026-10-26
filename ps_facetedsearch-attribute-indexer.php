@@ -35,7 +35,6 @@ if (substr(Tools::hash('ps_facetedsearch/index'), 0, 10) != Tools::getValue('tok
 Shop::setContext(Shop::CONTEXT_ALL);
 
 $psFacetedsearch = new Ps_Facetedsearch();
-$psFacetedsearch->indexAttributes();
 $psFacetedsearch->indexFeatures();
 $psFacetedsearch->indexAttributeGroup();
 
