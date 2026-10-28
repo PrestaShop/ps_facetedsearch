@@ -206,7 +206,7 @@
 	<div class="form-group">
 	  <label class="col-lg-3 control-label">{l s='Category filter depth' d='Modules.Facetedsearch.Admin'}</label>
 	  <div class="col-lg-9">
-		<input type="text" name="ps_layered_filter_category_depth" value="{if $category_depth !== false}{$category_depth}{else}1{/if}" class="fixed-width-sm" />
+		<input type="number" min="0" step="1" name="ps_layered_filter_category_depth" value="{if $category_depth !== false}{$category_depth}{else}1{/if}" class="fixed-width-sm" />
 	  </div>
 		<div class="col-lg-9 col-lg-offset-3">
 		<div class="help-block">
