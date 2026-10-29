@@ -28,6 +28,7 @@ use Feature;
 use Group;
 use Manufacturer;
 use PrestaShop\Module\FacetedSearch\Adapter\InterfaceAdapter;
+use PrestaShop\Module\FacetedSearch\CombinationFeature;
 use PrestaShop\Module\FacetedSearch\Definition\Availability;
 use PrestaShop\Module\FacetedSearch\Product\Search;
 use PrestaShop\PrestaShop\Core\Localization\Locale;
@@ -902,7 +903,7 @@ class Block
             return [];
         }
 
-        return $this->countFacetValues($sharedIds, $ownIds, 'id_attribute_group', 'id_attribute', 'with_attributes_');
+        return $this->countFacetValues(empty($sharedIds) ? [] : [$sharedIds], $ownIds, 'id_attribute_group', 'id_attribute', 'with_attributes_');
     }
 
     /**
@@ -928,13 +929,19 @@ class Block
             return [];
         }
 
-        return $this->countFacetValues($sharedIds, $ownIds, 'id_feature', 'id_feature_value', 'with_features_');
+        $sharedIdGroups = empty($sharedIds) ? [] : [$sharedIds];
+        if (!empty($sharedIds) && CombinationFeature::isFilteringEnabled()) {
+            // A query counting features of a single level reads their own table, see MySQL::getFieldMapping().
+            $sharedIdGroups = CombinationFeature::groupFeaturesByLevel($sharedIds);
+        }
+
+        return $this->countFacetValues($sharedIdGroups, $ownIds, 'id_feature', 'id_feature_value', 'with_features_');
     }
 
     /**
      * A facet with a selected value ignores its own selection, so it is counted in its own query.
      *
-     * @param int[] $sharedIds facets counted with the current filters
+     * @param array<int, int[]> $sharedIdGroups facets counted with the current filters, one query per group
      * @param int[] $ownIds facets ignoring their own selection
      * @param string $idField id_attribute_group or id_feature
      * @param string $valueField id_attribute or id_feature_value
@@ -942,14 +949,17 @@ class Block
      *
      * @return array<int, array> value counts by facet ID
      */
-    private function countFacetValues(array $sharedIds, array $ownIds, $idField, $valueField, $selectionFilterPrefix)
+    private function countFacetValues(array $sharedIdGroups, array $ownIds, $idField, $valueField, $selectionFilterPrefix)
     {
-        $queries = empty($sharedIds) ? [] : [[$this->searchAdapter->getFilteredSearchAdapter(), $sharedIds]];
+        $queries = [];
+        foreach ($sharedIdGroups as $sharedIds) {
+            $queries[] = [$this->searchAdapter->getFilteredSearchAdapter(), $sharedIds];
+        }
         foreach ($ownIds as $id) {
             $queries[] = [$this->searchAdapter->getFilteredSearchAdapter($selectionFilterPrefix . $id), [$id]];
         }
 
-        $valueCounts = array_fill_keys(array_merge($sharedIds, $ownIds), []);
+        $valueCounts = array_fill_keys(array_merge(array_merge([], ...$sharedIdGroups), $ownIds), []);
         foreach ($queries as list($filteredSearchAdapter, $ids)) {
             $filteredSearchAdapter->addOperationsFilter($idField . '_' . implode('_', $ids), [[[$idField, $ids]]]);
             $filteredSearchAdapter->addSelectField($idField);

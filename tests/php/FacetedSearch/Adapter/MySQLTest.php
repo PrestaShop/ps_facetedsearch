@@ -187,21 +187,77 @@ class MySQLTest extends MockeryTestCase
         );
     }
 
-    public function testFeatureAndAttributeFiltersMustMatchTheSameCombination()
+    /**
+     * @param array<int, array{product: bool, combination: bool}> $featureValueLevels
+     * @param array<int, array{product: bool, combination: bool}> $featureLevels
+     *
+     * @return MySQL
+     */
+    private function getCombinationFeatureAdapter(array $featureValueLevels, array $featureLevels = [])
     {
-        $adapter = new class() extends MySQL {
+        return new class($featureValueLevels, $featureLevels) extends MySQL {
+            private $featureValueLevels;
+            private $featureLevels;
+
+            public function __construct(array $featureValueLevels, array $featureLevels)
+            {
+                parent::__construct();
+                $this->featureValueLevels = $featureValueLevels;
+                $this->featureLevels = $featureLevels;
+            }
+
             protected function isCombinationFeatureFilteringEnabled()
             {
                 return true;
             }
+
+            protected function getFeatureLevels(array $idFeatures)
+            {
+                return array_intersect_key($this->featureLevels, array_flip($idFeatures));
+            }
+
+            protected function getFeatureValueLevels(array $idFeatureValues)
+            {
+                return array_intersect_key($this->featureValueLevels, array_flip($idFeatureValues));
+            }
         };
+    }
+
+    /**
+     * Build a facet count query the way Filters\Block does: the counted features first, then the
+     * filters of the initial population copied by valueCount().
+     *
+     * @param MySQL $adapter
+     * @param int[] $idFeatures
+     *
+     * @return string
+     */
+    private function getFeatureCountQuery(MySQL $adapter, array $idFeatures)
+    {
+        $initialOperationsFilters = clone $adapter->getOperationsFilters();
+        $adapter->useFiltersAsInitialPopulation();
+        $adapter->addOperationsFilter('id_feature_' . implode('_', $idFeatures), [[['id_feature', $idFeatures]]]);
+        $adapter->setSelectFields(['id_feature', 'id_feature_value', 'COUNT(DISTINCT p.id_product) c']);
+        $adapter->addGroupBy('id_feature_value');
+        $adapter->setOrderField('');
+        foreach ($initialOperationsFilters as $filterName => $filterOperations) {
+            $adapter->addOperationsFilter($filterName, $filterOperations);
+        }
+
+        return $adapter->getQuery();
+    }
+
+    public function testFeatureAndAttributeFiltersMustMatchTheSameCombination()
+    {
+        // Value 11 is set on products and on combinations, only the derived table holds both.
+        $adapter = $this->getCombinationFeatureAdapter([11 => ['product' => true, 'combination' => true]]);
 
         // Filter on a feature value carried by one combination and on an attribute carried by
         // another one, the way Product\Search adds them.
         $adapter->addOperationsFilter('with_features_3', [[['id_feature_value', [11]]]]);
         $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
 
-        // Both the feature (fp) and the attribute (pac) joins are correlated with the same
+        // Both the feature (fpm) and the attribute (pac) joins are correlated with the same
         // product_attribute (pa) row, so the two filters must be satisfied by the same combination.
         $this->assertEquals(
             'SELECT  FROM ps_product p'
@@ -210,11 +266,205 @@ class MySQLTest extends MockeryTestCase
             . ' FROM ps_feature_product'
             . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
             . ' FROM ps_feature_product_attribute fpa'
+            . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fpm'
+            . ' ON (p.id_product = fpm.id_product'
+            . ' AND (fpm.id_product_attribute IS NULL OR fpm.id_product_attribute = pa.id_product_attribute))'
+            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
+            . ' WHERE ((fpm.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * A value only set on products applies to every combination of the product, so it joins
+     * feature_product on the product alone, without the derived table.
+     */
+    public function testProductLevelFeatureValueFilterJoinsFeatureProduct()
+    {
+        $adapter = $this->getCombinationFeatureAdapter([
+            10 => ['product' => true, 'combination' => false],
+            20 => ['product' => true, 'combination' => false],
+        ]);
+        $adapter->addSelectField('id_product');
+        $adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10, 20]]]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fpp ON (p.id_product = fpp.id_product)'
+            . ' WHERE ((fpp.id_feature_value IN (10, 20)))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * A value only set on combinations joins feature_product_attribute on the combination joined
+     * by the attribute filter, so both filters must still be satisfied by the same combination.
+     */
+    public function testCombinationLevelFeatureValueFilterJoinsTheSameCombination()
+    {
+        $adapter = $this->getCombinationFeatureAdapter([11 => ['product' => false, 'combination' => true]]);
+        $adapter->addOperationsFilter('with_features_3', [[['id_feature_value', [11]]]]);
+        $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
+
+        $this->assertEquals(
+            'SELECT  FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc ON (pa.id_product_attribute = fpc.id_product_attribute)'
+            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
+            . ' WHERE ((fpc.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * An AND feature facet requires every selected value on the same combination: one join per
+     * value, all bound to the same pa row.
+     */
+    public function testCombinationLevelFeatureValueAndFilterJoinsOncePerValue()
+    {
+        $adapter = $this->getCombinationFeatureAdapter([
+            10 => ['product' => false, 'combination' => true],
+            20 => ['product' => false, 'combination' => true],
+        ]);
+        $adapter->addSelectField('id_product');
+        $adapter->addOperationsFilter('with_features_1', [[
+            ['id_feature_value', [10]],
+            ['id_feature_value', [20]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc ON (pa.id_product_attribute = fpc.id_product_attribute)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_1 ON (pa.id_product_attribute = fpc_1.id_product_attribute)'
+            . ' WHERE ((fpc.id_feature_value=10 AND fpc_1.id_feature_value=20))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * The product count reads nothing per combination: the initial population already applies the
+     * filters, the outer query does not repeat them.
+     */
+    public function testOuterQueryReadingNoCombinationDoesNotRepeatTheFilters()
+    {
+        $adapter = $this->getCombinationFeatureAdapter([
+            10 => ['product' => true, 'combination' => false],
+            11 => ['product' => false, 'combination' => true],
+        ]);
+        $adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10]]]]);
+        $adapter->addOperationsFilter('with_features_2', [[['id_feature_value', [11]]]]);
+        $adapter->useFiltersAsInitialPopulation();
+        // What valueCount() does through copyOperationsFilters()
+        $adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10]]]]);
+        $adapter->addOperationsFilter('with_features_2', [[['id_feature_value', [11]]]]);
+        $adapter->setSelectFields(['COUNT(DISTINCT p.id_product) c']);
+        $adapter->setOrderField('');
+
+        $this->assertEquals(
+            'SELECT COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fpp ON (p.id_product = fpp.id_product)'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_1 ON (pa.id_product_attribute = fpc_1.id_product_attribute)'
+            . ' WHERE ((fpp.id_feature_value=10)) AND ((fpc_1.id_feature_value=11))) p',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * Product-level features are counted from feature_product on the products of the initial
+     * population, which already applies every filter.
+     */
+    public function testProductLevelFeaturesAreCountedFromFeatureProduct()
+    {
+        $adapter = $this->getCombinationFeatureAdapter(
+            [11 => ['product' => false, 'combination' => true]],
+            [3 => ['product' => true, 'combination' => false], 4 => ['product' => true, 'combination' => false]]
+        );
+        $adapter->addOperationsFilter('with_features_2', [[['id_feature_value', [11]]]]);
+
+        $this->assertEquals(
+            'SELECT fp.id_feature, fp.id_feature_value, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc ON (pa.id_product_attribute = fpc.id_product_attribute)'
+            . ' WHERE ((fpc.id_feature_value=11))) p'
+            . ' INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' WHERE ((fp.id_feature IN (3, 4)))'
+            . ' GROUP BY fp.id_feature_value',
+            $this->getFeatureCountQuery($adapter, [3, 4])
+        );
+    }
+
+    /**
+     * Combination-level features are counted from the combination joined by the combination
+     * filters, so a value is only counted when the same combination matches them. Product-level
+     * filters are already applied by the initial population.
+     */
+    public function testCombinationLevelFeaturesAreCountedOnTheFilteredCombination()
+    {
+        $adapter = $this->getCombinationFeatureAdapter(
+            [10 => ['product' => true, 'combination' => false], 11 => ['product' => false, 'combination' => true]],
+            [12 => ['product' => false, 'combination' => true]]
+        );
+        $adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10]]]]);
+        $adapter->addOperationsFilter('with_features_2', [[['id_feature_value', [11]]]]);
+
+        $this->assertEquals(
+            'SELECT fp.id_feature, fp.id_feature_value, COUNT(DISTINCT p.id_product) c FROM (SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fpp ON (p.id_product = fpp.id_product)'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_1 ON (pa.id_product_attribute = fpc_1.id_product_attribute)'
+            . ' WHERE ((fpp.id_feature_value=10)) AND ((fpc_1.id_feature_value=11))) p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' INNER JOIN ps_feature_product_attribute fp ON (pa.id_product_attribute = fp.id_product_attribute)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_2 ON (pa.id_product_attribute = fpc_2.id_product_attribute)'
+            . ' WHERE ((fp.id_feature=12)) AND ((fpc_2.id_feature_value=11))'
+            . ' GROUP BY fp.id_feature_value',
+            $this->getFeatureCountQuery($adapter, [12])
+        );
+    }
+
+    /**
+     * Features set on both levels keep the derived table, whose values are the result of the
+     * query, while the selected values of the other facets join their own table.
+     */
+    public function testMixedLevelFeaturesAreCountedFromTheDerivedTable()
+    {
+        $adapter = $this->getCombinationFeatureAdapter(
+            [
+                61 => ['product' => true, 'combination' => false],
+                70 => ['product' => false, 'combination' => true],
+                71 => ['product' => false, 'combination' => true],
+            ],
+            [4 => ['product' => true, 'combination' => true], 5 => ['product' => true, 'combination' => false]]
+        );
+        $adapter->addOperationsFilter('id_feature_4_5', [[['id_feature', [4, 5]]]]);
+        $adapter->addOperationsFilter('with_features_6', [[['id_feature_value', [61]]]]);
+        $adapter->addOperationsFilter('with_features_7', [[['id_feature_value', [70, 71]]]]);
+        $adapter->addSelectField('id_feature');
+        $adapter->addSelectField('id_feature_value');
+        $adapter->addGroupBy('id_feature_value');
+
+        $this->assertEquals(
+            'SELECT fp.id_feature, fp.id_feature_value FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' INNER JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
+            . ' FROM ps_feature_product'
+            . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
+            . ' FROM ps_feature_product_attribute fpa'
             . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
             . ' ON (p.id_product = fp.id_product'
             . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))'
-            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
-            . ' WHERE ((fp.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' LEFT JOIN ps_feature_product fpp_1 ON (p.id_product = fpp_1.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_2 ON (pa.id_product_attribute = fpc_2.id_product_attribute)'
+            . ' WHERE ((fp.id_feature IN (4, 5)))'
+            . ' AND ((fpp_1.id_feature_value=61))'
+            . ' AND ((fpc_2.id_feature_value IN (70, 71)))'
+            . ' GROUP BY fp.id_feature_value'
             . ' ORDER BY p.id_product DESC',
             $adapter->getQuery()
         );

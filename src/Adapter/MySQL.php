@@ -390,7 +390,87 @@ class MySQL extends AbstractAdapter
             ],
         ];
 
+        if ($this->isCombinationFeatureFilteringEnabled()) {
+            // The derived table is joined on id_product only (its combination condition is an OR), so
+            // the rows of a product are multiplied by its combinations for every join, and the
+            // resulting join order differs from one database engine to another. When the features or
+            // values involved are only set on products, or only on combinations, the matching table is
+            // joined on its full key instead, the derived table is only kept for the ones set on both.
+            // See getOperationField() for the filters.
+            $filterToTableMapping['mixed_feature_value'] = array_merge($filterToTableMapping['id_feature_value'], [
+                'tableAlias' => 'fpm',
+                'fieldName' => 'id_feature_value',
+                'joinCondition' => str_replace('fp.', 'fpm.', $featureJoinCondition),
+            ]);
+            $filterToTableMapping['product_feature_value'] = [
+                'tableName' => 'feature_product',
+                'tableAlias' => 'fpp',
+                'fieldName' => 'id_feature_value',
+                'joinCondition' => '(p.id_product = fpp.id_product)',
+                'joinType' => self::LEFT_JOIN,
+            ];
+            $filterToTableMapping['combination_feature_value'] = [
+                'tableName' => 'feature_product_attribute',
+                'tableAlias' => 'fpc',
+                'fieldName' => 'id_feature_value',
+                'joinCondition' => '(pa.id_product_attribute = fpc.id_product_attribute)',
+                'joinType' => self::LEFT_JOIN,
+                'dependencyField' => 'id_product_attribute',
+            ];
+
+            $countedFeatureTable = $this->getCountedFeatureTable();
+            if ($countedFeatureTable !== null) {
+                foreach (['id_feature', 'id_feature_value'] as $field) {
+                    $filterToTableMapping[$field] = array_merge(
+                        array_diff_key($filterToTableMapping[$field], ['dependencyField' => true]),
+                        $countedFeatureTable
+                    );
+                }
+            }
+        }
+
         return $filterToTableMapping;
+    }
+
+    /**
+     * The table counting the features of a facet count query (Filters\Block), when they are all
+     * set on the same level.
+     *
+     * @return array|null
+     */
+    private function getCountedFeatureTable()
+    {
+        $idFeatures = [];
+        foreach ($this->getOperationsFilters() as $filterOperations) {
+            foreach ($filterOperations as $operations) {
+                foreach ($operations as $operation) {
+                    if ($operation[0] === 'id_feature') {
+                        $idFeatures = array_merge($idFeatures, $operation[1]);
+                    }
+                }
+            }
+        }
+        if (empty($idFeatures)) {
+            return null;
+        }
+
+        switch (CombinationFeature::resolveLevel($this->getFeatureLevels($idFeatures))) {
+            case CombinationFeature::LEVEL_PRODUCT:
+                return [
+                    'tableName' => 'feature_product',
+                    'joinCondition' => '(p.id_product = fp.id_product)',
+                    'rawTable' => false,
+                ];
+            case CombinationFeature::LEVEL_COMBINATION:
+                return [
+                    'tableName' => 'feature_product_attribute',
+                    'joinCondition' => '(pa.id_product_attribute = fp.id_product_attribute)',
+                    'rawTable' => false,
+                    'dependencyField' => 'id_product_attribute',
+                ];
+            default:
+                return null;
+        }
     }
 
     /**
@@ -402,6 +482,132 @@ class MySQL extends AbstractAdapter
     protected function isCombinationFeatureFilteringEnabled()
     {
         return CombinationFeature::isFilteringEnabled();
+    }
+
+    /**
+     * Extracted so it can be overridden in tests.
+     *
+     * @param int[] $idFeatures
+     *
+     * @return array<int, array{product: bool, combination: bool}>
+     */
+    protected function getFeatureLevels(array $idFeatures)
+    {
+        return CombinationFeature::getFeatureLevels($idFeatures);
+    }
+
+    /**
+     * Extracted so it can be overridden in tests.
+     *
+     * @param int[] $idFeatureValues
+     *
+     * @return array<int, array{product: bool, combination: bool}>
+     */
+    protected function getFeatureValueLevels(array $idFeatureValues)
+    {
+        return CombinationFeature::getFeatureValueLevels($idFeatureValues);
+    }
+
+    /**
+     * Pick the mapped field an operation filters on. A feature value filter uses the table of the
+     * level its values are set on, and the derived table only when they are set on both levels.
+     *
+     * @param array $operation
+     * @param array $filterToTableMapping
+     *
+     * @return string
+     */
+    private function getOperationField(array $operation, array $filterToTableMapping)
+    {
+        if ($operation[0] !== 'id_feature_value' || !isset($filterToTableMapping['product_feature_value'])) {
+            return $operation[0];
+        }
+
+        switch (CombinationFeature::resolveLevel($this->getFeatureValueLevels($operation[1]))) {
+            case CombinationFeature::LEVEL_PRODUCT:
+                return 'product_feature_value';
+            case CombinationFeature::LEVEL_COMBINATION:
+                return 'combination_feature_value';
+            default:
+                return 'mixed_feature_value';
+        }
+    }
+
+    /**
+     * Whether the initial population already applies this filter, so the outer query does not need
+     * to repeat it. That is the case when the outer query reads nothing per combination, or for
+     * values set on products, which are not tied to a combination. Repeating them only adds joins,
+     * which some engines pick as the first table (MariaDB 10.11 then joins the initial population
+     * without an index).
+     *
+     * @param string $filterName
+     * @param array $filterOperations
+     * @param array $filterToTableMapping
+     *
+     * @return bool
+     */
+    private function isAppliedByInitialPopulation($filterName, array $filterOperations, array $filterToTableMapping)
+    {
+        if (!isset($filterToTableMapping['product_feature_value'])
+            || $this->getInitialPopulation() === null
+            || $this->getInitialPopulation()->getOperationsFilters()->get($filterName) !== $filterOperations
+        ) {
+            return false;
+        }
+
+        if (!$this->readsCombination($filterToTableMapping)) {
+            return true;
+        }
+
+        foreach ($filterOperations as $operations) {
+            foreach ($operations as $operation) {
+                if ($this->getOperationField($operation, $filterToTableMapping) !== 'product_feature_value') {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Whether the outer query reads a field tied to a combination, apart from the filters copied
+     * from the initial population.
+     *
+     * @param array $filterToTableMapping
+     *
+     * @return bool
+     */
+    private function readsCombination(array $filterToTableMapping)
+    {
+        $fields = array_merge(
+            $this->getSelectFields()->toArray(),
+            $this->getGroupFields()->toArray(),
+            $this->getFilters()->getKeys(),
+            [$this->getOrderField()]
+        );
+        $initialOperationsFilters = $this->getInitialPopulation()->getOperationsFilters();
+        foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
+            if ($initialOperationsFilters->get($filterName) === $filterOperations) {
+                continue;
+            }
+            foreach ($filterOperations as $operations) {
+                foreach ($operations as $operation) {
+                    $fields[] = $this->getOperationField($operation, $filterToTableMapping);
+                }
+            }
+        }
+
+        foreach ($fields as $field) {
+            while (isset($filterToTableMapping[$field])) {
+                if ($field === 'id_product_attribute') {
+                    return true;
+                }
+                $field = isset($filterToTableMapping[$field]['dependencyField']) ? $filterToTableMapping[$field]['dependencyField'] : null;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -700,12 +906,18 @@ class MySQL extends AbstractAdapter
         $whereConditions = [];
         $operationIdx = 0;
         foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
+            if ($this->isAppliedByInitialPopulation($filterName, $filterOperations, $filterToTableMapping)) {
+                ++$operationIdx;
+                continue;
+            }
+
             $operationsConditions = [];
             foreach ($filterOperations as $operations) {
                 $conditions = [];
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
+                    $operation[0] = $this->getOperationField($operation, $filterToTableMapping);
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
@@ -829,9 +1041,15 @@ class MySQL extends AbstractAdapter
         $this->addJoinList($joinList, $this->getFilters()->getKeys(), $filterToTableMapping, true);
 
         $operationIdx = 0;
-        foreach ($this->getOperationsFilters() as $filterOperations) {
+        foreach ($this->getOperationsFilters() as $filterName => $filterOperations) {
+            if ($this->isAppliedByInitialPopulation($filterName, $filterOperations, $filterToTableMapping)) {
+                ++$operationIdx;
+                continue;
+            }
+
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
+                    $operation[0] = $this->getOperationField($operation, $filterToTableMapping);
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         $tableAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
