@@ -201,20 +201,91 @@ class MySQLTest extends MockeryTestCase
         $adapter->addOperationsFilter('with_features_3', [[['id_feature_value', [11]]]]);
         $adapter->addOperationsFilter('with_attributes_1', [[['id_attribute', [7]]]]);
 
-        // Both the feature (fp) and the attribute (pac) joins are correlated with the same
-        // product_attribute (pa) row, so the two filters must be satisfied by the same combination.
+        // The feature filter (EXISTS on the combination pa) and the attribute join (pac) are both
+        // correlated with the same product_attribute (pa) row, so the two filters must be
+        // satisfied by the same combination.
         $this->assertEquals(
             'SELECT  FROM ps_product p'
             . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
-            . ' LEFT JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
+            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
+            . ' WHERE (((EXISTS (SELECT 1 FROM ps_feature_product fpe WHERE fpe.id_product = p.id_product AND fpe.id_feature_value=11)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpae WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value=11))))'
+            . ' AND ((pac_1.id_attribute=7))'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * Joining the derived feature table once per feature filter multiplies the rows of a product
+     * by its matching combinations for every filter.
+     * Feature filters are therefore EXISTS conditions, only the counted feature keeps its join.
+     */
+    public function testCountedFeatureKeepsItsJoinWhileFeatureFiltersUseExists()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        // Facet count query, the way Filters\Block builds it: the counted features first, then
+        // the selected feature values of the other facets.
+        $adapter->addOperationsFilter('id_feature_4_5', [[['id_feature', [4, 5]]]]);
+        $adapter->addOperationsFilter('with_features_6', [[['id_feature_value', [61]]]]);
+        $adapter->addOperationsFilter('with_features_7', [[['id_feature_value', [10, 20]]]]);
+        $adapter->addSelectField('id_feature');
+        $adapter->addSelectField('id_feature_value');
+        $adapter->addGroupBy('id_feature_value');
+
+        $this->assertEquals(
+            'SELECT fp.id_feature, fp.id_feature_value FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' INNER JOIN (SELECT id_product, NULL AS id_product_attribute, id_feature, id_feature_value'
             . ' FROM ps_feature_product'
             . ' UNION SELECT pa.id_product, pa.id_product_attribute, fpa.id_feature, fpa.id_feature_value'
             . ' FROM ps_feature_product_attribute fpa'
             . ' INNER JOIN ps_product_attribute pa ON pa.id_product_attribute = fpa.id_product_attribute) fp'
             . ' ON (p.id_product = fp.id_product'
             . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))'
-            . ' LEFT JOIN ps_product_attribute_combination pac_1 ON (pa.id_product_attribute = pac_1.id_product_attribute)'
-            . ' WHERE ((fp.id_feature_value=11)) AND ((pac_1.id_attribute=7))'
+            . ' WHERE ((fp.id_feature IN (4, 5)))'
+            . ' AND (((EXISTS (SELECT 1 FROM ps_feature_product fpe WHERE fpe.id_product = p.id_product AND fpe.id_feature_value=61)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpae WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value=61))))'
+            . ' AND (((EXISTS (SELECT 1 FROM ps_feature_product fpe WHERE fpe.id_product = p.id_product AND fpe.id_feature_value IN (10, 20))'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpae WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value IN (10, 20)))))'
+            . ' GROUP BY fp.id_feature_value'
+            . ' ORDER BY p.id_product DESC',
+            $adapter->getQuery()
+        );
+    }
+
+    /**
+     * An AND feature facet requires every selected value on the same combination: one EXISTS per
+     * value, all bound to the same pa row.
+     */
+    public function testFeatureValueAndFilterUsesOneExistsPerValueWithCombinationFeatures()
+    {
+        $adapter = new class() extends MySQL {
+            protected function isCombinationFeatureFilteringEnabled()
+            {
+                return true;
+            }
+        };
+
+        $adapter->addSelectField('id_product');
+        $adapter->addOperationsFilter('with_features_1', [[
+            ['id_feature_value', [10]],
+            ['id_feature_value', [20]],
+        ]]);
+
+        $this->assertEquals(
+            'SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' WHERE (((EXISTS (SELECT 1 FROM ps_feature_product fpe WHERE fpe.id_product = p.id_product AND fpe.id_feature_value=10)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpae WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value=10))'
+            . ' AND (EXISTS (SELECT 1 FROM ps_feature_product fpe WHERE fpe.id_product = p.id_product AND fpe.id_feature_value=20)'
+            . ' OR EXISTS (SELECT 1 FROM ps_feature_product_attribute fpae WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value=20))))'
             . ' ORDER BY p.id_product DESC',
             $adapter->getQuery()
         );

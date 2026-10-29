@@ -405,6 +405,41 @@ class MySQL extends AbstractAdapter
     }
 
     /**
+     * Whether a filter operation is a feature value filter rendered as EXISTS conditions.
+     *
+     * With combination feature values, joining the derived feature table once per filter only
+     * correlates it with the product on id_product: the combination condition is checked at the
+     * very end, so every filter multiplies the rows of a product by the number of its matching
+     * combinations (N combinations ^ number of filters). EXISTS only tests that a matching row
+     * exists, it never multiplies rows. The counted feature (id_feature) keeps its join, its values
+     * are needed in the result.
+     *
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    private function isFeatureValueExistsFilter($fieldName)
+    {
+        return $fieldName === 'id_feature_value' && $this->isCombinationFeatureFilteringEnabled();
+    }
+
+    /**
+     * The feature value is carried by the product itself, or by the combination currently joined
+     * (pa), which keeps every feature filter bound to the same combination as the other filters.
+     *
+     * @param string $valueCondition condition on id_feature_value, without table alias (e.g. "=11")
+     *
+     * @return string
+     */
+    private function getFeatureValueExistsCondition($valueCondition)
+    {
+        return '(EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product fpe'
+            . ' WHERE fpe.id_product = p.id_product AND fpe.id_feature_value' . $valueCondition . ')'
+            . ' OR EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpae'
+            . ' WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value' . $valueCondition . '))';
+    }
+
+    /**
      * Get the joined and escaped value from an multi-dimensional array
      *
      * @param string $separator
@@ -706,6 +741,14 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
+                    if ($this->isFeatureValueExistsFilter($operation[0])) {
+                        $valueCondition = count($values) === 1
+                            ? (!empty($operation[2]) ? $operation[2] : '=') . current($values)
+                            : ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
+                        $conditions[] = $this->getFeatureValueExistsCondition($valueCondition);
+                        continue;
+                    }
+
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         // If index is not the first, append to the table alias for
@@ -832,6 +875,12 @@ class MySQL extends AbstractAdapter
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
+                    if ($this->isFeatureValueExistsFilter($operation[0])) {
+                        // No feature join: only the combination the EXISTS conditions refer to.
+                        $this->addJoinConditions($joinList, $filterToTableMapping['id_product_attribute'], $filterToTableMapping);
+                        continue;
+                    }
+
                     if ($this->requiresMappedTableForFilter($operation[0], $filterToTableMapping)) {
                         $joinMapping = $filterToTableMapping[$operation[0]];
                         $tableAlias = $this->getOperationTableAlias($joinMapping, $operationIdx, $idx);
