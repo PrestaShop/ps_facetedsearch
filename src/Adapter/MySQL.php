@@ -178,6 +178,7 @@ class MySQL extends AbstractAdapter
         $featureProductRawTable = false;
         $featureJoinCondition = '(p.id_product = fp.id_product)';
         $featureJoinExtra = [];
+        $featureValueFilterExtra = [];
         if ($this->isCombinationFeatureFilteringEnabled()) {
             // Derived table (id_product, id_product_attribute, id_feature, id_feature_value) merging
             // product-level feature values with the ones defined at combination level
@@ -199,6 +200,19 @@ class MySQL extends AbstractAdapter
             $featureJoinCondition = '(p.id_product = fp.id_product'
                 . ' AND (fp.id_product_attribute IS NULL OR fp.id_product_attribute = pa.id_product_attribute))';
             $featureJoinExtra = ['dependencyField' => 'id_product_attribute'];
+            // Joining the derived table once per feature filter only correlates it with the product
+            // on id_product: the combination condition above is checked at the very end, so every
+            // filter multiplies the rows of a product by its matching combinations (N combinations ^
+            // number of filters). A feature value filter is therefore an EXISTS condition instead of
+            // a join: the value is carried by the product, or by the combination currently joined
+            // (pa). EXISTS never multiplies rows. ":condition" is replaced by the condition on the
+            // value (e.g. "=11" or " IN (11, 12)"). The counted feature (id_feature) keeps its join.
+            $featureValueFilterExtra = [
+                'existsCondition' => '(EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product fpe'
+                    . ' WHERE fpe.id_product = p.id_product AND fpe.id_feature_value:condition)'
+                    . ' OR EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpae'
+                    . ' WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value:condition))',
+            ];
         }
 
         $filterToTableMapping = [
@@ -249,7 +263,7 @@ class MySQL extends AbstractAdapter
                 'joinCondition' => $featureJoinCondition,
                 'joinType' => self::LEFT_JOIN,
                 'rawTable' => $featureProductRawTable,
-            ], $featureJoinExtra),
+            ], $featureJoinExtra, $featureValueFilterExtra),
             'id_category' => [
                 'tableName' => 'category_product',
                 'tableAlias' => 'cp',
@@ -402,41 +416,6 @@ class MySQL extends AbstractAdapter
     protected function isCombinationFeatureFilteringEnabled()
     {
         return CombinationFeature::isFilteringEnabled();
-    }
-
-    /**
-     * Whether a filter operation is a feature value filter rendered as EXISTS conditions.
-     *
-     * With combination feature values, joining the derived feature table once per filter only
-     * correlates it with the product on id_product: the combination condition is checked at the
-     * very end, so every filter multiplies the rows of a product by the number of its matching
-     * combinations (N combinations ^ number of filters). EXISTS only tests that a matching row
-     * exists, it never multiplies rows. The counted feature (id_feature) keeps its join, its values
-     * are needed in the result.
-     *
-     * @param string $fieldName
-     *
-     * @return bool
-     */
-    private function isFeatureValueExistsFilter($fieldName)
-    {
-        return $fieldName === 'id_feature_value' && $this->isCombinationFeatureFilteringEnabled();
-    }
-
-    /**
-     * The feature value is carried by the product itself, or by the combination currently joined
-     * (pa), which keeps every feature filter bound to the same combination as the other filters.
-     *
-     * @param string $valueCondition condition on id_feature_value, without table alias (e.g. "=11")
-     *
-     * @return string
-     */
-    private function getFeatureValueExistsCondition($valueCondition)
-    {
-        return '(EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product fpe'
-            . ' WHERE fpe.id_product = p.id_product AND fpe.id_feature_value' . $valueCondition . ')'
-            . ' OR EXISTS (SELECT 1 FROM ' . _DB_PREFIX_ . 'feature_product_attribute fpae'
-            . ' WHERE fpae.id_product_attribute = pa.id_product_attribute AND fpae.id_feature_value' . $valueCondition . '))';
     }
 
     /**
@@ -741,11 +720,15 @@ class MySQL extends AbstractAdapter
                 foreach ($operations as $idx => $operation) {
                     $selectAlias = 'p';
                     $values = $operation[1];
-                    if ($this->isFeatureValueExistsFilter($operation[0])) {
-                        $valueCondition = count($values) === 1
-                            ? (!empty($operation[2]) ? $operation[2] : '=') . current($values)
-                            : ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
-                        $conditions[] = $this->getFeatureValueExistsCondition($valueCondition);
+                    if (count($values) === 1) {
+                        $operator = !empty($operation[2]) ? $operation[2] : '=';
+                        $valueCondition = $operator . current($values);
+                    } else {
+                        $valueCondition = ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
+                    }
+
+                    if (isset($filterToTableMapping[$operation[0]]['existsCondition'])) {
+                        $conditions[] = str_replace(':condition', $valueCondition, $filterToTableMapping[$operation[0]]['existsCondition']);
                         continue;
                     }
 
@@ -757,12 +740,7 @@ class MySQL extends AbstractAdapter
                         $operation[0] = isset($joinMapping['fieldName']) ? $joinMapping['fieldName'] : $operation[0];
                     }
 
-                    if (count($values) === 1) {
-                        $operator = !empty($operation[2]) ? $operation[2] : '=';
-                        $conditions[] = $selectAlias . '.' . $operation[0] . $operator . current($values);
-                    } else {
-                        $conditions[] = $selectAlias . '.' . $operation[0] . ' IN (' . $this->getJoinedEscapedValue(', ', $values) . ')';
-                    }
+                    $conditions[] = $selectAlias . '.' . $operation[0] . $valueCondition;
                 }
 
                 $operationsConditions[] = '(' . implode(' AND ', $conditions) . ')';
@@ -875,9 +853,10 @@ class MySQL extends AbstractAdapter
         foreach ($this->getOperationsFilters() as $filterOperations) {
             foreach ($filterOperations as $operations) {
                 foreach ($operations as $idx => $operation) {
-                    if ($this->isFeatureValueExistsFilter($operation[0])) {
-                        // No feature join: only the combination the EXISTS conditions refer to.
-                        $this->addJoinConditions($joinList, $filterToTableMapping['id_product_attribute'], $filterToTableMapping);
+                    if (isset($filterToTableMapping[$operation[0]]['existsCondition'])) {
+                        // The filter is an EXISTS condition, not a join: only join the table it refers to.
+                        $dependencyField = $filterToTableMapping[$operation[0]]['dependencyField'];
+                        $this->addJoinConditions($joinList, $filterToTableMapping[$dependencyField], $filterToTableMapping);
                         continue;
                     }
 
