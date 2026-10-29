@@ -46,6 +46,13 @@ class MySQL extends AbstractAdapter
     const INNER_JOIN = 'INNER JOIN';
 
     /**
+     * Level the counted features are read from, forced by getMixedFeatureCountQuery().
+     *
+     * @var string|null
+     */
+    private $countedFeatureLevel;
+
+    /**
      * {@inheritdoc}
      */
     public function getMinMaxPriceValue()
@@ -93,6 +100,10 @@ class MySQL extends AbstractAdapter
      */
     public function getQuery()
     {
+        if ($this->isMixedFeatureCount()) {
+            return $this->getMixedFeatureCountQuery();
+        }
+
         // Prepare mapping for joined tables
         $filterToTableMapping = $this->getFieldMapping();
 
@@ -393,10 +404,10 @@ class MySQL extends AbstractAdapter
         if ($this->isCombinationFeatureFilteringEnabled()) {
             // The derived table is joined on id_product only (its combination condition is an OR), so
             // the rows of a product are multiplied by its combinations for every join, and the
-            // resulting join order differs from one database engine to another. When the features or
-            // values involved are only set on products, or only on combinations, the matching table is
-            // joined on its full key instead, the derived table is only kept for the ones set on both.
-            // See getOperationField() for the filters.
+            // resulting join order differs from one database engine to another. Feature filters and
+            // counts join the table of the level their features or values are set on instead, on its
+            // full key. See getOperationField() for the filters and getCountedFeatureTable() for the
+            // counts. A filter on values set on both levels keeps the derived table.
             $filterToTableMapping['mixed_feature_value'] = array_merge($filterToTableMapping['id_feature_value'], [
                 'tableAlias' => 'fpm',
                 'fieldName' => 'id_feature_value',
@@ -433,12 +444,51 @@ class MySQL extends AbstractAdapter
     }
 
     /**
-     * The table counting the features of a facet count query (Filters\Block), when they are all
-     * set on the same level.
+     * Whether this is a facet count query (Filters\Block) on features set on both levels.
      *
-     * @return array|null
+     * @return bool
      */
-    private function getCountedFeatureTable()
+    private function isMixedFeatureCount()
+    {
+        if ($this->countedFeatureLevel !== null
+            || !$this->isCombinationFeatureFilteringEnabled()
+            || $this->getSelectFields()->toArray() !== ['id_feature', 'id_feature_value', 'COUNT(DISTINCT p.id_product) c']
+            || $this->getGroupFields()->toArray() !== ['id_feature_value']
+        ) {
+            return false;
+        }
+        $idFeatures = $this->getCountedFeatureIds();
+
+        return !empty($idFeatures) && CombinationFeature::resolveLevel($this->getFeatureLevels($idFeatures)) === null;
+    }
+
+    /**
+     * Count features set on both levels from the product-level and the combination-level rows of
+     * each product, each read from the table of its level, so a product is counted once per value
+     * whatever level carries it.
+     *
+     * @return string
+     */
+    private function getMixedFeatureCountQuery()
+    {
+        $levelQueries = [];
+        foreach ([CombinationFeature::LEVEL_PRODUCT, CombinationFeature::LEVEL_COMBINATION] as $level) {
+            $levelAdapter = clone $this;
+            $levelAdapter->countedFeatureLevel = $level;
+            $levelAdapter->setSelectFields(['id_product', 'id_feature', 'id_feature_value']);
+            $levelAdapter->resetGroupBy();
+            $levelQueries[] = $levelAdapter->getQuery();
+        }
+
+        return 'SELECT fp.id_feature, fp.id_feature_value, COUNT(DISTINCT fp.id_product) c'
+            . ' FROM (' . implode(' UNION ALL ', $levelQueries) . ') fp'
+            . ' GROUP BY fp.id_feature_value';
+    }
+
+    /**
+     * @return int[] the features counted by a facet count query (Filters\Block)
+     */
+    private function getCountedFeatureIds()
     {
         $idFeatures = [];
         foreach ($this->getOperationsFilters() as $filterOperations) {
@@ -450,11 +500,27 @@ class MySQL extends AbstractAdapter
                 }
             }
         }
+
+        return $idFeatures;
+    }
+
+    /**
+     * The table counting the features of a facet count query, when they are all set on the same
+     * level (or when getMixedFeatureCountQuery() forces it).
+     *
+     * @return array|null
+     */
+    private function getCountedFeatureTable()
+    {
+        $idFeatures = $this->getCountedFeatureIds();
         if (empty($idFeatures)) {
             return null;
         }
 
-        switch (CombinationFeature::resolveLevel($this->getFeatureLevels($idFeatures))) {
+        $level = $this->countedFeatureLevel !== null
+            ? $this->countedFeatureLevel
+            : CombinationFeature::resolveLevel($this->getFeatureLevels($idFeatures));
+        switch ($level) {
             case CombinationFeature::LEVEL_PRODUCT:
                 return [
                     'tableName' => 'feature_product',

@@ -432,7 +432,46 @@ class MySQLTest extends MockeryTestCase
      * Features set on both levels keep the derived table, whose values are the result of the
      * query, while the selected values of the other facets join their own table.
      */
-    public function testMixedLevelFeaturesAreCountedFromTheDerivedTable()
+
+    /**
+     * A feature set on both levels is counted from its product-level rows and from the ones of the
+     * filtered combination, each from its own table, and a product carrying a value at both levels
+     * is only counted once.
+     */
+    public function testMixedLevelFeaturesAreCountedFromBothTables()
+    {
+        $adapter = $this->getCombinationFeatureAdapter(
+            [10 => ['product' => true, 'combination' => false], 11 => ['product' => false, 'combination' => true]],
+            [4 => ['product' => true, 'combination' => true]]
+        );
+        $adapter->addOperationsFilter('with_features_1', [[['id_feature_value', [10]]]]);
+        $adapter->addOperationsFilter('with_features_2', [[['id_feature_value', [11]]]]);
+
+        $initialPopulation = '(SELECT p.id_product FROM ps_product p'
+            . ' LEFT JOIN ps_feature_product fpp ON (p.id_product = fpp.id_product)'
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_1 ON (pa.id_product_attribute = fpc_1.id_product_attribute)'
+            . ' WHERE ((fpp.id_feature_value=10)) AND ((fpc_1.id_feature_value=11))) p';
+        $this->assertEquals(
+            'SELECT fp.id_feature, fp.id_feature_value, COUNT(DISTINCT fp.id_product) c FROM ('
+            . 'SELECT p.id_product, fp.id_feature, fp.id_feature_value FROM ' . $initialPopulation
+            . ' INNER JOIN ps_feature_product fp ON (p.id_product = fp.id_product)'
+            . ' WHERE ((fp.id_feature=4))'
+            . ' UNION ALL '
+            . 'SELECT p.id_product, fp.id_feature, fp.id_feature_value FROM ' . $initialPopulation
+            . ' LEFT JOIN ps_product_attribute pa ON (p.id_product = pa.id_product)'
+            . ' INNER JOIN ps_feature_product_attribute fp ON (pa.id_product_attribute = fp.id_product_attribute)'
+            . ' LEFT JOIN ps_feature_product_attribute fpc_2 ON (pa.id_product_attribute = fpc_2.id_product_attribute)'
+            . ' WHERE ((fp.id_feature=4)) AND ((fpc_2.id_feature_value=11))'
+            . ') fp GROUP BY fp.id_feature_value',
+            $this->getFeatureCountQuery($adapter, [4])
+        );
+    }
+
+    /**
+     * Outside of a facet count query, a feature set on both levels keeps the derived table.
+     */
+    public function testMixedLevelFeaturesKeepTheDerivedTableOutsideOfACountQuery()
     {
         $adapter = $this->getCombinationFeatureAdapter(
             [
