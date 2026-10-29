@@ -135,7 +135,7 @@
                 <div class="col-lg-3 pull-right">
                   <label class="control-label col-lg-6">{l s='Filter style:' d='Modules.Facetedsearch.Admin'}</label>
                   <div class="col-lg-6">
-                    <input type="hidden" name="layered_selection_extras" value="0">
+                    <input type="hidden" name="layered_selection_extras_filter_type" value="0">
                     <p class="form-control-static">{l s='Checkbox' d='Modules.Facetedsearch.Admin'}</p>
                   </div>
                 </div>
