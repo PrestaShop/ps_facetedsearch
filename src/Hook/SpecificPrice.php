@@ -62,9 +62,15 @@ class SpecificPrice extends AbstractHook
         /** @var \SpecificPriceRule */
         $specificPrice = $params['return'];
         $affectedProducts = array_merge($this->productsBefore, $specificPrice->getAffectedProducts());
-        foreach ($affectedProducts as $product) {
-            $this->module->indexProductPrices($product['id_product']);
-            $this->module->indexAttributes($product['id_product']);
+        // getAffectedProducts() returns one row per combination, and both lists overlap:
+        // index each product only once
+        $productIds = array_unique(array_map('intval', array_column($affectedProducts, 'id_product')));
+        foreach ($productIds as $idProduct) {
+            $this->module->indexProductPrices($idProduct);
+            $this->module->indexAttributes($idProduct);
+            // Price caches grow with every product indexed, flush them to keep memory usage flat
+            \SpecificPrice::flushCache();
+            \Product::flushPriceCache();
         }
 
         $this->module->invalidateLayeredFilterBlockCache();
