@@ -389,17 +389,35 @@ class CoreSearchBackport
             return [];
         }
 
-        $sqlScore = '';
+        /*
+         * Relevance ("position") is the sum of the weights of the product's matching words.
+         * It used to be computed as a correlated subquery evaluated once per candidate product,
+         * which re-ran the "word LIKE" scan of search_word for every row and dominated the search
+         * time on large catalogs (issue #43373). Resolve the matching words once, then join the
+         * per-product weight sum as a single aggregation keyed on the indexed id_word.
+         */
+        $relevanceSelect = '';
+        $relevanceJoin = '';
         if (!empty($scoreArray)) {
-            $sqlScore = ',( ' .
-                'SELECT SUM(weight) ' .
-                'FROM ' . _DB_PREFIX_ . 'search_word sw ' .
-                'LEFT JOIN ' . _DB_PREFIX_ . 'search_index si ON sw.id_word = si.id_word ' .
-                'WHERE sw.id_lang = ' . (int) $context->language->id . ' ' .
-                'AND sw.id_shop = ' . $context->shop->id . ' ' .
-                'AND si.id_product = p.id_product ' .
-                'AND (' . implode(' OR ', $scoreArray) . ') ' .
-                ') position';
+            $matchingWordIds = array_map('intval', array_column((array) $db->executeS(
+                'SELECT sw.id_word '
+                . 'FROM ' . _DB_PREFIX_ . 'search_word sw '
+                . 'WHERE sw.id_lang = ' . (int) $context->language->id . ' '
+                . 'AND sw.id_shop = ' . (int) $context->shop->id . ' '
+                . 'AND (' . implode(' OR ', $scoreArray) . ')',
+                true,
+                false
+            ), 'id_word'));
+
+            if (!empty($matchingWordIds)) {
+                $relevanceSelect = ', relevance.position';
+                $relevanceJoin = 'LEFT JOIN ('
+                    . 'SELECT si.id_product, SUM(si.weight) position '
+                    . 'FROM ' . _DB_PREFIX_ . 'search_index si '
+                    . 'WHERE si.id_word IN (' . implode(',', $matchingWordIds) . ') '
+                    . 'GROUP BY si.id_product'
+                    . ') relevance ON relevance.id_product = cp.id_product ';
+            }
         }
 
         $sqlGroups = '';
@@ -409,18 +427,19 @@ class CoreSearchBackport
         }
 
         $results = $db->executeS(
-            'SELECT DISTINCT cp.`id_product` ' . $sqlScore . ' ' .
+            'SELECT DISTINCT cp.`id_product`' . $relevanceSelect . ' ' .
             'FROM `' . _DB_PREFIX_ . 'category_product` cp ' .
             (Group::isFeatureActive() ? 'INNER JOIN `' . _DB_PREFIX_ . 'category_group` cg ON cp.`id_category` = cg.`id_category`' : '') . ' ' .
             'INNER JOIN `' . _DB_PREFIX_ . 'category` c ON cp.`id_category` = c.`id_category` ' .
             'INNER JOIN `' . _DB_PREFIX_ . 'product` p ON cp.`id_product` = p.`id_product` ' .
             Shop::addSqlAssociation('product', 'p', false) . ' ' .
+            $relevanceJoin .
             'WHERE c.`active` = 1 ' .
             'AND product_shop.`active` = 1 ' .
             'AND product_shop.`visibility` IN ("both", "search") ' .
             'AND product_shop.indexed = 1 ' .
             'AND cp.id_product IN (' . implode(',', $eligibleProducts2Full) . ')' . $sqlGroups . '
-            ORDER BY position DESC, p.id_product ASC',
+            ' . ($relevanceSelect !== '' ? 'ORDER BY relevance.position DESC, p.id_product ASC' : 'ORDER BY p.id_product ASC'),
         true,
         false
         );
